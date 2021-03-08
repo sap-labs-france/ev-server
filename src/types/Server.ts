@@ -88,6 +88,7 @@ export enum ServerAction {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
   LOGS_CLEANUP = 'LogsCleanup',
+  PERFORMANCES_CLEANUP = 'PerformancesCleanup',
 
   SCHEDULER = 'Scheduler',
 
@@ -358,6 +359,8 @@ export enum ServerAction {
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
+  SYNCHRONIZE_USERS = 'SynchronizeUsers',
+
 
   NOTIFICATIONS = 'Notifications',
 
@@ -439,6 +442,8 @@ export enum ServerRoute {
 
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
+
+  REST_TRANSACTIONS = 'transactions',
 
   REST_PING = 'ping',
 

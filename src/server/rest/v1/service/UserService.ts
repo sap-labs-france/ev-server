@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserImportStatus, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -873,7 +873,7 @@ export default class UserService {
         void converter.subscribe(async (user) => {
           await UserService.importUser(action, req, user);
         }, (error) => {
-          Logging.logError({
+          void Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleUploadUsersFile',
             action: action,
@@ -884,14 +884,14 @@ export default class UserService {
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
           res.end();
         });
-        file.pipe(converter);
+        void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
         parser.on('data', async (user) => {
           await UserService.importUser(action, req, user);
         });
         parser.on('error', function(error) {
-          Logging.logError({
+          void Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleUploadUsersFile',
             action: action,
@@ -904,7 +904,7 @@ export default class UserService {
         });
         file.pipe(parser);
       } else {
-        Logging.logError({
+        void Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleUploadUsersFile',
           action: action,
@@ -916,7 +916,7 @@ export default class UserService {
       }
     });
     busboy.on('finish', function() {
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: req.user.tenantID,
         action: action,
         module: MODULE_NAME, method: 'handleUploadUsersFile',
@@ -987,7 +987,7 @@ export default class UserService {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
           const billingUser = await billingImpl.createUser(user);
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
             module: MODULE_NAME, method: 'handleCreateUser',
@@ -995,7 +995,7 @@ export default class UserService {
             message: 'User successfully created in billing system',
           });
         } catch (error) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleCreateUser',
             action: action,
@@ -1043,7 +1043,7 @@ export default class UserService {
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
       module: MODULE_NAME, method: 'handleCreateUser',
@@ -1100,7 +1100,7 @@ export default class UserService {
     // Get the settings
     const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
     if (!pricingSetting || !pricingSetting.convergentCharging) {
-      Logging.logException(
+      await Logging.logException(
         new Error('Convergent Charging setting is missing'),
         action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError({
@@ -1277,16 +1277,16 @@ export default class UserService {
 
   private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
     try {
-      const newUploadedUser = {
+      const newUploadedUser: ImportedUser = {
         name: user.Name,
         firstName: user.First_Name,
         email: user.Email,
-        role: user.Role,
-        importedBy: req.user.id
+        importedBy: req.user.id,
+        status: UserImportStatus.UNKNOWN
       };
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'handleUpdloadUsersFile',
         action: action,

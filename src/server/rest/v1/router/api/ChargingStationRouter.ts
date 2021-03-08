@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { ServerAction, ServerRoute } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
@@ -143,20 +144,23 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationGetOCPPParameters(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION_GET_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ChargeBoxID = req.params.id;
-      await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStationOcppParameters.bind(this), ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
+        ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS, req, res, next);
     });
   }
 
   protected buildRouteChargingStationRequestOCPPParameters(): void {
     this.router.post(`/${ServerRoute.REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(ChargingStationService.handleRequestChargingStationOcppParameters.bind(this), ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
+        ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS, req, res, next);
     });
   }
 
   protected buildRouteChargingStationExportOCPPParameters(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ChargingStationID = req.params.id;
-      await RouterUtils.handleServerAction(ChargingStationService.handleExportChargingStationsOCPPParams.bind(this), ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleExportChargingStationsOCPPParams.bind(this),
+        ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT, req, res, next);
     });
   }
 

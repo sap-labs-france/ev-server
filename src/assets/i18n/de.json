@@ -148,6 +148,8 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
+    "id": "Badge ID",
+    "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },
   "transactions": {

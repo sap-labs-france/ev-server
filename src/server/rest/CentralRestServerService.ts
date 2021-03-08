@@ -4,7 +4,6 @@ import AssetService from './v1/service/AssetService';
 import BillingService from './v1/service/BillingService';
 import CarService from './v1/service/CarService';
 import ChargingStationService from './v1/service/ChargingStationService';
-import { Command } from '../../types/ChargingStation';
 import CompanyService from './v1/service/CompanyService';
 import ConnectionService from './v1/service/ConnectionService';
 import Logging from '../../utils/Logging';

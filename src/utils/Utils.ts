@@ -4,6 +4,7 @@ import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
+import crypto, { CipherGCMTypes } from 'crypto';
 
 import Address from '../types/Address';
 import { AxiosError } from 'axios';
@@ -12,7 +13,9 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
+import { Decimal } from 'decimal.js';
 import { ObjectID } from 'mongodb';
+import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -24,8 +27,9 @@ import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import cfenv from 'cfenv';
-import crypto from 'crypto';
+import cluster from 'cluster';
 import fs from 'fs';
+import global from '../types/GlobalType';
 import http from 'http';
 import moment from 'moment';
 import os from 'os';
@@ -34,8 +38,6 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
-
-const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -471,15 +473,12 @@ export default class Utils {
       // Create Object
       changedValue = parseFloat(value);
     }
+    // Fix float
     return changedValue;
   }
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 6);
-  }
-
-  public static computeSimpleRoundedPrice(pricePerkWh: number, consumptionWh: number): number {
-    return Utils.truncTo(pricePerkWh * (consumptionWh / 1000), 2);
+    return Utils.createDecimal(pricePerkWh).mul(Utils.convertToFloat(consumptionWh)).div(1000).toNumber();
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
@@ -504,7 +503,7 @@ export default class Utils {
   public static convertAmpToWatt(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, ampValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return voltage * ampValue;
+      return Utils.createDecimal(voltage).mul(ampValue).toNumber();
     }
     return 0;
   }
@@ -512,9 +511,16 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return wattValue / voltage;
+      return Utils.createDecimal(wattValue).div(voltage).toNumber();
     }
     return 0;
+  }
+
+  public static createDecimal(value: number): Decimal {
+    if (Utils.isNullOrUndefined(value)) {
+      value = 0;
+    }
+    return new Decimal(value);
   }
 
   public static getChargePointFromID(chargingStation: ChargingStation, chargePointID: number): ChargePoint {
@@ -1334,7 +1340,7 @@ export default class Utils {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
-  public static isPlateIDValid(plateID): boolean {
+  public static isPlateIDValid(plateID: string): boolean {
     return /^[A-Z0-9- ]*$/.test(plateID);
   }
 
@@ -1347,20 +1353,50 @@ export default class Utils {
     };
   }
 
-  public static buildAlgorithm(properties: CryptoKeyProperties): string {
-    return `${properties.blockCypher}-${properties.blockSize}-${properties.operationMode}`;
+  public static buildCryptoAlgorithm(keyProperties: CryptoKeyProperties): string | CipherGCMTypes {
+    return `${keyProperties.blockCypher}-${keyProperties.blockSize}-${keyProperties.operationMode}`;
   }
 
-  public static generateKey(): string {
-    // TODO change 16 to 32 and test on Mac
-    return crypto.randomBytes(16).toString('hex');
+  public static generateRandomKey(keyProperties: CryptoKeyProperties): string {
+    // Ensure the key's number of characters is always keyProperties.blockSize / 8
+    const keyLength = keyProperties.blockSize / 8;
+    return crypto.randomBytes(keyLength).toString('base64').slice(0, keyLength);
   }
 
   public static getDefaultKeyProperties(): CryptoKeyProperties {
     return {
       blockCypher: 'aes',
       blockSize: 256,
-      operationMode: 'ctr'
+      operationMode: 'gcm'
+    };
+  }
+
+  public static buildPerformanceRecord(params: {
+    tenantID: string; durationMs: number; sizeKb?: number;
+    source?: string; module: string; method: string; action: ServerAction|string;
+    httpUrl?: string; httpMethod?: string; httpCode?: number;
+  }): PerformanceRecord {
+    return {
+      tenantID: params.tenantID,
+      timestamp: new Date(),
+      durationMs: params.durationMs,
+      sizeKb: params.sizeKb,
+      host: Utils.getHostname(),
+      process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
+      processMemoryUsage: process.memoryUsage(),
+      processCPUUsage: process.cpuUsage(),
+      cpusInfo: os.cpus(),
+      memoryTotalGb: os.totalmem(),
+      memoryFreeGb: os.freemem(),
+      loadAverageLastMin: os.loadavg()[0],
+      numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
+      source: params.source,
+      module: params.module,
+      method: params.method,
+      action: params.action,
+      httpUrl: params.httpUrl,
+      httpMethod: params.httpMethod,
+      httpCode: params.httpCode,
     };
   }
 

@@ -9,10 +9,12 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import Utils from '../../utils/Utils';
+import chalk from 'chalk';
 
-const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
+const TASK_NAME = 'RecomputeAllTransactionsWithSimplePricingTask';
 
-export default class RecomputeAllTransactionsConsumptionsTask extends MigrationTask {
+export default class RecomputeAllTransactionsWithSimplePricingTask extends MigrationTask {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -23,65 +25,74 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async migrateTenant(tenant: Tenant) {
-    const consumptionsUpdated: ActionsResponse = {
+    const transactionsUpdated: ActionsResponse = {
       inError: 0,
       inSuccess: 0,
     };
     const timeTotalFrom = new Date().getTime();
+    const dateOfPricingChangeTo16cts = new Date('2019-06-14');
     // Get transactions
     const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate([
         {
           $match: {
-            'stop.extraInactivitySecs': { $gt: 0 },
-            'stop.extraInactivityComputed': false
+            'stop.price': { $gt: 0 },
+            'stop.pricingSource': 'simple',
+            'refundData': { $exists: false },
+            'migrationTag': { $ne: `${TASK_NAME}~${this.getVersion()}` },
           }
         },
         {
-          $project: { '_id': 1 }
+          $project: { '_id': 1, 'migrationFlag': 1 }
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
-      void Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrateTenant',
+        module: TASK_NAME, method: 'migrateTenant',
         message: `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
       });
       await Promise.map(transactionsMDB, async (transactionMDB) => {
+        let pricePerkWh = 0;
         try {
-          // Recompute consumption
-          const timeFrom = new Date().getTime();
-          // Get the Transaction
+          // Get the transaction
           const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
-          // Rebuild consumptions
-          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transaction);
-          const durationSecs = Math.trunc((new Date().getTime() - timeFrom) / 1000);
-          consumptionsUpdated.inSuccess++;
-          if (nbrOfConsumptions > 0) {
-            void Logging.logDebug({
-              tenantID: Constants.DEFAULT_TENANT,
-              action: ServerAction.MIGRATION,
-              module: MODULE_NAME, method: 'migrateTenant',
-              message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Processed Transaction ID '${transactionMDB._id}' with ${nbrOfConsumptions} consumptions in ${durationSecs}s in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-            });
+          // Flag the transaction as migrated
+          transaction.migrationTag = `${TASK_NAME}~${this.getVersion()}`;
+          // Force the price to 0.16 for SLF and SLFCAH tenants
+          if ((transaction.timestamp.getTime() > dateOfPricingChangeTo16cts.getTime()) &&
+              (tenant.id === '5be9b03f1014d900089930d9' || tenant.id === '5be7fb271014d90008992f06')) {
+            pricePerkWh = 0.16;
+          }
+          // Rebuild the pricing
+          await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transaction, pricePerkWh);
+          // Double check if final pricing is correct
+          if (pricePerkWh > 0) {
+            const pricedTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+            if ((Utils.computeSimplePrice(pricePerkWh, pricedTransaction.stop.totalConsumptionWh) !== pricedTransaction.stop.price)) {
+              // Rebuild Consumptions
+              await OCPPUtils.rebuildTransactionConsumptions(tenant.id, pricedTransaction);
+              // Check
+              const recomputedConsumptionTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+              if (recomputedConsumptionTransaction.stop.price === Utils.computeSimplePrice(pricePerkWh, recomputedConsumptionTransaction.stop.totalConsumptionWh)) {
+                transactionsUpdated.inSuccess++;
+              } else {
+                transactionsUpdated.inError++;
+              }
+            } else {
+              transactionsUpdated.inSuccess++;
+            }
           } else {
-            // Delete transaction
-            await TransactionStorage.deleteTransaction(tenant.id, transactionMDB._id);
-            void Logging.logDebug({
-              tenantID: Constants.DEFAULT_TENANT,
-              action: ServerAction.MIGRATION,
-              module: MODULE_NAME, method: 'migrateTenant',
-              message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Deleted Transaction ID '${transactionMDB._id}' with no consumption in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-            });
+            transactionsUpdated.inSuccess++;
           }
         } catch (error) {
-          consumptionsUpdated.inError++;
-          void Logging.logError({
+          transactionsUpdated.inError++;
+          await Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
-            module: MODULE_NAME, method: 'migrateTenant',
-            message: `> ${consumptionsUpdated.inError + consumptionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+            module: TASK_NAME, method: 'migrateTenant',
+            message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }
@@ -89,7 +100,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
         void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
-          MODULE_NAME, 'migrateTenant', consumptionsUpdated,
+          TASK_NAME, 'migrateTenant', transactionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed to be processed in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
@@ -104,7 +115,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
   }
 
   getName(): string {
-    return 'RecomputeAllTransactionsConsumptionsTask';
+    return TASK_NAME;
   }
 
   isAsynchronous(): boolean {

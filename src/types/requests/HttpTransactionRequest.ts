@@ -1,4 +1,5 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import { InactivityStatus } from '../Transaction';
 
 export interface HttpTransactionsRefundRequest {
   transactionIds: number[];
@@ -34,7 +35,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   Search?: string;
   ErrorType?: string;
   RefundStatus?: string;
-  InactivityStatus?: string;
+  InactivityStatus?: InactivityStatus;
   MinimalPrice?: boolean;
   Statistics?: 'refund' | 'history';
   ReportIDs?: string;
