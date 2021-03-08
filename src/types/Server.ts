@@ -443,6 +443,7 @@ export enum ServerRoute {
   REST_TRANSACTIONS = 'transactions',
 
   REST_USERS = 'users',
+  REST_USER = 'users/:id',
 
   REST_PING = 'ping',
 

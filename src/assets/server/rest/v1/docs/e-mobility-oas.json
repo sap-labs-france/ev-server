@@ -3128,28 +3128,49 @@
             "$ref": "#/components/parameters/Issuer"
           },
           {
-            "$ref": "#/components/parameters/WithTag"
-          },
-          {
             "$ref": "#/components/parameters/Search"
           },
           {
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "$ref": "#/components/parameters/Role"
+            "in": "query",
+            "name": "Role",
+            "required": false,
+            "description": "Role attribute",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "S",
+                "A",
+                "B",
+                "D"
+              ]
+            }
           },
           {
-            "$ref": "#/components/parameters/Status"
+            "in": "query",
+            "name": "Status",
+            "description": "Status attribute",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "P",
+                "A",
+                "I",
+                "B",
+                "L"
+              ]
+            }
           },
           {
-            "$ref": "#/components/parameters/UserErrorType"
-          },
-          {
-            "$ref": "#/components/parameters/ExcludeSiteID"
-          },
-          {
-            "$ref": "#/components/parameters/TagID"
+            "in": "query",
+            "name": "ExcludeSiteID",
+            "required": false,
+            "description": "Site ID to exclude",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "in": "query",
@@ -3238,6 +3259,99 @@
           }
         }
       }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a User",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserIDPath"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user",
+            "content": {
+              "application/json": {
+                "example": {
+                  "address": {
+                    "address1": "",
+                    "address2": "",
+                    "postalCode": "",
+                    "city": "",
+                    "department": "",
+                    "region": "",
+                    "country": "",
+                    "coordinates": []
+                  },
+                  "costCenter": null,
+                  "deleted": false,
+                  "email": "###",
+                  "firstName": "###",
+                  "iNumber": null,
+                  "locale": "fr_FR",
+                  "mobile": null,
+                  "name": "###",
+                  "phone": null,
+                  "role": "A",
+                  "status": "A",
+                  "notifications": {
+                    "sendSessionStarted": false,
+                    "sendOptimalChargeReached": false,
+                    "sendEndOfCharge": false,
+                    "sendEndOfSession": false,
+                    "sendUserAccountStatusChanged": false,
+                    "sendNewRegisteredUser": false,
+                    "sendUnknownUserBadged": false,
+                    "sendChargingStationStatusError": true,
+                    "sendChargingStationRegistered": false,
+                    "sendOcpiPatchStatusError": false,
+                    "sendSmtpError": false,
+                    "sendUserAccountInactivity": false,
+                    "sendPreparingSessionNotStarted": false,
+                    "sendOfflineChargingStations": false,
+                    "sendBillingSynchronizationFailed": false,
+                    "sendSessionNotStarted": false,
+                    "sendCarCatalogSynchronizationFailed": false,
+                    "sendEndUserErrorNotification": true,
+                    "sendComputeAndApplyChargingProfilesFailed": false,
+                    "sendBillingNewInvoice": false,
+                    "sendAccountVerificationNotification": false,
+                    "sendAdminAccountVerificationNotification": true
+                  },
+                  "notificationsActive": true,
+                  "plateID": "###",
+                  "issuer": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3263,6 +3377,9 @@
       },
       "NotSupportedError": {
         "description": "Feature not supported"
+      },
+      "ResourceDoesNotExists": {
+        "description": "Resource does not exist"
       }
     },
     "schemas": {
@@ -3941,6 +4058,15 @@
           "type": "string"
         }
       },
+      "UserIDPath": {
+        "in": "path",
+        "name": "id",
+        "description": "User ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ChargingStationID": {
         "in": "query",
         "name": "ChargingStationID",
@@ -4107,69 +4233,10 @@
       "WithSite": {
         "in": "query",
         "name": "WithSite",
+        "required": false,
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
-        }
-      },
-      "WithTag": {
-        "in": "query",
-        "name": "WithTag",
-        "description": "With tag attribute",
-        "schema": {
-          "type": "boolean"
-        }
-      },
-      "Role": {
-        "in": "query",
-        "name": "Role",
-        "description": "Role attribute",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "S",
-            "A",
-            "B",
-            "D"
-          ]
-        }
-      },
-      "Status": {
-        "in": "query",
-        "name": "Status",
-        "description": "Status attribute",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "P",
-            "A",
-            "I",
-            "B",
-            "L"
-          ]
-        }
-      },
-      "UserErrorType": {
-        "in": "query",
-        "name": "ErrorType",
-        "description": "Error type",
-        "schema": {
-          "type": "string",
-          "enum": [
-            "inactive_user",
-            "unassigned_user",
-            "inactive_user_account",
-            "failed_billing_synchro",
-            "no_billing_data"
-          ]
-        }
-      },
-      "ExcludeSiteID": {
-        "in": "query",
-        "name": "ExcludeSiteID",
-        "description": "Site ID to exclude",
-        "schema": {
-          "type": "string"
         }
       }
     }
