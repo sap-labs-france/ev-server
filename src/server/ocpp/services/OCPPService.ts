@@ -419,7 +419,7 @@ export default class OCPPService {
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station
-          this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
+          await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Handle End Of charge
           await this.checkNotificationEndOfCharge(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
