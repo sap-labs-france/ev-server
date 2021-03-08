@@ -23,16 +23,16 @@ const testData: TestData = new TestData();
 let initialTenant: Tenant;
 
 // Update pricing setting to have sensitive data to test on it
-async function updatePricingWithSensitiveData():Promise<any> {
-  const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+async function updatePricingWithSensitiveDataAndCheckResultSuccessful():Promise<any> {
+  const crtPricingData = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
     limit: TestConstants.UNLIMITED,
     skip: 0
   });
-  expect(read.status).to.equal(200);
-  expect(read.data.count).to.equal(1);
+  expect(crtPricingData.status).to.equal(200);
+  expect(crtPricingData.data.count).to.equal(1);
   const clientSecret = 'a8242e0ed0fa70aee7c802e41e1c7c3b';
   testData.data = JSON.parse(`{
-      "id":"${read.data.result[0].id}",
+      "id":"${crtPricingData.data.result[0].id}",
       "identifier":"refund",
       "sensitiveData":["content.concur.clientSecret"],
       "content":{
@@ -54,7 +54,7 @@ async function updatePricingWithSensitiveData():Promise<any> {
   expect(update.status).to.equal(200);
 }
 
-function getCryptoTestData(originalCryptoObject, newKeyProperties:CryptoKeyProperties) {
+function getCryptoTestSettings(originalCryptoObject, newKeyProperties:CryptoKeyProperties) {
   return JSON.parse(`{
     "id":"${originalCryptoObject.id}",
     "identifier":"${originalCryptoObject.identifier}",
@@ -80,35 +80,28 @@ function getCryptoTestData(originalCryptoObject, newKeyProperties:CryptoKeyPrope
 }`);
 }
 
-async function getCurrentCryptoData() {
-  const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
+async function getCurrentCryptoDataAndCheckResultSuccessful() {
+  const crtCryptoData = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
     limit: TestConstants.UNLIMITED,
     skip: 0
   });
-  expect(read.status).to.equal(200);
-  expect(read.data.count).to.equal(1);
-  return read;
+  expect(crtCryptoData.status).to.equal(200);
+  expect(crtCryptoData.data.count).to.equal(1);
+  return crtCryptoData;
 }
 
 async function resetCryptoSettingToDefault() { // Aes-256-gcm
-  const read = await getCurrentCryptoData();
-  const newKeyProperties:CryptoKeyProperties = {
-    blockCypher : 'aes',
-    blockSize : 256,
-    operationMode : 'gcm'
-  };
-  testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
-  const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-  expect(update.status).to.equal(200);
+  const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
+  await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData, 'aes', 256, 'gcm');
 }
 
-async function updateCryptoSettings(crtData, blockCypher, blockSize, operationMode) {
+async function updateCryptoSettingsAndCheckResultSuccessful(crtData, blockCypher, blockSize, operationMode) {
   const newKeyProperties:CryptoKeyProperties = {
     blockCypher : blockCypher,
     blockSize : blockSize,
     operationMode : operationMode
   };
-  testData.data = getCryptoTestData(crtData, newKeyProperties);
+  testData.data = getCryptoTestSettings(crtData, newKeyProperties);
   const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
   expect(update.status).to.equal(200);
   return update;
@@ -127,7 +120,7 @@ describe('Setting tests', function() {
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
     initialTenant = (await testData.superCentralService.tenantApi.readById(testData.credentials.tenantId)).data;
 
-    await updatePricingWithSensitiveData();
+    await updatePricingWithSensitiveDataAndCheckResultSuccessful();
   });
 
   after(async function() {
@@ -234,9 +227,9 @@ describe('Setting tests', function() {
       expect(read.data.count).to.equal(1);
     });
     it('Check crypto settings update - change key', async () => {
-      const read = await getCurrentCryptoData();
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize,read.data.result[0].content.crypto.keyProperties.operationMode);
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
 
       // Get setting with sensitive data after crypto setting update
       const readSettingAfter = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
@@ -250,226 +243,226 @@ describe('Setting tests', function() {
     });
     it('Check crypto settings update - change key + block size (256->128)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current block size is 256
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        256, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        256, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update block size to 128
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        128, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        128, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
     it('Check crypto settings update - change key + block size (128->192)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current block size is 128
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        128, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        128, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update block size to 192
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        192, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        192, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
     it('Check crypto settings update - change key + block size (192->128)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current block size is 192
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        192, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        192, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update block size to 128
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        128, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        128, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
     it('Check crypto settings update - change key + block size (128->256)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current block size is 128
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        128, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        128, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update block size to 256
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        256, read.data.result[0].content.crypto.keyProperties.operationMode);
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        256, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
     it('Check crypto settings update - change key + operation mode (gcm->ctr)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is gcm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
       // Update operation mode to ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
     it('Check crypto settings update - change key + algorithm (aes->camellia)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is aes + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'aes',
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
       // Update algorithm to camellia
-      await updateCryptoSettings(read.data.result[0], 'camellia',
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
     it('Check crypto settings update - change key + algorithm (camellia->aes)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is camellia + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'camellia',
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
       // Update algorithm to aes
-      await updateCryptoSettings(read.data.result[0], 'aes',
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
     it('Check crypto settings update - change key + operation mode (ctr->gcm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
       // Update operation mode to gcm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
     });
     it('Check crypto settings update - change key + operation mode (gcm->ccm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is gcm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
       // Update operation mode to ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
     });
     it('Check crypto settings update - change key + operation mode (ccm->ctr)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
       // Update operation mode to ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
     it('Check crypto settings update - change key + operation mode (ctr->ccm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
       // Update operation mode to ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
     });
     it('Check crypto settings update - change key + operation mode (ccm->gcm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current operation mode is ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
       // Update operation mode to gcm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher,
-        read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
     });
     it('Check crypto settings update - change key + block size + operation mode (*-256-gcm -> *-128-ctr)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is *-256-gcm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 256, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 256, 'gcm');
       // Update encryption to *-128-ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 128, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 128, 'ctr');
     });
     it('Check crypto settings update - change key + block size + operation mode (*-128-ctr -> *-192-ccm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is *-128-ctr
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 128, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 128, 'ctr');
       // Update encryption to *-192-ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 192, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 192, 'ccm');
     });
     it('Check crypto settings update - change key + block size + operation mode (*-192-ccm -> *-256-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is *-192-ccm
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 192, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 192, 'ccm');
       // Update encryption to *-256-ofb
-      await updateCryptoSettings(read.data.result[0], read.data.result[0].content.crypto.keyProperties.blockCypher, 256, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher, 256, 'ofb');
     });
     it('Check crypto settings update - change key + algorithm + block size (aes-256-ofb -> camellia-128-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is aes-256-* + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'aes', 256, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 256, 'ofb');
       // Update encryption to camellia-128-*
-      await updateCryptoSettings(read.data.result[0], 'camellia', 128, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', 128, 'ofb');
     });
     it('Check crypto settings update - change key + algorithm + block size (camellia-128-ofb -> aes-192-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is camellia-128-* + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'camellia', 128, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', 128, 'ofb');
       // Update encryption to aes-192-*
-      await updateCryptoSettings(read.data.result[0], 'aes', 192, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 192, 'ofb');
 
     });
     it('Check crypto settings update - change key + algorithm + block size (aes-192-ofb -> camellia-256-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is aes-192-* + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'aes', 192, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 192, 'ofb');
       // Update encryption to camellia-256-*
-      await updateCryptoSettings(read.data.result[0], 'camellia', 256, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', 256, 'ofb');
     });
     it('Check crypto settings update - change key + algorithm + block size (camellia-256-ofb -> aes-128-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is camellia-256-* + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'camellia', 256, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', 256, 'ofb');
       // Update encryption to aes-128-*
-      await updateCryptoSettings(read.data.result[0], 'aes', 128, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 128, 'ofb');
 
     });
     it('Check crypto settings update - change key + algorithm + block size (aes-128-ofb -> camellia-192-ofb)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is aes-128-* + ensure operation mode works with both camellia & aes
-      await updateCryptoSettings(read.data.result[0], 'aes', 128, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 128, 'ofb');
       // Update encryption to camellia-192-*
-      await updateCryptoSettings(read.data.result[0], 'camellia', 192, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', 192, 'ofb');
     });
     it('Check crypto settings update - change key + algorithm + operation mode (camellia-256-ofb -> aes-256-gcm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is camellia-*-ofb
-      await updateCryptoSettings(read.data.result[0], 'camellia', read.data.result[0].content.crypto.keyProperties.blockSize, 'ofb');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ofb');
       // Update encryption to aes-*-gcm
-      await updateCryptoSettings(read.data.result[0], 'aes', read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
     });
     it('Check crypto settings update - change key + algorithm + operation mode (aes-256-gcm -> camellia-256-ctr)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is aes-*-gcm
-      await updateCryptoSettings(read.data.result[0], 'aes', read.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'gcm');
       // Update encryption to camellia-*-ctr
-      await updateCryptoSettings(read.data.result[0], 'camellia', read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
     it('Check crypto settings update - change key + algorithm + operation mode (camellia-256-ctr -> aes-256-ccm)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current encryption is camellia-*-ctr
-      await updateCryptoSettings(read.data.result[0], 'camellia', read.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
       // Update encryption to aes-*-ccm
-      await updateCryptoSettings(read.data.result[0], 'aes', read.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ccm');
     });
   });
   describe('Error cases (tenant utall)', () => {
     it('Check crypto settings update fails - CRYPTO_KEY_LENGTH_INVALID (513)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Update crypto setting
       const newKeyProperties:CryptoKeyProperties = {
-        blockCypher : read.data.result[0].content.crypto.keyProperties.blockCypher,
-        blockSize : read.data.result[0].content.crypto.keyProperties.blockSize,
-        operationMode : read.data.result[0].content.crypto.keyProperties.operationMode
+        blockCypher : crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
+        blockSize : crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize,
+        operationMode : crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode
       };
-      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      testData.data = getCryptoTestSettings(crtCryptoData.data.result[0], newKeyProperties);
       newKeyProperties.blockSize = 128;
       testData.data.content.crypto.key = Utils.generateRandomKey(newKeyProperties);
       try {
@@ -480,14 +473,14 @@ describe('Setting tests', function() {
     });
     it('Check crypto settings update fails - CRYPTO_ALGORITHM_NOT_SUPPORTED (512)', async () => {
       // Retrieve the crypto setting id
-      const read = await getCurrentCryptoData();
+      const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Update crypto setting
       const newKeyProperties:CryptoKeyProperties = {
         blockCypher : 'camellia',
         blockSize : 192,
         operationMode : 'ccm'
       };
-      testData.data = getCryptoTestData(read.data.result[0], newKeyProperties);
+      testData.data = getCryptoTestSettings(crtCryptoData.data.result[0], newKeyProperties);
       testData.data.content.crypto.key = Utils.generateRandomKey(newKeyProperties);
       try {
         await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
