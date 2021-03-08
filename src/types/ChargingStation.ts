@@ -260,7 +260,7 @@ export interface ChargingStationCapabilities {
   supportReservation: boolean;
   supportRFIDCard: boolean;
   supportFirmwareUpgrade?: boolean;
-  supportConnectorIsSlave?: boolean;
+  supportSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {

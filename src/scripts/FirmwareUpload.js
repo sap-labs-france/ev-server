@@ -15,7 +15,7 @@ const firmwareFile = args[1];
 
 function putFirmwareFile(firmwareFile) {
   if (!firmwareFile) {
-    console.log('Firmware file CLI argument not provided')
+    console.error('Firmware file CLI argument not provided')
   } else if (fs.existsSync(firmwareFile)) {
     // Connect to MongoDB
     mongodb.MongoClient.connect(mongoURI,
@@ -38,13 +38,13 @@ function putFirmwareFile(firmwareFile) {
       }
     );
   } else {
-    console.log(`Firmware file '${firmwareFile}' does not exist`);
+    console.error(`Firmware file '${firmwareFile}' does not exist`);
   }
 }
 
 function getFirmwareFile(firmwareFile) {
   if (!firmwareFile) {
-    console.log('Firmware file CLI argument not provided')
+    console.error('Firmware file CLI argument not provided')
   } else {
     // Connect to MongoDB
     mongodb.MongoClient.connect(mongoURI,
@@ -71,7 +71,7 @@ function getFirmwareFile(firmwareFile) {
 
 function deleteFirmwareFile(firmwareFileID) {
   if (!firmwareFileID) {
-    console.log('Firmware file CLI argument not provided')
+    console.error('Firmware file CLI argument not provided')
   } else {
     // Connect to MongoDB
     mongodb.MongoClient.connect(mongoURI,
