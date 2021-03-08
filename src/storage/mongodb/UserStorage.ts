@@ -514,8 +514,6 @@ export default class UserStorage {
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
