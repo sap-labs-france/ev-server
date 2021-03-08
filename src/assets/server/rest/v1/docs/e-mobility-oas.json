@@ -39,6 +39,10 @@
     {
       "name": "Charging Stations",
       "description": "Charging Stations API"
+    },
+    {
+      "name": "Users",
+      "description": "Users API"
     }
   ],
   "paths": {
@@ -251,7 +255,10 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "email", "password", "acceptEula", "tenant"
+                  "email",
+                  "password",
+                  "acceptEula",
+                  "tenant"
                 ],
                 "properties": {
                   "email": {
@@ -315,7 +322,13 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "email", "name", "firstName", "passwords", "acceptEula", "tenant", "captcha"
+                  "email",
+                  "name",
+                  "firstName",
+                  "passwords",
+                  "acceptEula",
+                  "tenant",
+                  "captcha"
                 ],
                 "properties": {
                   "email": {
@@ -410,7 +423,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "tenant"],
+                "required": [
+                  "email",
+                  "tenant"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -433,19 +449,19 @@
                     "email": "demo.demo@sap.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "tenant": "slf"
-                    }
-                  },
-                  "resetValidation": {
-                    "summary": "Validate password reset",
-                    "value": {
-                      "email": "demo.demo@sap.com",
-                      "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
-                      "tenant": "slf"
-                      }
-                    }
+                  }
+                },
+                "resetValidation": {
+                  "summary": "Validate password reset",
+                  "value": {
+                    "email": "demo.demo@sap.com",
+                    "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
+                    "tenant": "slf"
+                  }
                 }
               }
             }
+          }
         },
         "tags": [
           "Authentication"
@@ -1376,7 +1392,9 @@
                     }
                   }
                 },
-                "required": ["chargeBoxID"]
+                "required": [
+                  "chargeBoxID"
+                ]
               }
             }
           }
@@ -1753,7 +1771,8 @@
                         "description": "Optional. Can be used to force a power or current profile",
                         "example": "A",
                         "enum": [
-                          "W", "A"
+                          "W",
+                          "A"
                         ]
                       }
                     },
@@ -1766,7 +1785,7 @@
                 "required": [
                   "args"
                 ]
-          }
+              }
             }
           }
         },
@@ -3095,6 +3114,244 @@
           }
         }
       }
+    },
+    "/api/users": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Users",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
+          },
+          {
+            "in": "query",
+            "name": "Role",
+            "required": false,
+            "description": "Role attribute",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "S",
+                "A",
+                "B",
+                "D"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "Status",
+            "description": "Status attribute",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "P",
+                "A",
+                "I",
+                "B",
+                "L"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "ExcludeSiteID",
+            "required": false,
+            "description": "Site ID to exclude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ExcludeUserIDs",
+            "description": "Pipe separated user IDs to exclude",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "IncludeCarUserIDs",
+            "description": "Pipe separated car IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "NotAssignedToCarID",
+            "description": "Car ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "createdBy": null,
+                      "createdOn": "2019-10-29T10:33:23.498Z",
+                      "email": "###",
+                      "firstName": "###",
+                      "lastChangedBy": {
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "locale": "fr_FR",
+                      "name": "###",
+                      "role": "A",
+                      "status": "A",
+                      "eulaAcceptedOn": "2021-03-08T10:23:32.842Z",
+                      "eulaAcceptedVersion": 310,
+                      "lastChangedOn": "2021-03-08T10:23:46.445Z",
+                      "issuer": true,
+                      "id": "###",
+                      "canRead": true,
+                      "canUpdate": true,
+                      "canDelete": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a User",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user",
+            "content": {
+              "application/json": {
+                "example": {
+                  "address": {
+                    "address1": "",
+                    "address2": "",
+                    "postalCode": "",
+                    "city": "",
+                    "department": "",
+                    "region": "",
+                    "country": "",
+                    "coordinates": []
+                  },
+                  "costCenter": null,
+                  "deleted": false,
+                  "email": "###",
+                  "firstName": "###",
+                  "iNumber": null,
+                  "locale": "fr_FR",
+                  "mobile": null,
+                  "name": "###",
+                  "phone": null,
+                  "role": "A",
+                  "status": "A",
+                  "notifications": {
+                    "sendSessionStarted": false,
+                    "sendOptimalChargeReached": false,
+                    "sendEndOfCharge": false,
+                    "sendEndOfSession": false,
+                    "sendUserAccountStatusChanged": false,
+                    "sendNewRegisteredUser": false,
+                    "sendUnknownUserBadged": false,
+                    "sendChargingStationStatusError": true,
+                    "sendChargingStationRegistered": false,
+                    "sendOcpiPatchStatusError": false,
+                    "sendSmtpError": false,
+                    "sendUserAccountInactivity": false,
+                    "sendPreparingSessionNotStarted": false,
+                    "sendOfflineChargingStations": false,
+                    "sendBillingSynchronizationFailed": false,
+                    "sendSessionNotStarted": false,
+                    "sendCarCatalogSynchronizationFailed": false,
+                    "sendEndUserErrorNotification": true,
+                    "sendComputeAndApplyChargingProfilesFailed": false,
+                    "sendBillingNewInvoice": false,
+                    "sendAccountVerificationNotification": false,
+                    "sendAdminAccountVerificationNotification": true
+                  },
+                  "notificationsActive": true,
+                  "plateID": "###",
+                  "issuer": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3120,6 +3377,9 @@
       },
       "NotSupportedError": {
         "description": "Feature not supported"
+      },
+      "ResourceDoesNotExists": {
+        "description": "Resource does not exist"
       }
     },
     "schemas": {
@@ -3654,7 +3914,8 @@
             "type": "string",
             "description": "Required. The unit of measure Limit is expressed in.",
             "enum": [
-              "A", "W"
+              "A",
+              "W"
             ],
             "example": "A"
           },
@@ -3797,6 +4058,15 @@
           "type": "string"
         }
       },
+      "userID": {
+        "in": "path",
+        "name": "id",
+        "description": "User ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ChargingStationID": {
         "in": "query",
         "name": "ChargingStationID",
@@ -3823,7 +4093,9 @@
         "schema": {
           "type": "number",
           "enum": [
-            "I", "W", "E"
+            "I",
+            "W",
+            "E"
           ]
         }
       },
