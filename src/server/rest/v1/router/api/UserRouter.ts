@@ -22,6 +22,10 @@ export default class UserRouter {
     this.router.get(`/${ServerRoute.REST_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(UserService.handleGetUsers.bind(this), ServerAction.USERS, req, res, next);
     });
+
+    this.router.post(`/${ServerRoute.REST_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(UserService.handleCreateUser.bind(this), ServerAction.USER_CREATE, req, res, next);
+    });
   }
 
   protected buildRouteUser(): void {
