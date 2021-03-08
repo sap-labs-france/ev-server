@@ -86,8 +86,8 @@ export interface BillingInvoiceItem {
   description: string;
   pricingData: {
     quantity: number,
-    price: number,
     amount: number,
+    currency: string
   }
   taxes?: string[];
 }

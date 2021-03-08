@@ -9,6 +9,7 @@ import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import Decimal from 'decimal.js';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
@@ -650,49 +651,27 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
-
+    // Convert pricing information to STRIPE expected data
     const { description, pricingData, taxes } = billingInvoiceItem;
-
+    const quantity = new Decimal(pricingData.quantity).dividedBy(1000).toNumber();
+    const unit_amount = new Decimal(pricingData.amount).times(100).dividedBy(quantity).round().toNumber();
+    const currency = pricingData.currency.toLowerCase();
+    // Build stripe parameters for the item
     const parameters: Stripe.InvoiceItemCreateParams = {
       customer: customerID,
-      currency: this.settings.currency.toLocaleLowerCase(),
-      amount: pricingData.amount,
-      // quantity = pricingData.quantity,
+      quantity, // Energy consumed in kW.h
+      unit_amount, // price in cents
+      currency,
       description,
       tax_rates: taxes
     };
-
     // STRIPE throws an exception when invoice is set to null.
     if (invoiceID) {
       // Make sure to only add that property when updating an existing invoice
       parameters.invoice = invoiceID;
     }
-
     return parameters;
   }
-
-  // private _buildInvoiceItemParameters(customerID: string, transaction: Transaction, invoiceID?: string): Stripe.InvoiceItemCreateParams {
-
-  //   const description = this.buildLineItemDescription(transaction);
-  //   const amount = this.convertTransactionPrice(transaction);
-  //   const tax_rates = this.getTaxRateIds();
-
-  //   const parameters: Stripe.InvoiceItemCreateParams = {
-  //     customer: customerID,
-  //     currency: this.settings.currency.toLocaleLowerCase(),
-  //     amount,
-  //     description,
-  //     tax_rates
-  //   };
-
-  //   // STRIPE throws an exception when invoice is set to null.
-  //   if (invoiceID) {
-  //     // Make sure to only add that property when updating an existing invoice
-  //     parameters.invoice = invoiceID;
-  //   }
-
-  //   return parameters;
-  // }
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check Stripe
@@ -742,10 +721,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private convertToBillingInvoiceItems(transaction: Transaction) : Array<BillingInvoiceItem> {
     // TODO - make it more precise - Pricing transparency!
     const description = this.buildLineItemDescription(transaction);
-    // STRIPE expects the amount, in cents!!!
-    const amount = Math.round(transaction.stop.roundedPrice * 100);
-    const quantity = 1; // TODO - rethink that part
-    const price = amount; // TODO - rethink that part
+    // -------------------------------------------------------------------------------
+    // ACHTUNG - STRIPE expects the amount and prices in CENTS!
+    // -------------------------------------------------------------------------------
+    const quantity = transaction.stop.totalConsumptionWh; // Total consumption in Wh
+    const amount = transaction.stop.price; // Total amount for the line item
+    const currency = transaction.stop.priceUnit;
+    // -------------------------------------------------------------------------------
     const taxes = this.getTaxRateIds(); // TODO - take into account SITE settings
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
@@ -753,7 +735,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       pricingData: {
         quantity,
         amount,
-        price,
+        currency
       },
       taxes
     };

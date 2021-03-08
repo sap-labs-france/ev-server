@@ -12,7 +12,6 @@ import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
-import Transaction from '../types/Transaction';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
@@ -172,10 +171,10 @@ export default class StripeIntegrationTestData {
     }
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const dynamicInvoice = await this.billInvoiceItem(777, taxId);
+    const dynamicInvoice = await this.billInvoiceItem(10 /* kW.h */, 4 /* EUR */, taxId);
     assert(dynamicInvoice, 'Invoice should not be null');
     // Let's add an second item to the same invoice
-    const updatedInvoice = await this.billInvoiceItem(555, taxId);
+    const updatedInvoice = await this.billInvoiceItem(20 /* kW.h */, 8 /* EUR */, taxId);
     assert(updatedInvoice, 'Invoice should not be null');
     // User should have a DRAFT invoice
     const draftInvoices = await this.getDraftInvoices(this.dynamicUser.id);
@@ -190,15 +189,17 @@ export default class StripeIntegrationTestData {
     return nbDraftInvoice;
   }
 
-  public async billInvoiceItem(price: number, taxId?: string) : Promise<BillingInvoice> {
+  public async billInvoiceItem(quantity: number, amount: number, taxId?: string) : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
+    const price = amount / quantity;
+
     // array of tax ids to apply to the line item
     const invoiceItem:BillingInvoiceItem = {
-      description: `Stripe Integration - Item ${price}`,
+      description: `Stripe Integration - ${quantity} kWh * ${price} Eur`,
       pricingData: {
-        amount: price,
-        quantity: 1,
-        price: price
+        quantity: quantity * 1000, // kW.h ==> Wh
+        amount: amount, // STRIPE expects total amount in cents
+        currency: 'EUR'
       }
     };
     if (taxId) {
