@@ -36,7 +36,7 @@ export default class TagStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
 
   public static async clearDefaultUserTag(tenantID: string, userID: string): Promise<void> {
@@ -50,7 +50,7 @@ export default class TagStorage {
       {
         $set: { default: false }
       });
-    Logging.traceEnd(tenantID, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
   }
 
   public static async deleteTag(tenantID: string, tagID: string): Promise<void> {
@@ -64,7 +64,7 @@ export default class TagStorage {
         '_id': tagID,
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
   }
 
   public static async getTag(tenantID: string, id: string,
@@ -166,7 +166,7 @@ export default class TagStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsCountMDB);
       return {
         count: (tagsCountMDB.length > 0 ? tagsCountMDB[0].count : 0),
         result: []
@@ -224,7 +224,7 @@ export default class TagStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
     // Ok
     return {
       count: (tagsCountMDB.length > 0 ?
