@@ -442,6 +442,8 @@ export enum ServerRoute {
 
   REST_TRANSACTIONS = 'transactions',
 
+  REST_USERS = 'users',
+
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants'
