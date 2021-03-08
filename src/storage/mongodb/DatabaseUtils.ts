@@ -35,15 +35,11 @@ export default class DatabaseUtils {
   public static getNotDeletedFilter(fieldName?: string): any {
     if (fieldName) {
       return JSON.parse(`[
-        { "${fieldName}.deleted": { "$exists": false } },
-        { "${fieldName}.deleted": false },
-        { "${fieldName}.deleted": null }
+        { "${fieldName}.deleted": { "$ne": true } }
       ]`);
     }
     return [
-      { 'deleted': { $exists: false } },
-      { 'deleted': null },
-      { 'deleted': false }
+      { deleted: { $ne: true } }
     ];
   }
 
