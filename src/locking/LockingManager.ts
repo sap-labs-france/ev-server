@@ -55,37 +55,6 @@ export default class LockingManager {
     }
   }
 
-  public static async release(lock: Lock): Promise<boolean> {
-    // Delete
-    const result = await LockingStorage.deleteLock(lock);
-    if (!result) {
-      await Logging.logWarning({
-        tenantID: lock.tenantID,
-        module: MODULE_NAME, method: 'release',
-        action: ServerAction.LOCKING,
-        message: `Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' does not exist and cannot be released`,
-        detailedMessages: { lock }
-      });
-      return false;
-    }
-    await Logging.logDebug({
-      tenantID: lock.tenantID,
-      module: MODULE_NAME, method: 'release',
-      action: ServerAction.LOCKING,
-      message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
-      detailedMessages: { lock }
-    });
-    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
-    return true;
-  }
-
-  public static async cleanupLocks(doCleanup = true): Promise<void> {
-    if (doCleanup) {
-      const hostname = Utils.getHostname();
-      await LockingStorage.deleteLockByHostname(hostname);
-    }
-  }
-
   public static async tryAcquire(lock: Lock, timeout: number): Promise<boolean> {
     let timeoutReached = false;
     setTimeout(() => {
@@ -134,6 +103,37 @@ export default class LockingManager {
       });
       Utils.isDevelopmentEnv() && console.warn(`>>>>> Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
       return false;
+    }
+  }
+
+  public static async release(lock: Lock): Promise<boolean> {
+    // Delete
+    const result = await LockingStorage.deleteLock(lock);
+    if (!result) {
+      await Logging.logWarning({
+        tenantID: lock.tenantID,
+        module: MODULE_NAME, method: 'release',
+        action: ServerAction.LOCKING,
+        message: `Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' does not exist and cannot be released`,
+        detailedMessages: { lock }
+      });
+      return false;
+    }
+    await Logging.logDebug({
+      tenantID: lock.tenantID,
+      module: MODULE_NAME, method: 'release',
+      action: ServerAction.LOCKING,
+      message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+      detailedMessages: { lock }
+    });
+    Utils.isDevelopmentEnv() && console.debug(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`);
+    return true;
+  }
+
+  public static async cleanupLocks(doCleanup = true): Promise<void> {
+    if (doCleanup) {
+      const hostname = Utils.getHostname();
+      await LockingStorage.deleteLockByHostname(hostname);
     }
   }
 
