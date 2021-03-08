@@ -37,20 +37,20 @@ describe('Billing Stripe Service', function() {
       });
 
       it('should create and pay a first invoice for BILLING-TEST user', async () => {
-        void testData.checkBusinessProcessBillToPay();
+        await testData.checkBusinessProcessBillToPay();
       });
 
       it('Should add a different payment method to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_fr');
       });
 
-      it('Should set VAT tax rate to 20% (non inclusive)', async () => {
-        await testData.assignTaxRate(20);
-      });
+      // it('Should set VAT tax rate to 20% (non inclusive)', async () => {
+      //   await testData.assignTaxRate(20);
+      // });
 
       it('should create and pay a second invoice for BILLING-TEST user', async () => {
         await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
-        void testData.checkBusinessProcessBillToPay();
+        await testData.checkBusinessProcessBillToPay(true);
       });
 
     });

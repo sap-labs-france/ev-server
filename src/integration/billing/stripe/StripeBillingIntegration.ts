@@ -39,13 +39,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.stripe;
   }
 
-  public alterStripeSettings(someSettings: Partial<StripeBillingSetting>): void {
-    // TODO - To be removed - only used by automated tests!
-    this.settings = {
-      ...this.settings,
-      ...someSettings // overrides default settings to test different scenarios - e.g.: VAT 20%
-    };
-  }
+  // public alterStripeSettings(someSettings: Partial<StripeBillingSetting>): void {
+  //   // TODO - To be removed - only used by automated tests!
+  //   this.settings = {
+  //     ...this.settings,
+  //     ...someSettings // overrides default settings to test different scenarios - e.g.: VAT 20%
+  //   };
+  // }
 
   public async checkConnection(): Promise<void> {
     // Initialize Stripe

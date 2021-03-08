@@ -156,20 +156,26 @@ export default class StripeIntegrationTestData {
       inclusive: false
     });
     expect(taxRate).to.not.be.null;
-    concreteImplementation.alterStripeSettings({
-      taxID: taxRate?.id, // Default tax to apply when charging invoices
-      // immediateBillingAllowed: true // Activate immediate billing
-    });
+    // concreteImplementation.alterStripeSettings({
+    //   taxID: taxRate?.id, // Default tax to apply when charging invoices
+    //   // immediateBillingAllowed: true // Activate immediate billing
+    // });
     return taxRate;
   }
 
-  public async checkBusinessProcessBillToPay() : Promise<number> {
+  public async checkBusinessProcessBillToPay(withTax?:boolean) : Promise<number> {
+
+    let taxId: string = null;
+    if (withTax) {
+      const taxRate: Stripe.TaxRate = await this.assignTaxRate(20); // VAT 20%
+      taxId = taxRate.id;
+    }
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const dynamicInvoice = await this.billInvoiceItem(777);
+    const dynamicInvoice = await this.billInvoiceItem(777, taxId);
     assert(dynamicInvoice, 'Invoice should not be null');
     // Let's add an second item to the same invoice
-    const updatedInvoice = await this.billInvoiceItem(555);
+    const updatedInvoice = await this.billInvoiceItem(555, taxId);
     assert(updatedInvoice, 'Invoice should not be null');
     // User should have a DRAFT invoice
     const draftInvoices = await this.getDraftInvoices(this.dynamicUser.id);
@@ -184,10 +190,10 @@ export default class StripeIntegrationTestData {
     return nbDraftInvoice;
   }
 
-  public async billInvoiceItem(price: number) : Promise<BillingInvoice> {
-
+  public async billInvoiceItem(price: number, taxId?: string) : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
-    const invoiceItem = {
+    // array of tax ids to apply to the line item
+    const invoiceItem:BillingInvoiceItem = {
       description: `Stripe Integration - Item ${price}`,
       pricingData: {
         amount: price,
@@ -195,7 +201,10 @@ export default class StripeIntegrationTestData {
         price: price
       }
     };
-
+    if (taxId) {
+      invoiceItem.taxes = [ taxId ];
+    }
+    // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
     assert(billingInvoice, 'Billing invoice should not be null');
     return billingInvoice;
