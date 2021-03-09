@@ -66,7 +66,7 @@ export enum HTTPError {
   CANNOT_ACQUIRE_LOCK = 510, // FIXME: override an already defined HTTP status code: Not extended (RFC 2774)
   INVALID_FILE_FORMAT = 583,
 
-  CHARGING_POINT_NOT_VALID = 584,
+  CHARGE_POINT_NOT_VALID = 584,
 }
 
 export enum HTTPAuthError {

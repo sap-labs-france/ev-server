@@ -125,9 +125,22 @@ export default class ChargingStationService {
         delete chargingStation.templateHashOcppStandard;
         delete chargingStation.templateHashOcppVendor;
         delete chargingStation.templateHashTechnical;
-      } else if (chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) {
+      } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
+      (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
+        // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
-        await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation);
+        const templateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation);
+        // If not template was found, throw error (Check is done on technical configuration)
+        if (!templateUpdateResult.technicalUpdated) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: `Error occurred while updating chargingStation: '${chargingStation.id}'. No template found`,
+            module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+            user: req.user,
+          });
+        }
         rebootRequired = true;
       }
     }
@@ -143,7 +156,6 @@ export default class ChargingStationService {
           connector.voltage = filteredConnector.voltage;
           connector.currentType = filteredConnector.currentType;
           connector.numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
-          connector.amperageLimit = connector.amperage;
         }
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
       }
@@ -168,11 +180,13 @@ export default class ChargingStationService {
             chargePoint.connectorIDs = filteredChargePoint.connectorIDs;
             UtilsService.checkIfChargePointValid(chargingStation, chargePoint, req);
           } else {
+            // If charging station does not have charge points, but request contains charge points, add it to the station
             chargingStation.chargePoints ? chargingStation.chargePoints.push(filteredChargePoint) : chargingStation.chargePoints = [filteredChargePoint];
             UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
           }
         }
       } else if (Utils.isEmptyArray(filteredRequest.chargePoints) && !Utils.isEmptyArray(chargingStation.chargePoints)) {
+        // If charging station contains charge points, but request does not contain charge points, delete them
         delete chargingStation.chargePoints;
       }
     }
@@ -241,7 +255,7 @@ export default class ChargingStationService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: action,
-          errorCode: HTTPError.CHARGING_POINT_NOT_VALID,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user, actionOnUser: req.user,
