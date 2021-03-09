@@ -1,9 +1,10 @@
 import CreatedUpdatedProps from '../CreatedUpdatedProps';
+import { OCPIRole } from './OCPIRole';
 import { OcpiBusinessDetails } from '../Setting';
 
 export default interface OCPIEndpoint extends CreatedUpdatedProps {
   id: string;
-  role: string;
+  role: OCPIRole;
   name: string;
   baseUrl: string;
   localToken: string;

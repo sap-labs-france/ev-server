@@ -111,7 +111,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {
