@@ -227,7 +227,8 @@ export default class CompanyService {
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check auth
-    if (!Authorizations.canUpdateCompany(req.user)) {
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
+    if (!Authorizations.canUpdateCompany(req.user, filteredRequest.id, { companies: assignedCompanies })) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
