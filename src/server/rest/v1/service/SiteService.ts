@@ -592,8 +592,9 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
       MODULE_NAME, 'handleUpdateSite', req.user);
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
     // Check auth
-    if (!Authorizations.canReadCompany(req.user, company.id)) {
+    if (!Authorizations.canReadCompany(req.user, company.id, { companies: assignedCompanies })) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
