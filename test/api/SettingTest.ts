@@ -92,7 +92,7 @@ async function getCurrentCryptoDataAndCheckResultSuccessful() {
 
 async function resetCryptoSettingToDefault() { // Aes-256-gcm
   const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
-  await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData, 'aes', 256, 'gcm');
+  await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 256, 'gcm');
 }
 
 async function updateCryptoSettingsAndCheckResultSuccessful(crtData, blockCypher, blockSize, operationMode) {
@@ -291,25 +291,25 @@ describe('Setting tests', function() {
       await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
         crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
-    it('Check crypto settings update - change key + algorithm (aes->camellia)', async () => {
+    it.only('Check crypto settings update - change key + algorithm (aes->aria)', async () => {
       // Retrieve the crypto setting id
       const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is aes + ensure operation mode works with both camellia & aes
       await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes',
-        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update algorithm to camellia
-      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia',
-        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aria',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
-    it('Check crypto settings update - change key + algorithm (camellia->aes)', async () => {
+    it.only('Check crypto settings update - change key + algorithm (aria->aes)', async () => {
       // Retrieve the crypto setting id
       const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is camellia + ensure operation mode works with both camellia & aes
-      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'camellia',
-        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+      await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aria',
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
       // Update algorithm to aes
       await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes',
-        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
+        crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
     it('Check crypto settings update - change key + operation mode (ctr->gcm)', async () => {
       // Retrieve the crypto setting id
