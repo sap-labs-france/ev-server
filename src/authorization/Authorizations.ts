@@ -524,8 +524,9 @@ export default class Authorizations {
       { company: companyID, companies: context.companies, sitesAdmin: loggedUser.sitesAdmin, sitesOwner: loggedUser.sitesOwner });
   }
 
-  public static canDeleteCompany(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
+  public static canDeleteCompany(loggedUser: UserToken, companyID: string, context?: AuthorizationContext): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE,
+      { company: companyID, companies: context.companies });
   }
 
   public static canListCarCatalogs(loggedUser: UserToken): boolean {

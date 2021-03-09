@@ -336,7 +336,7 @@ export default class AuthorizationService {
     for (const company of companies) {
       company.canRead = Authorizations.canReadCompany(userToken, company.id, { companies: assignedCompanies });
       company.canUpdate = Authorizations.canUpdateCompany(userToken, company.id, { companies: assignedCompanies });
-      company.canDelete = Authorizations.canDeleteCompany(userToken);
+      company.canDelete = Authorizations.canDeleteCompany(userToken, company.id, { companies: assignedCompanies });
     }
   }
 

@@ -29,7 +29,8 @@ export default class CompanyService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check auth
-    if (!Authorizations.canDeleteCompany(req.user)) {
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
+    if (!Authorizations.canDeleteCompany(req.user, companyID, { companies: assignedCompanies })) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -79,8 +80,8 @@ export default class CompanyService {
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
     // Check auth
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID, { companies: assignedCompanies })) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
