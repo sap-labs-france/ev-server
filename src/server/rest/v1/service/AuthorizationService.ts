@@ -1,12 +1,13 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
-import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -323,6 +324,49 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetTagsAuthorizationFilters(
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpTagsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+        'createdOn', 'lastChangedOn'
+      ],
+      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+    };
+    if (Authorizations.canListUsers(userToken)) {
+      authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    }
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Handle Sites
+    await AuthorizationService.checkAssignedSiteAdmins(
+      tenant, userToken, filteredRequest, authorizationFilters);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetTagAuthorizationFilters(
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'
+      ],
+      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Handle Sites
+    await AuthorizationService.checkAssignedSiteAdmins(
+      tenant, userToken, filteredRequest, authorizationFilters);
+    return authorizationFilters;
+  }
+
   private static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
@@ -330,7 +374,7 @@ export default class AuthorizationService {
         userID: userToken.id,
         siteAdmin: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'siteID' ]
+      ['siteID']
     );
     return userSites.result.map((userSite) => userSite.siteID);
   }
@@ -339,11 +383,11 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Admin
     const sites = await SiteStorage.getSites(tenantID,
       {
-        siteIDs: siteID ? [ siteID ] : null,
+        siteIDs: siteID ? [siteID] : null,
         userID: userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id' ]
+      ['id']
     );
     return sites.result.map((site) => site.id);
   }
@@ -352,10 +396,10 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Admin
     const users = await UserStorage.getUsers(tenantID,
       {
-        siteIDs: [ siteID ],
+        siteIDs: [siteID],
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id' ]
+      ['id']
     );
     return users.result.map((user) => user.id);
   }
@@ -379,7 +423,8 @@ export default class AuthorizationService {
   }
 
   private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
-    filteredRequest: HttpSiteUsersRequest|HttpUserSitesRequest|HttpUserRequest|HttpUserAssignSitesRequest, authorizationFilters: AuthorizationFilter): Promise<void> {
+    filteredRequest: HttpSiteUsersRequest | HttpUserSitesRequest | HttpUserRequest | HttpUserAssignSitesRequest | HttpTagsRequest,
+    authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin flag
@@ -389,7 +434,7 @@ export default class AuthorizationService {
           authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (Utils.objectHasProperty(filteredRequest, 'SiteID') &&
-              !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
+            !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
             const filteredSiteIDs: string[] = filteredRequest['SiteID'].split('|');
             // Override
             authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(

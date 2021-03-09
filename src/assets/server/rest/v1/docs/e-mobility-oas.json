@@ -3382,6 +3382,18 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -3398,6 +3410,7 @@
                     {
                       "active": true,
                       "createdOn": "2021-03-05T15:03:08.684Z",
+                      "lastChangedOn": "2020-10-02T17:26:47.823Z",
                       "default": false,
                       "description": "###########",
                       "issuer": true,
@@ -3418,6 +3431,62 @@
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tag",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userID": "###",
+                  "issuer": true,
+                  "active": true,
+                  "description": "###########",
+                  "default": true,
+                  "user": {
+                    "email": "###",
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -4305,6 +4374,15 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "tagID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }
