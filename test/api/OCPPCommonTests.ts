@@ -504,8 +504,8 @@ export default class OCPPCommonTests {
     let currentCumulatedPrice = 0;
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
-      currentCumulatedPrice += Utils.computeSimplePrice(this.pricekWh, this.energyActiveImportMeterValues[index]);
-      currentCumulatedPrice = Utils.fixJSFloatValue(currentCumulatedPrice);
+      currentCumulatedPrice = Utils.createDecimal(currentCumulatedPrice).plus(
+        Utils.computeSimplePrice(this.pricekWh, this.energyActiveImportMeterValues[index])).toNumber();
       if (index === this.energyActiveImportMeterValues.length - 2) {
         this.totalPrice = currentCumulatedPrice;
       }

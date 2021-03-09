@@ -185,6 +185,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccessAndError
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
     } else if (actionsResponse.inSuccess > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -192,6 +193,7 @@ export default class Logging {
         action, module, method,
         message: messageSuccess
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
     } else if (actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -199,6 +201,7 @@ export default class Logging {
         action, module, method,
         message: messageError
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -206,6 +209,7 @@ export default class Logging {
         action, module, method,
         message: messageNoSuccessNoError
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
     }
   }
 
@@ -230,6 +234,7 @@ export default class Logging {
         message: messageSuccessAndError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageSuccessAndError));
     } else if (ocpiResult.success > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -238,6 +243,7 @@ export default class Logging {
         message: messageSuccess,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageSuccess));
     } else if (ocpiResult.failure > 0) {
       await Logging.logError({
         tenantID: tenantID,
@@ -246,6 +252,7 @@ export default class Logging {
         message: messageError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.error(chalk.red(messageError));
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
@@ -254,6 +261,7 @@ export default class Logging {
         message: messageNoSuccessNoError,
         detailedMessages: ocpiResult.logs
       });
+      Utils.isDevelopmentEnv() && console.info(chalk.green(messageNoSuccessNoError));
     }
   }
 
