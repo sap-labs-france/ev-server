@@ -291,7 +291,7 @@ describe('Setting tests', function() {
       await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], crtCryptoData.data.result[0].content.crypto.keyProperties.blockCypher,
         crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, 'ctr');
     });
-    it.only('Check crypto settings update - change key + algorithm (aes->aria)', async () => {
+    it('Check crypto settings update - change key + algorithm (aes->aria)', async () => {
       // Retrieve the crypto setting id
       const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is aes + ensure operation mode works with both camellia & aes
@@ -301,7 +301,7 @@ describe('Setting tests', function() {
       await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aria',
         crtCryptoData.data.result[0].content.crypto.keyProperties.blockSize, crtCryptoData.data.result[0].content.crypto.keyProperties.operationMode);
     });
-    it.only('Check crypto settings update - change key + algorithm (aria->aes)', async () => {
+    it('Check crypto settings update - change key + algorithm (aria->aes)', async () => {
       // Retrieve the crypto setting id
       const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
       // Ensure current algorithm is camellia + ensure operation mode works with both camellia & aes
