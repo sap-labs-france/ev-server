@@ -250,7 +250,7 @@ export default class ChargingStationService {
     });
     if (rebootRequired) {
       try {
-        // Await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+        await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
       } catch (error) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
