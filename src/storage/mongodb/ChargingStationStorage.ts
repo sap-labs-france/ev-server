@@ -160,7 +160,6 @@ export default class ChargingStationStorage {
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
-    let siteAreaLookUpAdded = false;
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Clone before updating the values
@@ -269,29 +268,14 @@ export default class ChargingStationStorage {
     // With no Site Area
     if (params.withNoSiteArea) {
       filters.siteAreaID = null;
-    } else {
+    } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       // Query by siteAreaID
-      if (!Utils.isEmptyArray(params.siteAreaIDs)) {
-        filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
-      }
-      // Check Site ID
-      if (!Utils.isEmptyArray(params.siteIDs)) {
-        // TODO: Optimization: Assign SiteID to the charging station object
-        // Site Area
-        siteAreaLookUpAdded = true;
-        DatabaseUtils.pushSiteAreaLookupInAggregation({
-          tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true
-        });
-        // Build filter
-        aggregation.push({
-          $match: {
-            'siteArea.siteID': {
-              $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
-            }
-          }
-        });
-      }
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+    }
+    // Check Site ID
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      // Query by siteID
+      filters.siteID = { $in: params.siteIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
@@ -345,12 +329,10 @@ export default class ChargingStationStorage {
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
     // Site Area
-    if (!siteAreaLookUpAdded) {
-      DatabaseUtils.pushSiteAreaLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true
-      });
-    }
+    DatabaseUtils.pushSiteAreaLookupInAggregation({
+      tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+      asField: 'siteArea', oneToOneCardinality: true
+    });
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation({
@@ -532,6 +514,7 @@ export default class ChargingStationStorage {
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       public: Utils.convertToBoolean(chargingStationToSave.public),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
+      siteID: Utils.convertToObjectID(chargingStationToSave.siteID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
