@@ -122,7 +122,7 @@ export default class JsonWSConnection extends WSConnection {
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Log
-    Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    await Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
@@ -131,7 +131,7 @@ export default class JsonWSConnection extends WSConnection {
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
       // Log
-      Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      await Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {

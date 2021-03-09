@@ -261,17 +261,17 @@ export default class OCPISessionsService {
   }
 
   private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
-    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastConsumption.value);
-    const duration = moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds') / 1000;
+    const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
+    const duration = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
     if (consumptionWh > 0 || duration > 0) {
-      const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
-      const currentInstantWatts = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
-      const amount = session.total_cost - transaction.price;
+      const sampleMultiplier = duration > 0 ? Utils.createDecimal(3600).div(duration).toNumber() : 0;
+      const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
+      const amount = Utils.createDecimal(session.total_cost).minus(transaction.price).toNumber();
       transaction.currentInstantWatts = currentInstantWatts;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
-      transaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh + transaction.currentConsumptionWh;
+      transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
       if (consumptionWh <= 0) {
-        transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
+        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(duration).toNumber();
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
           transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
       }

@@ -56,12 +56,29 @@ export interface UserCar extends CreatedUpdatedProps {
   owner?: boolean;
 }
 
+export interface ImportedUser {
+  id?: string;
+  name: string;
+  firstName: string;
+  email: string;
+  importedBy: string,
+  importedOn?: Date,
+  error?: string,
+  status?: UserImportStatus
+}
+
 export enum UserStatus {
   PENDING = 'P',
   ACTIVE = 'A',
   INACTIVE = 'I',
   BLOCKED = 'B',
   LOCKED = 'L',
+}
+
+export enum UserImportStatus {
+  UNKNOWN = 'U',
+  IMPORTED = 'I',
+  ERROR = 'E',
 }
 
 export enum UserRole {
