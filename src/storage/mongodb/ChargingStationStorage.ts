@@ -221,9 +221,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Include deleted charging stations if requested
     if (params.includeDeleted) {
-      filters.$or.push({
-        'deleted': true
-      });
+      filters.deleted = true;
     }
     // Add in aggregation
     aggregation.push({
