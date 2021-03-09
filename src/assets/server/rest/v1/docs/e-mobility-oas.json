@@ -3280,7 +3280,7 @@
         },
         "responses": {
           "201": {
-            "description": "Retrieved user",
+            "description": "User created successfully",
             "content": {
               "application/json": {
                 "example": {
@@ -3301,9 +3301,6 @@
           },
           "510": {
             "$ref": "#/components/responses/EmailAlreadyUsed"
-          },
-          "550": {
-            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -3394,6 +3391,101 @@
           },
           "500": {
             "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "510": {
+            "$ref": "#/components/responses/EmailAlreadyUsed"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "510": {
+            "description": "User cannot be deleted due to billing constraints"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -4010,10 +4102,14 @@
       },
       "User": {
         "type": "object",
-        "required": [""],
+        "required": [
+          "name",
+          "email"
+        ],
         "properties": {
           "costCenter": {
-            "type": "string"
+            "type": "string",
+            "example": "######"
           },
           "name": {
             "type": "string",
@@ -4035,7 +4131,8 @@
             "example": "0000000000"
           },
           "locale": {
-            "type": "string"
+            "type": "string",
+            "example": "en_EN"
           },
           "address": {
             "$ref": "#/components/schemas/Address"
@@ -4055,7 +4152,7 @@
           },
           "email": {
             "type": "string",
-            "example": "user.demo2@sap.com"
+            "example": "user.demo@sap.com"
           },
           "issuer": {
             "type": "boolean"
@@ -4065,7 +4162,13 @@
           },
           "status": {
             "type": "string",
-            "enum": ["P", "A", "I", "B", "L"]
+            "enum": [
+              "P",
+              "A",
+              "I",
+              "B",
+              "L"
+            ]
           },
           "plateID": {
             "type": "string",
@@ -4073,7 +4176,12 @@
           },
           "role": {
             "type": "string",
-            "enum": ["S", "A", "B", "D"],
+            "enum": [
+              "S",
+              "A",
+              "B",
+              "D"
+            ],
             "example": "B"
           },
           "notifications": {
