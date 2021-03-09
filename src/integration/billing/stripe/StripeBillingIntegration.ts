@@ -651,16 +651,30 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
-    // Convert pricing information to STRIPE expected data
+    /* --------------------------------------------------------------------------------
+     Convert pricing information to STRIPE expected data
+    -----------------------------------------------------------------------------------
+    Example:
+      Consumption 1000 Kw.h - total amount: 4 euros
+      Unit price should be (4 / 1000) ==> 0.004
+    Stripe expects 'unit_amount' as an Integer, in Cents
+      unit_amount: 0.4 ==> Not an integer - throws an exception
+    Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
+      unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
+    ----------------------------------------------------------------------------------- */
     const { description, pricingData, taxes } = billingInvoiceItem;
-    const quantity = new Decimal(pricingData.quantity).dividedBy(1000).toNumber();
-    const unit_amount = new Decimal(pricingData.amount).times(100).dividedBy(quantity).round().toNumber();
+    const quantity = pricingData.quantity; // kW.h
+    // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
+    const unit_amount_in_cents = new Decimal(pricingData.amount).times(100).dividedBy(quantity);
+    // Let's use the more precise option
+    const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
+
     const currency = pricingData.currency.toLowerCase();
     // Build stripe parameters for the item
     const parameters: Stripe.InvoiceItemCreateParams = {
       customer: customerID,
       quantity, // Energy consumed in kW.h
-      unit_amount, // price in cents
+      unit_amount_decimal, // price in cents (with 2 decimals allowed) as a string
       currency,
       description,
       tax_rates: taxes
@@ -724,7 +738,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
-    const quantity = transaction.stop.totalConsumptionWh; // Total consumption in Wh
+    const quantity = new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     const amount = transaction.stop.price; // Total amount for the line item
     const currency = transaction.stop.priceUnit;
     // -------------------------------------------------------------------------------
