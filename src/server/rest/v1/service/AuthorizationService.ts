@@ -331,9 +331,10 @@ export default class AuthorizationService {
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies) {
-      company.canRead = Authorizations.canReadCompany(userToken, company.id);
+      company.canRead = Authorizations.canReadCompany(userToken, company.id, { companies: assignedCompanies });
       company.canUpdate = Authorizations.canUpdateCompany(userToken);
       company.canDelete = Authorizations.canDeleteCompany(userToken);
     }
@@ -423,7 +424,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
+  public static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
       {

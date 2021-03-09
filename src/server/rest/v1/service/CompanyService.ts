@@ -79,8 +79,9 @@ export default class CompanyService {
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
     // Check auth
-    if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadCompany(req.user, filteredRequest.ID, { companies: assignedCompanies })) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
