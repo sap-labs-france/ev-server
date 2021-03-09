@@ -281,7 +281,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
     return {
-      ID: sanitize(request.ID),
+      FileName: sanitize(request.FileName),
     };
   }
 
