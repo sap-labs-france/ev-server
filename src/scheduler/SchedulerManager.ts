@@ -25,6 +25,7 @@ import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTa
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeUsersImportTask from './tasks/SynchronizeUsersImportTask';
 import Utils from '../utils/Utils';
 import cron from 'node-cron';
 
@@ -122,6 +123,9 @@ export default class SchedulerManager {
             break;
           case 'CheckChargingStationTemplateTask':
             schedulerTask = new CheckChargingStationTemplateTask();
+            break;
+          case 'SynchronizeUsersImportTask':
+            schedulerTask = new SynchronizeUsersImportTask();
             break;
           case 'MigrateSensitiveDataTask':
             schedulerTask = new MigrateSensitiveDataTask();

@@ -31,7 +31,7 @@ export default class AssetStorage {
     const assetImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'assetimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
     return {
       id: id,
       image: assetImageMDB ? assetImageMDB.image : null
@@ -92,7 +92,7 @@ export default class AssetStorage {
       await AssetStorage.saveAssetImage(tenantID, assetMDB._id.toHexString(), assetToSave.image);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
     return assetMDB._id.toHexString();
   }
 
@@ -116,9 +116,8 @@ export default class AssetStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'name': { $regex: params.search, $options: 'i' } },
       ];
     }
     // With no Site Area
@@ -158,7 +157,7 @@ export default class AssetStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getAssets', uniqueTimerID, assetsCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssets', uniqueTimerID, assetsCountMDB);
       return {
         count: (assetsCountMDB.length > 0 ? assetsCountMDB[0].count : 0),
         result: []
@@ -203,7 +202,7 @@ export default class AssetStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssets', uniqueTimerID, assetsMDB);
     return {
       count: (assetsCountMDB.length > 0 ?
         (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
@@ -227,9 +226,8 @@ export default class AssetStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'name': { $regex: params.search, $options: 'i' } },
       ];
     }
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
@@ -287,7 +285,7 @@ export default class AssetStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetsInError', uniqueTimerID, assetsMDB);
     // Ok
     return {
       count: assetsMDB.length,
@@ -307,7 +305,7 @@ export default class AssetStorage {
     await global.database.getCollection<any>(tenantID, 'assetimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteAsset', uniqueTimerID, { id });
   }
 
   private static async saveAssetImage(tenantID: string, assetID: string, assetImageToSave: string): Promise<void> {
@@ -321,7 +319,7 @@ export default class AssetStorage {
       { $set: { image: assetImageToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveAssetImage', uniqueTimerID, assetImageToSave);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveAssetImage', uniqueTimerID, assetImageToSave);
   }
 
   private static getAssetInErrorFacet(errorType: string) {

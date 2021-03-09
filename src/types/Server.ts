@@ -1,4 +1,3 @@
-
 export enum ServerAction {
   LOGIN = 'Login',
   LOGOUT = 'Logout',
@@ -12,7 +11,7 @@ export enum ServerAction {
   CHARGING_STATION_CLEAR_CACHE = 'ChargingStationClearCache',
   CHARGING_STATION_GET_CONFIGURATION = 'ChargingStationGetConfiguration',
   CHARGING_STATION_CHANGE_CONFIGURATION = 'ChargingStationChangeConfiguration',
-  CHARGING_STATION_DATA_TRANSFER = 'DataTransfer',
+  CHARGING_STATION_DATA_TRANSFER = 'ChargingStationChangeDataTransfer',
   CHARGING_STATION_REMOTE_START_TRANSACTION = 'ChargingStationRemoteStartTransaction',
   CHARGING_STATION_REMOTE_STOP_TRANSACTION = 'ChargingStationRemoteStopTransaction',
   CHARGING_STATION_UNLOCK_CONNECTOR = 'ChargingStationUnlockConnector',
@@ -32,9 +31,6 @@ export enum ServerAction {
   CHARGING_STATION_UPDATE_PARAMS = 'ChargingStationUpdateParams',
   CHARGING_STATION_LIMIT_POWER = 'ChargingStationLimitPower',
   CHARGING_STATION_DELETE = 'ChargingStationDelete',
-
-  START_TRANSACTION = 'StartTransaction',
-  STOP_TRANSACTION = 'StopTransaction',
 
   CHECK_SMART_CHARGING_CONNECTION = 'CheckSmartChargingConnection',
   TRIGGER_SMART_CHARGING = 'TriggerSmartCharging',
@@ -88,6 +84,7 @@ export enum ServerAction {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
 
   LOGS_CLEANUP = 'LogsCleanup',
+  PERFORMANCES_CLEANUP = 'PerformancesCleanup',
 
   SCHEDULER = 'Scheduler',
 
@@ -106,18 +103,18 @@ export enum ServerAction {
 
   OCPI_SETTINGS = 'OcpiSettings',
   OCPI_CLIENT_INITIALIZATION = 'OcpiClientInitialization',
-  OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
-  OCPI_ENPOINT_PING = 'OcpiEndpointPing',
-  OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
-  OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
-  OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
-  OCPI_ENPOINT_PULL_CDRS = 'OcpiEndpointPullCdrs',
-  OCPI_ENPOINT_PULL_LOCATIONS = 'OcpiEndpointPullLocations',
-  OCPI_ENPOINT_PULL_SESSIONS = 'OcpiEndpointPullSessions',
-  OCPI_ENPOINT_PULL_TOKENS = 'OcpiEndpointPullTokens',
-  OCPI_ENPOINT_SEND_EVSE_STATUSES = 'OcpiEndpointSendEVSEStatuses',
-  OCPI_ENPOINT_SEND_TOKENS = 'OcpiEndpointSendTokens',
-  OCPI_ENPOINT_GENERATE_LOCAL_TOKEN = 'OcpiEndpointGenerateLocalToken',
+  OCPI_ENDPOINT_CREATE = 'OcpiEndpointCreate',
+  OCPI_ENDPOINT_PING = 'OcpiEndpointPing',
+  OCPI_ENDPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
+  OCPI_ENDPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
+  OCPI_ENDPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
+  OCPI_ENDPOINT_PULL_CDRS = 'OcpiEndpointPullCdrs',
+  OCPI_ENDPOINT_PULL_LOCATIONS = 'OcpiEndpointPullLocations',
+  OCPI_ENDPOINT_PULL_SESSIONS = 'OcpiEndpointPullSessions',
+  OCPI_ENDPOINT_PULL_TOKENS = 'OcpiEndpointPullTokens',
+  OCPI_ENDPOINT_SEND_EVSE_STATUSES = 'OcpiEndpointSendEVSEStatuses',
+  OCPI_ENDPOINT_SEND_TOKENS = 'OcpiEndpointSendTokens',
+  OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN = 'OcpiEndpointGenerateLocalToken',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
@@ -154,8 +151,6 @@ export enum ServerAction {
   OCPI_ENDPOINT_UNREGISTER = 'OcpiEndpointUnregister',
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
 
-  AUTHORIZE = 'Authorize',
-
   OCPP_SERVICE = 'OCPPService',
 
   AUTHORIZATIONS = 'Authorizations',
@@ -172,9 +167,16 @@ export enum ServerAction {
 
   SOCKET_IO = 'SocketIO',
 
+  // OCPP server commands
+  AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
-
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
   STATUS_NOTIFICATION = 'StatusNotification',
+  START_TRANSACTION = 'StartTransaction',
+  STOP_TRANSACTION = 'StopTransaction',
+  METERVALUES = 'MeterValues',
+  DATA_TRANSFER = 'DataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
 
@@ -269,10 +271,6 @@ export enum ServerAction {
 
   CHARGING_STATION_TRANSACTIONS = 'ChargingStationTransactions',
 
-  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
-
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-
   ADD_CHARGING_STATIONS_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
   REMOVE_CHARGING_STATIONS_FROM_SITE_AREA = 'RemoveChargingStationsFromSiteArea',
 
@@ -358,6 +356,7 @@ export enum ServerAction {
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
+  SYNCHRONIZE_USERS = 'SynchronizeUsers',
 
   NOTIFICATIONS = 'Notifications',
 
@@ -436,6 +435,11 @@ export enum ServerRoute {
 
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
+
+  REST_TRANSACTIONS = 'transactions',
+
+  REST_USERS = 'users',
+  REST_USER = 'users/:id',
 
   REST_PING = 'ping',
 

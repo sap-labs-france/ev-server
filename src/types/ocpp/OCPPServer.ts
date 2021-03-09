@@ -49,6 +49,11 @@ export const OCPPVersionURLPath: Record<OCPPVersion, string> = Object.freeze({
   '2.0': 'OCPP20'
 });
 
+export enum OCPPGeneralResponse {
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected',
+}
+
 export enum RegistrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',

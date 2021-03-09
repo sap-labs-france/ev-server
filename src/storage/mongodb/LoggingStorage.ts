@@ -8,8 +8,6 @@ import { Log } from '../../types/Log';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 
-const MODULE_NAME = 'LoggingStorage';
-
 export default class LoggingStorage {
   public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<{ ok?: number; n?: number; }> {
     // Check Tenant
