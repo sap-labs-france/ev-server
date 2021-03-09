@@ -259,26 +259,6 @@ describe('Billing Service', function() {
 
       });
 
-      it('Should force a user synchronization', async () => {
-        const fakeUser = {
-          ...Factory.user.build(),
-        } as User;
-        fakeUser.issuer = true;
-        testData.billingImpl = await testData.setBillingSystemValidCredentials();
-        await testData.userService.createEntity(
-          testData.userService.userApi,
-          fakeUser
-        );
-        testData.createdUsers.push(fakeUser);
-        fakeUser.billingData = { customerID: 'cus_utbilling_fake_user' }; // TODO - Updating billing data is not possible anymore - filterUserRequest prevents this to happen!!!
-        await testData.userService.updateEntity(
-          testData.userService.userApi,
-          fakeUser
-        );
-        await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-        const billingUserAfter = await testData.billingImpl.getUser(fakeUser);
-        expect(fakeUser.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
-      });
 
       it('should add an item to the existing invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
@@ -323,6 +303,27 @@ describe('Billing Service', function() {
       it('Should synchronize invoices', async () => {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+      });
+
+      it('Should force a user synchronization', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+        fakeUser.issuer = true;
+        testData.billingImpl = await testData.setBillingSystemValidCredentials();
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        fakeUser.billingData = { customerID: 'cus_utbilling_fake_user' }; // TODO - not supported anymore
+        await testData.userService.updateEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
+        const billingUserAfter = await testData.billingImpl.getUser(fakeUser);
+        expect(fakeUser.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
     });
 

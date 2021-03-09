@@ -348,7 +348,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, stripeInvoice.id);
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
-    const invoiceToSave: Partial<BillingInvoice> = {
+    const invoiceToSave: BillingInvoice = {
+      id: billingInvoice?.id,
       userID,
       invoiceID: stripeInvoice.id,
       customerID: stripeInvoice.customer as string,
@@ -356,15 +357,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
-      createdOn: new Date(), // TODO - This is suspicious - what about the update?
+      createdOn: new Date(stripeInvoice.created * 1000), // epoch to Date!
       nbrOfItems,
       downloadUrl: stripeInvoice.invoice_pdf,
       downloadable: !!stripeInvoice.invoice_pdf,
     };
 
-    if (billingInvoice) {
-      invoiceToSave.id = billingInvoice.id;
-    }
+    // if (billingInvoice) {
+    //   invoiceToSave.id = billingInvoice.id;
+    // }
     const invoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
     return BillingStorage.getInvoice(this.tenantID, invoiceId);
   }
@@ -429,6 +430,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async consumeBillingEvent(req: Request): Promise<boolean> {
     let event: { data, type: string };
     if (process.env.STRIPE_WEBHOOK_SECRET) { // ##CR - to be clarified - where this secret key should come from
