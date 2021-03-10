@@ -6,10 +6,10 @@ import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
-    if (!Utils.objectHasProperty(request, 'transactionIds')) {
+    if (!Utils.objectHasProperty(request, 'transactionIds') || Utils.isEmptyArray(request.transactionIds)) {
       return { transactionIds: [] };
     }
-    return { transactionIds: request.transactionIds.map(sanitize) };
+    return { transactionIds:  request.transactionIds.map(sanitize) };
   }
 
   public static filterAssignTransactionsToUser(request: any): HttpAssignTransactionsToUserRequest {

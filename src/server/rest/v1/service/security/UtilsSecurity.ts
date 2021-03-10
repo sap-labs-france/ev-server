@@ -115,12 +115,7 @@ export default class UtilsSecurity {
       filteredAddress.department = sanitize(address.department);
       filteredAddress.region = sanitize(address.region);
       filteredAddress.country = sanitize(address.country);
-      if (Utils.objectHasProperty(address, 'coordinates') && address.coordinates.length === 2) {
-        filteredAddress.coordinates = [
-          sanitize(address.coordinates[0]),
-          sanitize(address.coordinates[1])
-        ];
-      }
+      UtilsSecurity.filterAddressCoordinatesRequest(address);
     }
     return filteredAddress;
   }
@@ -128,7 +123,7 @@ export default class UtilsSecurity {
   static filterAddressCoordinatesRequest(address: Address): Address {
     const filteredAddress: Address = {} as Address;
     if (address) {
-      if (Utils.objectHasProperty(address, 'coordinates') && address.coordinates.length === 2) {
+      if (Utils.objectHasProperty(address, 'coordinates') && !Utils.isEmptyArray(address.coordinates) && address.coordinates.length === 2) {
         filteredAddress.coordinates = [
           sanitize(address.coordinates[0]),
           sanitize(address.coordinates[1])

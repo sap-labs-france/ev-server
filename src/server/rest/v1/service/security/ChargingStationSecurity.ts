@@ -142,14 +142,14 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'siteAreaID')) {
       filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     }
-    if (Utils.objectHasProperty(request, 'coordinates') && request.coordinates.length === 2) {
+    if (Utils.objectHasProperty(request, 'coordinates') && !Utils.isEmptyArray(request.coordinates) && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),
         sanitize(request.coordinates[1])
       ];
     }
     // Filter connectors
-    if (Utils.objectHasProperty(request, 'connectors')) {
+    if (Utils.objectHasProperty(request, 'connectors') && !Utils.isEmptyArray(request.connectors)) {
       filteredRequest.connectors = request.connectors.map((connector) => {
         if (connector) {
           return {
