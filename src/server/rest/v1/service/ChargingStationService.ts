@@ -996,7 +996,7 @@ export default class ChargingStationService {
         detailedMessages: { error: error.message, stack: error.stack },
       });
       // Remove file related headers
-      res.setHeader('Content-Type', 'application/text');
+      res.setHeader('Content-Type', 'text/plain');
       res.setHeader('Content-Disposition', '');
       res.sendStatus(StatusCodes.NOT_FOUND);
     });
