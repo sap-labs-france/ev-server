@@ -201,7 +201,7 @@ export default class UserService {
       await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleAssignSitesToUser',
       message: 'User\'s Sites have been assigned successfully', action: action
@@ -377,7 +377,7 @@ export default class UserService {
           }
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME,
           method: 'handleUpdateTag',
@@ -393,7 +393,7 @@ export default class UserService {
       try {
         await billingImpl.deleteUser(user);
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: MODULE_NAME, method: 'handleDeleteUser',
@@ -406,7 +406,7 @@ export default class UserService {
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleDeleteUser',
@@ -421,7 +421,7 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
+    const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
@@ -507,7 +507,7 @@ export default class UserService {
           const billingUser = await billingImpl.updateUser(user);
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
         } catch (error) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: req.user.tenantID,
             action: action,
             module: MODULE_NAME, method: 'handleUpdateUser',
@@ -540,16 +540,14 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID) {
+      if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
         const adminData: { plateID?: string; } = {};
-        if (filteredRequest.plateID) {
-          adminData.plateID = filteredRequest.plateID;
-        }
+        adminData.plateID = filteredRequest.plateID || null;
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleUpdateUser',
@@ -624,7 +622,7 @@ export default class UserService {
       mobileLastChangedOn: new Date()
     });
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: user,
       module: MODULE_NAME, method: 'handleUpdateUserMobileToken',

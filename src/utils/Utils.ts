@@ -400,10 +400,6 @@ export default class Utils {
     return value ? value.replace(/\n/g, '') : '';
   }
 
-  public static escapeSpecialCharsInRegex(value: string): string {
-    return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
-  }
-
   public static isEmptyJSon(document: any): boolean {
     // Empty?
     if (!document) {
@@ -1135,7 +1131,7 @@ export default class Utils {
 
   public static containsGPSCoordinates(coordinates: number[]): boolean {
     // Check if GPs are available
-    if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
+    if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
         new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
