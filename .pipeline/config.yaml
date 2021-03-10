@@ -64,3 +64,6 @@ steps:
     ppmsCredentialsId: 'ppms-i030367-access'
     ppmsBuildVersionCreation: true
     ppmsChangeRequestUpload: true
+    
+  mailSendNotification:
+    notificationRecipients: jerome.benoit@sap.com
