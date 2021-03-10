@@ -195,7 +195,9 @@ export default class ChargingStationStorage {
       ];
     }
     // Remove deleted
-    filters.deleted = { '$ne': true };
+    if (!params.includeDeleted) {
+      filters.deleted = { '$ne': true };
+    }
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
       filters._id = {
@@ -218,12 +220,6 @@ export default class ChargingStationStorage {
     }
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
-    // Include deleted charging stations if requested
-    if (params.includeDeleted) {
-      filters.$or.push({
-        'deleted': true
-      });
-    }
     // Add in aggregation
     aggregation.push({
       $match: filters
