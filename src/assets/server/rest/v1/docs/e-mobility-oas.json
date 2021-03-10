@@ -2864,7 +2864,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/{id}": {
+    "/api/chargingstations/firmware/download": {
       "get": {
         "security": [
           {
@@ -2874,9 +2874,9 @@
         "description": "Get Charging Station firmware",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "description": "Firmware ID",
+            "in": "query",
+            "name": "FileName",
+            "description": "Firmware file name",
             "required": true,
             "schema": {
               "type": "string"
