@@ -417,7 +417,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/firmware/update',
   REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'chargingstations/availability/change',
 
-  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
+  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
   REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
 
