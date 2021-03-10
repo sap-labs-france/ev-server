@@ -1,7 +1,7 @@
 import Site, { SiteUser } from '../../types/Site';
-import User, { ImportedUser, UserImportStatus, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
-import global, { FilterParams, Image } from '../../types/GlobalType';
+import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
@@ -673,7 +673,7 @@ export default class UserStorage {
 
   public static async getImportedUsers(tenantID: string,
     params: {
-      statuses?: UserImportStatus[]; search?: string
+      statuses?: ImportStatus[]; search?: string
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug

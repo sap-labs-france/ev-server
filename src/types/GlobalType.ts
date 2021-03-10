@@ -21,6 +21,12 @@ export interface Image {
   image: string;
 }
 
+export enum ImportStatus {
+  UNKNOWN = 'U',
+  IMPORTED = 'I',
+  ERROR = 'E',
+}
+
 export interface FilterParams {
   [param: string]: any | string[];
 }

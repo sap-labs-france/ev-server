@@ -99,6 +99,7 @@ class RequestMapper {
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
           [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
+          [ServerAction.TAGS_IMPORT]: TagService.handleImportTags.bind(this),
         });
         break;
 

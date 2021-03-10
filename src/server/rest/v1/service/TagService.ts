@@ -1,19 +1,21 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import Tag, { ImportedTag } from '../../../../types/Tag';
 
-import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
+import Busboy from 'busboy';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
-import Tag from '../../../../types/Tag';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -22,6 +24,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import csvToJson from 'csvtojson/v2';
 
 const MODULE_NAME = 'TagService';
 
@@ -198,7 +201,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleDeleteTag',
           action: action,
@@ -208,7 +211,7 @@ export default class TagService {
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteTag',
       message: `Tag '${tag.id}' has been deleted successfully`,
@@ -306,7 +309,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: MODULE_NAME, method: 'handleCreateTag',
@@ -315,7 +318,7 @@ export default class TagService {
         });
       }
     }
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
       user: req.user, actionOnUser: user,
@@ -443,7 +446,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: MODULE_NAME, method: 'handleUpdateTag',
@@ -453,7 +456,7 @@ export default class TagService {
         });
       }
     }
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
@@ -463,6 +466,84 @@ export default class TagService {
     });
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canImportTags(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.IMPORT, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleImportTags'
+      });
+    }
+    const busboy = new Busboy({ headers: req.headers });
+    req.pipe(busboy);
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+      if (mimetype === 'text/csv') {
+        const converter = csvToJson({
+          trim: true,
+          delimiter: ['\t'],
+          quote: 'off'
+        });
+        void converter.subscribe(async (tag) => {
+          await TagService.importTag(action, req, tag);
+        }, (error) => {
+          void Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleImportTags',
+            action: action,
+            user: req.user.id,
+            message: 'Invalid csv file',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        });
+        void file.pipe(converter);
+      } else if (mimetype === 'application/json') {
+        const parser = JSONStream.parse('tags.*');
+        parser.on('data', async (tag) => {
+          await TagService.importTag(action, req, tag);
+        });
+        parser.on('error', function(error) {
+          void Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleImportTags',
+            action: action,
+            user: req.user.id,
+            message: 'Invalid json file',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        });
+        file.pipe(parser);
+      } else {
+        void Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'handleImportTags',
+          action: action,
+          user: req.user.id,
+          message: 'Invalid file format'
+        });
+        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+        res.end();
+      }
+    });
+    busboy.on('finish', function() {
+      void Logging.logInfo({
+        tenantID: req.user.tenantID,
+        action: action,
+        module: MODULE_NAME, method: 'handleImportTags',
+        user: req.user,
+        message: 'File successfully uploaded',
+      });
+      res.end();
+      next();
+    });
   }
 
   private static async deleteTags(action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
@@ -476,7 +557,7 @@ export default class TagService {
       // Not Found
       if (!tag) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -486,7 +567,7 @@ export default class TagService {
         });
       } else if (!tag.issuer) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -496,7 +577,7 @@ export default class TagService {
         });
       } else if (tag.transactionsCount > 0) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -540,7 +621,7 @@ export default class TagService {
               });
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: loggedUser.tenantID,
               module: MODULE_NAME, method: 'handleDeleteTags',
               action: action,
@@ -552,7 +633,7 @@ export default class TagService {
       }
     }
     // Log
-    Logging.logActionsResponse(loggedUser.tenantID,
+    await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TAGS_DELETE,
       MODULE_NAME, 'handleDeleteTags', result,
       '{{inSuccess}} tag(s) were successfully deleted',
@@ -561,5 +642,25 @@ export default class TagService {
       'No tags have been deleted'
     );
     return result;
+  }
+
+  private static async importTag(action: ServerAction, req: Request, tag: any): Promise<void> {
+    try {
+      const newUploadedTag: ImportedTag = {
+        id: tag.id.toUpperCase(),
+        description: tag.description ? tag.description : `Tag ID '${tag.id}'`,
+        importedBy: req.user.id,
+        status: ImportStatus.UNKNOWN
+      };
+      await TagStorage.saveImportedTag(req.user.tenantID, newUploadedTag);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: req.user.tenantID,
+        module: MODULE_NAME, method: 'importTag',
+        action: action,
+        message: 'tag cannot be imported',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
   }
 }

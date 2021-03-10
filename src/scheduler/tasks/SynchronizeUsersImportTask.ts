@@ -1,6 +1,7 @@
-import User, { UserImportStatus, UserRole, UserStatus } from '../../types/User';
+import User, { UserRole, UserStatus } from '../../types/User';
 
 import Constants from '../../utils/Constants';
+import { ImportStatus } from '../../types/GlobalType';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -10,7 +11,6 @@ import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import UserValidator from '../../server/rest/v1/validator/UserValidation';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
@@ -19,12 +19,12 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
     const synchronizeUsersImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-users-import');
     if (await LockingManager.acquire(synchronizeUsersImport)) {
       try {
-        const importedUsers = await UserStorage.getImportedUsers(tenant.id, { statuses: [UserImportStatus.UNKNOWN] }, Constants.DB_PARAMS_MAX_LIMIT);
-        if (importedUsers.count > 0) {
+        const importedUsers = await UserStorage.getImportedUsers(tenant.id, { statuses: [ImportStatus.UNKNOWN] }, Constants.DB_PARAMS_MAX_LIMIT);
+        if (importedUsers.count !== 0) {
           for (const importedUser of importedUsers.result) {
             const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
             if (foundUser) {
-              importedUser.status = UserImportStatus.ERROR;
+              importedUser.status = ImportStatus.ERROR;
               importedUser.error = 'Email already exists';
               await UserStorage.saveImportedUser(tenant.id, importedUser);
             } else {
@@ -48,7 +48,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                 await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
                 // Status need to be set separately
                 await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
-                importedUser.status = UserImportStatus.IMPORTED;
+                importedUser.status = ImportStatus.IMPORTED;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
                 await Logging.logDebug({
                   tenantID: tenant.id,
@@ -57,7 +57,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   message: `User with email: ${importedUser.email} have been created in Tenant ${tenant.name}`
                 });
               } catch (error) {
-                importedUser.status = UserImportStatus.ERROR;
+                importedUser.status = ImportStatus.ERROR;
                 importedUser.error = error.message;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
                 // Error

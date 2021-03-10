@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { ImportedUser, UserImportStatus, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -19,6 +19,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import { ImportStatus } from '../../../../types/GlobalType';
 import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
@@ -853,7 +854,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportUser(req.user)) {
+    if (!Authorizations.canImportUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1282,7 +1283,7 @@ export default class UserService {
         firstName: user.First_Name,
         email: user.Email,
         importedBy: req.user.id,
-        status: UserImportStatus.UNKNOWN
+        status: ImportStatus.UNKNOWN
       };
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {
