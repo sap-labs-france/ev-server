@@ -106,20 +106,6 @@ export default class StripeIntegrationTestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
-    const result = await this.getDraftInvoices(userId);
-    assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
-    return (result) ? result.length : -1;
-  }
-
-  public async getDraftInvoices(userId: string) : Promise<any> {
-    const params = { Status: BillingInvoiceStatus.DRAFT, UserID: [userId] };
-    const paging = TestConstants.DEFAULT_PAGING;
-    const ordering = [{ field: '-createdOn' }];
-    const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
-    return response?.data?.result;
-  }
-
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getStripeSettings();
     // Check that the mandatory settings are properly provided
@@ -175,7 +161,7 @@ export default class StripeIntegrationTestData {
     const updatedInvoice = await this.billInvoiceItem(2000 /* kW.h */, 8 /* EUR */, taxId);
     assert(updatedInvoice, 'Invoice should not be null');
     // User should have a DRAFT invoice
-    const draftInvoices = await this.getDraftInvoices(this.dynamicUser.id);
+    const draftInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.DRAFT);
     assert(draftInvoices, 'User should have at least a draft invoice');
     expect(draftInvoices.length).to.be.eql(1);
     // Let's pay that particular DRAFT invoice
@@ -228,4 +214,34 @@ export default class StripeIntegrationTestData {
     assert(customerID, 'customer ID cannot be null');
     return customerID;
   }
+
+  public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
+    const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.DRAFT);
+    assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    return (result) ? result.length : -1;
+  }
+
+  public async checkForPaidInvoices(userId: string, expectedValue: number): Promise<number> {
+    const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
+    assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
+    return (result) ? result.length : -1;
+  }
+
+  public async getInvoicesByState(userId: string, state: BillingInvoiceStatus) : Promise<any> {
+    const params = { Status: state, UserID: [userId] };
+    const paging = TestConstants.DEFAULT_PAGING;
+    const ordering = [{ field: '-createdOn' }];
+    const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    return response?.data?.result;
+  }
+
+  public async checkDownloadInvoiceAsPdf() : Promise<void> {
+    const paidInvoices = await await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
+    assert(paidInvoices, 'User should have at least a paid invoice');
+    // const response = await this.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+    // expect(response.data.result.length).to.be.gt(0);
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
+    expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
+  }
+
 }
