@@ -17,6 +17,7 @@ import TenantComponents from '../../../../types/TenantComponents';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import _ from 'lodash';
 
 const MODULE_NAME = 'AuthorizationService';
 
@@ -361,7 +362,7 @@ export default class AuthorizationService {
         // Get Company IDs from Site Admin flag
         const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
         if (!Utils.isEmptyArray(companyIDs)) {
-        // Force the filter
+          // Force the filter
           authorizationFilters.filters.companyIDs = companyIDs;
           // Check if filter is provided
           if (Utils.objectHasProperty(filteredRequest, 'CompanyID') &&
@@ -434,7 +435,7 @@ export default class AuthorizationService {
       }, Constants.DB_PARAMS_MAX_LIMIT,
       [ 'companyID' ]
     );
-    return sites.result.map((site) => site.companyID);
+    return _.uniq(_.map(sites.result, 'companyID'));
   }
 
   private static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {

@@ -20,7 +20,7 @@ const MODULE_NAME = 'CompanyService';
 
 export default class CompanyService {
 
-  public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
