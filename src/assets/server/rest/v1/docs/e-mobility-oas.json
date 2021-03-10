@@ -3448,33 +3448,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": "T12345678"
-                  },
-                  "userID": {
-                    "type": "string",
-                    "example": "5db815731fdcb70006e0a8ce"
-                  },
-                  "issuer": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "active": {
-                    "type": "boolean",
-                    "example": true
-                  },
-                  "description": {
-                    "type": "string",
-                    "example": "Badge description"
-                  },
-                  "default": {
-                    "type": "boolean",
-                    "example": true
-                  }
-                }
+                "$ref": "#/components/schemas/Tag"
               }
             }
           }
@@ -3576,6 +3550,15 @@
             "$ref": "#/components/parameters/tagID"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tag"
+              }
+            }
+          }
+        },
         "tags": [
           "Tags"
         ],
@@ -3585,18 +3568,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "userID": "###",
-                  "issuer": true,
-                  "active": true,
-                  "description": "###########",
-                  "default": true,
-                  "user": {
-                    "email": "###",
-                    "firstName": "###",
-                    "name": "###",
-                    "id": "###"
-                  },
-                  "id": "###"
+                  "status": "Success"
                 }
               }
             }
@@ -3612,6 +3584,9 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "575": {
+            "$ref": "#/components/responses/TagHasTransactionsError"
           }
         }
       }
@@ -3643,6 +3618,9 @@
       },
       "ResourceDoesNotExists": {
         "description": "Resource does not exist"
+      },
+      "TagHasTransactionsError": {
+        "description": "Cannot change user or delete a tag having transactions"
       }
     },
     "schemas": {
@@ -4223,9 +4201,13 @@
       "Tag": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "T12345678"
+          },
           "userID": {
             "type": "string",
-            "example": "###"
+            "example": "5db815731fdcb70006e0a8ce"
           },
           "issuer": {
             "type": "boolean",
