@@ -438,19 +438,18 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check for Billing data
-    if (!transaction.user.billingData || !transaction.user.billingData.customerID) {
+    if (!transaction.user.billingData) {
       throw new BackendError({
-        message: 'Transaction user does not include the expected billing data',
+        message: 'User has no Billing Data',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'stopTransaction',
+        method: 'checkStopTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
   }
 
-  public checkStartTransaction(transaction: Transaction, strictMode: boolean): void {
+  public checkStartTransaction(transaction: Transaction): void {
     // Check User
     if (!transaction.userID || !transaction.user) {
       throw new BackendError({
@@ -461,17 +460,16 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (strictMode) { // TODO - temporary solution - to be removed
-      // Check for Billing data
-      if (!transaction.user.billingData || !transaction.user.billingData.customerID) {
-        throw new BackendError({
-          message: 'Transaction user does not include the expected billing data',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+    // Get User
+    const billingUser = transaction.user;
+    if (!billingUser.billingData || !billingUser.billingData.customerID) {
+      throw new BackendError({
+        message: 'Transaction user has no billing method or no customer in Stripe',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 

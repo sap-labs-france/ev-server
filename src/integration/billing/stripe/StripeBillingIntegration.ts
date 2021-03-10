@@ -617,22 +617,19 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Check Transaction
-    this.checkStartTransaction(transaction, false);
-    // Let's create the STRIPE customer (if necessary)
-    let customer = null;
-    const customerID = transaction.user?.billingData?.customerID;
-    if (customerID) {
-      customer = await this.getStripeCustomer(customerID);
+    this.checkStartTransaction(transaction);
+    // Checks
+    // const customer = await this.getCustomerByUserID(transaction.user.id);
+    const customer = await this.getStripeCustomer(transaction.user);
+    if (!customer || customer.id !== transaction.user.billingData.customerID) {
+      throw new BackendError({
+        message: 'Stripe customer ID of the transaction user is invalid',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
-    // Check for the customer
-    if (!customer) {
-      // Let's create the STRIPE customer and update the billingData
-      const billingUser: BillingUser = await this.updateUser(transaction.user);
-      await UserStorage.saveUserBillingData(this.tenantID, billingUser.userID, billingUser.billingData);
-      transaction.user.billingData = billingUser.billingData;
-    }
-    // Let's check again!
-    this.checkStartTransaction(transaction, true /* strict mode */);
     return {
       cancelTransaction: false
     };
@@ -833,13 +830,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return Math.round(transaction.stop.roundedPrice * 100);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
-    return true;
+    // Check
+    return this.checkIfUserCanBeUpdated(user);
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
+    // Check connection
+    // await this.checkConnection();
     return true;
   }
 
@@ -903,7 +902,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async createUser(user: User): Promise<BillingUser> {
     // Check
-    const success = await this.checkIfUserCanBeCreated(user);
+    const success = await this.checkIfUserCanBeUpdated(user);
     if (!success) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -913,7 +912,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot create the user'
       });
     }
-    return this.saveStripeCustomer(user);
+    return this.modifyUser(user);
   }
 
   public async updateUser(user: User): Promise<BillingUser> {
@@ -928,7 +927,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot update the user'
       });
     }
-    return this.saveStripeCustomer(user);
+    return this.modifyUser(user);
   }
 
   public async deleteUser(user: User): Promise<void> {
@@ -946,37 +945,34 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private async getStripeCustomer(userOrCustomerID: User | string): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
+
     let customerID ;
     if (typeof userOrCustomerID === 'string') {
       customerID = userOrCustomerID;
     } else {
       customerID = userOrCustomerID?.billingData?.customerID;
     }
+
     if (customerID) {
       try {
         const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
         return customer;
       } catch (error) {
-        void Logging.logError({
-          tenantID: this.tenantID,
-          action: ServerAction.BILLING,
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getStripeCustomer',
-          message: `Stripe operation failed - ${error?.message as string}`
+          action: ServerAction.BILLING,
+          message: `Stripe Inconsistency: ${error.message as string}`,
+          detailedMessages: { error: error.message, stack: error.stack }
         });
-        // throw new BackendError({
-        //   source: Constants.CENTRAL_SERVER,
-        //   module: MODULE_NAME, method: 'getStripeCustomer',
-        //   action: ServerAction.BILLING,
-        //   message: `Stripe Inconsistency: ${error.message as string}`,
-        //   detailedMessages: { error: error.message, stack: error.stack }
-        // });
       }
     }
+
     // No Customer in STRIPE DB so far!
     return null;
   }
 
-  private async saveStripeCustomer(user: User): Promise<BillingUser> {
+  private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
     const fullName = Utils.buildUserFullName(user, false, false);
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
