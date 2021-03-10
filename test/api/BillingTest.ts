@@ -400,13 +400,6 @@ describe('Billing Service', function() {
         expect(response.data.result.length).to.be.eq(2);
       });
 
-      it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        for (const invoice of response.data.result) {
-          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
-        }
-      });
-
       xit('Should download invoice as PDF', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         expect(response.data.result.length).to.be.gt(0);
