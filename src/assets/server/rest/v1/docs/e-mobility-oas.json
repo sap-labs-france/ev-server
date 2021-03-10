@@ -2875,7 +2875,7 @@
         "parameters": [
           {
             "in": "query",
-            "name": "FileName",
+            "name": "fileName",
             "description": "Firmware file name",
             "required": true,
             "schema": {
