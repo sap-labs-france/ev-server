@@ -35,6 +35,7 @@ switch (cmd) {
     pullCertificateIds(certificateFile, chargeBoxId);
     break;
   case 'delete':
+    console.info('Not yet implemented client side');
     break;
   default:
     console.log(`Usage: - ./InstallCertificate.js put <certificateFile> <certificateType> <chargeBoxId>
