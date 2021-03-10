@@ -31,7 +31,7 @@ export default class CompanySecurity {
       WithSites: UtilsSecurity.filterBoolean(request.WithSites),
       WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)
     } as HttpCompaniesRequest;
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
@@ -39,7 +39,7 @@ export default class CompanySecurity {
         Utils.convertToFloat(sanitize(request.LocLongitude)),
         Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.LocMaxDistanceMeters) {
+      if (Utils.objectHasProperty(request, 'LocMaxDistanceMeters')) {
         request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
         if (request.LocMaxDistanceMeters > 0) {
           filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;

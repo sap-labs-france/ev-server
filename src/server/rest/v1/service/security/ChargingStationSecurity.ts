@@ -2,7 +2,6 @@ import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } fr
 import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../../types/requests/HttpChargingStationRequest';
 
 import { Command } from '../../../../../types/ChargingStation';
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../../types/requests/HttpDatabaseRequest';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -84,7 +83,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest = {} as HttpChargingStationsRequest;
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     filteredRequest.Search = sanitize(request.Search);
@@ -102,7 +101,7 @@ export default class ChargingStationSecurity {
         Utils.convertToFloat(sanitize(request.LocLongitude)),
         Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.LocMaxDistanceMeters) {
+      if (Utils.objectHasProperty(request, 'LocMaxDistanceMeters')) {
         request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
         if (request.LocMaxDistanceMeters > 0) {
           filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
@@ -143,14 +142,14 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'siteAreaID')) {
       filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     }
-    if (request.coordinates && request.coordinates.length === 2) {
+    if (Utils.objectHasProperty(request, 'coordinates') && !Utils.isEmptyArray(request.coordinates) && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),
         sanitize(request.coordinates[1])
       ];
     }
     // Filter connectors
-    if (request.connectors) {
+    if (Utils.objectHasProperty(request, 'connectors') && !Utils.isEmptyArray(request.connectors)) {
       filteredRequest.connectors = request.connectors.map((connector) => {
         if (connector) {
           return {
@@ -198,7 +197,7 @@ export default class ChargingStationSecurity {
       filteredRequest.carID = sanitize(request.carID);
     }
     // Do not check action?
-    if (request.args) {
+    if (Utils.objectHasProperty(request, 'args')) {
       filteredRequest.args = {};
       // Check
       if (Utils.objectHasProperty(request.args, 'type')) {
