@@ -1,6 +1,7 @@
 import { HttpAssetConsumptionRequest, HttpAssetImageRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../../types/requests/HttpAssetRequest';
 
 import Asset from '../../../../../types/Asset';
+import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -68,13 +69,13 @@ export default class AssetSecurity {
     filteredRequest.staticValueWatt = sanitize(request.staticValueWatt),
     filteredRequest.image = request.image;
     filteredRequest.dynamicAsset = UtilsSecurity.filterBoolean(request.dynamicAsset);
-    if (request.coordinates && request.coordinates.length === 2) {
+    if (Utils.objectHasProperty(request, 'coordinates') && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),
         sanitize(request.coordinates[1])
       ];
     }
-    if (request.dynamicAsset) {
+    if (Utils.objectHasProperty(request, 'dynamicAsset')) {
       filteredRequest.connectionID = sanitize(request.connectionID);
       filteredRequest.meterID = sanitize(request.meterID);
     }
