@@ -21,7 +21,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
   async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
     // Get Assets
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, null, Constants.DB_PARAMS_MAX_LIMIT);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
         {
