@@ -24,21 +24,18 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
-    // Filter
-    const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
-    // Check auth
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
-    if (!Authorizations.canDeleteCompany(req.user, companyID, { companies: assignedCompanies })) {
+    // Check static auth
+    if (!Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleDeleteCompany',
-        value: companyID
       });
     }
+    // Filter
+    const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Get authorization filters
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       req.tenant, req.user, { ID: companyID });
@@ -76,22 +73,19 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
-    // Filter
-    const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
-    // ID is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
-    // Check auth
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
-    if (!Authorizations.canReadCompany(req.user, filteredRequest.ID, { companies: assignedCompanies })) {
+    // Check static auth
+    if (!Authorizations.canReadCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleGetCompany',
-        value: filteredRequest.ID
       });
     }
-    // Get authorization filters
+    // Filter
+    const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
+    // Check dynamic auth
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
     // Get company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
@@ -137,7 +131,7 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
-    // Check auth
+    // Check static auth
     if (!Authorizations.canListCompanies(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -148,7 +142,7 @@ export default class CompanyService {
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
-    // Check auth
+    // Check dynamic auth
     const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(req.tenant, req.user, filteredRequest);
     if (!authorizationCompaniesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -224,21 +218,19 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
-    // Filter
-    const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
-    // Check auth
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
-    if (!Authorizations.canUpdateCompany(req.user, filteredRequest.id, { companies: assignedCompanies })) {
+    // Check static auth
+    if (!Authorizations.canUpdateCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'handleUpdateCompany',
-        value: filteredRequest.id
       });
     }
-    // Get authorization filters
+    // Filter
+    const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
+    // Check dynamic auth
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.id });
     // Get Company

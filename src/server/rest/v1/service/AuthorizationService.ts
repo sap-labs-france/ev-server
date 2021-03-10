@@ -335,9 +335,9 @@ export default class AuthorizationService {
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies) {
-      company.canRead = Authorizations.canReadCompany(userToken, company.id, { companies: assignedCompanies });
-      company.canUpdate = Authorizations.canUpdateCompany(userToken, company.id, { companies: assignedCompanies });
-      company.canDelete = Authorizations.canDeleteCompany(userToken, company.id, { companies: assignedCompanies });
+      company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
+      company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
     }
   }
 

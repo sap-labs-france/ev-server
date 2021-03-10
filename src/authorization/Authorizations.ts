@@ -510,23 +510,20 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken, companyID: string, context?: AuthorizationContext): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ,
-      { company: companyID, companies: context.companies });
+  public static canReadCompany(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ);
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.CREATE);
   }
 
-  public static canUpdateCompany(loggedUser: UserToken, companyID: string, context?: AuthorizationContext): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.UPDATE,
-      { company: companyID, companies: context.companies, sitesAdmin: loggedUser.sitesAdmin, sitesOwner: loggedUser.sitesOwner });
+  public static canUpdateCompany(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.UPDATE);
   }
 
-  public static canDeleteCompany(loggedUser: UserToken, companyID: string, context?: AuthorizationContext): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE,
-      { company: companyID, companies: context.companies });
+  public static canDeleteCompany(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
   public static canListCarCatalogs(loggedUser: UserToken): boolean {
