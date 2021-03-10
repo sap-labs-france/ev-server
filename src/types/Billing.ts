@@ -90,6 +90,10 @@ export interface BillingInvoiceItem {
     currency: string
   }
   taxes?: string[];
+  metadata?: {
+    // Just a flat list of key/value pairs!
+    [name: string]: string | number | null;
+  }
 }
 
 export enum BillingInvoiceStatus {

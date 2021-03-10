@@ -676,7 +676,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: new Decimal(pricingData.amount).times(100).round().toNumber()
+      amount: new Decimal(pricingData.amount).times(100).round().toNumber(),
+      metadata: { ...billingInvoiceItem?.metadata }
     };
 
     // // ----------------------------------------------------------------------------------------
@@ -760,14 +761,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private convertToBillingInvoiceItems(transaction: Transaction) : Array<BillingInvoiceItem> {
+    // Destructuring transaction.stop
+    const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     // TODO - make it more precise - Pricing transparency!
     const description = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
     const quantity = new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
-    const amount = transaction.stop.price; // Total amount for the line item
-    const currency = transaction.stop.priceUnit;
+    const amount = roundedPrice; // Total amount for the line item
+    const currency = priceUnit;
     // -------------------------------------------------------------------------------
     const taxes = this.getTaxRateIds(); // TODO - take into account SITE settings
     // Build a billing invoice item based on the transaction
@@ -778,7 +781,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         amount,
         currency
       },
-      taxes
+      taxes,
+      metadata: {
+        // Let's keep track of the initial data for troubleshooting purposes
+        userID: transaction.userID,
+        price,
+        roundedPrice,
+        priceUnit,
+        totalConsumptionWh,
+        begin: transaction.timestamp?.valueOf(),
+        end: timestamp?.valueOf()
+      }
     };
     return [ billingInvoiceItem] ;
   }
