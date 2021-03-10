@@ -3563,6 +3563,57 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "userID": "###",
+                  "issuer": true,
+                  "active": true,
+                  "description": "###########",
+                  "default": true,
+                  "user": {
+                    "email": "###",
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/500BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     }
   },
