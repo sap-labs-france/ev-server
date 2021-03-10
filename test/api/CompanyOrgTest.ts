@@ -30,10 +30,6 @@ describe('Company Org tests', function() {
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
-  afterEach(() => {
-    // Can be called after each UT to clean up created data
-  });
-
   after(async () => {
     // Final clean up at the end
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
@@ -148,6 +144,93 @@ describe('Company Org tests', function() {
       });
 
     });
+
+  });
+  describe('Where basic user', () => {
+
+    before(async () => {
+      testData.userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      if (testData.userContext === testData.centralUserContext) {
+        // Reuse the central user service (to avoid double login)
+        testData.userService = testData.centralUserService;
+      } else {
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+      }
+    });
+
+    it('Should not be able to create a new company', async () => {
+      try {
+        testData.newCompany = await testData.userService.createEntity(
+          testData.userService.companyApi,
+          Factory.company.build()
+        );
+      } catch (error) {
+        expect(error.actual).to.eq(403);
+      }
+    });
+
+    // It('Should find the created company by id', async () => {
+    //   // Check if the created entity can be retrieved with its id
+    //   await testData.userService.getEntityById(
+    //     testData.userService.companyApi,
+    //     testData.newCompany
+    //   );
+    // });
+
+    // it('Should find the created company in the company list', async () => {
+    //   // Check if the created entity is in the list
+    //   await testData.userService.checkEntityInList(
+    //     testData.userService.companyApi,
+    //     testData.newCompany
+    //   );
+    // });
+
+    it('Should not be able to update a company', async () => {
+      try {
+      // Change entity
+        testData.newCompany.name = 'New Name';
+        // Update
+        await testData.userService.updateEntity(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+      } catch (error) {
+        expect(error.actual).to.eq(403);
+      }
+    });
+
+    // It('Should find the updated company by id', async () => {
+    //   // Check if the updated entity can be retrieved with its id
+    //   const updatedCompany = await testData.userService.getEntityById(
+    //     testData.userService.companyApi,
+    //     testData.newCompany
+    //   );
+    //   // Check
+    //   expect(updatedCompany.name).to.equal(testData.newCompany.name);
+    // });
+
+    it('Should not be able to delete a company', async () => {
+      try {
+      // Delete the created entity
+        await testData.userService.deleteEntity(
+          testData.userService.companyApi,
+          testData.newCompany
+        );
+      } catch (error) {
+        expect(error.actual).to.equal(403);
+      }
+    });
+
+    // It('Should not find the deleted company with its id', async () => {
+    //   // Check if the deleted entity cannot be retrieved with its id
+    //   await testData.userService.checkDeletedEntityById(
+    //     testData.userService.companyApi,
+    //     testData.newCompany
+    //   );
+    // });
 
   });
 

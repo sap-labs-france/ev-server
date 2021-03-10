@@ -86,6 +86,7 @@
     "mochatest:smartCharging": "cross-env TS_NODE_FILES=true mocha test/**/SmartChargingTest.ts",
     "mochatest:security": "cross-env TS_NODE_FILES=true mocha test/**/SecurityTest.ts",
     "mochatest:registrationToken": "cross-env TS_NODE_FILES=true mocha test/**/RegistrationTokenTest.ts",
+    "mochatest:company": "cross-env TS_NODE_FILES=true mocha test/**/CompanyOrgTest.ts",
     "coverage": "nyc report --reporter=lcov",
     "coverage:html": "nyc report --reporter=html",
     "clinic:clean": "clinic clean",
