@@ -49,7 +49,7 @@ export default class SiteAreaSecurity {
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
       SiteID: sanitize(request.SiteID)
     } as HttpSiteAreasRequest;
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     if (Utils.containsGPSCoordinates([request.LocLongitude, request.LocLatitude])) {
@@ -57,7 +57,7 @@ export default class SiteAreaSecurity {
         Utils.convertToFloat(sanitize(request.LocLongitude)),
         Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.LocMaxDistanceMeters) {
+      if (Utils.objectHasProperty(request, 'LocMaxDistanceMeters')) {
         request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
         if (request.LocMaxDistanceMeters > 0) {
           filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
