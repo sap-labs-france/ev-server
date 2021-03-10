@@ -425,7 +425,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_DELETE_CERTIFICATE = 'chargingstations/certificates/delete',
   REST_CHARGING_STATIONS_GET_INSTALLED_CERTIFICATE_IDS = 'chargingstations/certificates',
 
-  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/:id',
+  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/download',
   REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
   REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/:id/connectors/:connectorId/qrcode/download',
 
