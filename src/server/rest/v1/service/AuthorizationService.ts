@@ -335,8 +335,8 @@ export default class AuthorizationService {
     // Enrich
     for (const company of companies) {
       company.canRead = Authorizations.canReadCompany(userToken, company.id, { companies: assignedCompanies });
-      company.canUpdate = Authorizations.canUpdateCompany(userToken);
-      company.canDelete = Authorizations.canDeleteCompany(userToken);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken, company.id, { companies: assignedCompanies });
+      company.canDelete = Authorizations.canDeleteCompany(userToken, company.id, { companies: assignedCompanies });
     }
   }
 
