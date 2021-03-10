@@ -995,17 +995,23 @@ export default class ChargingStationService {
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
+      // Remove file related headers
+      res.setHeader('Content-Type', 'application/text');
+      res.setHeader('Content-Disposition', '');
       res.sendStatus(StatusCodes.NOT_FOUND);
     });
     // End of download
-    bucketStream.on('end', () => {
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: action,
-        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
-        module: MODULE_NAME, method: 'handleGetFirmware',
+    await new Promise((resolve) => {
+      bucketStream.on('end', () => {
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: action,
+          message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+          module: MODULE_NAME, method: 'handleGetFirmware',
+        });
+        res.end();
+        resolve();
       });
-      res.end();
     });
   }
 
@@ -1441,7 +1447,7 @@ export default class ChargingStationService {
           ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
           // Add page (expect the last one)
           if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
-              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+            chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
             pdfDocument.addPage();
           }
         }
