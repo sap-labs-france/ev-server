@@ -968,7 +968,7 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    if (!filteredRequest.fileName) {
+    if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -978,10 +978,10 @@ export default class ChargingStationService {
       });
     }
     // Open a download stream and pipe it in the response
-    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.fileName);
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
     // Set headers
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.fileName);
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
     // Write chunks
     bucketStream.on('data', (chunk) => {
       res.write(chunk);
@@ -991,7 +991,7 @@ export default class ChargingStationService {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.fileName}' has not been found!`,
+        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
@@ -1006,7 +1006,7 @@ export default class ChargingStationService {
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: action,
-          message: `Firmware '${filteredRequest.fileName}' has been downloaded with success`,
+          message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
           module: MODULE_NAME, method: 'handleGetFirmware',
         });
         res.end();
