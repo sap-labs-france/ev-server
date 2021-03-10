@@ -109,8 +109,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
+        resource: Entity.COMPANY, action: Action.READ, attributes: ['*']
       },
       // -----------------------------------------------------------------------------------------------
       // TODO - put it pack as soon as BILLING has been validated of SLF
