@@ -65,7 +65,7 @@ export default class SettingStorage {
       { $set: settingMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
     return settingFilter._id.toHexString();
   }
@@ -424,7 +424,7 @@ export default class SettingStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -441,7 +441,7 @@ export default class SettingStorage {
     await global.database.getCollection<any>(tenantID, 'settings')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
   }
 
   public static async saveUserSettings(tenantID: string, userSettingToSave: UserSettings): Promise<void> {
