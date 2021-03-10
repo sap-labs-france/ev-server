@@ -3549,13 +3549,22 @@
                   "result": [
                     {
                       "active": true,
-                      "createdOn": "2021-03-05T15:03:08.684Z",
-                      "lastChangedOn": "2020-10-02T17:26:47.823Z",
+                      "createdBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "createdOn": "2021-03-10T09:58:10.560Z",
                       "default": false,
-                      "description": "###########",
+                      "description": "##########",
                       "issuer": true,
                       "ocpiToken": null,
                       "userID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
                       "id": "###"
                     }
                   ]
@@ -3600,11 +3609,17 @@
             "content": {
               "application/json": {
                 "example": {
-                  "userID": "###",
-                  "issuer": true,
                   "active": true,
-                  "description": "###########",
-                  "default": true,
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-03-10T09:58:10.560Z",
+                  "default": false,
+                  "description": "##########",
+                  "issuer": true,
+                  "ocpiToken": null,
+                  "userID": "###",
                   "user": {
                     "email": "###",
                     "firstName": "###",

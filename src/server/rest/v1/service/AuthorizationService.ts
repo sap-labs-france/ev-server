@@ -355,9 +355,7 @@ export default class AuthorizationService {
     tenant: Tenant, userToken: UserToken, filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: [
-        'id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'
-      ],
+      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
     // Check projection
@@ -385,10 +383,10 @@ export default class AuthorizationService {
     }
   }
 
-  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest):Promise<AuthorizationFilter> {
+  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn' ],
+      projectFields: ['id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'],
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Add user info
@@ -427,7 +425,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest):Promise<AuthorizationFilter> {
+  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -473,11 +471,11 @@ export default class AuthorizationService {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
       {
-        siteIDs: siteID ? [ siteID ] : null,
+        siteIDs: siteID ? [siteID] : null,
         userID: userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'companyID' ]
+      ['companyID']
     );
     return _.uniq(_.map(sites.result, 'companyID'));
   }
@@ -549,7 +547,7 @@ export default class AuthorizationService {
           authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (Utils.objectHasProperty(filteredRequest, 'SiteID') &&
-            !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
+              !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
             const filteredSiteIDs: string[] = filteredRequest['SiteID'].split('|');
             // Override
             authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
