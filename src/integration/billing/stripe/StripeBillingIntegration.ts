@@ -618,17 +618,19 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     // Check Transaction
     this.checkStartTransaction(transaction);
-    // Checks
-    // const customer = await this.getCustomerByUserID(transaction.user.id);
-    const customer = await this.getStripeCustomer(transaction.user);
-    if (!customer || customer.id !== transaction.user.billingData.customerID) {
-      throw new BackendError({
-        message: 'Stripe customer ID of the transaction user is invalid',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'startTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+
+    if (this.settings.liveMode) {
+      // Check that the customer STRIPE
+      const customer = await this.getStripeCustomer(transaction.user);
+      if (!customer) {
+        throw new BackendError({
+          message: 'Stripe customer ID of the transaction user is invalid',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'startTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
     }
     return {
       cancelTransaction: false
@@ -695,14 +697,19 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check object
     this.checkStopTransaction(transaction);
     try {
-      // Let's call the concrete implementation for stripe
-      const billingInvoice: BillingInvoice = await this.billTransaction(transaction);
-      // Return the operation result as a BillingDataTransactionStop
-      return {
-        status: BillingStatus.BILLED,
-        invoiceID: billingInvoice.id,
-        invoiceStatus: billingInvoice.status
-      };
+      const customer = await this.getStripeCustomer(transaction.user);
+      if (customer) {
+        // Let's call the concrete implementation for stripe
+        const billingInvoice: BillingInvoice = await this.billTransaction(transaction);
+        // Return the operation result as a BillingDataTransactionStop
+        return {
+          status: BillingStatus.BILLED,
+          invoiceID: billingInvoice.id,
+          invoiceStatus: billingInvoice.status
+        };
+      } else if (this.settings.liveMode) {
+        throw new Error('Unexpected situation - no customer - The transaction should not have been started in this context');
+      }
     } catch (error) {
       void Logging.logError({
         tenantID: this.tenantID,
@@ -713,10 +720,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: `Failed to bill the Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      return {
-        status: BillingStatus.UNBILLED
-      };
     }
+
+    return {
+      status: BillingStatus.UNBILLED
+    };
   }
 
   private async _getLatestDraftInvoice(customerID: string): Promise<Stripe.Invoice> {
@@ -958,6 +966,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
         return customer;
       } catch (error) {
+        // ---------------------------------------------------------------------------------------
+        // This should not happen - The customerID
+        // The customerID refers to something which does not exists anymore in the STRIPE account
+        // May happen when billing settings are changed to point to a different STRIPE account
+        // ---------------------------------------------------------------------------------------
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getStripeCustomer',

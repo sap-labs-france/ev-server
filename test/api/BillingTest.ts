@@ -132,15 +132,11 @@ class TestData {
 
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getStripeSettings();
-    for (const key of Object.keys(billingSettings)) {
-      if (typeof billingSettings[key] === 'undefined') {
-        return false ;
-      }
-      if (typeof billingSettings[key] === 'string' && billingSettings[key] === '') {
-        return false ;
-      }
-    }
-    return true;
+    // Check that the mandatory settings are properly provided
+    return (!!billingSettings.publicKey
+      && !!billingSettings.secretKey
+      && !!billingSettings.url
+      && !!billingSettings.currency);
   }
 
   public async getLatestDraftInvoice(userId?: string) {
@@ -265,7 +261,7 @@ describe('Billing Service', function() {
         const itemsBefore = await testData.getNumberOfItems(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
-        await testData.userService.billingApi.synchronizeInvoices({});
+        // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfItems(testData.userContext.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
@@ -305,7 +301,7 @@ describe('Billing Service', function() {
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
 
-      it('Should force a user synchronization', async () => {
+      xit('Should force a user synchronization', async () => {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;

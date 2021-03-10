@@ -90,8 +90,10 @@ export default class StripeIntegrationTestData {
       advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
       currency: config.get('billing.currency'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-    } as StripeBillingSetting;
+      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      taxID: config.get('billing.taxID'),
+      liveMode: config.get('billing.liveMode')
+    };
   }
 
   public async saveBillingSettings(stripeSettings: StripeBillingSetting) : Promise<void> {
@@ -120,15 +122,11 @@ export default class StripeIntegrationTestData {
 
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getStripeSettings();
-    for (const key of Object.keys(billingSettings)) {
-      if (typeof billingSettings[key] === 'undefined') {
-        return false ;
-      }
-      if (typeof billingSettings[key] === 'string' && billingSettings[key] === '') {
-        return false ;
-      }
-    }
-    return true;
+    // Check that the mandatory settings are properly provided
+    return (!!billingSettings.publicKey
+      && !!billingSettings.secretKey
+      && !!billingSettings.url
+      && !!billingSettings.currency);
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {

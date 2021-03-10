@@ -291,6 +291,16 @@ const config = convict({
       doc: 'Allow periodic billing',
       format: Boolean,
       default: ''
+    },
+    taxID: {
+      doc: 'taxes to apply by default',
+      format: String,
+      default: ''
+    },
+    liveMode: {
+      doc: 'Allow a preview of billing features',
+      format: Boolean,
+      default: ''
     }
   },
   smartCharging: {

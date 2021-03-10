@@ -58,7 +58,8 @@
     "noCardAllowed": true,
     "advanceBillingAllowed": true,
     "immediateBillingAllowed": true,
-    "periodicBillingAllowed": true
+    "periodicBillingAllowed": true,
+    "liveMode": false
   },
   "smartCharging": {
     "optimizerUrl": "",

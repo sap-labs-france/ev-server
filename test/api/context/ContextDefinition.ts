@@ -184,7 +184,8 @@ export default class ContextDefinition {
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             advanceBillingAllowed: true,
-            taxID: ''
+            taxID: '',
+            liveMode: false
           }
         }
       }
@@ -313,7 +314,8 @@ export default class ContextDefinition {
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             advanceBillingAllowed: true,
-            taxID: ''
+            taxID: '',
+            liveMode: false
           }
         }
       },

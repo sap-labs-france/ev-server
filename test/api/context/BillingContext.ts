@@ -27,8 +27,10 @@ export default class BillingContext {
       advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
       currency: config.get('billing.currency'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-    } as StripeBillingSetting;
+      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      taxID: config.get('billing.taxID'),
+      liveMode: config.get('billing.liveMode')
+    };
   }
 
   public async createTestData(): Promise<void> {
