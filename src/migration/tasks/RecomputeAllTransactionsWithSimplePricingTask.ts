@@ -10,7 +10,6 @@ import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
-import chalk from 'chalk';
 
 const TASK_NAME = 'RecomputeAllTransactionsWithSimplePricingTask';
 
@@ -36,7 +35,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
       .aggregate([
         {
           $match: {
-            'stop.price': { $gt: 0 },
+            'stop.totalConsumptionWh': { $gt: 0 },
             'stop.pricingSource': 'simple',
             'refundData': { $exists: false },
             'migrationTag': { $ne: `${TASK_NAME}~${this.getVersion()}` },
