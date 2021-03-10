@@ -115,22 +115,19 @@ export default class UtilsSecurity {
       filteredAddress.department = sanitize(address.department);
       filteredAddress.region = sanitize(address.region);
       filteredAddress.country = sanitize(address.country);
-      UtilsSecurity.filterAddressCoordinatesRequest(address);
+      filteredAddress.coordinates = UtilsSecurity.filterAddressCoordinatesRequest(address);
     }
     return filteredAddress;
   }
 
-  static filterAddressCoordinatesRequest(address: Address): Address {
-    const filteredAddress: Address = {} as Address;
-    if (address) {
-      if (Utils.objectHasProperty(address, 'coordinates') && !Utils.isEmptyArray(address.coordinates) && address.coordinates.length === 2) {
-        filteredAddress.coordinates = [
-          sanitize(address.coordinates[0]),
-          sanitize(address.coordinates[1])
-        ];
-      }
+  static filterAddressCoordinatesRequest(address: Address): number[] {
+    if (address && Utils.objectHasProperty(address, 'coordinates') && !Utils.isEmptyArray(address.coordinates) && address.coordinates.length === 2) {
+      return [
+        sanitize(address.coordinates[0]),
+        sanitize(address.coordinates[1])
+      ];
     }
-    return filteredAddress;
+    return [];
   }
 
   static filterCreatedAndLastChanged(filteredEntity: any, entity: any, loggedUser: UserToken): void {
