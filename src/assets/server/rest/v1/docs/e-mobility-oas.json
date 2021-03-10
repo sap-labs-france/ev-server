@@ -2876,7 +2876,7 @@
           {
             "in": "query",
             "name": "FileName",
-            "description": "Firmware ID",
+            "description": "Firmware file name",
             "required": true,
             "schema": {
               "type": "string"
