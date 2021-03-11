@@ -95,7 +95,8 @@ export default class ContextBuilder {
 
     let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
     if (process.env.TENANT_FILTER) {
-      // Just an optimization alowing to only initialize a singe tenant
+      // Just an optimization allowing to only initialize a single tenant
+      // e.g.: npm run mochatest:create:utbilling
       tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => def.subdomain === process.env.TENANT_FILTER);
     }
     for (const tenantContextDef of tenantDefinitions) {
