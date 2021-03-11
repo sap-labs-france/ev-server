@@ -77,8 +77,6 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Reboot required?
-    let rebootRequired = false;
     // Update props
     if (filteredRequest.chargingStationURL) {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
@@ -141,7 +139,6 @@ export default class ChargingStationService {
             user: req.user,
           });
         }
-        rebootRequired = true;
       }
     }
     // Existing Connectors
@@ -250,21 +247,6 @@ export default class ChargingStationService {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
-    if (rebootRequired) {
-      try {
-        await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
-      } catch (error) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Error occurred while restarting the charging station',
-          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-          user: req.user, actionOnUser: req.user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -1526,7 +1508,7 @@ export default class ChargingStationService {
           ChargingStationService.build3SizesPDFQrCode(pdfDocument, qrCodeImage, qrCodeTitle);
           // Add page (expect the last one)
           if (!connectorID && (chargingStations[chargingStations.length - 1] !== chargingStation ||
-            chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
+              chargingStation.connectors[chargingStation.connectors.length - 1] !== connector)) {
             pdfDocument.addPage();
           }
         }

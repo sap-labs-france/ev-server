@@ -170,7 +170,7 @@ export default class ChargingStationSecurity {
       });
     }
     // Filter charge points
-    if (request.chargePoints) {
+    if (Utils.objectHasProperty(request, 'chargePoints') && !Utils.isEmptyArray(request.chargePoints)) {
       filteredRequest.chargePoints = request.chargePoints.map((chargePoint) => {
         if (chargePoint) {
           return {

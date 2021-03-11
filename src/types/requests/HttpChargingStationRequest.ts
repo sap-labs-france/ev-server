@@ -1,4 +1,4 @@
-import { ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
+import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
 
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
@@ -56,19 +56,7 @@ export interface HttpChargingStationParamsUpdateRequest {
   manualConfiguration: boolean;
   siteAreaID: string;
   coordinates: number[];
-  chargePoints: {
-    chargePointID: number;
-    currentType: CurrentType;
-    voltage: Voltage;
-    amperage: number;
-    numberOfConnectedPhase: number;
-    cannotChargeInParallel: boolean;
-    sharePowerToAllConnectors: boolean;
-    excludeFromPowerLimitation: boolean;
-    ocppParamForPowerLimitation: string;
-    power: number;
-    efficiency: number;
-    connectorIDs: number[]}[];
+  chargePoints: ChargePoint[];
   connectors: {
     connectorId: number;
     chargePointID: number;

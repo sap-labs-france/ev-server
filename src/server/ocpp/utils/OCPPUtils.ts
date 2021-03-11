@@ -1070,9 +1070,9 @@ export default class OCPPUtils {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
-    if (chargingStationTemplate) {
+    if (chargingStationTemplate && !chargingStation.manualConfiguration) {
       // Already updated?
-      if (chargingStation.templateHash !== chargingStationTemplate.hash && !chargingStation.manualConfiguration) {
+      if (chargingStation.templateHash !== chargingStationTemplate.hash) {
         templateUpdate.chargingStationUpdate = true;
         // Check Technical Hash
         if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
