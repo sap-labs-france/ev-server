@@ -204,6 +204,7 @@ export default class ChargingStationService {
         });
       }
       chargingStation.siteAreaID = siteArea.id;
+      chargingStation.siteID = siteArea.siteID;
       // Check number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -225,6 +226,7 @@ export default class ChargingStationService {
     } else {
       delete chargingStation.excludeFromSmartCharging;
       chargingStation.siteAreaID = null;
+      chargingStation.siteID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
@@ -803,6 +805,8 @@ export default class ChargingStationService {
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
+    // Remove Site
+    chargingStation.siteID = null;
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
@@ -845,7 +849,7 @@ export default class ChargingStationService {
     let projectFields = [
       'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
       'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-      'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+      'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
       'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
       'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
       'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
@@ -1365,7 +1369,7 @@ export default class ChargingStationService {
       projectFields = [
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower', 'powerLimitUnit',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
