@@ -144,6 +144,7 @@ export default class ChargingStationService {
         });
       }
       chargingStation.siteAreaID = siteArea.id;
+      chargingStation.siteID = siteArea.siteID;
       // Check number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -165,6 +166,7 @@ export default class ChargingStationService {
     } else {
       delete chargingStation.excludeFromSmartCharging;
       chargingStation.siteAreaID = null;
+      chargingStation.siteID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
@@ -728,6 +730,8 @@ export default class ChargingStationService {
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
+    // Remove Site
+    chargingStation.siteID = null;
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
@@ -770,7 +774,7 @@ export default class ChargingStationService {
     let projectFields = [
       'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
       'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-      'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
+      'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
       'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
       'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
       'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
@@ -968,7 +972,7 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    if (!filteredRequest.ID) {
+    if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -978,10 +982,10 @@ export default class ChargingStationService {
       });
     }
     // Open a download stream and pipe it in the response
-    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.ID);
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
     // Set headers
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.ID);
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
     // Write chunks
     bucketStream.on('data', (chunk) => {
       res.write(chunk);
@@ -991,21 +995,27 @@ export default class ChargingStationService {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
-        message: `Firmware '${filteredRequest.ID}' has not been found!`,
+        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
+      // Remove file related headers
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', '');
       res.sendStatus(StatusCodes.NOT_FOUND);
     });
     // End of download
-    bucketStream.on('end', () => {
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: action,
-        message: `Firmware '${filteredRequest.ID}' has been downloaded with success`,
-        module: MODULE_NAME, method: 'handleGetFirmware',
+    await new Promise((resolve) => {
+      bucketStream.on('end', () => {
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: action,
+          message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+          module: MODULE_NAME, method: 'handleGetFirmware',
+        });
+        res.end();
+        resolve();
       });
-      res.end();
     });
   }
 
@@ -1284,7 +1294,7 @@ export default class ChargingStationService {
       projectFields = [
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower', 'powerLimitUnit',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',

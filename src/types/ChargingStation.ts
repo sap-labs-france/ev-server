@@ -18,6 +18,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   issuer: boolean;
   public: boolean;
   siteAreaID?: string;
+  siteID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
   chargeBoxSerialNumber: string;
