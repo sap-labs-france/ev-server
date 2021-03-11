@@ -6,6 +6,7 @@ import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPITo
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
@@ -28,7 +29,7 @@ const MODULE_NAME = 'TagService';
 export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const tagID = TagSecurity.filterTagRequestByID(req.query);
+    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
     // Check auth
     if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
@@ -38,15 +39,15 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleGetTag'
       });
     }
-    UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTag', req.user);
+    // Get authorization filters
+    const authorizationTagFilters = await AuthorizationService.checkAndGetTagAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get the tag
-    const tag = await TagStorage.getTag(req.user.tenantID, tagID, { withUser: true },
-      [
-        'id', 'issuer', 'description', 'active', 'default',
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
-      ]
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withUser: true },
+      authorizationTagFilters.projectFields
     );
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
     if (!Authorizations.canReadUser(req.user, tag.userID)) {
@@ -68,14 +69,6 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleGetTags'
       });
     }
-    // Check Users
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-      ];
-    }
     // Filter
     const filteredRequest = TagSecurity.filterTagsRequest(req.query);
     let userID: string;
@@ -84,6 +77,9 @@ export default class TagService {
     } else {
       userID = filteredRequest.UserID;
     }
+    // Get authorization filters
+    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get the tags
     const tags = await TagStorage.getTags(req.user.tenantID,
       {
@@ -94,11 +90,7 @@ export default class TagService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-        'createdOn', 'lastChangedOn',
-        ...userProject
-      ],
+      authorizationTagsFilters.projectFields,
     );
     // Return
     res.json(tags);
@@ -126,8 +118,8 @@ export default class TagService {
 
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagId = TagSecurity.filterTagRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, tagId, MODULE_NAME, 'handleDeleteTag', req.user);
+    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTag', req.user);
     // Check auth
     if (!Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
@@ -135,12 +127,12 @@ export default class TagService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleDeleteTag',
-        value: tagId
+        value: filteredRequest.ID
       });
     }
     // Get Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withNbrTransactions: true, withUser: true });
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
     if (!tag.issuer) {
@@ -198,7 +190,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleDeleteTag',
           action: action,
@@ -208,7 +200,7 @@ export default class TagService {
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteTag',
       message: `Tag '${tag.id}' has been deleted successfully`,
@@ -306,7 +298,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: MODULE_NAME, method: 'handleCreateTag',
@@ -315,7 +307,7 @@ export default class TagService {
         });
       }
     }
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
       user: req.user, actionOnUser: user,
@@ -443,7 +435,7 @@ export default class TagService {
           });
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: MODULE_NAME, method: 'handleUpdateTag',
@@ -453,7 +445,7 @@ export default class TagService {
         });
       }
     }
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       action: action,
       module: MODULE_NAME, method: 'handleUpdateTag',
@@ -476,7 +468,7 @@ export default class TagService {
       // Not Found
       if (!tag) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -486,7 +478,7 @@ export default class TagService {
         });
       } else if (!tag.issuer) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -496,7 +488,7 @@ export default class TagService {
         });
       } else if (tag.transactionsCount > 0) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
@@ -540,7 +532,7 @@ export default class TagService {
               });
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: loggedUser.tenantID,
               module: MODULE_NAME, method: 'handleDeleteTags',
               action: action,
@@ -552,7 +544,7 @@ export default class TagService {
       }
     }
     // Log
-    Logging.logActionsResponse(loggedUser.tenantID,
+    await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TAGS_DELETE,
       MODULE_NAME, 'handleDeleteTags', result,
       '{{inSuccess}} tag(s) were successfully deleted',

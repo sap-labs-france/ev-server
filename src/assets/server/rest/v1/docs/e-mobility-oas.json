@@ -43,6 +43,10 @@
     {
       "name": "Users",
       "description": "Users API"
+    },
+    {
+      "name": "Tags",
+      "description": "Tags API"
     }
   ],
   "paths": {
@@ -3206,6 +3210,9 @@
             "$ref": "#/components/parameters/SortFields"
           },
           {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
             "$ref": "#/components/parameters/ProjectFields"
           }
         ],
@@ -3486,6 +3493,158 @@
           },
           "510": {
             "description": "User cannot be deleted due to billing constraints"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Active",
+            "description": "Active attribute",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tags list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "active": true,
+                      "createdBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "createdOn": "2021-03-10T09:58:10.560Z",
+                      "default": false,
+                      "description": "##########",
+                      "issuer": true,
+                      "ocpiToken": null,
+                      "userID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tag",
+            "content": {
+              "application/json": {
+                "example": {
+                  "active": true,
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-03-10T09:58:10.560Z",
+                  "default": false,
+                  "description": "##########",
+                  "issuer": true,
+                  "ocpiToken": null,
+                  "userID": "###",
+                  "user": {
+                    "email": "###",
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -4539,6 +4698,15 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "tagID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }
