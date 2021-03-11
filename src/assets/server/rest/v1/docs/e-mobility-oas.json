@@ -724,7 +724,7 @@
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/InactivityStatus"
@@ -850,7 +850,7 @@
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorStatus"
@@ -2657,7 +2657,7 @@
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "in": "query",
@@ -2758,7 +2758,7 @@
             "$ref": "#/components/parameters/SiteID"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/ErrorType"
@@ -2826,7 +2826,7 @@
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorStatus"
@@ -2926,6 +2926,38 @@
         "responses": {
           "200": {
             "description": "Smart Charging is enabled"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/smartcharging/trigger": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Trigger smart charging",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Smart Charging triggered successfully on site area"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -4621,6 +4653,14 @@
         }
       },
       "SiteAreaID": {
+        "in": "query",
+        "name": "SiteAreaID",
+        "description": "Site Area ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteAreaIDs": {
         "in": "query",
         "name": "SiteAreaID",
         "description": "Pipe separated Site Area IDs",

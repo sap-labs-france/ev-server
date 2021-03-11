@@ -95,7 +95,7 @@ export default class ChargingStationService {
               await ocpiClient.removeChargingStation(chargingStation);
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
               action: action,
@@ -180,7 +180,7 @@ export default class ChargingStationService {
     // Update
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id, action: action,
       user: req.user, module: MODULE_NAME,
@@ -303,7 +303,7 @@ export default class ChargingStationService {
           });
         }
         // Log
-        Logging.logWarning({
+        await Logging.logWarning({
           tenantID: req.user.tenantID,
           source: chargingStation.id,
           action: action,
@@ -331,7 +331,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       action: action,
@@ -400,10 +400,10 @@ export default class ChargingStationService {
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
@@ -412,7 +412,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-        value: filteredRequest.siteAreaID
+        value: filteredRequest.SiteAreaID
       });
     }
     // Call Smart Charging
@@ -745,7 +745,7 @@ export default class ChargingStationService {
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
@@ -1524,7 +1524,7 @@ export default class ChargingStationService {
             result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-              Logging.logWarning({
+              await Logging.logWarning({
                 tenantID: tenantID,
                 source: chargingStation.id,
                 user: user,
@@ -1623,7 +1623,7 @@ export default class ChargingStationService {
       if (result) {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
             user: user,
@@ -1634,7 +1634,7 @@ export default class ChargingStationService {
           });
         } else {
           // OCPP Command with no status
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             user: user,

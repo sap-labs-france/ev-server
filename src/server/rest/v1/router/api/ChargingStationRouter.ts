@@ -42,6 +42,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationUpdateParameters();
     this.buildRouteChargingStationLimitPower();
     this.buildRouteChargingStationCheckSmartCharging();
+    this.buildRouteChargingStationTriggerSmartCharging();
     return this.router;
   }
 
@@ -205,6 +206,12 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationCheckSmartCharging(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleCheckSmartChargingConnection.bind(this), ServerAction.CHECK_SMART_CHARGING_CONNECTION, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationTriggerSmartCharging(): void {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATION_TRIGGER_SMART_CHARGING}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleTriggerSmartCharging.bind(this), ServerAction.TRIGGER_SMART_CHARGING, req, res, next);
     });
   }
 
