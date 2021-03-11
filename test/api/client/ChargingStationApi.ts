@@ -25,11 +25,11 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async update(data) {
-    return super.update(data, '/v1/api/chargingstations/parameters');
+    return super.update(data, `/v1/api/chargingstations/${data.id}/parameters`);
   }
 
   public async delete(id) {
-    return super.delete(id, '/v1/api/chargingstations');
+    return super.delete(id, `/v1/api/chargingstations/${id}`);
   }
 
   public async readConsumptionStatistics(year) {
@@ -49,7 +49,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async remoteStartTransaction(data) {
-    return super.update(data, '/v1/api/chargingstations/remote/start');
+    return super.update(data, `/v1/api/chargingstations/${data.chargeBoxID}/remote/start`);
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {
