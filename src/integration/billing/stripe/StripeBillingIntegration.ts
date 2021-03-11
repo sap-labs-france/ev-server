@@ -332,7 +332,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private async _replicateStripeInvoice(userID: string, stripeInvoiceID: string): Promise<BillingInvoice> {
-
     // Make sure to get fresh data !
     const stripeInvoice: Stripe.Invoice = await this.getStripeInvoice(stripeInvoiceID);
     if (!stripeInvoice) {
@@ -344,7 +343,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, stripeInvoice.id);
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
@@ -362,12 +360,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       downloadUrl: stripeInvoice.invoice_pdf,
       downloadable: !!stripeInvoice.invoice_pdf,
     };
-
-    // if (billingInvoice) {
-    //   invoiceToSave.id = billingInvoice.id;
-    // }
+    // Let's persist the up-to-date data
     const invoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
-    return BillingStorage.getInvoice(this.tenantID, invoiceId);
+    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, invoiceId);
+    if (freshBillingInvoice?.downloadable) {
+      // Replicate the invoice as a PDF document
+      const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
+      await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
+    }
+    return freshBillingInvoice;
   }
 
   private async _createStripeInvoiceItem(parameters: Stripe.InvoiceItemCreateParams, idempotencyKey: string | number): Promise<Stripe.InvoiceItem> {
@@ -408,27 +409,28 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  public async finalizeInvoice(invoice: BillingInvoice): Promise<string> {
-    await this.checkConnection();
-    try {
-      const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
-      invoice.downloadUrl = stripeInvoice.invoice_pdf;
-      invoice.status = BillingInvoiceStatus.OPEN;
-      invoice.downloadable = true;
-      await BillingStorage.saveInvoice(this.tenantID, invoice);
-      const invoiceDocument = await this.downloadInvoiceDocument(invoice);
-      await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-      return stripeInvoice.invoice_pdf;
-    } catch (error) {
-      throw new BackendError({
-        message: 'Failed to finalize invoice',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'finalizeInvoice',
-        action: ServerAction.BILLING_SEND_INVOICE
-      });
-    }
-  }
+  // No use-case so far - exposing it at the Billing Integration level is useless
+  // public async finalizeInvoice(invoice: BillingInvoice): Promise<string> {
+  //   await this.checkConnection();
+  //   try {
+  //     const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
+  //     invoice.downloadUrl = stripeInvoice.invoice_pdf;
+  //     invoice.status = BillingInvoiceStatus.OPEN;
+  //     invoice.downloadable = true;
+  //     await BillingStorage.saveInvoice(this.tenantID, invoice);
+  //     const invoiceDocument = await this.downloadInvoiceDocument(invoice);
+  //     await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
+  //     return stripeInvoice.invoice_pdf;
+  //   } catch (error) {
+  //     throw new BackendError({
+  //       message: 'Failed to finalize invoice',
+  //       source: Constants.CENTRAL_SERVER,
+  //       module: MODULE_NAME,
+  //       method: 'finalizeInvoice',
+  //       action: ServerAction.BILLING_SEND_INVOICE
+  //     });
+  //   }
+  // }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async consumeBillingEvent(req: Request): Promise<boolean> {
@@ -477,10 +479,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     try {
       const stripeInvoice = await this._chargeStripeInvoice(invoice.invoiceID);
       const billingInvoice = await this._replicateStripeInvoice(invoice.userID, stripeInvoice.id);
-      if (billingInvoice.downloadable) {
-        const invoiceDocument = await this.downloadInvoiceDocument(billingInvoice);
-        await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-      }
       return billingInvoice;
     } catch (error) {
       throw new BackendError({

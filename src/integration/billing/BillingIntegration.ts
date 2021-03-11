@@ -572,7 +572,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
-  abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
+  // abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
 
   abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
