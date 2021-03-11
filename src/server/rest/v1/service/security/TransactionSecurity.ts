@@ -6,10 +6,10 @@ import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
-    if (!request.transactionIds) {
+    if (!Utils.objectHasProperty(request, 'transactionIds') || Utils.isEmptyArray(request.transactionIds)) {
       return { transactionIds: [] };
     }
-    return { transactionIds: request.transactionIds.map(sanitize) };
+    return { transactionIds:  request.transactionIds.map(sanitize) };
   }
 
   public static filterAssignTransactionsToUser(request: any): HttpAssignTransactionsToUserRequest {
@@ -51,7 +51,6 @@ export default class TransactionSecurity {
 
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest = {} as HttpTransactionsRequest;
-    // Handle picture
     if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
@@ -66,17 +65,18 @@ export default class TransactionSecurity {
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     filteredRequest.ConnectorID = sanitize(request.ConnectorID);
-    if (request.Statistics) {
+    if (Utils.objectHasProperty(request, 'Statistics')) {
       filteredRequest.Statistics = sanitize(request.Statistics);
     }
-    if (request.UserID) {
+    if (Utils.objectHasProperty(request, 'UserID')) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
-    if (request.ReportIDs) {
+    if (Utils.objectHasProperty(request, 'ReportIDs')) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -91,7 +91,7 @@ export default class TransactionSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     filteredRequest.ConnectorID = sanitize(request.ConnectorID);
-    if (request.UserID) {
+    if (Utils.objectHasProperty(request, 'UserID')) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);

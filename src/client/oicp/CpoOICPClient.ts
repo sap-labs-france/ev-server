@@ -329,7 +329,7 @@ export default class CpoOICPClient extends OICPClient {
       `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
       `{{inError}} EVSE(s) failed to be patched in ${executionDurationSecs}s`,
       `{{inSuccess}} EVSE(s) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
-      'No EVSE Status have been patched'
+      'No EVSE has been patched'
     );
     return result;
   }
@@ -447,7 +447,7 @@ export default class CpoOICPClient extends OICPClient {
       `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
       `{{inError}} EVSE Status(es) failed to be patched in ${executionDurationSecs}s`,
       `{{inSuccess}} EVSE Status(es) were successfully patched and {{inError}} failed to be patched in ${executionDurationSecs}s`,
-      'No EVSE Status have been patched'
+      'No EVSE Status has been patched'
     );
     return result;
   }

@@ -7,7 +7,7 @@
             "type": "string",
             "description": "string defining the vendor of the charge point. To be treated as case insensitive.",
             "minLength": 1,
-            "maxLength": 20
+            "maxLength": 25
         },
         "chargePointModel": {
             "type": "string",

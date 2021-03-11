@@ -31,7 +31,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canDeleteOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleDeleteOicpEndpoint',
@@ -64,7 +64,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canCreateOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE,
         entity: Entity.OICP_ENDPOINT,
@@ -118,7 +118,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canUpdateOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleUpdateOicpEndpoint',
@@ -157,7 +157,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canReadOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleGetOicpEndpoint',
@@ -183,7 +183,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canListOicpEndpoints(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.OICP_ENDPOINTS,
         module: MODULE_NAME, method: 'handleGetOicpEndpoints'
@@ -203,7 +203,7 @@ export default class OICPEndpointService {
       }, {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
@@ -223,7 +223,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OICP_ENDPOINT,
@@ -254,7 +254,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OICP_ENDPOINT,
@@ -285,7 +285,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canPingOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.PING,
         entity: Entity.OICP_ENDPOINT,
@@ -335,7 +335,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.REGISTER, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleUnregisterOicpEndpoint'
@@ -384,7 +384,7 @@ export default class OICPEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.REGISTER, entity: Entity.OICP_ENDPOINT,
         module: MODULE_NAME, method: 'handleRegisterOicpEndpoint'

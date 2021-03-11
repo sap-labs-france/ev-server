@@ -12,7 +12,6 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'NotificationStorage';
 
 export default class NotificationStorage {
-
   static async getNotifications(tenantID: string,
     params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
       sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
@@ -118,7 +117,7 @@ export default class NotificationStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -145,6 +144,6 @@ export default class NotificationStorage {
     await global.database.getCollection<Notification>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
   }
 }

@@ -35,7 +35,7 @@ export default class BillingContext {
     } as StripeBillingSetting;
   }
 
-  public async createTestData() {
+  public async createTestData(): Promise<void> {
     let skip = false;
     const settings = BillingContext.getBillingSettings();
     for (const [key, value] of Object.entries(settings)) {
@@ -78,7 +78,7 @@ export default class BillingContext {
     invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
     await billingImpl.finalizeInvoice(invoice.invoice);
     await billingImpl.sendInvoiceToUser(invoice.invoice);
-    // Await billingImpl.synchronizeInvoices(this.tenantContext.getTenant().id);
+    // pragma await billingImpl.synchronizeInvoices(this.tenantContext.getTenant().id);
   }
 
   private async saveBillingSettings(stripeSettings) {

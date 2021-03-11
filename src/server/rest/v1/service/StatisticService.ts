@@ -28,7 +28,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -57,7 +57,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -86,7 +86,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -115,7 +115,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -144,7 +144,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -173,7 +173,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -202,7 +202,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -231,7 +231,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -260,7 +260,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -289,7 +289,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -318,7 +318,7 @@ export default class StatisticService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,

@@ -125,7 +125,6 @@ export default class Authorizations {
   }
 
   public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
-    const companyIDs = new Set<string>();
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
@@ -135,7 +134,6 @@ export default class Authorizations {
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
-        companyIDs.add(siteUser.site.companyID);
         if (siteUser.siteAdmin) {
           siteAdminIDs.push(siteUser.site.id);
         }
@@ -178,7 +176,6 @@ export default class Authorizations {
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
-      'companies': [...companyIDs],
       'sitesAdmin': siteAdminIDs,
       'sitesOwner': siteOwnerIDs,
       'sites': siteIDs,
@@ -225,7 +222,7 @@ export default class Authorizations {
   }
 
   public static canListTransactionsInError(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.LIST);
+    return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.IN_ERROR);
   }
 
   public static canReadTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
@@ -261,6 +258,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.LIST);
   }
 
+  public static canListChargingStationsInError(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.IN_ERROR);
+  }
+
   public static canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): boolean {
     if (!context) {
       const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION);
@@ -294,15 +295,31 @@ export default class Authorizations {
   }
 
   public static canExportParams(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.EXPORT_PARAMS, {
+    return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.EXPORT, {
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
     });
 
   }
 
+  public static canAssignUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.ASSIGN);
+  }
+
+  public static canUnassignUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
+  }
+
+  public static canListUsersSites(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.LIST);
+  }
+
   public static canListUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
+  }
+
+  public static canListUsersInErrors(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IN_ERROR);
   }
 
   public static canListTags(loggedUser: UserToken): boolean {
@@ -334,6 +351,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
+  public static canImportUser(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
+  }
+
   public static canUpdateUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
       { user: userID, owner: loggedUser.id });
@@ -348,9 +369,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
   }
 
-  public static canReadSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ,
-      { site: siteID, sites: loggedUser.sites });
+  public static canReadSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ);
   }
 
   public static canCreateSite(loggedUser: UserToken): boolean {
@@ -527,9 +547,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken, companyID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ,
-      { company: companyID, companies: loggedUser.companies });
+  public static canReadCompany(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ);
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {
@@ -586,6 +605,10 @@ export default class Authorizations {
 
   public static canListAssets(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
+  }
+
+  public static canListAssetsInError(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.IN_ERROR);
   }
 
   public static canReadAsset(loggedUser: UserToken): boolean {

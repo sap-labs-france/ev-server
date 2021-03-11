@@ -9,6 +9,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
 import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
 import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
@@ -17,7 +18,7 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIPushCdrsTask from './tasks/ocpi/OCPIPushCdrsTask';
-import OCPIPushLocationsTask from './tasks/ocpi/OCPIPushLocationsTask';
+import OCPIPushEVSEStatusesTask from './tasks/ocpi/OCPIPushEVSEStatusesTask';
 import OICPPushEvseDataTask from './tasks/oicp/OICPPushEvseDataTask';
 import OICPPushEvseStatusTask from './tasks/oicp/OICPPushEvseStatusTask';
 import SchedulerTask from './SchedulerTask';
@@ -26,6 +27,7 @@ import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTa
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeUsersImportTask from './tasks/SynchronizeUsersImportTask';
 import Utils from '../utils/Utils';
 import cron from 'node-cron';
 
@@ -34,7 +36,7 @@ const MODULE_NAME = 'SchedulerManager';
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
 
-  public static init() {
+  public static init(): void {
     // Active?
     if (SchedulerManager.schedulerConfig.active) {
       // Log
@@ -79,8 +81,8 @@ export default class SchedulerManager {
           case 'OICPPushEvseStatusTask':
             schedulerTask = new OICPPushEvseStatusTask();
             break;
-          case 'OCPIPushLocationsTask':
-            schedulerTask = new OCPIPushLocationsTask();
+          case 'OCPIPushEVSEStatusesTask':
+            schedulerTask = new OCPIPushEVSEStatusesTask();
             break;
           case 'OCPIGetCdrsTask':
             schedulerTask = new OCPIGetCdrsTask();
@@ -129,6 +131,12 @@ export default class SchedulerManager {
             break;
           case 'CheckChargingStationTemplateTask':
             schedulerTask = new CheckChargingStationTemplateTask();
+            break;
+          case 'SynchronizeUsersImportTask':
+            schedulerTask = new SynchronizeUsersImportTask();
+            break;
+          case 'MigrateSensitiveDataTask':
+            schedulerTask = new MigrateSensitiveDataTask();
             break;
           default:
             Logging.logError({

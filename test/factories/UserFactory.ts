@@ -25,7 +25,7 @@ const userFactory = Factory.define('user')
     sendChargingStationRegistered: false,
     sendOcpiPatchStatusError: false,
     sendOicpPatchStatusError: false,
-    sendSmtpAuthError: false,
+    sendSmtpError: false,
     sendUserAccountInactivity: false,
     sendPreparingSessionNotStarted: false,
     sendOfflineChargingStations: false,
@@ -34,7 +34,9 @@ const userFactory = Factory.define('user')
     sendCarCatalogSynchronizationFailed: false,
     sendEndUserErrorNotification: false,
     sendComputeAndApplyChargingProfilesFailed: false,
-    sendBillingNewInvoice: false
+    sendBillingNewInvoice: false,
+    sendAccountVerificationNotification: false,
+    sendAdminAccountVerificationNotification: false
   }))
   .attr('role', 'B')
   .attr('status', 'A')

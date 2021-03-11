@@ -1,15 +1,15 @@
 {
-  "subject": "Primärer E-Mail-Server - Authentifizierung fehlgeschlagen",
+  "subject": "Account verified",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "E-Mail Server Authentifizierung fehlgeschlagen",
+      "title": "Account verified",
       "image": {
         "left": {
           "height": 60,
-          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
-        },
+          "url": "<%- tenantLogoURL %>"
+        },  
         "right": {
           "height": 50,
           "url": "<%- evseDashboardURL %>/assets/img/info.png"
@@ -17,21 +17,21 @@
       }
     },
     "beforeActionLines": [
-      "Sehr geehrter Administrator,",
+      "Hi <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Die Authentifizierung beim primären E-Mail-Server ist fehlgeschlagen",
+      "Your account has been verified <%-userStatus === 'A' ? 'and activated' : ''%> with success!",
       "",
-      "Bitte überprüfen Sie Ihre Konfiguration.",
-      ""
+      "<%-userStatus === 'I' ? 'An administrator will check and activate your account.' : ''%>"
     ],
     "actions": [{
       "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
-      "Mit freundlichen Grüßen",
+      "Best Regards,",
       "EV Admins."
     ],
-    "footer": {}
+    "footer": {
+    }
   }
 }

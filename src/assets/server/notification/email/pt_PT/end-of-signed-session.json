@@ -12,8 +12,8 @@
       { "label": "Iniciar Contador", "value": "<%- meterStart %> kWh" },
       { "label": "Iniciar Contador", "value": "<%- meterStop %> kWh" },
       { "label": "Consumo", "value": "<%- totalConsumption %> kWh" },
-      { "label": "Custo", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
-      { "label": "Contratado para", "value":"LOCAL (informativ)" }
+      { "label": "Custo", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informative)" },
+      { "label": "Contratado para", "value":"LOCAL (informative)" }
     ],
     "transactionId": "<%- transactionId %>",
     "startSignedData": "<%- startSignedData %>",

@@ -1,5 +1,6 @@
 import { ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
 
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpTriggerSmartChargingRequest {
@@ -15,7 +16,7 @@ export interface HttpChargingStationLimitPowerRequest {
 
 export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   Search?: string;
-  ChargeBoxID?: string;
+  ChargingStationID?: string;
   ConnectorID?: number;
   WithChargingStation?: boolean;
   WithSiteArea?: boolean;
@@ -23,7 +24,7 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpDownloadQrCodeRequest {
-  ChargeBoxID?: string;
+  ChargingStationID?: string;
   ConnectorID?: number;
   SiteID?: string;
   SiteAreaID?: string;
@@ -35,7 +36,7 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   WithNoSiteArea?: boolean;
   ConnectorStatus?: string;
   ConnectorType?: string;
-  ChargeBoxID?: string;
+  ChargingStationID?: string;
   SiteID?: string;
   WithSite?: boolean;
   SiteAreaID?: string;
@@ -66,12 +67,14 @@ export interface HttpChargingStationParamsUpdateRequest {
   }[];
 }
 
-export interface HttpChargingStationRequest {
+export type HttpChargingStationRequest = HttpByIDRequest;
+
+export interface HttpChargingStationOcppRequest {
   ChargeBoxID: string;
 }
 
 export interface HttpChargingStationConnectorRequest {
-  ChargeBoxID: string;
+  ChargingStationID: string;
   ConnectorID: number;
 }
 

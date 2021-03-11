@@ -343,6 +343,7 @@ export default class ContextDefinition {
     subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_SMART_CHARGING,
     componentSettings: {
       organization: {},
+      asset: {},
       smartCharging:
       {
         content:

@@ -33,14 +33,17 @@ export default class SiteSecurity {
       siteID: sanitize(request.siteID)
     } as HttpSiteAssignUsersRequest;
     filteredRequest.userIDs = request.userIDs.map(sanitize);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
   public static filterSiteRequest(request: any): HttpSiteRequest {
-    return {
+    const filteredRequest: HttpSiteRequest = {
       ID: sanitize(request.ID),
-      WithCompany: sanitize(request.WithCompany)
+      WithCompany: sanitize(request.WithCompany),
     };
+    UtilsSecurity.filterProject(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterSiteRequestByID(request: any): string {
@@ -60,12 +63,13 @@ export default class SiteSecurity {
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
   public static filterSitesRequest(request: any): HttpSitesRequest {
     const filteredRequest: HttpSitesRequest = {} as HttpSitesRequest;
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     filteredRequest.Search = sanitize(request.Search);
@@ -80,7 +84,7 @@ export default class SiteSecurity {
         Utils.convertToFloat(sanitize(request.LocLongitude)),
         Utils.convertToFloat(sanitize(request.LocLatitude))
       ];
-      if (request.LocMaxDistanceMeters) {
+      if (Utils.objectHasProperty(request, 'LocMaxDistanceMeters')) {
         request.LocMaxDistanceMeters = Utils.convertToInt(sanitize(request.LocMaxDistanceMeters));
         if (request.LocMaxDistanceMeters > 0) {
           filteredRequest.LocMaxDistanceMeters = request.LocMaxDistanceMeters;
@@ -89,6 +93,7 @@ export default class SiteSecurity {
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 

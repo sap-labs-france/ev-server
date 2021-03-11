@@ -18,10 +18,11 @@ export default abstract class CarIntegration {
     const externalCars = await this.getCarCatalogs();
     for (const externalCar of externalCars) {
       try {
-        const internalCar = await CarStorage.getCarCatalog(externalCar.id, { withImage: true });
+        const internalCar = await CarStorage.getCarCatalog(externalCar.id);
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
+          externalCar.lastChangedOn = new Date();
           externalCar.createdOn = new Date();
           // Get image
           externalCar.image = await this.getCarCatalogThumb(externalCar);
@@ -58,6 +59,8 @@ export default abstract class CarIntegration {
             // Save
             await CarStorage.saveCarCatalog(externalCar, true);
           } else {
+            externalCar.image = internalCar.image;
+            externalCar.imagesHash = internalCar.imagesHash;
             // Save
             await CarStorage.saveCarCatalog(externalCar, false);
           }

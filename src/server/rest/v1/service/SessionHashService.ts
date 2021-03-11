@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -39,7 +40,7 @@ export default class SessionHashService {
       if (userHashID !== this.buildUserHashID(user)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: StatusCodes.FORBIDDEN,
+          errorCode: HTTPError.USER_ACCOUNT_CHANGED,
           message: 'User has been updated and will be logged off',
           module: MODULE_NAME,
           method: 'isSessionHashUpdated',
@@ -50,7 +51,7 @@ export default class SessionHashService {
       if (tenantHashID !== this.buildTenantHashID(tenant)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: StatusCodes.FORBIDDEN,
+          errorCode: HTTPError.TENANT_COMPONENT_CHANGED,
           message: 'Tenant has been updated and all users will be logged off',
           module: MODULE_NAME,
           method: 'isSessionHashUpdated',

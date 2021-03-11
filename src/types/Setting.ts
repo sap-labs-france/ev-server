@@ -1,10 +1,16 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import TenantComponents from './TenantComponents';
 
-export interface Setting {
+export enum TechnicalSettings {
+  USER = 'user',
+  CRYPTO = 'crypto'
+}
+
+export interface Setting extends CreatedUpdatedProps {
   id?: string;
-  identifier: TenantComponents;
+  identifier: TenantComponents | TechnicalSettings;
   sensitiveData?: string[];
+  backupSensitiveData?: Record<string, unknown>;
   category?: 'business' | 'technical';
 }
 
@@ -21,7 +27,17 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType | CryptoSettingsType;
+  type:
+  RoamingSettingsType
+  | AnalyticsSettingsType
+  | RefundSettingsType
+  | PricingSettingsType
+  | BillingSettingsType
+  | SmartChargingSettingsType
+  | AssetSettingsType
+  | SmartChargingContentType
+  | CryptoSettingsType
+  | UserSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   simple?: SimplePricingSetting;
@@ -33,6 +49,7 @@ export interface SettingDBContent {
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
   crypto?: CryptoSetting;
+  user?: UserSetting;
 }
 
 export enum PricingSettingsType {
@@ -271,6 +288,11 @@ export interface AssetUserPasswordConnectionType {
   password: string;
 }
 
+export interface AssetGreencomConnectionType {
+  clientId: string;
+  clientSecret: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
@@ -279,12 +301,18 @@ export enum CryptoSettingsType {
   CRYPTO = 'crypto'
 }
 
-export interface CryptoKeySetting extends Setting {
-  identifier: TenantComponents.CRYPTO;
+export interface CryptoSettings extends Setting {
+  identifier: TechnicalSettings.CRYPTO;
   type: CryptoSettingsType;
   crypto: CryptoSetting;
 }
 
+export interface CryptoSetting {
+  key: string;
+  keyProperties: CryptoKeyProperties;
+  formerKey?: string;
+  formerKeyProperties?: CryptoKeyProperties;
+}
 export interface CryptoKeyProperties {
   blockCypher: string;
   blockSize: number;
@@ -296,8 +324,19 @@ export interface CryptoSetting {
   keyProperties: CryptoKeyProperties;
   formerKey?: string;
   formerKeyProperties?: CryptoKeyProperties;
+  migrationToBeDone?: boolean;
 }
-export interface AssetGreencomConnectionType {
-  clientId: string;
-  clientSecret: string;
+
+export enum UserSettingsType {
+  USER = 'user',
+}
+
+export interface UserSettings extends Setting {
+  identifier: TechnicalSettings.USER;
+  type: UserSettingsType;
+  user?: UserSetting;
+}
+
+export interface UserSetting {
+  autoActivateAccountAfterValidation: boolean;
 }

@@ -52,7 +52,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
@@ -79,7 +79,7 @@ export default class SiteAreaService {
       // Check auth
       if (!Authorizations.canReadAsset(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.READ, entity: Entity.ASSET,
           module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
@@ -144,7 +144,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
@@ -160,7 +160,7 @@ export default class SiteAreaService {
       // Check auth
       if (!Authorizations.canReadChargingStation(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.READ, entity: Entity.CHARGING_STATION,
           module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
@@ -227,7 +227,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleDeleteSiteArea',
@@ -286,7 +286,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleGetSiteArea',
@@ -329,7 +329,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.SITE_AREAS,
         module: MODULE_NAME, method: 'handleGetSiteAreas'
@@ -349,7 +349,7 @@ export default class SiteAreaService {
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
         'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
         'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
@@ -376,7 +376,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleGetSiteAreaConsumption'
@@ -430,7 +430,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleCreateSiteArea'
@@ -496,7 +496,7 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleUpdateSiteArea',

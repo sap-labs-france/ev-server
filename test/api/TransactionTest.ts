@@ -159,17 +159,6 @@ describe('Transaction tests', function() {
 
       });
 
-      describe('Using function "readAllInError"', () => {
-
-        afterEach(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
-        it('Cannot find any transactions in error if all transactions are still running', async () => {
-          await testData.transactionCommonTests.testReadNoTransactionsInError();
-        });
-      });
-
       describe('Using function "readAllConsumption"', () => {
 
         afterEach(async () => {

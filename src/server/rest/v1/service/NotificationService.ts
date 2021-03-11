@@ -38,7 +38,7 @@ export default class NotificationService {
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort
+      sort: filteredRequest.SortFields
     },
     [
       'id', 'timestamp', 'channel', 'sourceId', 'sourceDescr', 'chargeBoxID',
@@ -53,7 +53,7 @@ export default class NotificationService {
     // Check auth
     if (!Authorizations.canEndUserReportError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CREATE, entity: Entity.NOTIFICATION,
         module: MODULE_NAME, method: 'handleEndUserReportError'

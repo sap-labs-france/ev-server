@@ -1,8 +1,8 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../../types/requests/HttpUserRequest';
+import User, { UserRole } from '../../../../../types/User';
 
 import Authorizations from '../../../../../authorization/Authorizations';
 import UserNotifications from '../../../../../types/UserNotifications';
-import { UserRole } from '../../../../../types/User';
 import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -10,7 +10,7 @@ import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 
-  public static filterAssignSitesToUserRequest(request: any): HttpSitesAssignUserRequest {
+  public static filterAssignSitesToUserRequest(request: any): HttpUserAssignSitesRequest {
     return {
       userID: sanitize(request.userID),
       siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
@@ -21,50 +21,63 @@ export default class UserSecurity {
     return sanitize(request.UserID);
   }
 
+  public static filterUserRequest(request: any): HttpUserRequest {
+    const filteredRequest: HttpUserRequest = {
+      ID: sanitize(request.ID)
+    };
+    UtilsSecurity.filterProject(request, filteredRequest);
+    return filteredRequest;
+  }
+
   public static filterUserByIDRequest(request: any): string {
     return sanitize(request.ID);
   }
 
+  public static filterUserByIDsRequest(request: any): string[] {
+    return request.usersIDs.map(sanitize);
+  }
+
   public static filterUsersRequest(request: any): HttpUsersRequest {
     const filteredRequest = {} as HttpUsersRequest;
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
-    if (request.WithTag) {
+    if (Utils.objectHasProperty(request, 'WithTag')) {
       filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
     }
-    if (request.Search) {
+    if (Utils.objectHasProperty(request, 'Search')) {
       filteredRequest.Search = sanitize(request.Search);
     }
-    if (request.SiteID) {
+    if (Utils.objectHasProperty(request, 'SiteID')) {
       filteredRequest.SiteID = sanitize(request.SiteID);
     }
-    if (request.Role) {
+    if (Utils.objectHasProperty(request, 'Role')) {
       filteredRequest.Role = sanitize(request.Role);
     }
-    if (request.Status) {
+    if (Utils.objectHasProperty(request, 'Status')) {
       filteredRequest.Status = sanitize(request.Status);
     }
-    if (request.ErrorType) {
+    if (Utils.objectHasProperty(request, 'ErrorType')) {
       filteredRequest.ErrorType = sanitize(request.ErrorType);
     }
-    if (request.ExcludeSiteID) {
+    if (Utils.objectHasProperty(request, 'ExcludeSiteID')) {
       filteredRequest.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
-    if (request.TagID) {
+    if (Utils.objectHasProperty(request, 'TagID')) {
       filteredRequest.TagID = sanitize(request.TagID);
     }
-    if (request.ExcludeUserIDs) {
+    if (Utils.objectHasProperty(request, 'ExcludeUserIDs')) {
       filteredRequest.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }
-    if (request.IncludeCarUserIDs) {
+    if (Utils.objectHasProperty(request, 'IncludeCarUserIDs')) {
       filteredRequest.IncludeCarUserIDs = sanitize(request.IncludeCarUserIDs);
     }
-    if (request.NotAssignedToCarID) {
+    if (Utils.objectHasProperty(request, 'NotAssignedToCarID')) {
       filteredRequest.NotAssignedToCarID = sanitize(request.NotAssignedToCarID);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -74,11 +87,12 @@ export default class UserSecurity {
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest = UserSecurity.filterUserRequest(request, loggedUser);
+  public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<User> {
+    const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
@@ -91,8 +105,8 @@ export default class UserSecurity {
     };
   }
 
-  public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    return UserSecurity.filterUserRequest(request, loggedUser);
+  public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<User> {
+    return UserSecurity._filterUserRequest(request, loggedUser);
   }
 
   static filterNotificationsRequest(role: UserRole, notifications: UserNotifications): UserNotifications {
@@ -115,10 +129,12 @@ export default class UserSecurity {
       sendChargingStationRegistered: false,
       sendOcpiPatchStatusError: false,
       sendOicpPatchStatusError: false,
-      sendSmtpAuthError: false,
+      sendSmtpError: false,
       sendOfflineChargingStations: false,
       sendEndUserErrorNotification: false,
       sendComputeAndApplyChargingProfilesFailed: false,
+      sendAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAccountVerificationNotification) : false,
+      sendAdminAccountVerificationNotification: false,
     };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
@@ -131,48 +147,49 @@ export default class UserSecurity {
         sendChargingStationRegistered: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered) : false,
         sendOcpiPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError) : false,
         sendOicpPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOicpPatchStatusError) : false,
-        sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
+        sendSmtpError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpError) : false,
         sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
         sendEndUserErrorNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndUserErrorNotification) : false,
         sendComputeAndApplyChargingProfilesFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendComputeAndApplyChargingProfilesFailed) : false,
+        sendAdminAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAdminAccountVerificationNotification) : false,
       };
     }
     return filteredNotifications;
   }
 
-  private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest: Partial<HttpUserRequest> = {};
-    if (request.costCenter) {
+  private static _filterUserRequest(request: any, loggedUser: UserToken): Partial<User> {
+    const filteredRequest: Partial<User> = {};
+    if (Utils.objectHasProperty(request, 'costCenter')) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }
-    if (request.firstName) {
+    if (Utils.objectHasProperty(request, 'firstName')) {
       filteredRequest.firstName = sanitize(request.firstName);
     }
-    if (request.iNumber) {
+    if (Utils.objectHasProperty(request, 'iNumber')) {
       filteredRequest.iNumber = sanitize(request.iNumber);
     }
-    if (request.image) {
+    if (Utils.objectHasProperty(request, 'image')) {
       filteredRequest.image = sanitize(request.image);
     }
-    if (request.mobile) {
+    if (Utils.objectHasProperty(request, 'mobile')) {
       filteredRequest.mobile = sanitize(request.mobile);
     }
-    if (request.name) {
+    if (Utils.objectHasProperty(request, 'name')) {
       filteredRequest.name = sanitize(request.name);
     }
-    if (request.locale) {
+    if (Utils.objectHasProperty(request, 'locale')) {
       filteredRequest.locale = sanitize(request.locale);
     }
-    if (request.address) {
+    if (Utils.objectHasProperty(request, 'address')) {
       filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     }
-    if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
+    if (Utils.objectHasProperty(request, 'passwords') && request.passwords.password && request.passwords.password.length > 0) {
       filteredRequest.password = sanitize(request.passwords.password);
     }
-    if (request.phone) {
+    if (Utils.objectHasProperty(request, 'phone')) {
       filteredRequest.phone = sanitize(request.phone);
     }
-    if (request.email) {
+    if (Utils.objectHasProperty(request, 'email')) {
       filteredRequest.email = sanitize(request.email);
     }
     if (Utils.objectHasProperty(request, 'issuer')) {
@@ -184,17 +201,17 @@ export default class UserSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
       // Ok to set the sensitive data
-      if (request.status) {
+      if (Utils.objectHasProperty(request, 'status')) {
         filteredRequest.status = sanitize(request.status);
       }
-      if (request.plateID) {
+      if (Utils.objectHasProperty(request, 'plateID')) {
         filteredRequest.plateID = sanitize(request.plateID);
       }
-      if (request.role) {
+      if (Utils.objectHasProperty(request, 'role')) {
         filteredRequest.role = sanitize(request.role);
       }
     }
-    if (request.notifications) {
+    if (Utils.objectHasProperty(request, 'notifications')) {
       filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.role, request.notifications);
     }
     return filteredRequest;

@@ -19,6 +19,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   issuer: boolean;
   public: boolean;
   siteAreaID?: string;
+  siteID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
   chargeBoxSerialNumber: string;
@@ -68,7 +69,8 @@ export interface ChargingStationQRCode {
 
 export enum ChargingStationEndpoint {
   SCP = 'scp',
-  AWS = 'aws'
+  SCP_QA = 'scpqa',
+  AWS = 'aws',
 }
 
 export interface TemplateUpdate {
@@ -261,7 +263,7 @@ export interface ChargingStationCapabilities {
   supportReservation: boolean;
   supportRFIDCard: boolean;
   supportFirmwareUpgrade?: boolean;
-  supportConnectorIsSlave?: boolean;
+  supportSlave?: boolean;
 }
 
 export interface ChargingStationOcppParameters {
@@ -300,4 +302,5 @@ export enum ChargerVendor {
   MENNEKES = 'MENNEKES',
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
+  CIRCONTROL = 'CIRCONTROL',
 }

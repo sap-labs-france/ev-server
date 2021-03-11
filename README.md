@@ -379,9 +379,8 @@ Set the following info:
 
 ```
   "Email": {
-    "from": "evse.adm.noreply@gmail.com",
-    "bcc": "",
     "smtp": {
+      "from": "evse.adm.noreply@gmail.com",
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,

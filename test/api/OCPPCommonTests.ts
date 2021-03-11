@@ -4,9 +4,9 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import { Command } from '../../src/types/ChargingStation';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
 import Tag from '../types/Tag';
@@ -504,7 +504,8 @@ export default class OCPPCommonTests {
     let currentCumulatedPrice = 0;
     for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
-      currentCumulatedPrice = Utils.truncTo(((this.energyActiveImportMeterValues[index] / 1000) * this.pricekWh), 3) + Utils.truncTo(currentCumulatedPrice, 3);
+      currentCumulatedPrice = Utils.createDecimal(currentCumulatedPrice).plus(
+        Utils.computeSimplePrice(this.pricekWh, this.energyActiveImportMeterValues[index])).toNumber();
       if (index === this.energyActiveImportMeterValues.length - 2) {
         this.totalPrice = currentCumulatedPrice;
       }
@@ -543,7 +544,7 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentCumulatedPrice: currentCumulatedPrice,
           currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
@@ -555,7 +556,7 @@ export default class OCPPCommonTests {
           currentTotalConsumptionWh: (currentEnergyActiveImportMeterValue - this.energyActiveImportStartMeterValue),
           currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
           currentTotalInactivitySecs: this.totalInactivities[index],
-          currentCumulatedPrice: Utils.truncTo(currentCumulatedPrice, 3),
+          currentCumulatedPrice: currentCumulatedPrice,
           currentInactivityStatus: Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
             this.newTransaction.connectorId, this.totalInactivities[index]),
         });
@@ -630,6 +631,8 @@ export default class OCPPCommonTests {
     // Check the Transaction
     const transactionValidation = await this.basicTransactionValidation(this.newTransaction.id,
       this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
+    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    expect(this.totalPrice).equal(totalTransactionPrice);
     expect(transactionValidation.data).to.deep['containSubset']({
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
@@ -658,6 +661,8 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
     expect(response.status).to.equal(200);
+    const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
+    expect(this.totalPrice).equal(totalTransactionPrice);
     // Check Headers
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
@@ -697,7 +702,6 @@ export default class OCPPCommonTests {
       if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
         const instantWatts = this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs);
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
             null, this.newTransaction.connectorId, instantWatts),
@@ -713,7 +717,6 @@ export default class OCPPCommonTests {
         }
       } else {
         expect(value).to.include({
-          'date': transactionCurrentTime.toISOString(),
           'startedAt': transactionCurrentTime.toISOString(),
           'instantVolts': checkNewMeterValues ? this.voltageMeterValues[i] : 0,
           'instantVoltsL1': checkNewMeterValues ? this.voltageL1MeterValues[i] : 0,
@@ -744,7 +747,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
     if (noAuthorization) {
-      expect(response.status).to.equal(401);
+      expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }

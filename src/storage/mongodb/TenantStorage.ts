@@ -13,33 +13,14 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'TenantStorage';
 
 export default class TenantStorage {
-  private static tenants = new Map<string, Tenant>();
-
-  public static clearCache(tenantID?: string): void {
-    if (tenantID) {
-      TenantStorage.tenants.delete(tenantID);
-    } else {
-      TenantStorage.tenants.clear();
-    }
-  }
-
   public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
-    // Check in cache
-    const tenant = TenantStorage.tenants.get(id);
-    if (!tenant) {
-      // Call DB
-      const tenantsMDB = await TenantStorage.getTenants({
-        tenantIDs: [id],
-        withLogo: params.withLogo,
-      }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-      // Add in cache
-      if (tenantsMDB.count > 0) {
-        TenantStorage.tenants.set(id, tenantsMDB.result[0]);
-      }
-      return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
-    }
-    return tenant;
+    // Call DB
+    const tenantsMDB = await TenantStorage.getTenants({
+      tenantIDs: [id],
+      withLogo: params.withLogo,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return tenantsMDB.count === 1 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string, projectFields?: string[]): Promise<Tenant> {
@@ -109,10 +90,8 @@ export default class TenantStorage {
     if (saveLogo) {
       await TenantStorage._saveTenantLogo(tenantMDB._id.toHexString(), tenantToSave.logo);
     }
-    // Update cache
-    TenantStorage.clearCache(tenantToSave.id);
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveTenant', uniqueTimerID, tenantMDB);
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveTenant', uniqueTimerID, tenantMDB);
     return tenantFilter._id.toHexString();
   }
 
@@ -122,7 +101,7 @@ export default class TenantStorage {
     // Create tenant collections
     await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }
 
   // Delegate
@@ -140,10 +119,9 @@ export default class TenantStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'subdomain': { $regex: searchRegex, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'subdomain': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Tenant
@@ -180,7 +158,7 @@ export default class TenantStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsCountMDB);
+      await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsCountMDB);
       return {
         count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
         result: []
@@ -230,7 +208,7 @@ export default class TenantStorage {
         allowDiskUse: true
       }).toArray();
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsMDB);
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants', uniqueTimerID, tenantsMDB);
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ?
@@ -247,10 +225,8 @@ export default class TenantStorage {
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
-    // Update cache
-    TenantStorage.clearCache(id);
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
   }
 
   public static async deleteTenantDB(id: string): Promise<void> {
@@ -258,10 +234,8 @@ export default class TenantStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB');
     // Delete
     await global.database.deleteTenantDatabase(id);
-    // Update cache
-    TenantStorage.clearCache(id);
     // Debug
-    Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
   }
 
   public static async getTenantLogo(tenantID: string): Promise<TenantLogo> {
@@ -273,7 +247,7 @@ export default class TenantStorage {
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: Utils.convertToObjectID(tenantID) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);
     return {
       id: tenantID,
       logo: tenantLogoMDB ? tenantLogoMDB.logo : null
@@ -291,6 +265,6 @@ export default class TenantStorage {
       { $set: { logo: tenantLogoToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveTenantLogo', uniqueTimerID, tenantLogoToSave);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTenantLogo', uniqueTimerID, tenantLogoToSave);
   }
 }

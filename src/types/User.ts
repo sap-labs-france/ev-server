@@ -1,9 +1,10 @@
 import Address from './Address';
+import { AuthorizationActions } from './Authorization';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import UserNotifications from './UserNotifications';
 
-export default interface User extends CreatedUpdatedProps {
+export default interface User extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
   issuer: boolean;
   name: string;
@@ -41,6 +42,7 @@ export default interface User extends CreatedUpdatedProps {
 
 export interface UserSite {
   user: User;
+  userID?: string;
   siteID: string;
   siteAdmin: boolean;
   siteOwner: boolean;
@@ -54,12 +56,29 @@ export interface UserCar extends CreatedUpdatedProps {
   owner?: boolean;
 }
 
+export interface ImportedUser {
+  id?: string;
+  name: string;
+  firstName: string;
+  email: string;
+  importedBy: string,
+  importedOn?: Date,
+  error?: string,
+  status?: UserImportStatus
+}
+
 export enum UserStatus {
   PENDING = 'P',
   ACTIVE = 'A',
   INACTIVE = 'I',
   BLOCKED = 'B',
   LOCKED = 'L',
+}
+
+export enum UserImportStatus {
+  UNKNOWN = 'U',
+  IMPORTED = 'I',
+  ERROR = 'E',
 }
 
 export enum UserRole {

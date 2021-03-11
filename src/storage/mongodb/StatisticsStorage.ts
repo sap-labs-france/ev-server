@@ -8,7 +8,8 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'StatisticsStorage';
 
 export default class StatisticsStorage {
-  static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
+
+  static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string): Promise<any[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
@@ -119,11 +120,11 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 
-  static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
+  static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string): Promise<any[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserStats');
     // Check Tenant
@@ -247,7 +248,7 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
     return transactionStatsMDB;
   }
 }

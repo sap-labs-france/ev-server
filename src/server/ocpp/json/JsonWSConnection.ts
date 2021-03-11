@@ -89,7 +89,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
@@ -101,7 +101,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
@@ -122,7 +122,7 @@ export default class JsonWSConnection extends WSConnection {
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Log
-    Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    await Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
@@ -131,7 +131,7 @@ export default class JsonWSConnection extends WSConnection {
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
       // Log
-      Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      await Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {
@@ -162,9 +162,13 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {
-    await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(), {
-      lastSeen: new Date()
-    });
+    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), { issuer: true });
+    if (chargingStation) {
+      await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
+        {
+          lastSeen: new Date()
+        });
+    }
   }
 }
 

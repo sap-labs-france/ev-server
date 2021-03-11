@@ -13,7 +13,7 @@ export default class UtilsSecurity {
       // Sanitize
       value = sanitize(value);
       // Check the type
-      if (typeof value === 'boolean') {
+      if (Utils.isBoolean(value)) {
         // Already a boolean
         result = value;
       } else {
@@ -24,24 +24,17 @@ export default class UtilsSecurity {
     return result;
   }
 
-  static filterSort(request, filteredRequest): void {
-    // Deprecated sorting?
-    if (Utils.objectHasProperty(request, 'SortDirs')) {
-      this.filterOldSort(request, filteredRequest);
-      return;
-    }
+  static filterSort(request: any, filteredRequest): void {
     // Exist?
-    if (request.SortFields) {
+    if (Utils.objectHasProperty(request, 'SortFields')) {
       // Sanitize
       request.SortFields = sanitize(request.SortFields);
-      request.SortFields = request.SortFields.split('|');
-      // Array?
-      if (request.SortFields.length > 0) {
-        // Init
-        filteredRequest.Sort = {};
+      const sortFields = request.SortFields.split('|');
+      if (!Utils.isEmptyArray(sortFields)) {
+        filteredRequest.SortFields = {};
         // Build
-        for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField: string = request.SortFields[i];
+        for (let i = 0; i < sortFields.length; i++) {
+          let sortField: string = sortFields[i];
           const order = sortField.startsWith('-') ? -1 : 1;
           // Remove ordering prefix
           sortField = sortField.startsWith('-') ? sortField.substr(1) : sortField;
@@ -51,45 +44,19 @@ export default class UtilsSecurity {
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = order;
+          filteredRequest.SortFields[sortField] = order;
         }
       }
     }
   }
 
-  // TODO: To remove in the next mobile deployment > 1.3.22
-  static filterOldSort(request, filteredRequest): void {
-    // Exist?
-    if (request.SortFields) {
-      // Sanitize
-      request.SortFields = sanitize(request.SortFields);
-      request.SortDirs = sanitize(request.SortDirs);
-      // Array?
-      if (Array.isArray(request.SortFields) && request.SortFields.length > 0) {
-        // Init
-        filteredRequest.Sort = {};
-        // Build
-        for (let i = 0; i < request.SortFields.length; i++) {
-          let sortField = request.SortFields[i];
-          // Check field ID
-          if (sortField === 'id') {
-            // In MongoDB it's '_id'
-            sortField = '_id';
-          }
-          // Set
-          filteredRequest.Sort[sortField] = (request.SortDirs[i] === 'asc' ? 1 : -1);
-        }
-      } else {
-        // Init
-        filteredRequest.Sort = {};
-        // Check field ID
-        if (request.SortFields === 'id') {
-          // In MongoDB it's '_id'
-          request.SortFields = '_id';
-        }
-        // Set
-        filteredRequest.Sort[request.SortFields] = (request.SortDirs === 'asc' ? 1 : -1);
-      }
+  public static filterProject(request: any, filteredRequest: any): void {
+    // Count Only?
+    if (Utils.objectHasProperty(request, 'ProjectFields')) {
+      // Clean
+      request.ProjectFields = sanitize(request.ProjectFields);
+      // Convert to array
+      filteredRequest.ProjectFields = request.ProjectFields.split('|');
     }
   }
 
@@ -106,7 +73,7 @@ export default class UtilsSecurity {
 
   static filterLimit(request: any, filteredRequest: any): void {
     // Exist?
-    if (!request.Limit) {
+    if (!Utils.objectHasProperty(request, 'Limit')) {
       // Default
       filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
     } else {
@@ -123,7 +90,7 @@ export default class UtilsSecurity {
 
   static filterSkip(request: any, filteredRequest: any): void {
     // Exist?
-    if (!request.Skip) {
+    if (!Utils.objectHasProperty(request, 'Skip')) {
       // Default
       filteredRequest.Skip = 0;
     } else {
@@ -148,44 +115,36 @@ export default class UtilsSecurity {
       filteredAddress.department = sanitize(address.department);
       filteredAddress.region = sanitize(address.region);
       filteredAddress.country = sanitize(address.country);
-      if (address.coordinates && address.coordinates.length === 2) {
-        filteredAddress.coordinates = [
-          sanitize(address.coordinates[0]),
-          sanitize(address.coordinates[1])
-        ];
-      }
+      filteredAddress.coordinates = UtilsSecurity.filterAddressCoordinatesRequest(address);
     }
     return filteredAddress;
   }
 
-  static filterAddressCoordinatesRequest(address: Address): Address {
-    const filteredAddress: Address = {} as Address;
-    if (address) {
-      if (address.coordinates && address.coordinates.length === 2) {
-        filteredAddress.coordinates = [
-          sanitize(address.coordinates[0]),
-          sanitize(address.coordinates[1])
-        ];
-      }
+  static filterAddressCoordinatesRequest(address: Address): number[] {
+    if (address && Utils.objectHasProperty(address, 'coordinates') && !Utils.isEmptyArray(address.coordinates) && address.coordinates.length === 2) {
+      return [
+        sanitize(address.coordinates[0]),
+        sanitize(address.coordinates[1])
+      ];
     }
-    return filteredAddress;
+    return [];
   }
 
   static filterCreatedAndLastChanged(filteredEntity: any, entity: any, loggedUser: UserToken): void {
-    if (entity.createdBy && typeof entity.createdBy === 'object' &&
-      entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
+    if (Utils.objectHasProperty(entity, 'createdBy') && typeof entity.createdBy === 'object' &&
+        Utils.objectHasProperty(entity.createdBy, 'id') && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user
       filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
     }
-    if (entity.lastChangedBy && typeof entity.lastChangedBy === 'object' &&
+    if (Utils.objectHasProperty(entity, 'lastChangedBy') && typeof entity.lastChangedBy === 'object' &&
       entity.lastChangedBy.id && Authorizations.canReadUser(loggedUser, entity.lastChangedBy.id)) {
       // Build user
       filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);
     }
-    if (entity.lastChangedOn) {
+    if (Utils.objectHasProperty(entity, 'lastChangedOn')) {
       filteredEntity.lastChangedOn = entity.lastChangedOn;
     }
-    if (entity.createdOn) {
+    if (Utils.objectHasProperty(entity, 'createdOn')) {
       filteredEntity.createdOn = entity.createdOn;
     }
   }

@@ -23,8 +23,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
     if (await LockingManager.acquire(offlineChargingStationLock)) {
       try {
         // Compute the date some minutes ago
-        const offlineSince = moment().subtract(
-          Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
+        const offlineSince = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           issuer: true,
           offlineSince

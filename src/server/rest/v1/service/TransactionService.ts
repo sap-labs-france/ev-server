@@ -28,7 +28,6 @@ import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/Synch
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import { TransactionInErrorType } from '../../../../types/InError';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
@@ -45,7 +44,7 @@ export default class TransactionService {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.UPDATE, entity: Entity.TRANSACTION,
           module: MODULE_NAME, method: 'handleSynchronizeRefundedTransactions'
@@ -62,7 +61,7 @@ export default class TransactionService {
       res.json(response);
       next();
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      await Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
 
@@ -87,7 +86,7 @@ export default class TransactionService {
     for (const transactionId of filteredRequest.transactionIds) {
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
       if (!transaction) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -98,7 +97,7 @@ export default class TransactionService {
         continue;
       }
       if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -111,7 +110,7 @@ export default class TransactionService {
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: Action.REFUND_TRANSACTION, entity: Entity.TRANSACTION,
           module: MODULE_NAME, method: 'handleRefundTransactions',
@@ -169,7 +168,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
@@ -272,17 +271,28 @@ export default class TransactionService {
         user: req.user, action: action
       });
     }
-    // Save
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-    // Ok
-    Logging.logInfo({
-      tenantID: req.user.tenantID,
-      action: action,
-      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-      module: MODULE_NAME, method: 'handlePushTransactionCdr',
-      message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-      detailedMessages: { cdr: transaction.ocpiData.cdr || transaction.oicpData.cdr }
-    });
+    // Get the lock
+    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+    if (ocpiLock) {
+      try {
+        // Post CDR
+        await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+        // Save
+        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+        // Ok
+        await Logging.logInfo({
+          tenantID: req.user.tenantID,
+          action: action,
+          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+          detailedMessages: { cdr: transaction.ocpiData.cdr }
+        });
+      } finally {
+        // Release the lock
+        await LockingManager.release(ocpiLock);
+      }
+    }
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -291,7 +301,7 @@ export default class TransactionService {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount'
@@ -323,7 +333,7 @@ export default class TransactionService {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleRebuildTransactionConsumptions'
@@ -337,7 +347,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, filteredRequest.ID);
+    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
     // Return
     res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();
@@ -347,7 +357,7 @@ export default class TransactionService {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleAssignTransactionsToUser'
@@ -412,7 +422,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransaction',
@@ -435,7 +445,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -456,7 +466,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
@@ -495,7 +505,7 @@ export default class TransactionService {
       true
     );
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       user: req.user, actionOnUser: user,
@@ -519,8 +529,8 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource',
       'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
     ];
     // Check Cars
@@ -546,7 +556,7 @@ export default class TransactionService {
     // Check Transaction
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetConsumptionFromTransaction',
@@ -581,8 +591,7 @@ export default class TransactionService {
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
-        // TODO: To remove the 'date' when new version of Mobile App will be released (> V1.3.22)
-          'date', 'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
+          'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
           'instantWattsDC', 'instantWatts', 'instantWattsL1', 'instantWattsL2', 'instantWattsL3',
@@ -593,8 +602,7 @@ export default class TransactionService {
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
         req.user.tenantID, { transactionId: transaction.id }, [
-        // TODO: To remove the 'consumptions.date' when new version of Mobile App will be released (> V1.3.22)
-          'consumptions.date', 'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
+          'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
           'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
           'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',
           'consumptions.instantWattsDC', 'consumptions.instantWatts', 'consumptions.instantWattsL1', 'consumptions.instantWattsL2', 'consumptions.instantWattsL3',
@@ -615,19 +623,19 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'price', 'priceUnit',
+      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
       'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'signedData',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.roundedPrice', 'stop.signedData', 'stop.tagID'
+      'currentCumulatedPrice', 'currentInactivityStatus', 'signedData',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description'
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
     // Check Transaction
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.TRANSACTION,
         module: MODULE_NAME, method: 'handleGetTransaction',
@@ -656,7 +664,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
@@ -680,7 +688,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'price', 'roundedPrice', 'priceUnit', 'tagID',
+      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
     ]);
     res.json(transactions);
     next();
@@ -690,7 +698,7 @@ export default class TransactionService {
     // Get transaction
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
@@ -707,7 +715,7 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
@@ -721,7 +729,7 @@ export default class TransactionService {
     // Check Transaction
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetRefundReports'
@@ -751,7 +759,7 @@ export default class TransactionService {
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
+      sort: filteredRequest.SortFields,
       onlyRecordCount: filteredRequest.OnlyRecordCount
     },
     ['id', ...userProject]);
@@ -769,10 +777,10 @@ export default class TransactionService {
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true }, [
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true, withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
     ]);
   }
 
@@ -787,7 +795,7 @@ export default class TransactionService {
     return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, { completedTransactions: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
-      'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
     ]);
   }
@@ -796,7 +804,7 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
@@ -831,9 +839,9 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        action: Action.IN_ERROR, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
@@ -872,6 +880,8 @@ export default class TransactionService {
       csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.id') + Constants.CSV_SEPARATOR;
+      csv += i18nManager.translate('tags.description') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
       csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
@@ -890,6 +900,8 @@ export default class TransactionService {
       csv += transaction.connectorId + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
+      csv += transaction.tagID + Constants.CSV_SEPARATOR;
+      csv += (transaction.tag?.description || '') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
@@ -898,7 +910,7 @@ export default class TransactionService {
       csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Utils.truncTo(transaction.stop.price, 2) : '') + Constants.CSV_SEPARATOR;
+      csv += (transaction.stop ? transaction.stop.roundedPrice : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? transaction.stop.priceUnit : '') + '\r\n';
     }
     return csv;
@@ -919,7 +931,7 @@ export default class TransactionService {
       // Not Found
       if (!transaction) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -930,7 +942,7 @@ export default class TransactionService {
         // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -941,7 +953,7 @@ export default class TransactionService {
         // Billed
       } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
         result.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: loggedUser.tenantID,
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTransactions',
@@ -972,7 +984,7 @@ export default class TransactionService {
     // Delete All Transactions
     result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Log
-    Logging.logActionsResponse(loggedUser.tenantID,
+    await Logging.logActionsResponse(loggedUser.tenantID,
       ServerAction.TRANSACTIONS_DELETE,
       MODULE_NAME, 'deleteTransactions', result,
       '{{inSuccess}} transaction(s) were successfully deleted',
@@ -983,11 +995,11 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TRANSACTIONS,
         module: MODULE_NAME, method: 'handleGetTransactionsToRefund'
@@ -1020,10 +1032,17 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'completedTransactions')) {
       extrafilters.stop = params.completedTransactions ? { $exists: true } : { $exists: false };
+    }
+    if (Utils.objectHasProperty(params, 'withTag')) {
+      extrafilters.withTag = params.withTag;
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
@@ -1047,7 +1066,7 @@ export default class TransactionService {
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       projectFields
     );
     return transactions;

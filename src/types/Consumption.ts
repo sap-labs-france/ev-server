@@ -2,6 +2,8 @@ import { ConnectorCurrentLimitSource, SiteAreaLimitSource } from './ChargingStat
 
 export interface AbstractCurrentConsumption {
   currentConsumptionWh?: number;
+  currentTotalConsumptionWh: number;
+  currentCumulatedPrice?: number;
   lastConsumption?: {
     value: number;
     timestamp: Date;
@@ -21,6 +23,7 @@ export interface AbstractCurrentConsumption {
   currentInstantAmpsL2?: number;
   currentInstantAmpsL3?: number;
   currentInstantAmpsDC?: number;
+  currentStateOfCharge?: number;
 }
 
 export interface AbstractConsumption {

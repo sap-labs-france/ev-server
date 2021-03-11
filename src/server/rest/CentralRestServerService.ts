@@ -4,7 +4,6 @@ import AssetService from './v1/service/AssetService';
 import BillingService from './v1/service/BillingService';
 import CarService from './v1/service/CarService';
 import ChargingStationService from './v1/service/ChargingStationService';
-import { Command } from '../../types/ChargingStation';
 import CompanyService from './v1/service/CompanyService';
 import ConnectionService from './v1/service/ConnectionService';
 import Logging from '../../utils/Logging';
@@ -39,10 +38,8 @@ class RequestMapper {
       case 'POST':
         this.registerOneActionManyPaths(
           async (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            // Keep the action (remove ChargingStation)
-            const command = action.slice(15) as Command;
             // Delegate
-            await ChargingStationService.handleAction(action, command, req, res, next);
+            await ChargingStationService.handleAction(action, req, res, next);
           },
           ServerAction.CHARGING_STATION_CLEAR_CACHE,
           ServerAction.CHARGING_STATION_GET_CONFIGURATION,
@@ -85,18 +82,18 @@ class RequestMapper {
           [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
           [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
-          [ServerAction.OCPI_ENPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_CHECK_LOCATIONS]: OCPIEndpointService.handleCheckLocationsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_CHECK_SESSIONS]: OCPIEndpointService.handleCheckSessionsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_PULL_CDRS]: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_PULL_LOCATIONS]: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_PULL_SESSIONS]: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_PULL_TOKENS]: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_CHECK_LOCATIONS]: OCPIEndpointService.handleCheckLocationsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_CHECK_SESSIONS]: OCPIEndpointService.handleCheckSessionsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_PULL_CDRS]: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_PULL_LOCATIONS]: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_PULL_SESSIONS]: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_PULL_TOKENS]: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
           [ServerAction.OICP_ENPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
@@ -106,6 +103,7 @@ class RequestMapper {
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
+          [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
         });
         break;
 
@@ -133,6 +131,7 @@ class RequestMapper {
           [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
           [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
+          [ServerAction.REGISTRATION_TOKEN]: RegistrationTokenService.handleGetRegistrationToken.bind(this),
           [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
           [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
@@ -152,8 +151,6 @@ class RequestMapper {
           [ServerAction.SITE_AREAS]: SiteAreaService.handleGetSiteAreas.bind(this),
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
-          // TODO: To remove the 'SITE_IMAGE' when new version of Mobile App will be released (> V1.3.22)
-          [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
           [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
@@ -191,6 +188,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_CONSUMPTION]: TransactionService.handleGetTransactionConsumption.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS]: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
           [ServerAction.CHARGING_STATIONS_IN_ERROR]: ChargingStationService.handleGetChargingStationsInError.bind(this),
+          [ServerAction.SETTING_BY_INDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
           [ServerAction.SETTINGS]: SettingService.handleGetSettings.bind(this),
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
           [ServerAction.CHECK_BILLING_CONNECTION]: BillingService.handleCheckBillingConnection.bind(this),
@@ -237,6 +235,7 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
 

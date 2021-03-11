@@ -18,7 +18,7 @@
     "ocppProtocol": "OCPP Protocol",
     "ocppVersion": "OCPP Version",
     "powerLimitUnit": "Power Limit Unit",
-    "timezone" : "Charging Station Timezone",
+    "timezone": "Charging Station Timezone",
     "vendor": "Vendor"
   },
   "general": {
@@ -76,9 +76,9 @@
       "title": "Roaming Send EVSE Data",
       "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Email Server Error",
-      "body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
+      "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
     },
     "optimalChargeReached": {
       "title": "Optimal Charge Reached",
@@ -141,6 +141,11 @@
     "endUserErrorNotification": {
       "title": "A User Reported an Error",
       "body": "'{{userName}}' reported: '{{errorTitle}}' - '{{errorDescription}}' in organization '{{tenantName}}'"
+    },
+    "accountVerificationNotification": {
+      "title": "Account verified",
+      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
+      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
     }
   },
   "siteArea": "Site Area",
@@ -151,6 +156,8 @@
     "usage": "Usage (Hours)"
   },
   "tags": {
+    "id": "Badge ID",
+    "description": "Badge Description",
     "virtualBadge": "Virtual Badge"
   },
   "transactions": {

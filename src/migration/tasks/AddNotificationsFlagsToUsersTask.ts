@@ -63,7 +63,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
         sendChargingStationRegistered: user.notifications?.sendChargingStationRegistered ? user.notifications.sendChargingStationRegistered : false,
         sendOcpiPatchStatusError: user.notifications?.sendOcpiPatchStatusError ? user.notifications.sendOcpiPatchStatusError : false,
         sendOicpPatchStatusError: user.notifications?.sendOicpPatchStatusError ? user.notifications.sendOicpPatchStatusError : false,
-        sendSmtpAuthError: user.notifications?.sendSmtpAuthError ? user.notifications.sendSmtpAuthError : false,
+        sendSmtpError: user.notifications?.sendSmtpError ? user.notifications.sendSmtpError : false,
         sendOfflineChargingStations: user.notifications?.sendOfflineChargingStations ? user.notifications.sendOfflineChargingStations : false,
         sendBillingSynchronizationFailed: user.notifications?.sendBillingSynchronizationFailed ? user.notifications.sendBillingSynchronizationFailed : false,
         sendCarCatalogSynchronizationFailed: user.notifications?.sendCarCatalogSynchronizationFailed ? user.notifications.sendCarCatalogSynchronizationFailed : false,
@@ -71,10 +71,13 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           user.notifications.sendComputeAndApplyChargingProfilesFailed : false,
         sendEndUserErrorNotification: user.notifications?.sendEndUserErrorNotification ? user.notifications.sendEndUserErrorNotification : false,
         sendBillingNewInvoice: user.notifications?.sendBillingNewInvoice ? user.notifications.sendBillingNewInvoice : false,
+        sendAccountVerificationNotification: user.notifications?.sendAccountVerificationNotification ? user.notifications.sendAccountVerificationNotification : false,
+        sendAdminAccountVerificationNotification: user.notifications?.sendAdminAccountVerificationNotification ? user.notifications.sendAdminAccountVerificationNotification : false,
       };
       // Add new prop
       if (user.role === UserRole.ADMIN) {
         user.notifications.sendEndUserErrorNotification = true;
+        user.notifications.sendAdminAccountVerificationNotification = true;
       }
       // Update
       await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
@@ -86,7 +89,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.5';
+    return '1.6';
   }
 
   getName(): string {

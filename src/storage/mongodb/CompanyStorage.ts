@@ -33,7 +33,7 @@ export default class CompanyStorage {
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'companylogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
     return {
       id: id,
       logo: companyLogoMDB ? companyLogoMDB.logo : null
@@ -77,7 +77,7 @@ export default class CompanyStorage {
       await CompanyStorage.saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
     return companyMDB._id.toHexString();
   }
 
@@ -114,11 +114,10 @@ export default class CompanyStorage {
     // Set the filters
     const filters: FilterParams = {};
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'address.city': { $regex: searchRegex, $options: 'i' } },
-        { 'address.country': { $regex: searchRegex, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Limit on Company for Basic Users
@@ -128,7 +127,7 @@ export default class CompanyStorage {
         $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
       };
     }
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       aggregation.push({
         $match: {
           'issuer': params.issuer
@@ -153,7 +152,7 @@ export default class CompanyStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesCountMDB);
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
         result: []
@@ -213,7 +212,7 @@ export default class CompanyStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getCompanies', uniqueTimerID, companiesMDB);
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
@@ -236,7 +235,7 @@ export default class CompanyStorage {
     await global.database.getCollection<any>(tenantID, 'companylogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
   }
 
   private static async saveCompanyLogo(tenantID: string, companyID: string, companyLogoToSave: string): Promise<void> {
@@ -250,6 +249,6 @@ export default class CompanyStorage {
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCompanyLogo', uniqueTimerID, companyLogoToSave);
   }
 }

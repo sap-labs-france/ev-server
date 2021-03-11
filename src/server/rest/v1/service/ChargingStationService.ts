@@ -18,7 +18,6 @@ import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -75,7 +74,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
@@ -179,6 +178,7 @@ export default class ChargingStationService {
         });
       }
       chargingStation.siteAreaID = siteArea.id;
+      chargingStation.siteID = siteArea.siteID;
       // Check number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -200,6 +200,7 @@ export default class ChargingStationService {
     } else {
       delete chargingStation.excludeFromSmartCharging;
       chargingStation.siteAreaID = null;
+      chargingStation.siteID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
@@ -271,7 +272,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleChargingStationLimitPower',
@@ -384,34 +385,44 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_PROFILES,
         module: MODULE_NAME, method: 'handleGetChargingProfiles'
       });
     }
     // Profiles of the charging station?
-    let profilesProject: string[] = ['profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'];
-    if (filteredRequest.ChargeBoxID) {
+    let projectFields: string[] = [
+      'profile.chargingProfileKind', 'profile.chargingProfilePurpose', 'profile.stackLevel'
+    ];
+    if (filteredRequest.ChargingStationID) {
       // Enhanced the projection
-      profilesProject = ['profile'];
+      projectFields = [
+        'profile'
+      ];
+    }
+    projectFields = [
+      'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
+      'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
+      ...projectFields
+    ];
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
-        withSiteArea: true,
+        withSiteArea: filteredRequest.WithSiteArea,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'chargingStationID', 'chargePointID', 'connectorID', 'chargingStation.id',
-        'chargingStation.siteArea.id', 'chargingStation.siteArea.name', 'chargingStation.siteArea.maximumPower',
-        ...profilesProject
-      ]);
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      projectFields
+    );
     // Build the result
     res.json(chargingProfiles);
     next();
@@ -431,7 +442,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
         module: MODULE_NAME, method: 'handleTriggerSmartCharging',
@@ -481,32 +492,32 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGenerateQrCodeForConnector',
-        value: filteredRequest.ChargeBoxID
+        value: filteredRequest.ChargingStationID
       });
     }
     // Check ChargeBoxID
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Check ConnectorID
     UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
     UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
       `Connector ID '${filteredRequest.ConnectorID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     const chargingStationQRCode: ChargingStationQRCode = {
-      chargingStationID: filteredRequest.ChargeBoxID,
+      chargingStationID: filteredRequest.ChargingStationID,
       connectorID: filteredRequest.ConnectorID,
       endpoint: Utils.getChargingStationEndpoint(),
       tenantName: req.user.tenantName,
-      tenantSubDomain: req.tenant.subdomain
+      tenantSubDomain: req.user.tenantSubdomain
     };
     // Generate
     const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
@@ -546,7 +557,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleUpdateChargingProfile',
@@ -603,7 +614,7 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
@@ -642,7 +653,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStationOcppParameters',
@@ -663,7 +674,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
@@ -713,7 +724,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canDeleteChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.DELETE, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleDeleteChargingStation',
@@ -780,6 +791,8 @@ export default class ChargingStationService {
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
+    // Remove Site
+    chargingStation.siteID = null;
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
@@ -812,24 +825,28 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStation',
         value: filteredRequest.ID
       });
     }
+    let projectFields = [
+      'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+      'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+      'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
+      'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+      'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+      'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+    ];
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
     // Query charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID, {},
-      [
-        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-        'siteArea.site.id', 'siteArea.site.name', 'voltage', 'coordinates', 'forceInactive', 'firmwareUpdateStatus',
-        'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
-        'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
-      ]
-    );
+    const chargingStation = await ChargingStationStorage.getChargingStation(
+      req.user.tenantID, filteredRequest.ID, {}, projectFields);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
@@ -861,16 +878,15 @@ export default class ChargingStationService {
       // Check all chargers
       if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
-          action: Action.EXPORT_PARAMS,
+          action: Action.EXPORT,
           entity: Entity.CHARGING_STATION,
           module: MODULE_NAME,
           method: 'handleExportChargingStationsOCPPParams',
         });
       }
     }
-    const ocppParams: OCPPParams[] = [];
     // Set the attachment name
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
@@ -902,7 +918,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterDownloadQrCodesPdfRequest(req.query);
     // Check
-    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargeBoxID) {
+    if (!filteredRequest.SiteID && !filteredRequest.SiteAreaID && !filteredRequest.ChargingStationID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -920,11 +936,11 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!Authorizations.canListChargingStationsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST, entity: Entity.CHARGING_STATIONS,
+        action: Action.IN_ERROR, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetChargingStations'
       });
     }
@@ -946,6 +962,14 @@ export default class ChargingStationService {
         [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN,
           ChargingStationInErrorType.CONNECTOR_ERROR]);
     }
+    let projectFields = [
+      'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'errorCodeDetails', 'errorCode', 'lastSeen',
+      'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
+    ];
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
       {
@@ -957,24 +981,20 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      [
-        'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'errorCodeDetails', 'errorCode', 'lastSeen',
-        'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-      ]
+      projectFields
     );
     // Return
     res.json(chargingStations);
-    next();
   }
 
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetStatusNotifications'
@@ -984,7 +1004,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(statusNotifications);
     next();
@@ -994,7 +1014,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user, action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'handleGetBootNotifications'
@@ -1004,13 +1024,13 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(bootNotifications);
     next();
   }
 
-  public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
     if (!filteredRequest.FileName) {
@@ -1040,24 +1060,30 @@ export default class ChargingStationService {
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
       });
+      // Remove file related headers
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', '');
       res.sendStatus(StatusCodes.NOT_FOUND);
     });
     // End of download
-    bucketStream.on('end', () => {
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: action,
-        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
-        module: MODULE_NAME, method: 'handleGetFirmware',
+    await new Promise((resolve) => {
+      bucketStream.on('end', () => {
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: action,
+          message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+          module: MODULE_NAME, method: 'handleGetFirmware',
+        });
+        res.end();
+        resolve();
       });
-      res.end();
     });
   }
 
-  public static async handleAction(action: ServerAction, command: Command, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest =
-      ChargingStationSecurity.filterChargingStationActionRequest(req.body);
+    const command = action.slice(15) as Command;
+    const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -1085,7 +1111,7 @@ export default class ChargingStationService {
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
-      if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
+      if (Utils.isEmptyArray(req.user.tagIDs)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
@@ -1108,7 +1134,7 @@ export default class ChargingStationService {
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Remote Start Transaction
     } else if (command === Command.REMOTE_START_TRANSACTION) {
@@ -1138,7 +1164,7 @@ export default class ChargingStationService {
         });
       }
       // Ok: Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
       // Save Car ID
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
@@ -1153,7 +1179,7 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
@@ -1193,7 +1219,7 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
@@ -1202,7 +1228,7 @@ export default class ChargingStationService {
         });
       }
       // Execute it
-      result = await this.handleChargingStationCommand(
+      result = await ChargingStationService.handleChargingStationCommand(
         req.user.tenantID, req.user, chargingStation, action, command, filteredRequest.args);
     }
     // Return
@@ -1217,7 +1243,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         entity: Entity.SETTING,
         action: Action.UPDATE,
@@ -1311,7 +1337,7 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME, method: 'getChargingStations',
@@ -1327,10 +1353,9 @@ export default class ChargingStationService {
     // Project fields
     if (!projectFields) {
       projectFields = [
-        // TODO: To remove the 'lastHeartBeat' when new version of Mobile App will be released (> V1.3.22)
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-        'ocppVersion', 'ocppProtocol', 'lastSeen', 'lastHeartBeat', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'maximumPower', 'powerLimitUnit',
+        'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
@@ -1342,13 +1367,17 @@ export default class ChargingStationService {
         ...userProject
       ];
     }
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
-        chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
@@ -1361,7 +1390,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
+        sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields
@@ -1447,10 +1476,8 @@ export default class ChargingStationService {
     return csv;
   }
 
-
   private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
-    return ChargingStationService.getChargingStations(req,
-      ['id', 'connectors.connectorId', 'siteArea.name']);
+    return ChargingStationService.getChargingStations(req, ['id', 'connectors.connectorId', 'siteArea.name']);
   }
 
   private static async convertQrCodeToPDF(req: Request, pdfDocument: PDFKit.PDFDocument, chargingStations: ChargingStation[]): Promise<void> {
@@ -1473,8 +1500,8 @@ export default class ChargingStationService {
             chargingStationID: chargingStation.id,
             connectorID: connector.connectorId,
             endpoint: Utils.getChargingStationEndpoint(),
-            tenantName: req.tenant.name,
-            tenantSubDomain: req.tenant.subdomain
+            tenantName: req.user.tenantName,
+            tenantSubDomain: req.user.tenantSubdomain
           };
           // Generated QR-Code
           const qrCodeImage = await Utils.generateQrCode(

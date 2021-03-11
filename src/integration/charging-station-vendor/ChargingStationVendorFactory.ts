@@ -2,6 +2,7 @@ import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 
 import AbbChargingStationVendorIntegration from './abb/AbbChargingStationVendorIntegration';
 import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
+import CIRCONTROLChargingStationVendorIntegration from './circontrol/CIRCONTROLChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DefaultChargingStationVendorIntegration from './default/DefaultChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
@@ -58,6 +59,9 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.SAP_LABS_FRANCE:
         chargingStationVendorImpl = new SAPLabsFranceChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.CIRCONTROL:
+        chargingStationVendorImpl = new CIRCONTROLChargingStationVendorIntegration(chargingStation);
         break;
       // FIXME: adding a default vendor class to only require a vendor class when existing methods need adaptation needs more work
       // default:

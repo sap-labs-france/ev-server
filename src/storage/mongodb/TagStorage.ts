@@ -36,7 +36,7 @@ export default class TagStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
 
   public static async clearDefaultUserTag(tenantID: string, userID: string): Promise<void> {
@@ -50,7 +50,7 @@ export default class TagStorage {
       {
         $set: { default: false }
       });
-    Logging.traceEnd(tenantID, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'clearDefaultUserTag', uniqueTimerID, { userID });
   }
 
   public static async deleteTag(tenantID: string, tagID: string): Promise<void> {
@@ -64,7 +64,7 @@ export default class TagStorage {
         '_id': tagID,
       });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
   }
 
   public static async getTag(tenantID: string, id: string,
@@ -115,32 +115,36 @@ export default class TagStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
-    const filters: FilterParams = {
-      '$or': DatabaseUtils.getNotDeletedFilter()
-    };
+    const filters: FilterParams = {};
     // Filter by other properties
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { '_id': { $regex: searchRegex, $options: 'i' } },
-        { 'description': { $regex: searchRegex, $options: 'i' } }
+        { '_id': { $regex: params.search, $options: 'i' } },
+        { 'description': { $regex: params.search, $options: 'i' } }
       ];
     }
+    // Remove deleted
+    filters.deleted = { '$ne': true };
+    // Tag IDs
     if (!Utils.isEmptyArray(params.tagIDs)) {
       filters._id = { $in: params.tagIDs };
     }
+    // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
       if (params.defaultTag) {
         filters.default = true;
       }
     }
-    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBooleanValue(params.issuer)) {
+    // Issuer
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
-    if (Utils.objectHasProperty(params, 'active') && Utils.isBooleanValue(params.active)) {
+    // Active
+    if (Utils.objectHasProperty(params, 'active') && Utils.isBoolean(params.active)) {
       filters.active = params.active;
     }
+    // Dates
     if (params.dateFrom && moment(params.dateFrom).isValid()) {
       filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
     }
@@ -162,7 +166,7 @@ export default class TagStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsCountMDB);
       return {
         count: (tagsCountMDB.length > 0 ? tagsCountMDB[0].count : 0),
         result: []
@@ -220,7 +224,7 @@ export default class TagStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getTags', uniqueTimerID, tagsMDB);
     // Ok
     return {
       count: (tagsCountMDB.length > 0 ?

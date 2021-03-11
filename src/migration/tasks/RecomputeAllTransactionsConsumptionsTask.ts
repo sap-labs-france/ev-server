@@ -9,7 +9,6 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'RecomputeAllTransactionsConsumptionsTask';
 
@@ -43,7 +42,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
@@ -53,11 +52,14 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
         try {
           // Recompute consumption
           const timeFrom = new Date().getTime();
-          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transactionMDB._id);
+          // Get the Transaction
+          const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+          // Rebuild consumptions
+          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transaction);
           const durationSecs = Math.trunc((new Date().getTime() - timeFrom) / 1000);
           consumptionsUpdated.inSuccess++;
           if (nbrOfConsumptions > 0) {
-            Logging.logDebug({
+            void Logging.logDebug({
               tenantID: Constants.DEFAULT_TENANT,
               action: ServerAction.MIGRATION,
               module: MODULE_NAME, method: 'migrateTenant',
@@ -66,7 +68,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           } else {
             // Delete transaction
             await TransactionStorage.deleteTransaction(tenant.id, transactionMDB._id);
-            Logging.logDebug({
+            void Logging.logDebug({
               tenantID: Constants.DEFAULT_TENANT,
               action: ServerAction.MIGRATION,
               module: MODULE_NAME, method: 'migrateTenant',
@@ -75,7 +77,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           }
         } catch (error) {
           consumptionsUpdated.inError++;
-          Logging.logError({
+          void Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
             module: MODULE_NAME, method: 'migrateTenant',
@@ -86,7 +88,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
       }, { concurrency: 5 }).then(() => {
         const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
         // Log in the default tenant
-        Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
+        void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
           MODULE_NAME, 'migrateTenant', consumptionsUpdated,
           `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
