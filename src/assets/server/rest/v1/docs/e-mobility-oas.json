@@ -3210,6 +3210,9 @@
             "$ref": "#/components/parameters/SortFields"
           },
           {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
             "$ref": "#/components/parameters/ProjectFields"
           }
         ],
@@ -3531,6 +3534,9 @@
           },
           {
             "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
