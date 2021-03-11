@@ -331,7 +331,7 @@ export default class TagService {
       });
     }
     // Filter
-    const filteredRequest = TagSecurity.filterTagUpdateRequest(req.body, req.user);
+    const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
     let formerTagUserID: string;
     let formerTagDefault: boolean;
     // Check

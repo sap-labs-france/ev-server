@@ -3630,7 +3630,7 @@
             "$ref": "#/components/responses/BackendError"
           },
           "550": {
-            "$ref": "#/components/responses/ResourceDoesNotExists"
+            "description": "User does not exist"
           },
           "576": {
             "description": "Tag already exists"
@@ -3715,7 +3715,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Tag"
+                "required": ["userID", "issuer", "active", "description"],
+                "properties": {
+                  "userID": {
+                    "type": "string",
+                    "example": "###"
+                  },
+                  "issuer": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Badge description"
+                  },
+                  "default": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
               }
             }
           }
@@ -4407,6 +4429,7 @@
       },
       "Tag": {
         "type": "object",
+        "required": ["id", "userID", "issuer", "active", "description"],
         "properties": {
           "id": {
             "type": "string",
@@ -4414,7 +4437,7 @@
           },
           "userID": {
             "type": "string",
-            "example": "5db815731fdcb70006e0a8ce"
+            "example": "###"
           },
           "issuer": {
             "type": "boolean",
