@@ -306,8 +306,7 @@ export default class SettingStorage {
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
           usersLastSynchronizedOn: config.stripe.usersLastSynchronizedOn ? config.stripe.usersLastSynchronizedOn : new Date(0),
           invoicesLastSynchronizedOn: config.stripe.invoicesLastSynchronizedOn ? config.stripe.invoicesLastSynchronizedOn : new Date(0),
-          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null,
-          liveMode: !!config.stripe.liveMode,
+          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null
         };
       }
       return billingSettings;

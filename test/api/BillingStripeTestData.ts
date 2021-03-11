@@ -91,8 +91,7 @@ export default class StripeIntegrationTestData {
       currency: config.get('billing.currency'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
-      taxID: config.get('billing.taxID'),
-      liveMode: config.get('billing.liveMode')
+      taxID: config.get('billing.taxID')
     };
   }
 

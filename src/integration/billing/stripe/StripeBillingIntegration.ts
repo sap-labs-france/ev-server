@@ -619,7 +619,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Transaction
     this.checkStartTransaction(transaction);
 
-    if (this.settings.liveMode) {
+    if (this.__liveMode) {
       // Check that the customer STRIPE
       const customer = await this.getStripeCustomer(transaction.user);
       if (!customer) {
@@ -631,6 +631,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           action: ServerAction.BILLING_TRANSACTION
         });
       }
+    } else {
+      // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
     }
     return {
       cancelTransaction: false
@@ -725,7 +727,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           invoiceID: billingInvoice.id,
           invoiceStatus: billingInvoice.status
         };
-      } else if (this.settings.liveMode) {
+      } else if (this.__liveMode) {
         throw new Error('Unexpected situation - no customer - The transaction should not have been started in this context');
       }
     } catch (error) {

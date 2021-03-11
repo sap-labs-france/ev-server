@@ -144,8 +144,7 @@ export default class SettingSecurity {
             periodicBillingAllowed: sanitize(request.content.stripe.periodicBillingAllowed),
             advanceBillingAllowed: sanitize(request.content.stripe.advanceBillingAllowed),
             currency: sanitize(request.content.stripe.currency),
-            taxID: sanitize(request.content.stripe.taxID),
-            liveMode: sanitize(request.content.stripe.liveMode),
+            taxID: sanitize(request.content.stripe.taxID)
           };
           break;
         case SmartChargingSettingsType.SAP_SMART_CHARGING:

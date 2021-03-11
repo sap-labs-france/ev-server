@@ -20,6 +20,9 @@ const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration<T extends BillingSetting> {
 
+  // TO BE REMOVED - flag to switch ON/OFF some STRIPE integration logic not yet finalized!
+  protected readonly __liveMode: boolean = false;
+
   protected readonly tenantID: string; // Assuming UUID or other string format ID
   protected settings: T;
 
@@ -439,7 +442,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       });
     }
 
-    if (this.settings.liveMode) {
+    if (this.__liveMode) {
       // Check Billing Data (only in Live Mode)
       if (!transaction.user.billingData) {
         throw new BackendError({
@@ -465,7 +468,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       });
     }
 
-    if (this.settings.liveMode) {
+    if (this.__liveMode) {
       // Check Billing Data (only in Live Mode)
       const billingUser = transaction.user;
       if (!billingUser.billingData || !billingUser.billingData.customerID) {
