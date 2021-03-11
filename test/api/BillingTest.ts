@@ -190,7 +190,7 @@ describe('Billing Service', function() {
       });
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
-        // await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         const itemsBefore = await testData.getNumberOfItems(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
@@ -287,13 +287,6 @@ describe('Billing Service', function() {
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
-      });
-
-      xit('Should download invoice as PDF', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.data.result.length).to.be.gt(0);
-        const downloadResponse = await testData.userService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
-        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
       });
 
       it('Should synchronize invoices', async () => {
@@ -405,13 +398,6 @@ describe('Billing Service', function() {
         );
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         expect(response.data.result.length).to.be.eq(2);
-      });
-
-      it('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        for (const invoice of response.data.result) {
-          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
-        }
       });
 
       xit('Should download invoice as PDF', async () => {

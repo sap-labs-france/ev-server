@@ -114,14 +114,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
+        resource: Entity.COMPANY, action: Action.READ, attributes: ['*']
       },
-      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      {
-        resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
+      // -----------------------------------------------------------------------------------------------
+      // TODO - put it pack as soon as BILLING has been validated of SLF
+      // -----------------------------------------------------------------------------------------------
+      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
+      // {
+      //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
+      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      // },
+      // -----------------------------------------------------------------------------------------------
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },

@@ -120,7 +120,6 @@ export default class Authorizations {
   }
 
   public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
-    const companyIDs = new Set<string>();
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
@@ -130,7 +129,6 @@ export default class Authorizations {
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
-        companyIDs.add(siteUser.site.companyID);
         if (siteUser.siteAdmin) {
           siteAdminIDs.push(siteUser.site.id);
         }
@@ -173,7 +171,6 @@ export default class Authorizations {
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
-      'companies': [...companyIDs],
       'sitesAdmin': siteAdminIDs,
       'sitesOwner': siteOwnerIDs,
       'sites': siteIDs,
@@ -513,9 +510,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken, companyID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ,
-      { company: companyID, companies: loggedUser.companies });
+  public static canReadCompany(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ);
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {

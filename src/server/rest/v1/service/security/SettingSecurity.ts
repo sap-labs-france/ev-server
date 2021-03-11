@@ -43,12 +43,12 @@ export default class SettingSecurity {
       sensitiveData: request.sensitiveData ? request.sensitiveData.map(sanitize) : []
     } as SettingDB;
     // Check Content
-    if (request.content) {
+    if (Utils.objectHasProperty(request, 'content')) {
       settings.content = {
         type: request.content.type
       } as SettingDBContent;
       // Check Links
-      if (request.content.links) {
+      if (Utils.objectHasProperty(request.content, 'links')) {
         settings.content.links = request.content.links.map((link: SettingLink) => ({
           id: link.id,
           name: link.name,
@@ -67,12 +67,12 @@ export default class SettingSecurity {
           break;
         case RoamingSettingsType.GIREVE:
           settings.content.ocpi = {} as OcpiSetting;
-          if (request.content.ocpi.businessDetails) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'businessDetails')) {
             settings.content.ocpi.businessDetails = {
               name: sanitize(request.content.ocpi.businessDetails.name),
               website: sanitize(request.content.ocpi.businessDetails.website)
             } as OcpiBusinessDetails;
-            if (request.content.ocpi.businessDetails.logo) {
+            if (Utils.objectHasProperty(request.content.ocpi.businessDetails, 'logo')) {
               settings.content.ocpi.businessDetails.logo = {
                 url: sanitize(request.content.ocpi.businessDetails.logo.url),
                 thumbnail: sanitize(request.content.ocpi.businessDetails.logo.thumbnail),
@@ -83,19 +83,19 @@ export default class SettingSecurity {
               };
             }
           }
-          if (request.content.ocpi.cpo) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'cpo')) {
             settings.content.ocpi.cpo = {
               countryCode: sanitize(request.content.ocpi.cpo.countryCode),
               partyID: sanitize(request.content.ocpi.cpo.partyID)
             };
           }
-          if (request.content.ocpi.emsp) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'emsp')) {
             settings.content.ocpi.emsp = {
               countryCode: sanitize(request.content.ocpi.emsp.countryCode),
               partyID: sanitize(request.content.ocpi.emsp.partyID)
             };
           }
-          if (request.content.ocpi.currency) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'currency')) {
             settings.content.ocpi.currency = request.content.ocpi.currency;
           }
           break;

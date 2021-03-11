@@ -667,26 +667,44 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
     const { description, pricingData, taxes } = billingInvoiceItem;
-    const quantity = pricingData.quantity; // kW.h
-    // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
-    const unit_amount_in_cents = new Decimal(pricingData.amount).times(100).dividedBy(quantity);
-    // Let's use the more precise option
-    const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
-
     const currency = pricingData.currency.toLowerCase();
     // Build stripe parameters for the item
     const parameters: Stripe.InvoiceItemCreateParams = {
+      invoice: invoiceID,
       customer: customerID,
-      quantity, // Energy consumed in kW.h
-      unit_amount_decimal, // price in cents (with 2 decimals allowed) as a string
       currency,
       description,
-      tax_rates: taxes
+      tax_rates: taxes,
+      // quantity: 1, //Cannot be set separately
+      amount: new Decimal(pricingData.amount).times(100).round().toNumber(),
+      metadata: { ...billingInvoiceItem?.metadata }
     };
-    // STRIPE throws an exception when invoice is set to null.
-    if (invoiceID) {
-      // Make sure to only add that property when updating an existing invoice
-      parameters.invoice = invoiceID;
+
+    // // ----------------------------------------------------------------------------------------
+    // // INVESTIGATIONS - Attempts to set both the quantity and the unit_amount
+    // // ----------------------------------------------------------------------------------------
+    // Quantity must be an Integer! - STRIPE does not support decimals
+    // const quantity = new Decimal(pricingData.quantity).round().toNumber(); // kW.h -
+    // if (quantity === 0) {
+    //   // ----------------------------------------------------------------------------------------
+    //   // The quantity was too small - let's prevent dividing by zero
+    //   // parameters.quantity = 0; // Not an option for STRIPE
+    //   // ----------------------------------------------------------------------------------------
+    //   parameters.amount = new Decimal(pricingData.amount).times(100).round().toNumber();
+    // } else {
+    //   // ----------------------------------------------------------------------------------------
+    //   // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
+    //   // ----------------------------------------------------------------------------------------
+    //   const unit_amount_in_cents = new Decimal(pricingData.amount).times(100).dividedBy(quantity);
+    //   // Let's use the more precise option
+    //   const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
+    //   parameters.quantity = quantity;
+    //   parameters.unit_amount_decimal = unit_amount_decimal;
+    // }
+
+    if (!parameters.invoice) {
+      // STRIPE throws an exception when invoice is set to null.
+      delete parameters.invoice;
     }
     return parameters;
   }
@@ -743,14 +761,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private convertToBillingInvoiceItems(transaction: Transaction) : Array<BillingInvoiceItem> {
+    // Destructuring transaction.stop
+    const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     // TODO - make it more precise - Pricing transparency!
     const description = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
     const quantity = new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
-    const amount = transaction.stop.price; // Total amount for the line item
-    const currency = transaction.stop.priceUnit;
+    const amount = roundedPrice; // Total amount for the line item
+    const currency = priceUnit;
     // -------------------------------------------------------------------------------
     const taxes = this.getTaxRateIds(); // TODO - take into account SITE settings
     // Build a billing invoice item based on the transaction
@@ -761,7 +781,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         amount,
         currency
       },
-      taxes
+      taxes,
+      metadata: {
+        // Let's keep track of the initial data for troubleshooting purposes
+        userID: transaction.userID,
+        price,
+        roundedPrice,
+        priceUnit,
+        totalConsumptionWh,
+        begin: transaction.timestamp?.valueOf(),
+        end: timestamp?.valueOf()
+      }
     };
     return [ billingInvoiceItem] ;
   }
