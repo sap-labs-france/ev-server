@@ -86,6 +86,8 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAGS = 'Tags',
   TAG = 'Tag',
+  PAYMENT_METHOD = 'PaymentMethod',
+  PAYMENT_METHODS = 'PaymentMethods',
 }
 
 export enum Action {

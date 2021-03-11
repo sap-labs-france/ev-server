@@ -496,6 +496,14 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
+    if (!Authorizations.canCreatePaymentMethod(req.user, 'oo')) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.CREATE, entity: Entity.PAYMENT_METHOD,
+        module: MODULE_NAME, method: 'handleBillingSetupPaymentMethod'
+      });
+    }
     // Filter
     // TODO - const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     // Get the billing impl

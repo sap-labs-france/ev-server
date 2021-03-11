@@ -549,7 +549,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_createSetupIntent',
-        message: `Setup intent has been created - customer '${customerID}'`
+        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
       });
       // Send some feedback
       return {
@@ -573,7 +573,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}'`
+        message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
       });
       // Set this payment method as the default
       await this.stripe.customers.update(customerID, {
@@ -584,7 +584,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_attachPaymentMethod',
-        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}'`
+        message: `Default payment method has been set ${paymentMethodId} - customer '${customerID}' - (${user.email})`
       });
       // Send some feedback
       return {

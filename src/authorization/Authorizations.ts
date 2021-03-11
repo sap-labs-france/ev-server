@@ -685,6 +685,21 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
+  public static canListPaymentMethod(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
+  }
+
+  // or canPerformAction(loggedUser, Entity.BILLING, Action.CREATE_PAYMENT_METHOD)
+  public static canCreatePaymentMethod(loggedUser: UserToken, userID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE,
+      { user: userID, owner: loggedUser.id }
+    );
+  }
+
+  public static canDeletePaymentMethod(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }
