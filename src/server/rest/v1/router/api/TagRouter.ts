@@ -16,6 +16,7 @@ export default class TagRouter {
     this.buildRouteTags();
     this.buildRouteTag();
     this.buildRouteCreateTag();
+    this.buildRouteDeleteTag();
     return this.router;
   }
 
@@ -36,6 +37,13 @@ export default class TagRouter {
     this.router.post(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TagService.handleCreateTag.bind(this), ServerAction.TAG_CREATE, req, res, next);
+    });
+  }
+
+  protected buildRouteDeleteTag(): void {
+    this.router.delete(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TagService.handleDeleteTag.bind(this), ServerAction.TAG, req, res, next);
     });
   }
 }
