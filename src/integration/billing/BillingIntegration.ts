@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -391,23 +391,25 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
-    // Send link to the user using our notification framework (link to the front-end + download)
-    const tenant = await TenantStorage.getTenant(this.tenantID);
-    // Send async notification
-    NotificationHandler.sendBillingNewInvoiceNotification(
-      this.tenantID,
-      invoice.id,
-      invoice.user,
-      {
-        user: invoice.user,
-        evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
-        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-        invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, invoice.id),
-        invoice: invoice
-      }
-    ).catch(() => { });
-    return invoice;
+  public async sendInvoiceNotification(billingInvoice: BillingInvoice): Promise<void> {
+    // Do not send notifications for invoices that are not yet finalized!
+    if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
+      // Send link to the user using our notification framework (link to the front-end + download)
+      const tenant = await TenantStorage.getTenant(this.tenantID);
+      // Send async notification
+      await NotificationHandler.sendBillingNewInvoiceNotification(
+        this.tenantID,
+        billingInvoice.id,
+        billingInvoice.user,
+        {
+          user: billingInvoice.user,
+          evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+          invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
+          invoice: billingInvoice
+        }
+      );
+    }
   }
 
   public checkStopTransaction(transaction: Transaction): void {
