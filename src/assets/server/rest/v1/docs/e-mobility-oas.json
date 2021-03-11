@@ -128,7 +128,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -157,7 +157,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -205,7 +205,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -241,7 +241,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -290,7 +290,7 @@
             "description": "Logged in successfully"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "520": {
             "description": "The End-user License Agreement is mandatory"
@@ -385,10 +385,10 @@
             "description": "Registered successfully"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "510": {
-            "description": "Email already used"
+            "$ref": "#/components/responses/EmailAlreadyUsed"
           },
           "520": {
             "description": "End-user License Agreement has not been accepted"
@@ -410,7 +410,7 @@
             "description": "Successfully signed out"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -471,7 +471,7 @@
             "description": "Password reset notification sent successfully or password has been reset "
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant or user does not exist"
@@ -517,7 +517,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant"
@@ -572,7 +572,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant"
@@ -619,7 +619,7 @@
             "description": "Successfully validated email"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "540": {
             "description": "Invalid verification token"
@@ -672,7 +672,7 @@
             "description": "Successfully resent email"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant or user does not exist"
@@ -816,7 +816,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1032,7 +1032,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1192,7 +1192,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -1222,7 +1222,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Charging Station does not exist"
@@ -1289,7 +1289,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1356,7 +1356,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1455,7 +1455,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1551,7 +1551,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "570": {
             "$ref": "#/components/responses/NoBadgeError"
@@ -1640,7 +1640,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "570": {
             "$ref": "#/components/responses/NoBadgeError"
@@ -1730,7 +1730,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1868,7 +1868,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "585": {
             "$ref": "#/components/responses/NotSupportedError"
@@ -1965,7 +1965,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2040,7 +2040,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2140,7 +2140,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2192,7 +2192,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2239,7 +2239,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2315,7 +2315,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2403,7 +2403,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2443,7 +2443,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2514,7 +2514,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "539": {
             "description": "Site area is single phased."
@@ -2581,7 +2581,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "556": {
             "description": "Cannot set the limit power to the given value"
@@ -2733,7 +2733,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2789,7 +2789,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2859,7 +2859,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2903,7 +2903,7 @@
             "description": "Firmware not found"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2930,7 +2930,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -3022,7 +3022,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -3072,7 +3072,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "585": {
             "$ref": "#/components/responses/NotSupportedError"
@@ -3107,7 +3107,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "537": {
             "description": "Error occured while clearing Charging Profile"
@@ -3255,7 +3255,52 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a User",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "$ref": "#/components/responses/EmailAlreadyUsed"
           }
         }
       }
@@ -3345,7 +3390,102 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "$ref": "#/components/responses/EmailAlreadyUsed"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "description": "User cannot be deleted due to billing constraints"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
@@ -3369,8 +3509,11 @@
       "ForbiddenError": {
         "description": "Not authorized to execute this operation"
       },
-      "500BackendError": {
+      "BackendError": {
         "description": "Unexpected Backend error, checks the Logs"
+      },
+      "EmailAlreadyUsed": {
+        "description": "Email already used"
       },
       "NoBadgeError": {
         "description": "User doesn't have any badge"
@@ -3956,6 +4099,166 @@
           "chargingRateUnit",
           "chargingSchedulePeriod"
         ]
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "costCenter": {
+            "type": "string",
+            "example": "######"
+          },
+          "name": {
+            "type": "string",
+            "example": "Demo"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "User"
+          },
+          "iNumber": {
+            "type": "string",
+            "example": "1234567"
+          },
+          "image": {
+            "type": "string"
+          },
+          "mobile": {
+            "type": "string",
+            "example": "0000000000"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en_EN"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "passwords": {
+            "type": "object",
+            "properties": {
+              "password": {
+                "type": "string",
+                "example": "DeM*Us$r1"
+              }
+            }
+          },
+          "phone": {
+            "type": "string",
+            "example": "0000000000"
+          },
+          "email": {
+            "type": "string",
+            "example": "user.demo@sap.com"
+          },
+          "issuer": {
+            "type": "boolean"
+          },
+          "notifcationsActive": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "P",
+              "A",
+              "I",
+              "B",
+              "L"
+            ]
+          },
+          "plateID": {
+            "type": "string",
+            "example": "DEMO"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "S",
+              "A",
+              "B",
+              "D"
+            ],
+            "example": "B"
+          },
+          "notifications": {
+            "$ref": "#/components/schemas/Notifications"
+          }
+        }
+      },
+      "Notifications": {
+        "type": "object",
+        "properties": {
+          "sendSessionStarted": {
+            "type": "boolean"
+          },
+          "sendOptimalChargeReached": {
+            "type": "boolean"
+          },
+          "sendEndOfCharge": {
+            "type": "boolean"
+          },
+          "sendEndOfSession": {
+            "type": "boolean"
+          },
+          "sendUserAccountStatusChanged": {
+            "type": "boolean"
+          },
+          "sendSessionNotStarted": {
+            "type": "boolean"
+          },
+          "sendCarCatalogSynchronizationFailed": {
+            "type": "boolean"
+          },
+          "sendUserAccountInactivity": {
+            "type": "boolean"
+          },
+          "sendPreparingSessionNotStarted": {
+            "type": "boolean"
+          },
+          "sendBillingSynchronizationFailed": {
+            "type": "boolean"
+          },
+          "sendBillingNewInvoice": {
+            "type": "boolean"
+          },
+          "sendNewRegisteredUser": {
+            "type": "boolean"
+          },
+          "sendUnknownUserBadged": {
+            "type": "boolean"
+          },
+          "sendChargingStationStatusError": {
+            "type": "boolean"
+          },
+          "sendChargingStationRegistered": {
+            "type": "boolean"
+          },
+          "sendOcpiPatchStatusError": {
+            "type": "boolean"
+          },
+          "sendSmtpError": {
+            "type": "boolean"
+          },
+          "sendOfflineChargingStations": {
+            "type": "boolean"
+          },
+          "sendEndUserErrorNotification": {
+            "type": "boolean"
+          },
+          "sendComputeAndApplyChargingProfilesFailed": {
+            "type": "boolean"
+          },
+          "sendAccountVerificationNotification": {
+            "type": "boolean"
+          },
+          "sendAdminAccountVerificationNotification": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "parameters": {
