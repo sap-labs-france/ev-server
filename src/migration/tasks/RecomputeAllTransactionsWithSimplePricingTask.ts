@@ -9,6 +9,8 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import Utils from '../../utils/Utils';
+import chalk from 'chalk';
 
 const TASK_NAME = 'RecomputeAllTransactionsWithSimplePricingTask';
 
@@ -44,13 +46,26 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
+      let message = `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: TASK_NAME, method: 'migrateTenant',
-        message: `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
+        message,
       });
+      Utils.isDevelopmentEnv() && console.debug(chalk.yellow(message));
       await Promise.map(transactionsMDB, async (transactionMDB) => {
+        const numberOfProcessedTransactions = transactionsUpdated.inError + transactionsUpdated.inSuccess;
+        if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 10) === 0) {
+          message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')`;
+          await Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
+            action: ServerAction.MIGRATION,
+            module: TASK_NAME, method: 'migrateTenant',
+            message
+          });
+          Utils.isDevelopmentEnv() && console.debug(chalk.yellow(message));
+        }
         try {
           // Get the transaction
           const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
