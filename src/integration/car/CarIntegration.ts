@@ -26,8 +26,10 @@ export default abstract class CarIntegration {
           externalCar.createdOn = new Date();
           // Get image
           externalCar.image = await this.getCarCatalogThumb(externalCar);
-          // Get images
-          externalCar.images = await this.getCarCatalogImages(externalCar);
+          for (const imageURL of externalCar.imageURLs) {
+            // Get images
+            // externalCar.images = await this.getCarCatalogImages(externalCar, imageURL);
+          }
           // Create the Hash
           externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === externalCar.images.length && externalCar.image) ?
             Cypher.hash(externalCar.imageURLs.toString()) : null;
@@ -35,7 +37,7 @@ export default abstract class CarIntegration {
           externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
           // Log
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
@@ -52,9 +54,15 @@ export default abstract class CarIntegration {
             // Get image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
             // Get images
-            externalCar.images = await this.getCarCatalogImages(externalCar);
+            let i = 0;
+            for (const imageURL of externalCar.imageURLs) {
+              // Get images
+              const image = await this.getCarCatalogImages(externalCar, imageURL);
+              await CarStorage.saveCarImages(externalCar.id, [image]);
+              i++;
+            }
             // Create the Hash
-            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === externalCar.images.length && externalCar.image) ?
+            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === i && externalCar.image) ?
               Cypher.hash(externalCar.imageURLs.toString()) : null;
             // Save
             await CarStorage.saveCarCatalog(externalCar, true);
@@ -66,7 +74,7 @@ export default abstract class CarIntegration {
           }
           actionsDone.inSuccess++;
           // Log
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
@@ -76,7 +84,7 @@ export default abstract class CarIntegration {
         }
       } catch (error) {
         actionsDone.inError++;
-        Logging.logError({
+        await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
@@ -87,7 +95,7 @@ export default abstract class CarIntegration {
       }
     }
     // Log
-    Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+    await Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       MODULE_NAME, 'synchronizeCarCatalogs', actionsDone,
       '{{inSuccess}} car(s) were successfully synchronized',
       '{{inError}} car(s) failed to be synchronized',
@@ -101,5 +109,5 @@ export default abstract class CarIntegration {
 
   public abstract getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
 
-  public abstract getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
+  public abstract getCarCatalogImages(carCatalog: CarCatalog, imageURL: string): Promise<string>;
 }

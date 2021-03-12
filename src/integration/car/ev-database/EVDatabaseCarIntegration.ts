@@ -22,7 +22,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
   public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         message: 'No configuration is provided to access the EVDatabase system, skipping',
@@ -219,7 +219,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         const base64Image = Buffer.from(response.data).toString('base64');
         image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
@@ -232,27 +232,28 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     return image;
   }
 
-  public async getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]> {
+  public async getCarCatalogImages(carCatalog: CarCatalog, imageURL:string): Promise<string> {
     const images: string[] = [];
     // Retrieve all images
-    for (const imageURL of carCatalog.imageURLs) {
-      try {
-        const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
-        const base64Image = Buffer.from(response.data).toString('base64');
-        const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-        images.push(encodedImage);
-      } catch (error) {
-        Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-          module: MODULE_NAME, method: 'getCarCatalogImages',
-          message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
+    // for (const imageURL of carCatalog.imageURLs) {
+    try {
+      const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
+      const base64Image = Buffer.from(response.data).toString('base64');
+      const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      images.push(encodedImage);
+      return encodedImage;
+    } catch (error) {
+      await Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+        module: MODULE_NAME, method: 'getCarCatalogImages',
+        message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
-    return images;
+    // }
+    // return images;
   }
 
   private convertToThumbImage(image: string): string {

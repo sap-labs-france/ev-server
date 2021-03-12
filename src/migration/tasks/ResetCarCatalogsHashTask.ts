@@ -39,7 +39,7 @@ export default class ResetCarCatalogsHashTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '2.5';
   }
 
   isAsynchronous(): boolean {
