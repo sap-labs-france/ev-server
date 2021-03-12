@@ -67,6 +67,7 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationReset(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RESET}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.chargeBoxID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_RESET, req, res, next);
     });
   }

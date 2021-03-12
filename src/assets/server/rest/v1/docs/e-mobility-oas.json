@@ -1237,7 +1237,7 @@
         }
       }
     },
-    "/api/chargingstations/reset": {
+    "/api/chargingstations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1245,15 +1245,17 @@
           }
         ],
         "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
