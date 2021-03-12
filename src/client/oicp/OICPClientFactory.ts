@@ -21,7 +21,7 @@ export default class OICPClientFactory {
       const oicpSettings = await SettingStorage.getOICPSettings(tenant.id);
       // Check
       if (!oicpSettings && oicpSettings.oicp) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.OICP_SETTINGS,
           module: MODULE_NAME, method: 'getOicpClient',
@@ -42,7 +42,7 @@ export default class OICPClientFactory {
       const client = await OICPClientFactory.getOicpClient(tenant, oicpEndpoint);
       return client as CpoOICPClient;
     }
-    Logging.logError({
+    await Logging.logError({
       tenantID: tenant.id,
       action: ServerAction.OICP_SETTINGS,
       module: MODULE_NAME, method: 'getCpoOicpClient',

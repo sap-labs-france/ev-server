@@ -64,7 +64,7 @@ export default class OICPEndpointStorage {
       { $set: oicpEndpointMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
     // Create
     return oicpEndpointFilter._id.toHexString();
   }
@@ -120,7 +120,7 @@ export default class OICPEndpointStorage {
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
       return {
         count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
         result: []
@@ -156,7 +156,7 @@ export default class OICPEndpointStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
     // Ok
     return {
       count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
@@ -173,7 +173,7 @@ export default class OICPEndpointStorage {
     await global.database.getCollection<any>(tenantID, 'oicpendpoints')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
   }
 
   static async deleteOicpEndpoints(tenantID: string) {
@@ -184,6 +184,6 @@ export default class OICPEndpointStorage {
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenantID, 'oicpendpoints').deleteMany({});
     // Debug
-    Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoints', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoints', uniqueTimerID);
   }
 }

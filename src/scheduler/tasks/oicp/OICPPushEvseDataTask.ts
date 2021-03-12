@@ -31,7 +31,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
     }
   }
 
@@ -42,7 +42,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
       try {
         // Check if OICP endpoint is registered
         if (oicpEndpoint.status !== OICPRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -51,7 +51,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
           return;
         }
         if (!oicpEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -59,7 +59,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -69,7 +69,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
         const oicpClient = await OICPClientFactory.getCpoOicpClient(tenant, oicpEndpoint);
         // Send EVSEs
         const sendEVSEDataResult = await oicpClient.sendEVSEs(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOICPEndpoint',
           action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -77,7 +77,7 @@ export default class OICPPushEvseDataTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OICP_PUSH_EVSE_DATA, error);
       } finally {
         // Release the lock
         await LockingManager.release(oicpLock);
