@@ -43,6 +43,10 @@
     {
       "name": "Users",
       "description": "Users API"
+    },
+    {
+      "name": "Tags",
+      "description": "Tags API"
     }
   ],
   "paths": {
@@ -1233,7 +1237,7 @@
         }
       }
     },
-    "/api/chargingstations/reset": {
+    "/api/chargingstations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1241,15 +1245,17 @@
           }
         ],
         "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1294,7 +1300,7 @@
         }
       }
     },
-    "/api/chargingstations/cache/clear": {
+    "/api/chargingstations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1302,20 +1308,11 @@
           }
         ],
         "description": "Clear a Charging Station cache",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1361,7 +1358,7 @@
         }
       }
     },
-    "/api/chargingstations/configuration/retrieve": {
+    "/api/chargingstations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1369,15 +1366,17 @@
           }
         ],
         "description": "Get the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1391,10 +1390,7 @@
                       }
                     }
                   }
-                },
-                "required": [
-                  "chargeBoxID"
-                ]
+                }
               }
             }
           }
@@ -1460,7 +1456,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/start": {
+    "/api/chargingstations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1468,15 +1464,17 @@
           }
         ],
         "description": "Start a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "carID": {
                     "type": "string",
                     "example": ""
@@ -1559,7 +1557,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/stop": {
+    "/api/chargingstations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1567,15 +1565,17 @@
           }
         ],
         "description": "Stop a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1648,7 +1648,7 @@
         }
       }
     },
-    "/api/chargingstations/connectors/unlock": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1656,37 +1656,14 @@
           }
         ],
         "description": "Unlock a connector",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
-                  "args": {
-                    "type": "object",
-                    "properties": {
-                      "connectorId": {
-                        "type": "integer",
-                        "description": "Required. This contains the identifier of the connector to be unlocked.",
-                        "minimum": 1,
-                        "example": 1
-                      }
-                    },
-                    "required": [
-                      "connectorId"
-                    ]
-                  }
-                },
-                "required": [
-                  "args"
-                ]
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/connectorID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1735,7 +1712,7 @@
         }
       }
     },
-    "/api/chargingstations/compositeschedule": {
+    "/api/chargingstations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -1743,15 +1720,17 @@
           }
         ],
         "description": "Get Charging Station composite schedule",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1876,7 +1855,7 @@
         }
       }
     },
-    "/api/chargingstations/diagnostics": {
+    "/api/chargingstations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -1884,15 +1863,17 @@
           }
         ],
         "description": "Get Charging Station diagnostics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1970,7 +1951,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/update": {
+    "/api/chargingstations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -1978,15 +1959,17 @@
           }
         ],
         "description": "Update Charging Station firmware",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2045,7 +2028,7 @@
         }
       }
     },
-    "/api/chargingstations/availability/change": {
+    "/api/chargingstations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2053,15 +2036,17 @@
           }
         ],
         "description": "Update Charging Station availability",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2197,7 +2182,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/download": {
+    "/api/chargingstations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2207,10 +2192,16 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "$ref": "#/components/parameters/connectorID"
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           }
         ],
         "tags": [
@@ -2408,7 +2399,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters/export": {
+    "/api/chargingstations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2418,7 +2409,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           }
         ],
         "tags": [
@@ -2448,7 +2439,7 @@
         }
       }
     },
-    "/api/chargingstations/parameters": {
+    "/api/chargingstations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2456,16 +2447,17 @@
           }
         ],
         "description": "Update Charging Station parameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2522,7 +2514,7 @@
         }
       }
     },
-    "/api/chargingstations/power/limit": {
+    "/api/chargingstations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2530,22 +2522,22 @@
           }
         ],
         "description": "Limit Charging Station power",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
-                  "chargeBoxID",
                   "chargePointID",
                   "ampLimitValue",
                   "forceUpdateChargingPlan"
                 ],
                 "properties": {
-                  "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "chargePointID": {
                     "type": "string",
                     "example": 1
@@ -2738,7 +2730,7 @@
         }
       }
     },
-    "/api/chargingstations/in-error": {
+    "/api/chargingstations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2794,7 +2786,7 @@
         }
       }
     },
-    "/api/chargingstations/export": {
+    "/api/chargingstations/action/export": {
       "get": {
         "security": [
           {
@@ -3025,7 +3017,9 @@
             "$ref": "#/components/responses/BackendError"
           }
         }
-      },
+      }
+    },
+    "/api/chargingprofiles/{id}": {
       "put": {
         "security": [
           {
@@ -3033,6 +3027,11 @@
           }
         ],
         "description": "Update a Charging Station profile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingProfileID"
+          }
+        ],
         "tags": [
           "Charging Profiles"
         ],
@@ -3078,9 +3077,7 @@
             "$ref": "#/components/responses/NotSupportedError"
           }
         }
-      }
-    },
-    "/api/chargingprofiles/{id}": {
+      },
       "delete": {
         "security": [
           {
@@ -3204,6 +3201,9 @@
           },
           {
             "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
           },
           {
             "$ref": "#/components/parameters/ProjectFields"
@@ -3492,6 +3492,323 @@
           }
         }
       }
+    },
+    "/api/tags": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Active",
+            "description": "Active attribute",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tags list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "active": true,
+                      "createdBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "createdOn": "2021-03-10T09:58:10.560Z",
+                      "default": false,
+                      "description": "##########",
+                      "issuer": true,
+                      "ocpiToken": null,
+                      "userID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Tag",
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tag"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "User does not exist"
+          },
+          "576": {
+            "description": "Tag already exists"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tag",
+            "content": {
+              "application/json": {
+                "example": {
+                  "active": true,
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-03-10T09:58:10.560Z",
+                  "default": false,
+                  "description": "##########",
+                  "issuer": true,
+                  "ocpiToken": null,
+                  "userID": "###",
+                  "user": {
+                    "email": "###",
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": ["userID", "issuer", "active", "description"],
+                "properties": {
+                  "userID": {
+                    "type": "string",
+                    "example": "###"
+                  },
+                  "issuer": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Badge description"
+                  },
+                  "default": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "575": {
+            "$ref": "#/components/responses/TagHasTransactionsError"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "575": {
+            "$ref": "#/components/responses/TagHasTransactionsError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3523,6 +3840,9 @@
       },
       "ResourceDoesNotExists": {
         "description": "Resource does not exist"
+      },
+      "TagHasTransactionsError": {
+        "description": "Cannot change user or delete a tag having transactions"
       }
     },
     "schemas": {
@@ -4100,6 +4420,36 @@
           "chargingSchedulePeriod"
         ]
       },
+      "Tag": {
+        "type": "object",
+        "required": ["id", "userID", "issuer", "active", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "T12345678"
+          },
+          "userID": {
+            "type": "string",
+            "example": "###"
+          },
+          "issuer": {
+            "type": "boolean",
+            "example": true
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "description": {
+            "type": "string",
+            "example": "Badge description"
+          },
+          "default": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
       "User": {
         "type": "object",
         "required": [
@@ -4379,6 +4729,15 @@
           "type": "string"
         }
       },
+      "ChargingStationIDs": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Pipe separated Charging Station IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ConnectorID": {
         "in": "query",
         "name": "ConnectorID",
@@ -4539,6 +4898,15 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "tagID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }

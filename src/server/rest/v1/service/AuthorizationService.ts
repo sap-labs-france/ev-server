@@ -1,7 +1,7 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
-import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -9,6 +9,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -68,6 +69,7 @@ export default class AuthorizationService {
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
     // Get Site Admins
+    // TODO: Should be done like company
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
@@ -326,6 +328,47 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetTagsAuthorizationFilters(
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpTagsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+        'createdOn', 'lastChangedOn'
+      ],
+      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+    };
+    if (Authorizations.canListUsers(userToken)) {
+      authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    }
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Handle Sites
+    await AuthorizationService.checkAssignedSiteAdmins(
+      tenant, userToken, filteredRequest, authorizationFilters);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetTagAuthorizationFilters(
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'],
+      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Handle Sites
+    await AuthorizationService.checkAssignedSiteAdmins(
+      tenant, userToken, filteredRequest, authorizationFilters);
+    return authorizationFilters;
+  }
+
   public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: Company[]): Promise<void> {
     // Get Site Admins - needed?
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
@@ -335,16 +378,22 @@ export default class AuthorizationService {
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies) {
-      company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+      if (userToken.role === UserRole.ADMIN) {
+        company.canRead = true;
+        company.canUpdate = true;
+        company.canDelete = true;
+      } else {
+        company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+      }
     }
   }
 
-  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest):Promise<AuthorizationFilter> {
+  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: [ 'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn' ],
+      projectFields: ['id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'],
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Add user info
@@ -383,7 +432,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest):Promise<AuthorizationFilter> {
+  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -429,11 +478,11 @@ export default class AuthorizationService {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
       {
-        siteIDs: siteID ? [ siteID ] : null,
+        siteIDs: siteID ? [siteID] : null,
         userID: userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'companyID' ]
+      ['companyID']
     );
     return _.uniq(_.map(sites.result, 'companyID'));
   }
@@ -445,7 +494,7 @@ export default class AuthorizationService {
         userID: userToken.id,
         siteAdmin: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'siteID' ]
+      ['siteID']
     );
     return userSites.result.map((userSite) => userSite.siteID);
   }
@@ -454,11 +503,11 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Admin
     const sites = await SiteStorage.getSites(tenantID,
       {
-        siteIDs: siteID ? [ siteID ] : null,
+        siteIDs: siteID ? [siteID] : null,
         userID: userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id' ]
+      ['id']
     );
     return sites.result.map((site) => site.id);
   }
@@ -467,10 +516,10 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Admin
     const users = await UserStorage.getUsers(tenantID,
       {
-        siteIDs: [ siteID ],
+        siteIDs: [siteID],
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id' ]
+      ['id']
     );
     return users.result.map((user) => user.id);
   }
@@ -494,7 +543,8 @@ export default class AuthorizationService {
   }
 
   private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
-    filteredRequest: HttpSiteUsersRequest|HttpUserSitesRequest|HttpUserRequest|HttpUserAssignSitesRequest, authorizationFilters: AuthorizationFilter): Promise<void> {
+    filteredRequest: HttpSiteUsersRequest | HttpUserSitesRequest | HttpUserRequest | HttpUserAssignSitesRequest | HttpTagsRequest,
+    authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin flag
