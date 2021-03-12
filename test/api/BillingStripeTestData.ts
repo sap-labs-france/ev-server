@@ -58,13 +58,13 @@ export default class StripeIntegrationTestData {
     // Let's get the newly created user
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
     // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
-    this.billingImpl = await this.setBillingSystemValidCredentials();
+    this.billingImpl = await this.setBillingSystemValidCredentials(false);
     this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
     expect(this.billingUser, 'Billing user should not ber null');
   }
 
-  public async setBillingSystemValidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getStripeSettings();
+  public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<StripeBillingIntegration> {
+    const stripeSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(stripeSettings);
     stripeSettings.secretKey = await Cypher.encrypt(this.getTenantID(), stripeSettings.secretKey);
     const billingImpl = new StripeBillingIntegration(this.getTenantID(), stripeSettings);
@@ -73,7 +73,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getStripeSettings();
+    const stripeSettings = this.getLocalSettings(false);
     stripeSettings.secretKey = await Cypher.encrypt(this.getTenantID(), 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(stripeSettings);
     const billingImpl = new StripeBillingIntegration(this.getTenantID(), stripeSettings);
@@ -81,8 +81,8 @@ export default class StripeIntegrationTestData {
     return billingImpl;
   }
 
-  public getStripeSettings(): StripeBillingSetting {
-    return {
+  public getLocalSettings(immediateBilling: boolean): StripeBillingSetting {
+    const settings: StripeBillingSetting = {
       url: config.get('billing.url'),
       publicKey: config.get('billing.publicKey'),
       secretKey: config.get('billing.secretKey'),
@@ -93,6 +93,13 @@ export default class StripeIntegrationTestData {
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
     };
+
+    // ---------------------------------------------------------
+    // Our test needs the immediate billing to be switched off!
+    // Because we want to check the DRAFT state of the invoice
+    settings.immediateBillingAllowed = immediateBilling;
+    // ---------------------------------------------------------
+    return settings;
   }
 
   public async saveBillingSettings(stripeSettings: StripeBillingSetting) : Promise<void> {
@@ -106,7 +113,7 @@ export default class StripeIntegrationTestData {
   }
 
   public isBillingProperlyConfigured(): boolean {
-    const billingSettings = this.getStripeSettings();
+    const billingSettings = this.getLocalSettings(false);
     // Check that the mandatory settings are properly provided
     return (!!billingSettings.publicKey
       && !!billingSettings.secretKey
@@ -152,6 +159,7 @@ export default class StripeIntegrationTestData {
       const taxRate: Stripe.TaxRate = await this.assignTaxRate(20); // VAT 20%
       taxId = taxRate.id;
     }
+    // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
     const dynamicInvoice = await this.billInvoiceItem(1000 /* kW.h */, 4 /* EUR */, taxId);
