@@ -112,7 +112,7 @@
     "cors": "^2.8.5",
     "country-language": "^0.1.7",
     "csvtojson": "^2.0.10",
-    "decimal": "^10.2.1",
+    "decimal.js": "^10.2.1",
     "ejs": "^3.1.6",
     "emailjs": "^3.4.0",
     "express": "^4.17.1",

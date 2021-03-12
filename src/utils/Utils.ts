@@ -13,7 +13,7 @@ import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
-import { Decimal } from 'decimal';
+import { Decimal } from 'decimal.js';
 import { ObjectID } from 'mongodb';
 import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
