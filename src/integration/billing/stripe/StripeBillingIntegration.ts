@@ -355,7 +355,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
-      createdOn: new Date(stripeInvoice.created * 1000), // epoch to Date!
+      createdOn: moment.unix(stripeInvoice.created).toDate(), // epoch to Date!
       nbrOfItems,
       downloadUrl: stripeInvoice.invoice_pdf,
       downloadable: !!stripeInvoice.invoice_pdf,
