@@ -117,8 +117,8 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
         currentMigrationTasks.push(new ResetCarCatalogsHashTask());
         currentMigrationTasks.push(new AddSiteAreaIDToAssetConsumptionTask());
-        currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         currentMigrationTasks.push(new AddSiteIDToChargingStationTask());
+        currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
