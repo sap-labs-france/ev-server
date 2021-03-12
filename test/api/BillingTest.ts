@@ -49,7 +49,7 @@ class TestData {
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
   public async setBillingSystemValidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getStripeSettings();
+    const stripeSettings = this.getLocalSettings(false);
     await this.saveBillingSettings(stripeSettings);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
@@ -60,7 +60,7 @@ class TestData {
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getStripeSettings();
+    const stripeSettings = this.getLocalSettings(false);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
     stripeSettings.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
@@ -70,8 +70,8 @@ class TestData {
     return billingImpl;
   }
 
-  public getStripeSettings(): StripeBillingSetting {
-    return {
+  public getLocalSettings(immediateBilling: boolean): StripeBillingSetting {
+    const settings: StripeBillingSetting = {
       url: config.get('billing.url'),
       publicKey: config.get('billing.publicKey'),
       secretKey: config.get('billing.secretKey'),
@@ -79,8 +79,16 @@ class TestData {
       advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
       currency: config.get('billing.currency'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-    } as StripeBillingSetting;
+      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      taxID: config.get('billing.taxID')
+    };
+
+    // ---------------------------------------------------------
+    // Our test needs the immediate billing to be switched off!
+    // Because we want to check the DRAFT state of the invoice
+    settings.immediateBillingAllowed = immediateBilling;
+    // ---------------------------------------------------------
+    return settings;
   }
 
   public async saveBillingSettings(stripeSettings: StripeBillingSetting) {
@@ -131,7 +139,7 @@ class TestData {
   }
 
   public isBillingProperlyConfigured(): boolean {
-    const billingSettings = this.getStripeSettings();
+    const billingSettings = this.getLocalSettings(false);
     // Check that the mandatory settings are properly provided
     return (!!billingSettings.publicKey
       && !!billingSettings.secretKey
