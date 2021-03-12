@@ -29,6 +29,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationReset();
     this.buildRouteChargingStationClearCache();
     this.buildRouteChargingStationRetrieveConfiguration();
+    this.buildRouteChargingStationChangeConfiguration();
     this.buildRouteChargingStationRemoteStart();
     this.buildRouteChargingStationRemoteStop();
     this.buildRouteChargingStationUnlockConnector();
@@ -81,6 +82,13 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationRetrieveConfiguration(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_GET_CONFIGURATION, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationChangeConfiguration(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_CHANGE_CONFIGURATION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.chargeBoxID = req.params.id;
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, req, res, next);
     });
   }
 

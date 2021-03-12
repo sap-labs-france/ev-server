@@ -1464,6 +1464,71 @@
         }
       }
     },
+    "/api/chargingstations/{id}/configuration": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Required. Configuration key to update",
+                        "example": ""
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Required. Value to set",
+                        "example": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/chargingstations/remote/start": {
       "put": {
         "security": [
@@ -2364,38 +2429,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
-                    }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "Not supported",
-                    "value": {
-                      "status": "NotSupported"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
                 }
               }
             }
@@ -4448,6 +4482,20 @@
           },
           "sendAdminAccountVerificationNotification": {
             "type": "boolean"
+          }
+        }
+      },
+      "OcppConfigurationStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "RebootRequired",
+              "NotSupported"
+            ]
           }
         }
       }
