@@ -128,6 +128,7 @@ export default class OCPPService {
           const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, token.siteAreaID);
           if (siteArea) {
             chargingStation.siteAreaID = token.siteAreaID;
+            chargingStation.siteID = siteArea.siteID;
             // Set the same coordinates
             if (siteArea?.address?.coordinates?.length === 2) {
               chargingStation.coordinates = siteArea.address.coordinates;

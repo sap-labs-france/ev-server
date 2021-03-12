@@ -49,7 +49,6 @@ describe('Billing Stripe Service', function() {
       // });
 
       it('should create and pay a second invoice for BILLING-TEST user', async () => {
-        await testData.checkForDraftInvoices(testData.dynamicUser.id, 0);
         await testData.checkBusinessProcessBillToPay(true);
         await testData.checkDownloadInvoiceAsPdf();
       });

@@ -296,11 +296,6 @@ const config = convict({
       doc: 'taxes to apply by default',
       format: String,
       default: ''
-    },
-    liveMode: {
-      doc: 'Allow a preview of billing features',
-      format: Boolean,
-      default: ''
     }
   },
   smartCharging: {
