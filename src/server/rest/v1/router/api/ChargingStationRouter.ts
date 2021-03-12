@@ -169,7 +169,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationExportOCPPParameters(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ChargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleExportChargingStationsOCPPParams.bind(this),
         ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT, req, res, next);
     });

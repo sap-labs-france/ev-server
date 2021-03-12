@@ -2393,7 +2393,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters/export": {
+    "/api/chargingstations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2403,7 +2403,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           }
         ],
         "tags": [
@@ -4713,6 +4713,15 @@
         "in": "query",
         "name": "ChargingStationID",
         "description": "Charging Station ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ChargingStationIDs": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Pipe separated Charging Station IDs",
         "required": false,
         "schema": {
           "type": "string"
