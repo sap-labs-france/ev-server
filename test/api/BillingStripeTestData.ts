@@ -200,9 +200,9 @@ export default class StripeIntegrationTestData {
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
     const paidInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
-    assert(paidInvoices, 'User should have at least a paid invoice');
     // The last invoice should be the one that has just been created
     const lastPaidInvoice: BillingInvoice = paidInvoices[0];
+    assert(lastPaidInvoice, 'User should have at least a paid invoice');
     // TODO - Why do we get the amount in cents here?
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
     const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
