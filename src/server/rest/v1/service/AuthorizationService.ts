@@ -374,12 +374,11 @@ export default class AuthorizationService {
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies) {
-      company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+      company.canRead = Authorizations.canReadCompany(userToken);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken);
+      company.canDelete = Authorizations.canDeleteCompany(userToken);
     }
   }
 
