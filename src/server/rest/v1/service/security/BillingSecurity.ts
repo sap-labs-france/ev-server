@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -65,10 +65,16 @@ export default class BillingSecurity {
   }
 
   static filterBillingWebHookRequest(requestQuery: any): HttpBillingWebHookRequest {
-
     return {
       tenantID: sanitize(requestQuery.TenantID)
     };
   }
 
+  static filterSetupPaymentMethodRequest(request: any): HttpSetupPaymentMethod {
+    return {
+      user: sanitize(request.user),
+      currentUserID: sanitize(request.body.userID),
+      paymentMethodId: sanitize(request.body.paymentMethodId)
+    };
+  }
 }
