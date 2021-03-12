@@ -868,7 +868,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
-    const consumptionkWh = this.convertConsumptionWh(transaction);
+    const consumptionkWh = this.convertConsumptionToKWh(transaction);
 
     if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
       description = i18nManager.translate('billing.chargingStopSiteArea', {
@@ -885,14 +885,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return description;
   }
 
-  private convertConsumptionWh(transaction: Transaction): number {
-    // TODO - clarify why we need this conversion
-    return Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
-  }
-
-  private convertTransactionPrice(transaction: Transaction): number {
-    // STRIPE expects the amount, in cents!!!
-    return Math.round(transaction.stop.roundedPrice * 100);
+  private convertConsumptionToKWh(transaction: Transaction): number {
+    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
   }
 
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
