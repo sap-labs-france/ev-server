@@ -20,7 +20,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationRequestOCPPParameters();
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteChargingStationDeleteChargingProfile();
-    this.buildRouteChargingStationUpdateChargingProfiles();
+    this.buildRouteChargingStationUpdateChargingProfile();
     this.buildRouteChargingStationChangeAvailability();
     this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStations();
@@ -223,7 +223,7 @@ export default class ChargingStationRouter {
     });
   }
 
-  protected buildRouteChargingStationUpdateChargingProfiles(): void {
+  protected buildRouteChargingStationUpdateChargingProfile(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_PROFILE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleUpdateChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_UPDATE, req, res, next);
     });
