@@ -7,6 +7,7 @@ import Tag, { ImportedTag } from '../../../../types/Tag';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
 import Constants from '../../../../utils/Constants';
@@ -16,6 +17,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -31,7 +33,7 @@ const MODULE_NAME = 'TagService';
 export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const tagID = TagSecurity.filterTagRequestByID(req.query);
+    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
     // Check auth
     if (!Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
@@ -41,15 +43,15 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleGetTag'
       });
     }
-    UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'handleGetTag', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTag', req.user);
+    // Get authorization filters
+    const authorizationTagFilters = await AuthorizationService.checkAndGetTagAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get the tag
-    const tag = await TagStorage.getTag(req.user.tenantID, tagID, { withUser: true },
-      [
-        'id', 'issuer', 'description', 'active', 'default',
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email'
-      ]
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withUser: true },
+      authorizationTagFilters.projectFields
     );
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${tagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
     if (!Authorizations.canReadUser(req.user, tag.userID)) {
@@ -71,14 +73,6 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleGetTags'
       });
     }
-    // Check Users
-    let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
-      userProject = [
-        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-      ];
-    }
     // Filter
     const filteredRequest = TagSecurity.filterTagsRequest(req.query);
     let userID: string;
@@ -87,6 +81,9 @@ export default class TagService {
     } else {
       userID = filteredRequest.UserID;
     }
+    // Get authorization filters
+    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     // Get the tags
     const tags = await TagStorage.getTags(req.user.tenantID,
       {
@@ -97,11 +94,7 @@ export default class TagService {
         withUser: true,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-        'createdOn', 'lastChangedOn',
-        ...userProject
-      ],
+      authorizationTagsFilters.projectFields,
     );
     // Return
     res.json(tags);
@@ -129,8 +122,8 @@ export default class TagService {
 
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagId = TagSecurity.filterTagRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, tagId, MODULE_NAME, 'handleDeleteTag', req.user);
+    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTag', req.user);
     // Check auth
     if (!Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
@@ -138,12 +131,12 @@ export default class TagService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleDeleteTag',
-        value: tagId
+        value: filteredRequest.ID
       });
     }
     // Get Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, tagId, { withNbrTransactions: true, withUser: true });
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${tagId}' does not exist`,
+    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withNbrTransactions: true, withUser: true });
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTag', req.user);
     // Only current organizations tags can be deleted
     if (!tag.issuer) {
@@ -326,7 +319,7 @@ export default class TagService {
       message: `Tag with ID '${newTag.id}'has been created successfully`,
       detailedMessages: { tag: newTag }
     });
-    res.json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.CREATED).json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -341,7 +334,7 @@ export default class TagService {
       });
     }
     // Filter
-    const filteredRequest = TagSecurity.filterTagUpdateRequest(req.body, req.user);
+    const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
     let formerTagUserID: string;
     let formerTagDefault: boolean;
     // Check

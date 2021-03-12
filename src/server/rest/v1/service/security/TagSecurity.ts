@@ -1,3 +1,4 @@
+import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import { HttpTagsRequest } from '../../../../../types/requests/HttpUserRequest';
 import Tag from '../../../../../types/Tag';
 import UserToken from '../../../../../types/UserToken';
@@ -16,6 +17,7 @@ export default class TagSecurity {
     } as HttpTagsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterProject(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -46,7 +48,11 @@ export default class TagSecurity {
     return filteredTag;
   }
 
-  public static filterTagRequestByID(request: any): string {
-    return sanitize(request.ID);
+  public static filterTagRequestByID(request: any): HttpByIDRequest {
+    const filteredRequest: HttpByIDRequest = {
+      ID: sanitize(request.ID)
+    };
+    UtilsSecurity.filterProject(request, filteredRequest);
+    return filteredRequest;
   }
 }
