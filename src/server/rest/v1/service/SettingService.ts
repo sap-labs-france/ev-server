@@ -156,9 +156,6 @@ export default class SettingService {
     }
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
-    if (filteredRequest.content.oicp?.cpo?.cert) {
-      await OICPUtils.encryptCertificates(req.user.tenantID, filteredRequest.content.oicp);
-    }
     // Process the sensitive data if any
     await Cypher.encryptSensitiveDataInJSON(req.user.tenantID, filteredRequest);
     // Update timestamp
@@ -182,9 +179,6 @@ export default class SettingService {
   public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    if (settingUpdate.content.oicp?.cpo?.cert) {
-      await OICPUtils.encryptCertificates(req.user.tenantID, settingUpdate.content.oicp);
-    }
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
