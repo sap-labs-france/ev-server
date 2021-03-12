@@ -23,8 +23,10 @@ describe('Billing Stripe Service', function() {
       await testData.initialize();
     });
 
-    describe('Where the admin user', () => {
+    describe('immediate billing OFF', () => {
       before(async () => {
+        const immediateBilling = false;
+        await testData.forceBillingSettings(immediateBilling);
       });
 
       after(async () => {
@@ -40,17 +42,24 @@ describe('Billing Stripe Service', function() {
         await testData.checkBusinessProcessBillToPay();
       });
 
+    });
+
+    describe('immediate billing ON', () => {
+      before(async () => {
+        /* ------------------------------------------------------
+          Billing settings are forced to check the complete flow
+          Invoice State - DRAFT => OPEN => PAID
+          -------------------------------------------------------*/
+        const immediateBilling = true;
+        await testData.forceBillingSettings(immediateBilling);
+      });
+
       it('Should add a different payment method to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_fr');
       });
 
-      // it('Should set VAT tax rate to 20% (non inclusive)', async () => {
-      //   await testData.assignTaxRate(20);
-      // });
-
       it('should create and pay a second invoice for BILLING-TEST user', async () => {
-        await testData.checkBusinessProcessBillToPay(true);
-        await testData.checkDownloadInvoiceAsPdf();
+        await testData.checkImmediateBillingWithTaxes();
       });
 
     });
