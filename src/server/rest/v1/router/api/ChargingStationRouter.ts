@@ -146,8 +146,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationDownloadQRCode(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_QRCODE_DOWNLOAD}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ChargingStationID = req.params.id;
-      req.query.ConnectorID = req.params.connectorId;
       await RouterUtils.handleServerAction(ChargingStationService.handleDownloadQrCodesPdf.bind(this), ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF, req, res, next);
     });
   }
@@ -226,7 +224,7 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationUpdateChargingProfiles(): void {
-    this.router.put(`/${ServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${ServerRoute.REST_CHARGING_PROFILE}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleUpdateChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_UPDATE, req, res, next);
     });
   }
