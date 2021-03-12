@@ -195,6 +195,7 @@ export default class StripeIntegrationTestData {
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
+    const beforeInvoiceDateTime = new Date().getTime();
     const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
@@ -202,9 +203,10 @@ export default class StripeIntegrationTestData {
     assert(paidInvoices, 'User should have at least a paid invoice');
     // The last invoice should be the one that has just been created
     const lastPaidInvoice: BillingInvoice = paidInvoices[0];
+    // TODO - Why do we get the amount in cents here?
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
-    // TODO - check the date?
-    // TODO - convert amount from cents to euros?
+    const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
+    expect(lastPaidInvoiceDateTime).to.be.gt(beforeInvoiceDateTime);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
