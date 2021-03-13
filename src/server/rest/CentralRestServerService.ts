@@ -82,6 +82,7 @@ class RequestMapper {
           [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
           [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
+          [ServerAction.BILLING_SETUP_PAYMENT_METHOD]: BillingService.handleBillingSetupPaymentMethod.bind(this),
           [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
@@ -235,6 +236,7 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.BILLING_CHARGE_INVOICE]: BillingService.handleBillingChargeInvoice.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
@@ -332,6 +334,20 @@ export default class CentralRestServerService {
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:
               await ChargingStationService.handleGetFirmware(action, req, res, next);
+              break;
+            default:
+              // Delegate
+              UtilsService.handleUnknownAction(action, req, res, next);
+          }
+          break;
+
+        case 'POST':
+          // Check Context
+          switch (action) {
+            // Ping
+            case ServerAction.BILLING_WEB_HOOK:
+              await BillingService.handleBillingWebHook(action, req, res);
+              // Res.sendStatus(StatusCodes.OK);
               break;
             default:
               // Delegate

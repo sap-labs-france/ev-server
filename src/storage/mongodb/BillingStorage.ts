@@ -26,6 +26,13 @@ export default class BillingStorage {
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
+  public static async getInvoicesToPay(tenantID: string): Promise<DataResult<BillingInvoice>> {
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      invoiceStatus: [BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN]
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    return invoicesMDB;
+  }
+
   public static async getInvoices(tenantID: string,
     params: {
       invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
@@ -150,7 +157,7 @@ export default class BillingStorage {
     };
   }
 
-  public static async saveInvoice(tenantID: string, invoiceToSave: Partial<BillingInvoice>): Promise<string> {
+  public static async saveInvoice(tenantID: string, invoiceToSave: BillingInvoice): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoice');
     // Build Request
@@ -159,7 +166,7 @@ export default class BillingStorage {
       _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       number: invoiceToSave.number,
-      userID: invoiceToSave.user ? Utils.convertToObjectID(invoiceToSave.user.id) : null,
+      userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
       status: invoiceToSave.status,
