@@ -691,7 +691,7 @@ export default class OCPPService {
       // Billing
       await OCPPUtils.billTransaction(headers.tenantID, transaction, TransactionAction.START);
       // Roaming ?
-      if (transaction.user || !transaction.user.issuer) {
+      if (transaction.user && !transaction.user.issuer) {
         // Assumption: Either Gireve or Hubject is enabled for eRoaming
         // OCPI or OICP
         // TODO: OCPI and OICP must work together and then the IOP must be identified clearly to call the right implementation
