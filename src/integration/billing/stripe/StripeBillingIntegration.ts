@@ -145,15 +145,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return null;
   }
 
-  public async userExists(user: User): Promise<boolean> {
+  public async userExists(user: User, strictMode: boolean): Promise<boolean> {
     // Check Stripe
     await this.checkConnection();
     // Make sure the billing data has been provided
     if (!user.billingData) {
       user = await UserStorage.getUser(this.tenantID, user.id);
     }
-    // Get customer
-    const customer = await this.getStripeCustomer(user);
+    // Retrieve the STRIPE customer (if any)
+    const customer = await this.getStripeCustomer(user, strictMode);
     return !!customer;
   }
 
@@ -177,14 +177,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const customer: Stripe.Customer = await this.getStripeCustomer(customerID);
     return this.convertToBillingUser(customer);
   }
-
-  // public async getUserByEmail(email: string): Promise<BillingUser> {
-  //   // Check Stripe
-  //   await this.checkConnection();
-  //   // Get customer
-  //   const customer = await this.getCustomerByEmail(email);
-  //   return this.convertToBillingUser(customer);
-  // }
 
   public async getTaxes(): Promise<BillingTax[]> {
     const taxes = [] as BillingTax[];
@@ -971,7 +963,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot create the user'
       });
     }
-    return this.modifyUser(user);
+    return this.generateStripeCustomer(user);
   }
 
   public async updateUser(user: User): Promise<BillingUser> {
@@ -986,7 +978,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot update the user'
       });
     }
-    return this.modifyUser(user);
+    return this.generateStripeCustomer(user);
   }
 
   public async deleteUser(user: User): Promise<void> {
@@ -1001,7 +993,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async getStripeCustomer(userOrCustomerID: User | string): Promise<Stripe.Customer> {
+  private async getStripeCustomer(userOrCustomerID: User | string, strictMode = true): Promise<Stripe.Customer> {
     await this.checkConnection();
     // Get customer
 
@@ -1022,13 +1014,20 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         // The customerID refers to something which does not exists anymore in the STRIPE account
         // May happen when billing settings are changed to point to a different STRIPE account
         // ---------------------------------------------------------------------------------------
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'getStripeCustomer',
-          action: ServerAction.BILLING,
-          message: `Stripe Inconsistency: ${error.message as string}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
+        if (strictMode) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'getStripeCustomer',
+            action: ServerAction.BILLING,
+            message: `Stripe Inconsistency: ${error.message as string}`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        } else {
+        // ---------------------------------------------------------------------------------------
+          // Here we do not throw an exception and simply return null!
+          // This to let the caller the chance to repair the inconsistency
+          // ---------------------------------------------------------------------------------------
+        }
       }
     }
 
@@ -1036,14 +1035,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return null;
   }
 
-  private async modifyUser(user: User): Promise<BillingUser> {
+  private async generateStripeCustomer(user: User): Promise<BillingUser> {
     await this.checkConnection();
     const fullName = Utils.buildUserFullName(user, false, false);
     const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     // Let's check if the STRIPE customer exists
-    let customer = await this.getStripeCustomer(user);
+    let customer = await this.getStripeCustomer(user, false /* !strictMode */);
     if (!customer) {
       customer = await this.stripe.customers.create({
         email: user.email,

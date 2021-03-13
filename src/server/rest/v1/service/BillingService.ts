@@ -56,7 +56,7 @@ export default class BillingService {
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // Ko
-      Logging.logError({
+      await Logging.logError({
         tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
@@ -154,7 +154,7 @@ export default class BillingService {
     if (billingLock) {
       try {
         // Sync user
-        await billingImpl.synchronizeUser(req.user.tenantID, userToSynchronize);
+        await billingImpl.synchronizeUser(userToSynchronize);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
@@ -203,30 +203,10 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
-    let billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
-        // Sync user
         await billingImpl.forceSynchronizeUser(user);
-      } finally {
-        await LockingManager.release(billingLock);
-      }
-    } else {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot acquire lock',
-        module: MODULE_NAME, method: 'handleSynchronizeUser',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get the Invoice lock
-    billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
-    if (billingLock) {
-      try {
-        // Sync invoices
-        await billingImpl.synchronizeInvoices(user);
       } finally {
         await LockingManager.release(billingLock);
       }

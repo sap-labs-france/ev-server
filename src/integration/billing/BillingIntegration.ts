@@ -1,4 +1,5 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+/* eslint-disable @typescript-eslint/member-ordering */
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -58,7 +59,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       for (const user of newUsersToSyncInBilling.result) {
         // Synchronize user
         try {
-          await this.synchronizeUser(this.tenantID, user);
+          await this.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: this.tenantID,
             actionOnUser: user,
@@ -103,7 +104,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_SYNCHRONIZE_USERS,
             module: MODULE_NAME, method: 'synchronizeUsers',
-            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in e-Mobility`
+            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist`
           });
           continue;
         }
@@ -126,7 +127,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         }
         // Synchronize several times the user in case of fail before setting it in error
         try {
-          await this.synchronizeUser(this.tenantID, user);
+          await this.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: this.tenantID,
             actionOnUser: user,
@@ -165,34 +166,30 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async synchronizeUser(tenantID: string, user: User): Promise<void> {
-    const exists = await this.userExists(user);
-    let newUser: BillingUser;
-    if (!exists) {
-      newUser = await this.createUser(user);
-    } else {
-      newUser = await this.updateUser(user);
-    }
-    await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
+  public async synchronizeUser(user: User): Promise<BillingUser> {
+    const billingUser = await this._synchronizeUser(user, true /* strictMode */);
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_SYNCHRONIZE_USER,
+      actionOnUser: user,
+      module: MODULE_NAME, method: 'synchronizeUser',
+      message: `Successfully synchronized of the user '${user.email}'`,
+    });
+    return billingUser;
   }
 
-  public async forceSynchronizeUser(user: User): Promise<void> {
-    // let billingUser = await this.getUserByEmail(user.email);
-    let billingUser = await this.getUser(user);
-    if (billingUser) {
-      if (user.billingData) {
-        // Only override user's customerID
-        user.billingData.customerID = billingUser.billingData.customerID;
-        user.billingData.hasSynchroError = false;
-      } else {
-        billingUser = await this.updateUser(user);
-        user.billingData = billingUser.billingData;
-      }
-    } else {
-      user.billingData = (await this.createUser(user)).billingData;
+  public async forceSynchronizeUser(user: User): Promise<BillingUser> {
+    const billingUser = await this._synchronizeUser(user, false /* !strictMode */);
+    if (user?.billingData?.customerID !== billingUser?.billingData?.customerID) {
+      await Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USER,
+        module: MODULE_NAME, method: 'forceSynchronizeUser',
+        message: `Force Synchronize User - customerID has been repaired - old value ${user?.billingData?.customerID} - ${billingUser?.billingData?.customerID}`
+      });
     }
-    // Save
-    await UserStorage.saveUserBillingData(this.tenantID, user.id, user.billingData);
     await Logging.logInfo({
       tenantID: this.tenantID,
       source: Constants.CENTRAL_SERVER,
@@ -201,6 +198,20 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       module: MODULE_NAME, method: 'forceSynchronizeUser',
       message: `Successfully forced the synchronization of the user '${user.email}'`,
     });
+    return billingUser;
+  }
+
+  private async _synchronizeUser(user: User, strictMode: boolean): Promise<BillingUser> {
+    // Check whether the customer exists
+    const exists = await this.userExists(user, strictMode); // returns false when the customerID is not set or is inconsistent
+    let billingUser: BillingUser;
+    if (!exists) {
+      billingUser = await this.createUser(user);
+    } else {
+      billingUser = await this.updateUser(user);
+    }
+    await UserStorage.saveUserBillingData(this.tenantID, user.id, billingUser.billingData);
+    return billingUser;
   }
 
   public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
@@ -560,7 +571,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract deleteUser(user: User): Promise<void>;
 
-  abstract userExists(user: User): Promise<boolean>;
+  abstract userExists(user: User, strictMode?: boolean): Promise<boolean>;
 
   abstract getTaxes(): Promise<BillingTax[]>;
 

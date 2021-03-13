@@ -6,7 +6,6 @@ import Cypher from '../../../src/utils/Cypher';
 import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
 import { StripeBillingSetting } from '../../../src/types/Setting';
 import TenantContext from './TenantContext';
-import Transaction from '../../types/Transaction';
 import User from '../../../src/types/User';
 import config from '../../config';
 
@@ -40,7 +39,8 @@ export default class BillingContext {
       return;
     }
     await this.saveBillingSettings(BillingContext.getBillingSettings());
-    const billingImpl = await BillingFactory.getBillingImpl(this.tenantContext.getTenant().id);
+    const tenantID = this.tenantContext.getTenant().id;
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -53,8 +53,8 @@ export default class BillingContext {
     const adminUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     const basicUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
     // Synchronize at least these 2 users - this creates a customer on the STRIPE side
-    await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, adminUser);
-    await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, basicUser);
+    await billingImpl.synchronizeUser(adminUser);
+    await billingImpl.synchronizeUser(basicUser);
   }
 
   private async saveBillingSettings(stripeSettings) {
