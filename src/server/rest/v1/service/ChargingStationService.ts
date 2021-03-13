@@ -90,17 +90,16 @@ export default class ChargingStationService {
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (filteredRequest.public !== chargingStation.public) {
-        if (filteredRequest.public === false) {
+        if (!filteredRequest.public) {
           // Remove charging station from ocpi
           if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-            const tenant = await TenantStorage.getTenant(req.user.tenantID);
             try {
-              const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+              const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
               if (ocpiClient) {
                 await ocpiClient.removeChargingStation(chargingStation);
               }
             } catch (error) {
-              Logging.logError({
+              await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
                 action: action,
@@ -116,9 +115,8 @@ export default class ChargingStationService {
           if (filteredRequest.public === false) {
             actionType = OICPActionType.DELETE;
           }
-          const tenant = await TenantStorage.getTenant(req.user.tenantID);
           try {
-            const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(tenant, OCPIRole.CPO) as CpoOICPClient;
+            const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
             if (oicpClient) {
               // Define get option
               const options = {
@@ -126,10 +124,10 @@ export default class ChargingStationService {
                 countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
                 partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
               };
-              await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, options), actionType);
+              await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(req.tenant, chargingStation.siteArea, chargingStation, options), actionType);
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: req.user.tenantID,
               module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
               action: action,
@@ -214,7 +212,7 @@ export default class ChargingStationService {
     // Update
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id, action: action,
       user: req.user, module: MODULE_NAME,
@@ -337,7 +335,7 @@ export default class ChargingStationService {
           });
         }
         // Log
-        Logging.logWarning({
+        await Logging.logWarning({
           tenantID: req.user.tenantID,
           source: chargingStation.id,
           action: action,
@@ -365,7 +363,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       action: action,
@@ -764,9 +762,8 @@ export default class ChargingStationService {
     // Remove charging station from HBS
     if (chargingStation.public) {
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
         try {
-          const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(tenant, OCPIRole.CPO) as CpoOICPClient;
+          const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
           if (oicpClient) {
             // Define get option
             const options = {
@@ -774,10 +771,10 @@ export default class ChargingStationService {
               countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
               partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
             };
-            await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(tenant, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
+            await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(req.tenant, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
           }
         } catch (error) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleDeleteChargingStation',
             action: action,
@@ -806,7 +803,7 @@ export default class ChargingStationService {
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
@@ -1053,7 +1050,7 @@ export default class ChargingStationService {
     });
     // Handle Errors
     bucketStream.on('error', (error) => {
-      Logging.logError({
+      void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: action,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
@@ -1068,7 +1065,7 @@ export default class ChargingStationService {
     // End of download
     await new Promise((resolve) => {
       bucketStream.on('end', () => {
-        Logging.logInfo({
+        void Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: action,
           message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
@@ -1585,7 +1582,7 @@ export default class ChargingStationService {
             result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
-              Logging.logWarning({
+              await Logging.logWarning({
                 tenantID: tenantID,
                 source: chargingStation.id,
                 user: user,
@@ -1684,7 +1681,7 @@ export default class ChargingStationService {
       if (result) {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
-          Logging.logError({
+          await Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
             user: user,
@@ -1695,7 +1692,7 @@ export default class ChargingStationService {
           });
         } else {
           // OCPP Command with no status
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             user: user,

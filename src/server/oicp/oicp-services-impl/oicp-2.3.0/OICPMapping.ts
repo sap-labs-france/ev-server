@@ -57,6 +57,7 @@ export default class OICPMapping {
    * Get All Charging Stations from given Tenant
    * @param {Tenant} tenant
    */
+  // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, remove this method
   public static async getAllChargingStations(tenant: Tenant, limit: number, skip: number): Promise<ChargingStation[]> {
     // Result
     const chargingStations: ChargingStation[] = [];
@@ -70,7 +71,7 @@ export default class OICPMapping {
     return chargingStations;
   }
 
-  public static async convertChargingStationsToEVSEs(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseDataRecord[]> {
+  public static convertChargingStationsToEVSEs(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseDataRecord[] {
     const evses: OICPEvseDataRecord[] = [];
     // Convert charging stations to evse(s)
     for (const chargingStation of chargingStations) {
@@ -82,7 +83,7 @@ export default class OICPMapping {
     return evses;
   }
 
-  public static async convertChargingStationsToEvseStatuses(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OICPEvseStatusRecord[]> {
+  public static convertChargingStationsToEvseStatuses(tenant: Tenant, chargingStations: ChargingStation[], options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OICPEvseStatusRecord[] {
     const evseStatuses: OICPEvseStatusRecord[] = [];
     // Convert charging stations to evse status(es)
     for (const chargingStation of chargingStations) {
@@ -123,11 +124,11 @@ export default class OICPMapping {
    * @param options
    * @return Array of charging stations
    */
+  // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, remove this method
   private static async getAllChargingStationsFromSiteArea(tenant: Tenant, siteArea: SiteArea): Promise<ChargingStation[]> {
     // Get Charging Stations
-    // TODO: Add parameter to select only public charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
-      { siteAreaIDs: [siteArea.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
+      { siteAreaIDs: [siteArea.id], includeDeleted: false, public: true }, Constants.DB_PARAMS_MAX_LIMIT);
     // Return charging Stations
     return chargingStations.result;
   }

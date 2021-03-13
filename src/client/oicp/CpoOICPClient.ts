@@ -63,17 +63,18 @@ export default class CpoOICPClient extends OICPClient {
       addChargeBoxID: true
     };
     const oicpEvse = OICPMapping.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
-    const oicpSession: OICPSession = {} as OICPSession;
-    oicpSession.id = sessionId;
-    oicpSession.start_datetime = transaction.timestamp;
-    oicpSession.kwh = 0;
-    oicpSession.identification = identification;
-    oicpSession.evse = oicpEvse;
-    oicpSession.currency = this.settings.currency;
-    oicpSession.status = OICPSessionStatus.PENDING;
-    oicpSession.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
-    oicpSession.last_updated = transaction.timestamp;
-    oicpSession.meterValueInBetween = [];
+    const oicpSession = {
+      id: sessionId,
+      start_datetime: transaction.timestamp,
+      kwh: 0,
+      identification: identification,
+      evse: oicpEvse,
+      currency: this.settings.currency,
+      status: OICPSessionStatus.PENDING,
+      total_cost: transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0,
+      last_updated: transaction.timestamp,
+      meterValueInBetween: [],
+    } as OICPSession;
     transaction.oicpData = {
       session: oicpSession
     };
@@ -98,7 +99,7 @@ export default class CpoOICPClient extends OICPClient {
         user: transaction.user
       });
     }
-    transaction.oicpData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
+    transaction.oicpData.session.kwh = Utils.createDecimal(transaction.currentTotalConsumptionWh).div(1000).toNumber();
     transaction.oicpData.session.last_updated = transaction.currentTimestamp;
     transaction.oicpData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
     transaction.oicpData.session.currency = this.settings.currency;
@@ -171,7 +172,7 @@ export default class CpoOICPClient extends OICPClient {
         user: transaction.user
       });
     }
-    transaction.oicpData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
+    transaction.oicpData.session.kwh = Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber();
     transaction.oicpData.session.total_cost = transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0;
     transaction.oicpData.session.end_datetime = transaction.stop.timestamp;
     transaction.oicpData.session.last_updated = transaction.stop.timestamp;
@@ -232,9 +233,10 @@ export default class CpoOICPClient extends OICPClient {
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
     // Get all charging stations from tenant
+    // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, use pagination
     const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
     // Convert (public) charging stations to OICP EVSEs
-    const evses = await OICPMapping.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
+    const evses = OICPMapping.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
     let evsesToProcess: OICPEvseDataRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
     // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
@@ -322,7 +324,7 @@ export default class CpoOICPClient extends OICPClient {
       };
     }
     // Save
-    const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
+    const executionDurationSecs = Utils.createDecimal(new Date().getTime()).minus(startTime).div(1000).toNumber();
     await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
     Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_DATA,
       MODULE_NAME, 'sendEVSEs', result,
@@ -363,9 +365,10 @@ export default class CpoOICPClient extends OICPClient {
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
     // Get all charging stations from tenant
+    // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, use pagination
     const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
     // Convert (public) charging stations to OICP EVSE Statuses
-    const evseStatuses = await OICPMapping.convertChargingStationsToEvseStatuses(this.tenant, chargingStations, options);
+    const evseStatuses = OICPMapping.convertChargingStationsToEvseStatuses(this.tenant, chargingStations, options);
     let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
     let chargeBoxIDsToProcessFromInput = [];
     // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
@@ -822,7 +825,10 @@ export default class CpoOICPClient extends OICPClient {
     cdr.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
     cdr.MeterValueEnd = Utils.convertWattHourToKiloWattHour(transaction.stop.meterStop, 3); // Optional
     if (!Utils.isEmptyArray(transaction.oicpData.session.meterValueInBetween)) {
-      cdr.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
+      cdr.MeterValueInBetween = {
+        meterValues: transaction.oicpData.session.meterValueInBetween.map(
+          (wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3))
+      }; // Optional
     }
     cdr.ConsumedEnergy = Utils.convertWattHourToKiloWattHour(transaction.stop.totalConsumptionWh, 3); // In kW.h
     cdr.SignedMeteringValues; // Optional
@@ -992,7 +998,7 @@ export default class CpoOICPClient extends OICPClient {
       payload.EvseID = transaction.oicpData.session.evse.EvseID;
       payload.ChargingStart = transaction.timestamp;
       payload.EventOccurred = transaction.currentTimestamp;
-      payload.ChargingDuration = transaction.currentTimestamp.getTime() - transaction.timestamp.getTime(); // Optional Duration in milliseconds (Integer). Charging Duration = EventOccurred - Charging Duration. Same as transaction.currentTotalDurationSecs * 1000?
+      payload.ChargingDuration = Utils.createDecimal(transaction.currentTimestamp.getTime()).minus(transaction.timestamp.getTime()).toNumber(); // Optional Duration in milliseconds (Integer). Charging Duration = EventOccurred - Charging Duration. Same as transaction.currentTotalDurationSecs * 1000?
       payload.SessionStart = transaction.oicpData.session.start_datetime; // Optional
       payload.ConsumedEnergyProgress = Utils.convertWattHourToKiloWattHour(transaction.currentTotalConsumptionWh, 3); // In kW.h Optional
       payload.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
@@ -1088,7 +1094,10 @@ export default class CpoOICPClient extends OICPClient {
     payload.ConsumedEnergy = Utils.convertWattHourToKiloWattHour(transaction.stop.totalConsumptionWh, 3);
     payload.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional. kw or kWh?
     payload.MeterValueEnd = Utils.convertWattHourToKiloWattHour(transaction.stop.meterStop, 3); // Optional. kW or kWh?
-    payload.MeterValueInBetween = { meterValues: transaction.oicpData.session.meterValueInBetween.map((wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3)) }; // Optional
+    payload.MeterValueInBetween = {
+      meterValues: transaction.oicpData.session.meterValueInBetween.map(
+        (wattHour) => Utils.convertWattHourToKiloWattHour(wattHour, 3))
+    }; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END); // Optional
     payload.PartnerProductID; // Optional
     payload.PenaltyTimeStart = transaction.stop.timestamp; // Optional
@@ -1203,7 +1212,7 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * Ping OICP Endpoint
    */
-  public async ping() {
+  public async ping(): Promise<any> {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
     // Access versions API
@@ -1229,7 +1238,7 @@ export default class CpoOICPClient extends OICPClient {
   /**
    * POST to EVSE Endpoint without EVSEs
    */
-  private async pingEvseEndpoint() {
+  private async pingEvseEndpoint(): Promise<any> {
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OICP_PUSH_EVSE_DATA,
@@ -1276,5 +1285,4 @@ export default class CpoOICPClient extends OICPClient {
     }
     return [];
   }
-
 }

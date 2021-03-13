@@ -74,6 +74,7 @@ export default class OICPUtils {
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
     // It is not save to derive charging station id from evseID
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
+    // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, use oicpData in charging station to find it
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);

@@ -694,6 +694,7 @@ export default class OCPPService {
       if (transaction.user || !transaction.user.issuer) {
         // Assumption: Either Gireve or Hubject is enabled for eRoaming
         // OCPI or OICP
+        // TODO: OCPI and OICP must work together and then the IOP must be identified clearly to call the right implementation
         if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
           // OCPI
           await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);

@@ -35,7 +35,7 @@ export default abstract class OICPClient {
     this.settings = settings;
     this.oicpEndpoint = oicpEndpoint;
     this.role = role.toLowerCase();
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig(ServerAction.OICP_CREATE_AXIOS_INSTANCE) }); // FIXME: 'Converting circular structure to JSON' Error
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id, { axiosConfig: this.getAxiosConfig() }); // FIXME: 'Converting circular structure to JSON' Error
   }
 
   public getLocalCountryCode(action: ServerAction): string {
@@ -168,7 +168,7 @@ export default abstract class OICPClient {
     return await Cypher.decrypt(this.tenant.id, this.settings[this.role].cert);
   }
 
-  private getAxiosConfig(action: ServerAction): AxiosRequestConfig {
+  private getAxiosConfig(): AxiosRequestConfig {
     const axiosConfig: AxiosRequestConfig = {} as AxiosRequestConfig;
     // AxiosConfig.httpsAgent = await this.getHttpsAgent(action);
     axiosConfig.headers = {
