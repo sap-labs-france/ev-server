@@ -1237,7 +1237,7 @@
         }
       }
     },
-    "/api/chargingstations/reset": {
+    "/api/chargingstations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1245,15 +1245,17 @@
           }
         ],
         "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1298,7 +1300,7 @@
         }
       }
     },
-    "/api/chargingstations/cache/clear": {
+    "/api/chargingstations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1306,20 +1308,11 @@
           }
         ],
         "description": "Clear a Charging Station cache",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1365,7 +1358,7 @@
         }
       }
     },
-    "/api/chargingstations/configuration/retrieve": {
+    "/api/chargingstations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1373,15 +1366,17 @@
           }
         ],
         "description": "Get the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1395,10 +1390,7 @@
                       }
                     }
                   }
-                },
-                "required": [
-                  "chargeBoxID"
-                ]
+                }
               }
             }
           }
@@ -1464,7 +1456,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/start": {
+    "/api/chargingstations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1472,15 +1464,17 @@
           }
         ],
         "description": "Start a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "carID": {
                     "type": "string",
                     "example": ""
@@ -1563,7 +1557,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/stop": {
+    "/api/chargingstations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1571,15 +1565,17 @@
           }
         ],
         "description": "Stop a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1652,7 +1648,7 @@
         }
       }
     },
-    "/api/chargingstations/connectors/unlock": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1660,37 +1656,14 @@
           }
         ],
         "description": "Unlock a connector",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
-                  "args": {
-                    "type": "object",
-                    "properties": {
-                      "connectorId": {
-                        "type": "integer",
-                        "description": "Required. This contains the identifier of the connector to be unlocked.",
-                        "minimum": 1,
-                        "example": 1
-                      }
-                    },
-                    "required": [
-                      "connectorId"
-                    ]
-                  }
-                },
-                "required": [
-                  "args"
-                ]
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/connectorID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1739,7 +1712,7 @@
         }
       }
     },
-    "/api/chargingstations/compositeschedule": {
+    "/api/chargingstations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -1747,15 +1720,17 @@
           }
         ],
         "description": "Get Charging Station composite schedule",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1880,7 +1855,7 @@
         }
       }
     },
-    "/api/chargingstations/diagnostics": {
+    "/api/chargingstations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -1888,15 +1863,17 @@
           }
         ],
         "description": "Get Charging Station diagnostics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1974,7 +1951,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/update": {
+    "/api/chargingstations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -1982,15 +1959,17 @@
           }
         ],
         "description": "Update Charging Station firmware",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2049,7 +2028,7 @@
         }
       }
     },
-    "/api/chargingstations/availability/change": {
+    "/api/chargingstations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2057,15 +2036,17 @@
           }
         ],
         "description": "Update Charging Station availability",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2201,7 +2182,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/download": {
+    "/api/chargingstations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2211,10 +2192,16 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "$ref": "#/components/parameters/connectorID"
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteID"
           }
         ],
         "tags": [
@@ -2412,7 +2399,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters/export": {
+    "/api/chargingstations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2422,7 +2409,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           }
         ],
         "tags": [
@@ -2452,7 +2439,7 @@
         }
       }
     },
-    "/api/chargingstations/parameters": {
+    "/api/chargingstations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2460,16 +2447,17 @@
           }
         ],
         "description": "Update Charging Station parameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2526,7 +2514,7 @@
         }
       }
     },
-    "/api/chargingstations/power/limit": {
+    "/api/chargingstations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2534,22 +2522,22 @@
           }
         ],
         "description": "Limit Charging Station power",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
-                  "chargeBoxID",
                   "chargePointID",
                   "ampLimitValue",
                   "forceUpdateChargingPlan"
                 ],
                 "properties": {
-                  "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "chargePointID": {
                     "type": "string",
                     "example": 1
@@ -2742,7 +2730,7 @@
         }
       }
     },
-    "/api/chargingstations/in-error": {
+    "/api/chargingstations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2798,7 +2786,7 @@
         }
       }
     },
-    "/api/chargingstations/export": {
+    "/api/chargingstations/action/export": {
       "get": {
         "security": [
           {
@@ -3029,7 +3017,9 @@
             "$ref": "#/components/responses/BackendError"
           }
         }
-      },
+      }
+    },
+    "/api/chargingprofiles/{id}": {
       "put": {
         "security": [
           {
@@ -3037,6 +3027,11 @@
           }
         ],
         "description": "Update a Charging Station profile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingProfileID"
+          }
+        ],
         "tags": [
           "Charging Profiles"
         ],
@@ -3082,9 +3077,7 @@
             "$ref": "#/components/responses/NotSupportedError"
           }
         }
-      }
-    },
-    "/api/chargingprofiles/{id}": {
+      },
       "delete": {
         "security": [
           {
@@ -3630,7 +3623,7 @@
             "$ref": "#/components/responses/BackendError"
           },
           "550": {
-            "description": "Tag does not exist"
+            "description": "User does not exist"
           },
           "576": {
             "description": "Tag already exists"
@@ -4731,6 +4724,15 @@
         "in": "query",
         "name": "ChargingStationID",
         "description": "Charging Station ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ChargingStationIDs": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Pipe separated Charging Station IDs",
         "required": false,
         "schema": {
           "type": "string"
