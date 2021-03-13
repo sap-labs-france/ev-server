@@ -69,12 +69,12 @@
       "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
     },
     "oicpPatchChargingStationsStatusesError": {
-      "title": "Roaming Send Statuses",
-      "body": "The transfer to the OICP roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject Send Statuses",
+      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
     },
     "oicpPatchChargingStationsError": {
-      "title": "Roaming Send EVSE Data",
-      "body": "The transfer to the OICP roaming platform of the charging station's EVSE Data has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject Send Charging Stations",
+      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
     },
     "smtpError": {
       "title": "Error del servidor de correo electrónico",
