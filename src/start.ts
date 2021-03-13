@@ -16,6 +16,8 @@ import OCPIServer from './server/ocpi/OCPIServer';
 import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
 import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
+import OICPServer from './server/oicp/OICPServer';
+import OICPServiceConfiguration from './types/configuration/OICPServiceConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
 import { ServerAction } from './types/Server';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
@@ -40,6 +42,8 @@ export default class Bootstrap {
   private static JsonCentralSystemServer: JsonCentralSystemServer;
   private static ocpiConfig: OCPIServiceConfiguration;
   private static ocpiServer: OCPIServer;
+  private static oicpConfig: OICPServiceConfiguration;
+  private static oicpServer: OICPServer;
   private static oDataServerConfig: ODataServiceConfiguration;
   private static oDataServer: ODataServer;
   private static databaseDone: boolean;
@@ -63,6 +67,7 @@ export default class Bootstrap {
       Bootstrap.centralSystemsConfig = Configuration.getCentralSystemsConfig();
       Bootstrap.chargingStationConfig = Configuration.getChargingStationConfig();
       Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
+      Bootstrap.oicpConfig = Configuration.getOICPServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       Bootstrap.migrationConfig = Configuration.getMigrationConfig();
@@ -125,7 +130,6 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         SchedulerManager.init();
-
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
@@ -231,7 +235,6 @@ export default class Bootstrap {
           await this.centralRestServer.startSocketIO();
         }
       }
-
       // -------------------------------------------------------------------------
       // Listen to DB changes
       // -------------------------------------------------------------------------
@@ -240,7 +243,6 @@ export default class Bootstrap {
         Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
       }
       await Bootstrap.storageNotification.start();
-
       // -------------------------------------------------------------------------
       // Central Server (Charging Stations)
       // -------------------------------------------------------------------------
@@ -270,7 +272,6 @@ export default class Bootstrap {
           }
         }
       }
-
       // -------------------------------------------------------------------------
       // OCPI Server
       // -------------------------------------------------------------------------
@@ -280,7 +281,15 @@ export default class Bootstrap {
         // Start server instance
         await Bootstrap.ocpiServer.start();
       }
-
+      // -------------------------------------------------------------------------
+      // OICP Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.oicpConfig) {
+        // Create server instance
+        Bootstrap.oicpServer = new OICPServer(Bootstrap.oicpConfig);
+        // Start server instance
+        await Bootstrap.oicpServer.start();
+      }
       // -------------------------------------------------------------------------
       // OData Server
       // -------------------------------------------------------------------------

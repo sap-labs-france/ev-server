@@ -155,7 +155,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -197,6 +197,10 @@ export default class ChargingStationStorage {
     // Remove deleted
     if (!params.includeDeleted) {
       filters.deleted = { '$ne': true };
+    }
+    // Public Charging Stations
+    if (Utils.objectHasProperty(params, 'public')) {
+      filters.public = params.public;
     }
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {

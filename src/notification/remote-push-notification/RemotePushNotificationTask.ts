@@ -1,4 +1,4 @@
-import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { AccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import User, { UserStatus } from '../../types/User';
 
 import Configuration from '../../utils/Configuration';
@@ -294,6 +294,28 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { location: data.location, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OCPI_PATCH_STATUS_ERROR, title, body, user, null, severity);
+  }
+
+  public async sendOICPPatchChargingStationsStatusesError(data: OICPPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.oicpPatchChargingStationsStatusesError.title');
+    const body = i18nManager.translate('notifications.oicpPatchChargingStationsStatusesError.body',
+      { tenantName: tenant.name });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OICP_PATCH_STATUS_ERROR, title, body, user, null, severity);
+  }
+
+  public async sendOICPPatchChargingStationsError(data: OICPPatchChargingStationsErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.oicpPatchChargingStationsError.title');
+    const body = i18nManager.translate('notifications.oicpPatchChargingStationsError.body',
+      { tenantName: tenant.name });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OICP_PATCH_EVSE_ERROR, title, body, user, null, severity);
   }
 
   public async sendBillingSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

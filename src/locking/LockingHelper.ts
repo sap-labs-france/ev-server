@@ -3,6 +3,7 @@ import Lock, { LockEntity } from '../types/Locking';
 import Asset from '../types/Asset';
 import LockingManager from './LockingManager';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import OICPEndpoint from '../types/oicp/OICPEndpoint';
 import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
@@ -92,5 +93,29 @@ export default class LockingHelper {
 
   public static async createOCPIPatchCpoLocationsLock(tenantID: string, ocpiEndpoint: OCPIEndpoint): Promise<Lock | null> {
     return LockingHelper.createOCPIEndpointActionLock(tenantID, ocpiEndpoint, 'patch-cpo-locations');
+  }
+
+  public static async createOICPEndpointActionLock(tenantID: string, oicpEndpoint: OICPEndpoint, action: string): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OICP_ENDPOINT, `${oicpEndpoint.id}-${action}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createOICPPatchCpoEVSEsLock(tenantID: string, oicpEndpoint: OICPEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOICPEndpointActionLock(tenantID, oicpEndpoint, 'patch-cpo-evse-data');
+  }
+
+  public static async createOICPPatchCpoEvseStatusesLock(tenantID: string, oicpEndpoint: OICPEndpoint): Promise<Lock|null> {
+    return LockingHelper.createOICPEndpointActionLock(tenantID, oicpEndpoint, 'patch-cpo-evse-statuses');
+  }
+
+  public static async createOICPPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
   }
 }
