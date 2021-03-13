@@ -1275,7 +1275,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
-            'type': RoamingSettingsType.GIREVE,
+            'type': RoamingSettingsType.OCPI,
             'ocpi': {}
           } as SettingDBContent;
         }
@@ -1285,7 +1285,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Hubject
           return {
-            'type': RoamingSettingsType.HUBJECT,
+            'type': RoamingSettingsType.OICP,
             'oicp': {}
           } as SettingDBContent;
         }

@@ -87,8 +87,8 @@ export interface ConvergentChargingPricingSetting extends PricingSetting {
 }
 
 export enum RoamingSettingsType {
-  GIREVE = 'gireve',
-  HUBJECT = 'hubject'
+  OCPI = 'ocpi',
+  OICP = 'oicp',
 }
 
 export interface RoamingSettings extends Setting {
@@ -117,8 +117,7 @@ export interface RoamingIdentifier {
   partyID: string;
 }
 
-export interface OcpiIdentifier extends RoamingIdentifier {
-}
+export type OcpiIdentifier = RoamingIdentifier;
 
 // Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
 // Because the roles CPO and EMSP probably need different certificates to call the Hubject Backend

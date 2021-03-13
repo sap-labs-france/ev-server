@@ -65,7 +65,7 @@ export default class SettingSecurity {
             timezone: sanitize(request.content.sac.timezone)
           };
           break;
-        case RoamingSettingsType.GIREVE:
+        case RoamingSettingsType.OCPI:
           settings.content.ocpi = {} as OcpiSetting;
           if (Utils.objectHasProperty(request.content.ocpi, 'businessDetails')) {
             settings.content.ocpi.businessDetails = {
@@ -99,7 +99,7 @@ export default class SettingSecurity {
             settings.content.ocpi.currency = request.content.ocpi.currency;
           }
           break;
-        case RoamingSettingsType.HUBJECT:
+        case RoamingSettingsType.OICP:
           settings.content.oicp = {} as OicpSetting;
           if (request.content.oicp.businessDetails) {
             settings.content.oicp.businessDetails = {
