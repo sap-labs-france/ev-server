@@ -7,6 +7,7 @@ import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../types/Tag';
 import TenantContext from './context/TenantContext';
 import User from '../types/User';
@@ -166,7 +167,7 @@ describe('User tests', function() {
         it('Should be able to create a tag for user', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
           const response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
         });
 
@@ -207,7 +208,7 @@ describe('User tests', function() {
         it('Should be able to delete a badge that has not been used', async () => {
           testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
           let response = await testData.userService.userApi.createTag(testData.newTag);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.CREATED);
           response = await testData.userService.userApi.deleteTag(testData.newTag.id);
           expect(response.status).to.equal(200);
           response = (await testData.userService.userApi.readTag(testData.newTag.id));

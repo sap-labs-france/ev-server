@@ -92,6 +92,25 @@ export default class SettingStorage {
     return ocpiSettings;
   }
 
+  public static async getOICPSettings(tenantID: string): Promise<RoamingSettings> {
+    const oicpSettings = {
+      identifier: TenantComponents.OICP,
+    } as RoamingSettings;
+    // Get the oicp settings
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.OICP }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      // ID
+      oicpSettings.id = settings.result[0].id;
+      oicpSettings.sensitiveData = settings.result[0].sensitiveData;
+      // OICP
+      if (config.oicp) {
+        oicpSettings.oicp = config.oicp;
+      }
+    }
+    return oicpSettings;
+  }
+
   public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
     const analyticsSettings = {
       identifier: TenantComponents.ANALYTICS,
@@ -306,7 +325,7 @@ export default class SettingStorage {
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
           usersLastSynchronizedOn: config.stripe.usersLastSynchronizedOn ? config.stripe.usersLastSynchronizedOn : new Date(0),
           invoicesLastSynchronizedOn: config.stripe.invoicesLastSynchronizedOn ? config.stripe.invoicesLastSynchronizedOn : new Date(0),
-          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null,
+          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null
         };
       }
       return billingSettings;

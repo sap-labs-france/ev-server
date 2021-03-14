@@ -1,6 +1,6 @@
+import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
-import { HttpBillingInvoiceRequest } from '../../../../../types/requests/HttpBillingRequest';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -55,6 +55,26 @@ export default class BillingSecurity {
   static filterDownloadInvoiceRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)
+    };
+  }
+
+  static filterChargeInvoiceRequest(request: any): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
+  }
+
+  static filterBillingWebHookRequest(requestQuery: any): HttpBillingWebHookRequest {
+    return {
+      tenantID: sanitize(requestQuery.TenantID)
+    };
+  }
+
+  static filterSetupPaymentMethodRequest(request: any): HttpSetupPaymentMethod {
+    return {
+      user: sanitize(request.user),
+      currentUserID: sanitize(request.body.userID),
+      paymentMethodId: sanitize(request.body.paymentMethodId)
     };
   }
 }
