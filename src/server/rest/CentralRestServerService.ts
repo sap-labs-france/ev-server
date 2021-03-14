@@ -10,6 +10,7 @@ import Logging from '../../utils/Logging';
 import LoggingService from './v1/service/LoggingService';
 import NotificationService from './v1/service/NotificationService';
 import OCPIEndpointService from './v1/service/OCPIEndpointService';
+import OICPEndpointService from './v1/service/OICPEndpointService';
 import RegistrationTokenService from './v1/service/RegistrationTokenService';
 import { ServerAction } from '../../types/Server';
 import SessionHashService from './v1/service/SessionHashService';
@@ -81,6 +82,7 @@ class RequestMapper {
           [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
           [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
+          [ServerAction.BILLING_SETUP_PAYMENT_METHOD]: BillingService.handleBillingSetupPaymentMethod.bind(this),
           [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_CHECK_CDRS]: OCPIEndpointService.handleCheckCdrsEndpoint.bind(this),
@@ -93,6 +95,10 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENPOINT_SEND_EVSES]: OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
@@ -192,6 +198,8 @@ class RequestMapper {
           [ServerAction.BILLING_DOWNLOAD_INVOICE]: BillingService.handleDownloadInvoice.bind(this),
           [ServerAction.OCPI_ENDPOINTS]: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINTS]: OICPEndpointService.handleGetOicpEndpoints.bind(this),
+          [ServerAction.OICP_ENDPOINT]: OICPEndpointService.handleGetOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTIONS]: ConnectionService.handleGetConnections.bind(this),
           [ServerAction.INTEGRATION_CONNECTION]: ConnectionService.handleGetConnection.bind(this),
           [ServerAction.PING]: (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
@@ -222,9 +230,13 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UPDATE]: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_REGISTER]: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_UPDATE]: OICPEndpointService.handleUpdateOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_REGISTER]: OICPEndpointService.handleRegisterOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_UNREGISTER]: OICPEndpointService.handleUnregisterOicpEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
+          [ServerAction.BILLING_CHARGE_INVOICE]: BillingService.handleBillingChargeInvoice.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
@@ -248,6 +260,7 @@ class RequestMapper {
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
           [ServerAction.SETTING_DELETE]: SettingService.handleDeleteSetting.bind(this),
           [ServerAction.OCPI_ENDPOINT_DELETE]: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_DELETE]: OICPEndpointService.handleDeleteOicpEndpoint.bind(this),
           [ServerAction.CAR_DELETE]: CarService.handleDeleteCar.bind(this),
           [ServerAction.TAG_DELETE]: TagService.handleDeleteTag.bind(this),
           [ServerAction.TAGS_DELETE]: TagService.handleDeleteTags.bind(this),
@@ -321,6 +334,20 @@ export default class CentralRestServerService {
             // Firmware Download
             case ServerAction.FIRMWARE_DOWNLOAD:
               await ChargingStationService.handleGetFirmware(action, req, res, next);
+              break;
+            default:
+              // Delegate
+              UtilsService.handleUnknownAction(action, req, res, next);
+          }
+          break;
+
+        case 'POST':
+          // Check Context
+          switch (action) {
+            // Ping
+            case ServerAction.BILLING_WEB_HOOK:
+              await BillingService.handleBillingWebHook(action, req, res);
+              // Res.sendStatus(StatusCodes.OK);
               break;
             default:
               // Delegate

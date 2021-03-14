@@ -67,6 +67,8 @@ export enum Entity {
   TOKEN = 'Token',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
+  OICP_ENDPOINT = 'OicpEndpoint',
+  OICP_ENDPOINTS = 'OicpEndpoints',
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
   ASSET = 'Asset',
@@ -86,6 +88,8 @@ export enum Entity {
   NOTIFICATION = 'Notification',
   TAGS = 'Tags',
   TAG = 'Tag',
+  PAYMENT_METHOD = 'PaymentMethod',
+  PAYMENT_METHODS = 'PaymentMethods',
 }
 
 export enum Action {
@@ -125,6 +129,8 @@ export enum Action {
   REFUND_TRANSACTION = 'RefundTransaction',
   SYNCHRONIZE_BILLING_USERS = 'SynchronizeBillingUsers',
   SYNCHRONIZE_BILLING_USER = 'SynchronizeBillingUser',
+  BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
+  BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   CHECK_CONNECTION = 'CheckConnection',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
   PING = 'Ping',

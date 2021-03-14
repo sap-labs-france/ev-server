@@ -68,6 +68,14 @@
       "title": "Roaming Send Statuses",
       "body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Hubject Send Statuses",
+      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Hubject Send Charging Stations",
+      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpError": {
       "title": "Email Server Error",
       "body": "The primary email server has failed in organization '{{tenantName}}', check the configuration"
