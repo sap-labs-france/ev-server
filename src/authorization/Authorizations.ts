@@ -8,10 +8,15 @@ import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../client/oicp/CpoOICPClient';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
+import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
+import OICPClientFactory from '../client/oicp/OICPClientFactory';
+import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
+import { OICPRole } from '../types/oicp/OICPRole';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -474,6 +479,38 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
+  public static canListOicpEndpoints(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINTS, Action.LIST);
+  }
+
+  public static canReadOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.READ);
+  }
+
+  public static canDeleteOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.DELETE);
+  }
+
+  public static canCreateOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.CREATE);
+  }
+
+  public static canUpdateOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.UPDATE);
+  }
+
+  public static canPingOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.PING);
+  }
+
+  public static canTriggerJobOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.TRIGGER_JOB);
+  }
+
+  public static canRegisterOicpEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.REGISTER);
+  }
+
   public static canListChargingProfiles(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
   }
@@ -685,6 +722,21 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
+  public static canListPaymentMethod(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
+  }
+
+  // or canPerformAction(loggedUser, Entity.BILLING, Action.CREATE_PAYMENT_METHOD)
+  public static canCreatePaymentMethod(loggedUser: UserToken, userID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE,
+      { user: userID, owner: loggedUser.id }
+    );
+  }
+
+  public static canDeletePaymentMethod(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }
@@ -737,7 +789,7 @@ export default class Authorizations {
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
         });
       }
-      // Access Control Enabled?
+      // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
         return UserStorage.getUserByTagId(tenantID, tagID);
@@ -758,6 +810,32 @@ export default class Authorizations {
     }
     // Get Tag
     let tag: Tag = await TagStorage.getTag(tenantID, tagID, { withUser: true });
+    if (!tag || !tag?.active) {
+      // Check OICP User
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+        // Check if user has remote authorization or the session is already running
+        if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
+          return UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
+        }
+        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+        if (!oicpClient) {
+          throw new BackendError({
+            action: ServerAction.AUTHORIZE,
+            module: MODULE_NAME,
+            method: 'handleAuthorize',
+            message: 'OICP component requires at least one CPO endpoint to start a Session'
+          });
+        }
+        // Check if user is OICP roaming user and authorized
+        // Call Hubject
+        const response = await oicpClient.authorizeStart(tagID);
+        if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
+          const virtualOICPUser = await UserStorage.getUserByEmail(tenantID, Constants.OICP_VIRTUAL_USER_EMAIL);
+          virtualOICPUser.authorizationID = response.SessionID;
+          return virtualOICPUser;
+        }
+      }
+    }
     if (!tag) {
       // Create the tag as inactive
       tag = {

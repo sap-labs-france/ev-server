@@ -45,12 +45,17 @@ export interface BillingUserData {
 }
 
 export interface BillingUser {
-  email: string;
+  userID: string; // Added to make it easier to find the corresponding eMobility user data
+  // email: string;
   name: string;
   billingData: BillingUserData;
 }
 
 export interface BillingUserSynchronizeAction extends ActionsResponse {
+  billingData?: BillingUserData;
+}
+
+export interface BillingChargeInvoiceAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 
@@ -79,8 +84,16 @@ export interface BillingInvoice {
 
 export interface BillingInvoiceItem {
   description: string;
-  amount: number;
+  pricingData: {
+    quantity: number,
+    amount: number,
+    currency: string
+  }
   taxes?: string[];
+  metadata?: {
+    // Just a flat list of key/value pairs!
+    [name: string]: string | number | null;
+  }
 }
 
 export enum BillingInvoiceStatus {
@@ -95,4 +108,12 @@ export interface BillingInvoiceDocument {
   content: string; // Base64 format
   type: DocumentType;
   encoding: DocumentEncoding;
+}
+
+export interface BillingOperationResult {
+  succeeded: boolean
+  error?: {
+    message: string
+  };
+  internalData?: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
 }

@@ -45,7 +45,7 @@ export default class ChargingStationSecurity {
 
   public static filterTriggerSmartCharging(request: any): HttpTriggerSmartChargingRequest {
     return {
-      siteAreaID: sanitize(request.SiteAreaID)
+      SiteAreaID: sanitize(request.SiteAreaID)
     };
   }
 
@@ -213,7 +213,7 @@ export default class ChargingStationSecurity {
         filteredRequest.args.custom = UtilsSecurity.filterBoolean(request.args.custom);
       }
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
-        filteredRequest.args.connectorId = sanitize(request.args.connectorId);
+        filteredRequest.args.connectorId = sanitize(request.connectorId);
       }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);

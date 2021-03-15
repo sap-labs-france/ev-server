@@ -69,6 +69,7 @@ export default class AuthorizationService {
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
     // Get Site Admins
+    // TODO: Should be done like company
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
@@ -377,9 +378,15 @@ export default class AuthorizationService {
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies) {
-      company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
-      company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+      if (userToken.role === UserRole.ADMIN) {
+        company.canRead = true;
+        company.canUpdate = true;
+        company.canDelete = true;
+      } else {
+        company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+      }
     }
   }
 
