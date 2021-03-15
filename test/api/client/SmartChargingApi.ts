@@ -1,5 +1,5 @@
 import CrudApi from './utils/CrudApi';
-import { ServerRoute } from '../../types/Server';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SmartChargingApi extends CrudApi {

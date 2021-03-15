@@ -1500,7 +1500,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Return the configuration",
+            "description": "Return command success status",
             "content": {
               "application/json": {
                 "schema": {
