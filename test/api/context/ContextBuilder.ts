@@ -92,7 +92,14 @@ export default class ContextBuilder {
     await this.init();
     await this.destroy();
     // Build each tenant context
-    for (const tenantContextDef of ContextDefinition.TENANT_CONTEXT_LIST) {
+
+    let tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST;
+    if (process.env.TENANT_FILTER) {
+      // Just an optimization allowing to only initialize a single tenant
+      // e.g.: npm run mochatest:create:utbilling
+      tenantDefinitions = ContextDefinition.TENANT_CONTEXT_LIST.filter((def) => def.subdomain === process.env.TENANT_FILTER);
+    }
+    for (const tenantContextDef of tenantDefinitions) {
       await this.buildTenantContext(tenantContextDef);
     }
   }

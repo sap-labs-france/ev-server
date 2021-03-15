@@ -25,6 +25,10 @@ export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConf
   checkPastAuthorizeMins?: number;
 }
 
+export interface BillingInvoiceSynchonizationTaskConfig extends TaskConfig {
+  attemptPayment?: boolean;
+}
+
 export interface OCPIGetTokensTaskConfig extends TaskConfig {
   partial?: boolean;
 }
@@ -34,5 +38,13 @@ export interface OCPIGetLocationsTaskConfig extends TaskConfig {
 }
 
 export interface OCPIPushEVSEStatusesTaskConfig extends TaskConfig {
+  processAllEVSEs?: boolean;
+}
+
+export interface OICPPushEvseDataTaskConfig extends TaskConfig {
+  processAllEVSEs?: boolean;
+}
+
+export interface OICPPushEvseStatusTaskConfig extends TaskConfig {
   processAllEVSEs?: boolean;
 }

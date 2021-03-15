@@ -6,6 +6,8 @@ import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
+import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
+import { OICPSession } from './oicp/OICPSession';
 import { PricingModel } from './Pricing';
 import { RefundTransactionData } from './Refund';
 import Tag from './Tag';
@@ -80,12 +82,20 @@ export default interface Transaction extends AbstractCurrentConsumption {
   ocpi?: boolean;
   ocpiWithCdr?: boolean;
   ocpiData?: OcpiData;
+  oicpData?: OicpData;
   migrationTag?: string;
 }
 
 export interface OcpiData {
   session?: OCPISession;
   cdr?: OCPICdr;
+  sessionCheckedOn?: Date;
+  cdrCheckedOn?: Date;
+}
+
+export interface OicpData {
+  session?: OICPSession;
+  cdr?: OICPChargeDetailRecord;
   sessionCheckedOn?: Date;
   cdrCheckedOn?: Date;
 }

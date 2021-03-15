@@ -8,7 +8,6 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import cluster from 'cluster';
-import fs from 'fs';
 import https from 'https';
 
 const MODULE_NAME = 'WSServer';
@@ -45,8 +44,8 @@ export default class WSServer extends WebSocket.Server {
       // Create the options
       const options: https.ServerOptions = {};
       // Set the keys
-      options.key = fs.readFileSync(serverConfig['ssl-key']);
-      options.cert = fs.readFileSync(serverConfig['ssl-cert']);
+      options.key = serverConfig.sslKey;
+      options.cert = serverConfig.sslCert;
       // Https server
       httpServer = https.createServer(options, WSServer.httpServerRequestListener.bind(this));
     } else {

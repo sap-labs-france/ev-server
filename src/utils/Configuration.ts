@@ -24,6 +24,8 @@ import NotificationConfiguration from '../types/configuration/NotificationConfig
 import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
 import OCPIServiceConfiguration from '../types/configuration/OCPIServiceConfiguration';
 import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
+import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfiguration';
+import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
@@ -178,6 +180,19 @@ export default class Configuration {
     return ocpiService;
   }
 
+  // OICP Server Configuration
+  public static getOICPServiceConfig(): OICPServiceConfiguration {
+    const oicpService = Configuration.getConfig().OICPService;
+    // Check Cloud Foundry
+    if (!Configuration.isUndefined(oicpService) && Configuration.isCloudFoundry()) {
+      // CF Environment: Override
+      oicpService.port = Configuration.getCFAppEnv().port;
+      oicpService.host = Configuration.getCFAppEnv().bind;
+    }
+    // Read conf
+    return oicpService;
+  }
+
   // OData Server Configuration
   public static getODataServiceConfig(): ODataServiceConfiguration {
     // Read conf
@@ -209,6 +224,11 @@ export default class Configuration {
   // Central System OCPI config
   public static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
     return Configuration.getConfig().OCPIEndpoint;
+  }
+
+  // Central System OICP config
+  public static getOICPEndpointConfig(): OICPEndpointConfiguration {
+    return Configuration.getConfig().OICPEndpoint;
   }
 
   // Central System Front-End config

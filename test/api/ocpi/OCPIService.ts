@@ -25,7 +25,7 @@ export default class OCPIService {
   /**
    * Check if Configuration Exist
    */
-  static isConfigAvailable() {
+  static isConfigAvailable(): boolean {
     return (config.get('ocpi.enabled')) ? true : false;
 
   }
