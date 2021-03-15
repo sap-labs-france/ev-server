@@ -721,10 +721,10 @@
             "$ref": "#/components/parameters/TagID"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/InactivityStatus"
@@ -844,28 +844,25 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/IncludeDeleted"
-          },
-          {
-            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -1440,6 +1437,71 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/configuration": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Required. Configuration key to update",
+                        "example": ""
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Required. Value to set",
+                        "example": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
                 }
               }
             }
@@ -2201,7 +2263,7 @@
             "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           }
         ],
         "tags": [
@@ -2351,38 +2413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
-                    }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "Not supported",
-                    "value": {
-                      "status": "NotSupported"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
                 }
               }
             }
@@ -2642,10 +2673,10 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "in": "query",
@@ -2743,13 +2774,13 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ErrorType"
+            "$ref": "#/components/parameters/ErrorTypes"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -2799,7 +2830,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -2808,19 +2839,19 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -2927,6 +2958,38 @@
         }
       }
     },
+    "/api/chargingstations/smartcharging/trigger": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Trigger smart charging",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Smart Charging triggered successfully on site area"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/chargingprofiles": {
       "get": {
         "security": [
@@ -2937,7 +3000,7 @@
         "description": "Get Charging Profiles",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorID"
@@ -2964,7 +3027,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3128,7 +3191,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "in": "query",
@@ -4623,6 +4686,20 @@
             "type": "boolean"
           }
         }
+      },
+      "OcppConfigurationStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "RebootRequired",
+              "NotSupported"
+            ]
+          }
+        }
       }
     },
     "parameters": {
@@ -4675,18 +4752,12 @@
           "type": "string"
         }
       },
-      "ErrorType": {
+      "ErrorTypes": {
         "in": "query",
         "name": "ErrorType",
-        "description": "Error type",
+        "description": "Pipe separated error types (missing_settings, connection_broken, missing_site_area, connection_error)",
         "schema": {
-          "type": "string",
-          "enum": [
-            "missing_settings",
-            "connection_broken",
-            "missing_site_area",
-            "connection_error"
-          ]
+          "type": "string"
         }
       },
       "StartDateTime": {
@@ -4817,7 +4888,7 @@
           ]
         }
       },
-      "SiteID": {
+      "SiteIDs": {
         "in": "query",
         "name": "SiteID",
         "description": "Pipe separated Site IDs",
@@ -4835,6 +4906,14 @@
         }
       },
       "SiteAreaID": {
+        "in": "query",
+        "name": "SiteAreaID",
+        "description": "Site Area ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteAreaIDs": {
         "in": "query",
         "name": "SiteAreaID",
         "description": "Pipe separated Site Area IDs",
@@ -4858,18 +4937,18 @@
           "type": "boolean"
         }
       },
-      "ConnectorStatus": {
+      "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Connector status",
+        "description": "Pipe separated connector statuses",
         "schema": {
           "type": "string"
         }
       },
-      "ConnectorType": {
+      "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Connector type",
+        "description": "Pipe separated connector types",
         "schema": {
           "type": "string"
         }

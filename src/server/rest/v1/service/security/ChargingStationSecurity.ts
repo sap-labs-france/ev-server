@@ -45,7 +45,7 @@ export default class ChargingStationSecurity {
 
   public static filterTriggerSmartCharging(request: any): HttpTriggerSmartChargingRequest {
     return {
-      siteAreaID: sanitize(request.SiteAreaID)
+      SiteAreaID: sanitize(request.SiteAreaID)
     };
   }
 
