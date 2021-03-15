@@ -377,14 +377,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.CREATE);
   }
 
-  public static canUpdateSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE,
-      { site: siteID, sitesAdmin: loggedUser.sitesAdmin, sitesOwner: loggedUser.sitesOwner });
+  public static canUpdateSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canDeleteSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE);
   }
 
   public static canListSettings(loggedUser: UserToken): boolean {

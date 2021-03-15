@@ -66,7 +66,7 @@ export default class SiteService {
         actionOnUser: filteredRequest.userID
       });
     }
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+    if (!Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -349,7 +349,7 @@ export default class SiteService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'handleDeleteSite', req.user);
     // Check
-    if (!Authorizations.canDeleteSite(req.user, siteID)) {
+    if (!Authorizations.canDeleteSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -579,7 +579,7 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
+    if (!Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

@@ -76,9 +76,17 @@ export default class AuthorizationService {
     userToken.sitesOwner = siteOwnerIDs;
     // Enrich
     for (const site of sites) {
-      site.canRead = Authorizations.canReadSite(userToken);
-      site.canUpdate = Authorizations.canUpdateSite(userToken, site.id);
-      site.canDelete = Authorizations.canDeleteSite(userToken, site.id);
+      if (userToken.role === UserRole.ADMIN) {
+        site.canRead = true;
+        site.canUpdate = true;
+        site.canDelete = true;
+      } else {
+        site.canRead = Authorizations.canReadSite(userToken);
+        site.canUpdate = Authorizations.canUpdateSite(userToken)
+          && (userToken.sitesAdmin.includes(site.id) || userToken.sitesOwner.includes(site.id));
+        site.canDelete = Authorizations.canDeleteSite(userToken)
+          && (userToken.sitesAdmin.includes(site.id) || userToken.sitesOwner.includes(site.id));
+      }
     }
   }
 
