@@ -721,7 +721,7 @@
             "$ref": "#/components/parameters/TagID"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/SiteAreaIDs"
@@ -844,7 +844,7 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
@@ -853,19 +853,16 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/IncludeDeleted"
-          },
-          {
-            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -2266,7 +2263,7 @@
             "$ref": "#/components/parameters/SiteAreaID"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           }
         ],
         "tags": [
@@ -2676,7 +2673,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/SiteAreaIDs"
@@ -2777,13 +2774,13 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ErrorType"
+            "$ref": "#/components/parameters/ErrorTypes"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -2833,7 +2830,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -2842,7 +2839,7 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
@@ -2851,10 +2848,10 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -3003,7 +3000,7 @@
         "description": "Get Charging Profiles",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorID"
@@ -3030,7 +3027,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3194,7 +3191,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "in": "query",
@@ -4755,18 +4752,12 @@
           "type": "string"
         }
       },
-      "ErrorType": {
+      "ErrorTypes": {
         "in": "query",
         "name": "ErrorType",
-        "description": "Error type",
+        "description": "Pipe separated error types (missing_settings, connection_broken, missing_site_area, connection_error)",
         "schema": {
-          "type": "string",
-          "enum": [
-            "missing_settings",
-            "connection_broken",
-            "missing_site_area",
-            "connection_error"
-          ]
+          "type": "string"
         }
       },
       "StartDateTime": {
@@ -4897,7 +4888,7 @@
           ]
         }
       },
-      "SiteID": {
+      "SiteIDs": {
         "in": "query",
         "name": "SiteID",
         "description": "Pipe separated Site IDs",
@@ -4946,18 +4937,18 @@
           "type": "boolean"
         }
       },
-      "ConnectorStatus": {
+      "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Connector status",
+        "description": "Pipe separated connector statuses",
         "schema": {
           "type": "string"
         }
       },
-      "ConnectorType": {
+      "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Connector type",
+        "description": "Pipe separated connector types",
         "schema": {
           "type": "string"
         }
