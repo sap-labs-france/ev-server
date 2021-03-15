@@ -291,6 +291,7 @@ export enum ChargerVendor {
   EBEE = 'Ebee',
   EVBOX = 'EV-BOX',
   INNOGY = 'innogy',
+  INGETEAM = 'INGETEAM',
   IES = 'IES',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
