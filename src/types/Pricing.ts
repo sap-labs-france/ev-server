@@ -9,7 +9,7 @@ export interface PricingItem {
   category: PricingCategory;
   precisionPrice: number;
   calculatedPrice: number;
-  calculatedRoudedPrice: number;
+  calculatedRoundedPrice: number;
 }
 
 export enum PricingCategory {
