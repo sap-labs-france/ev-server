@@ -53,10 +53,10 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
         module: TASK_NAME, method: 'migrateTenant',
         message,
       });
-      Utils.isDevelopmentEnv() && console.debug(chalk.yellow(message));
+      Utils.isDevelopmentEnv() && console.debug(chalk.yellow(`${new Date().toISOString()} - ${message}`));
       await Promise.map(transactionsMDB, async (transactionMDB) => {
         const numberOfProcessedTransactions = transactionsUpdated.inError + transactionsUpdated.inSuccess;
-        if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 10) === 0) {
+        if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 100) === 0) {
           message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')`;
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
@@ -64,7 +64,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
             module: TASK_NAME, method: 'migrateTenant',
             message
           });
-          Utils.isDevelopmentEnv() && console.debug(chalk.yellow(message));
+          Utils.isDevelopmentEnv() && console.debug(chalk.yellow(`${new Date().toISOString()} - ${message}`));
         }
         try {
           // Get the transaction

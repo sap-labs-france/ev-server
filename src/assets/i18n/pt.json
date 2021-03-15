@@ -68,6 +68,14 @@
       "title": "Enviando informações",
       "body": "O envio de informações para a plataforma de carregamento '{{location}}' falhou, por favor veririfcar a informação no '{{tenantName}}'"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Hubject Send Statuses",
+      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Hubject Send Charging Stations",
+      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpError": {
       "title": "Error no servidor de Email",
       "body": "A servidor de email falhou por favor verificar a configuração do '{{tenantName}}'"
