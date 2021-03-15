@@ -1,6 +1,7 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { ImportStatus } from './GlobalType';
+import { HTTPError } from './HTTPError';
 import { OCPIToken } from './ocpi/OCPIToken';
+import { StatusCodes } from 'http-status-codes';
 import User from './User';
 
 export default interface Tag extends CreatedUpdatedProps {
@@ -17,10 +18,10 @@ export default interface Tag extends CreatedUpdatedProps {
 }
 
 export interface ImportedTag {
-  id?: string;
-  description?: string;
-  importedBy: string;
+  id: string;
+  description: string;
+  importedBy?: string;
   importedOn?: Date;
-  error?: string;
-  status?: ImportStatus
+  errorCode?: HTTPError | StatusCodes;
+  errorDescription?: string;
 }

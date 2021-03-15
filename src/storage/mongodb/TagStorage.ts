@@ -1,5 +1,5 @@
 import Tag, { ImportedTag } from '../../types/Tag';
-import global, { FilterParams, ImportStatus } from '../../types/GlobalType';
+import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -39,15 +39,15 @@ export default class TagStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
 
-  public static async saveImportedTag(tenantID: string, importedTagToSave: ImportedTag): Promise<void> {
+  public static async saveImportedTag(tenantID: string, importedTagToSave: ImportedTag): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTag');
     const tagMDB = {
       _id: importedTagToSave.id,
       description: importedTagToSave.description,
       importedOn: new Date(),
       importedBy: Utils.convertToObjectID(importedTagToSave.importedBy),
-      status: importedTagToSave.status,
-      error: importedTagToSave.error
+      errorCode: importedTagToSave.errorCode,
+      errorDescription: importedTagToSave.errorDescription
     };
     await global.database.getCollection<any>(tenantID, 'tagsImport').findOneAndUpdate(
       { _id: tagMDB._id },
@@ -56,11 +56,26 @@ export default class TagStorage {
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedTag', uniqueTimerID, tagMDB);
+    return tagMDB._id;
+  }
+
+  public static async deleteImportedTag(tenantID: string, importedTagID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteImportedTag');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<any>(tenantID, 'tagsImport').deleteOne(
+      {
+        '_id': importedTagID,
+      });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedTag', uniqueTimerID, { id: importedTagID });
   }
 
   public static async getImportedTags(tenantID: string,
     params: {
-      statuses?: ImportStatus[]; search?: string
+      withNoError?: boolean; search?: string
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
     // Debug
@@ -83,10 +98,12 @@ export default class TagStorage {
         { 'description': { $regex: params.search, $options: 'i' } }
       ];
     }
-
-    // Status (Previously getUsersInError)
-    if (params.statuses && params.statuses.length > 0) {
-      filters.status = { $in: params.statuses };
+    // Only entries with no error
+    if (params.withNoError) {
+      filters.$or = [
+        { 'errorCode': { '$exists': false } },
+        { 'errorCode': null }
+      ];
     }
     // Add filters
     aggregation.push({

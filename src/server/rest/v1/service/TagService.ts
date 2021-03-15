@@ -1,10 +1,10 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import Tag, { ImportedTag } from '../../../../types/Tag';
 
+import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
@@ -20,6 +20,7 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TagValidator from '../validator/TagValidation';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -641,10 +642,10 @@ export default class TagService {
     try {
       const newUploadedTag: ImportedTag = {
         id: tag.id.toUpperCase(),
-        description: tag.description ? tag.description : `Tag ID '${tag.id}'`,
-        importedBy: req.user.id,
-        status: ImportStatus.UNKNOWN
+        description: tag.description ? tag.description : `Badge ID '${tag.id}'`,
       };
+      TagValidator.getInstance().validateTagCreation(newUploadedTag);
+      newUploadedTag.importedBy = req.user.id;
       await TagStorage.saveImportedTag(req.user.tenantID, newUploadedTag);
     } catch (error) {
       await Logging.logError({

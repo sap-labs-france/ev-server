@@ -1,7 +1,7 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
-import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
+import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
@@ -272,15 +272,15 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<void> {
+  public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
     const userMDB = {
       _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
-      status: importedUserToSave.status,
-      error: importedUserToSave.error,
+      errorCode: importedUserToSave.errorCode,
+      errorDescription: importedUserToSave.errorDescription,
       importedOn: new Date(),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
@@ -291,6 +291,21 @@ export default class UserStorage {
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
+    return userMDB._id.toHexString();
+  }
+
+  public static async deleteImportedUser(tenantID: string, importedUserID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteImportedUser');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<any>(tenantID, 'usersImport').deleteOne(
+      {
+        '_id': importedUserID,
+      });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -668,7 +683,7 @@ export default class UserStorage {
 
   public static async getImportedUsers(tenantID: string,
     params: {
-      statuses?: ImportStatus[]; search?: string
+      withNoError?: boolean; search?: string
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug
@@ -692,12 +707,15 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } }
       ];
     }
+    // Only entries with no error
+    if (params.withNoError) {
+      filters.$or = [
+        { 'errorCode': { '$exists': false } },
+        { 'errorCode': null }
+      ];
+    }
     // Remove deleted
     filters.deleted = { '$ne': true };
-    // Status (Previously getUsersInError)
-    if (params.statuses && params.statuses.length > 0) {
-      filters.status = { $in: params.statuses };
-    }
     // Add filters
     aggregation.push({
       $match: filters
