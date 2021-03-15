@@ -579,7 +579,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
-  abstract billInvoiceItems(user: User, billingInvoiceItems: Array<BillingInvoiceItem>, idemPotencyKey?: string): Promise<BillingInvoice>;
+  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
