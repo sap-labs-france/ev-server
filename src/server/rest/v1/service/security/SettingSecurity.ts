@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -37,18 +37,18 @@ export default class SettingSecurity {
     return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
+  private static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
       sensitiveData: request.sensitiveData ? request.sensitiveData.map(sanitize) : []
     } as SettingDB;
     // Check Content
-    if (request.content) {
+    if (Utils.objectHasProperty(request, 'content')) {
       settings.content = {
         type: request.content.type
       } as SettingDBContent;
       // Check Links
-      if (request.content.links) {
+      if (Utils.objectHasProperty(request.content, 'links')) {
         settings.content.links = request.content.links.map((link: SettingLink) => ({
           id: link.id,
           name: link.name,
@@ -65,14 +65,14 @@ export default class SettingSecurity {
             timezone: sanitize(request.content.sac.timezone)
           };
           break;
-        case RoamingSettingsType.GIREVE:
+        case RoamingSettingsType.OCPI:
           settings.content.ocpi = {} as OcpiSetting;
-          if (request.content.ocpi.businessDetails) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'businessDetails')) {
             settings.content.ocpi.businessDetails = {
               name: sanitize(request.content.ocpi.businessDetails.name),
               website: sanitize(request.content.ocpi.businessDetails.website)
             } as OcpiBusinessDetails;
-            if (request.content.ocpi.businessDetails.logo) {
+            if (Utils.objectHasProperty(request.content.ocpi.businessDetails, 'logo')) {
               settings.content.ocpi.businessDetails.logo = {
                 url: sanitize(request.content.ocpi.businessDetails.logo.url),
                 thumbnail: sanitize(request.content.ocpi.businessDetails.logo.thumbnail),
@@ -83,20 +83,58 @@ export default class SettingSecurity {
               };
             }
           }
-          if (request.content.ocpi.cpo) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'cpo')) {
             settings.content.ocpi.cpo = {
               countryCode: sanitize(request.content.ocpi.cpo.countryCode),
               partyID: sanitize(request.content.ocpi.cpo.partyID)
             };
           }
-          if (request.content.ocpi.emsp) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'emsp')) {
             settings.content.ocpi.emsp = {
               countryCode: sanitize(request.content.ocpi.emsp.countryCode),
               partyID: sanitize(request.content.ocpi.emsp.partyID)
             };
           }
-          if (request.content.ocpi.currency) {
+          if (Utils.objectHasProperty(request.content.ocpi, 'currency')) {
             settings.content.ocpi.currency = request.content.ocpi.currency;
+          }
+          break;
+        case RoamingSettingsType.OICP:
+          settings.content.oicp = {} as OicpSetting;
+          if (request.content.oicp.businessDetails) {
+            settings.content.oicp.businessDetails = {
+              name: sanitize(request.content.oicp.businessDetails.name),
+              website: sanitize(request.content.oicp.businessDetails.website)
+            } as OicpBusinessDetails;
+            if (request.content.oicp.businessDetails.logo) {
+              settings.content.oicp.businessDetails.logo = {
+                url: sanitize(request.content.oicp.businessDetails.logo.url),
+                thumbnail: sanitize(request.content.oicp.businessDetails.logo.thumbnail),
+                category: sanitize(request.content.oicp.businessDetails.logo.category),
+                type: sanitize(request.content.oicp.businessDetails.logo.type),
+                width: sanitize(request.content.oicp.businessDetails.logo.width),
+                height: sanitize(request.content.oicp.businessDetails.logo.height),
+              };
+            }
+          }
+          if (request.content.oicp.cpo) {
+            settings.content.oicp.cpo = {
+              countryCode: sanitize(request.content.oicp.cpo.countryCode),
+              partyID: sanitize(request.content.oicp.cpo.partyID),
+              key: sanitize(request.content.oicp.cpo.key),
+              cert:sanitize(request.content.oicp.cpo.cert)
+            };
+          }
+          if (request.content.oicp.emsp) {
+            settings.content.oicp.emsp = {
+              countryCode: sanitize(request.content.oicp.emsp.countryCode),
+              partyID: sanitize(request.content.oicp.emsp.partyID),
+              key: sanitize(request.content.oicp.emsp.key),
+              cert:sanitize(request.content.oicp.emsp.cert)
+            };
+          }
+          if (request.content.oicp.currency) {
+            settings.content.oicp.currency = request.content.oicp.currency;
           }
           break;
         case RefundSettingsType.CONCUR:
@@ -144,7 +182,7 @@ export default class SettingSecurity {
             periodicBillingAllowed: sanitize(request.content.stripe.periodicBillingAllowed),
             advanceBillingAllowed: sanitize(request.content.stripe.advanceBillingAllowed),
             currency: sanitize(request.content.stripe.currency),
-            taxID: sanitize(request.content.stripe.taxID),
+            taxID: sanitize(request.content.stripe.taxID)
           };
           break;
         case SmartChargingSettingsType.SAP_SMART_CHARGING:

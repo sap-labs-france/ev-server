@@ -43,6 +43,10 @@
     {
       "name": "Users",
       "description": "Users API"
+    },
+    {
+      "name": "Tags",
+      "description": "Tags API"
     }
   ],
   "paths": {
@@ -128,7 +132,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -157,7 +161,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -205,7 +209,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -241,7 +245,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -290,7 +294,7 @@
             "description": "Logged in successfully"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "520": {
             "description": "The End-user License Agreement is mandatory"
@@ -385,10 +389,10 @@
             "description": "Registered successfully"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "510": {
-            "description": "Email already used"
+            "$ref": "#/components/responses/EmailAlreadyUsed"
           },
           "520": {
             "description": "End-user License Agreement has not been accepted"
@@ -410,7 +414,7 @@
             "description": "Successfully signed out"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -471,7 +475,7 @@
             "description": "Password reset notification sent successfully or password has been reset "
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant or user does not exist"
@@ -517,7 +521,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant"
@@ -572,7 +576,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant"
@@ -619,7 +623,7 @@
             "description": "Successfully validated email"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "540": {
             "description": "Invalid verification token"
@@ -672,7 +676,7 @@
             "description": "Successfully resent email"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Unknown tenant or user does not exist"
@@ -717,10 +721,10 @@
             "$ref": "#/components/parameters/TagID"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "$ref": "#/components/parameters/InactivityStatus"
@@ -816,7 +820,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -840,28 +844,25 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/IncludeDeleted"
-          },
-          {
-            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -1032,7 +1033,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1192,7 +1193,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       },
@@ -1222,7 +1223,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "description": "Charging Station does not exist"
@@ -1233,7 +1234,7 @@
         }
       }
     },
-    "/api/chargingstations/reset": {
+    "/api/chargingstations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1241,15 +1242,17 @@
           }
         ],
         "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1289,12 +1292,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/cache/clear": {
+    "/api/chargingstations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1302,20 +1305,11 @@
           }
         ],
         "description": "Clear a Charging Station cache",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1356,12 +1350,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/configuration/retrieve": {
+    "/api/chargingstations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1369,15 +1363,17 @@
           }
         ],
         "description": "Get the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1391,10 +1387,7 @@
                       }
                     }
                   }
-                },
-                "required": [
-                  "chargeBoxID"
-                ]
+                }
               }
             }
           }
@@ -1455,12 +1448,77 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/remote/start": {
+    "/api/chargingstations/{id}/configuration": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Required. Configuration key to update",
+                        "example": ""
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Required. Value to set",
+                        "example": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1468,15 +1526,17 @@
           }
         ],
         "description": "Start a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "carID": {
                     "type": "string",
                     "example": ""
@@ -1551,7 +1611,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "570": {
             "$ref": "#/components/responses/NoBadgeError"
@@ -1559,7 +1619,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/stop": {
+    "/api/chargingstations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1567,15 +1627,17 @@
           }
         ],
         "description": "Stop a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1640,7 +1702,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "570": {
             "$ref": "#/components/responses/NoBadgeError"
@@ -1648,7 +1710,7 @@
         }
       }
     },
-    "/api/chargingstations/connectors/unlock": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1656,37 +1718,14 @@
           }
         ],
         "description": "Unlock a connector",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
-                  "args": {
-                    "type": "object",
-                    "properties": {
-                      "connectorId": {
-                        "type": "integer",
-                        "description": "Required. This contains the identifier of the connector to be unlocked.",
-                        "minimum": 1,
-                        "example": 1
-                      }
-                    },
-                    "required": [
-                      "connectorId"
-                    ]
-                  }
-                },
-                "required": [
-                  "args"
-                ]
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/connectorID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1730,12 +1769,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/compositeschedule": {
+    "/api/chargingstations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -1743,15 +1782,17 @@
           }
         ],
         "description": "Get Charging Station composite schedule",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1868,7 +1909,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "585": {
             "$ref": "#/components/responses/NotSupportedError"
@@ -1876,7 +1917,7 @@
         }
       }
     },
-    "/api/chargingstations/diagnostics": {
+    "/api/chargingstations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -1884,15 +1925,17 @@
           }
         ],
         "description": "Get Charging Station diagnostics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1965,12 +2008,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/firmware/update": {
+    "/api/chargingstations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -1978,15 +2021,17 @@
           }
         ],
         "description": "Update Charging Station firmware",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2040,12 +2085,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/availability/change": {
+    "/api/chargingstations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2053,15 +2098,17 @@
           }
         ],
         "description": "Update Charging Station availability",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2140,7 +2187,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2192,12 +2239,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/download": {
+    "/api/chargingstations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2207,10 +2254,16 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "$ref": "#/components/parameters/connectorID"
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
           }
         ],
         "tags": [
@@ -2239,7 +2292,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2315,7 +2368,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2360,38 +2413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
-                    }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "Not supported",
-                    "value": {
-                      "status": "NotSupported"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
                 }
               }
             }
@@ -2403,12 +2425,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters/export": {
+    "/api/chargingstations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2418,7 +2440,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           }
         ],
         "tags": [
@@ -2443,12 +2465,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/parameters": {
+    "/api/chargingstations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2456,16 +2478,17 @@
           }
         ],
         "description": "Update Charging Station parameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2514,7 +2537,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "539": {
             "description": "Site area is single phased."
@@ -2522,7 +2545,7 @@
         }
       }
     },
-    "/api/chargingstations/power/limit": {
+    "/api/chargingstations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2530,22 +2553,22 @@
           }
         ],
         "description": "Limit Charging Station power",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
-                  "chargeBoxID",
                   "chargePointID",
                   "ampLimitValue",
                   "forceUpdateChargingPlan"
                 ],
                 "properties": {
-                  "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "chargePointID": {
                     "type": "string",
                     "example": 1
@@ -2581,7 +2604,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "556": {
             "description": "Cannot set the limit power to the given value"
@@ -2650,10 +2673,10 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "in": "query",
@@ -2733,12 +2756,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/in-error": {
+    "/api/chargingstations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2751,13 +2774,13 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ErrorType"
+            "$ref": "#/components/parameters/ErrorTypes"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -2789,12 +2812,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/export": {
+    "/api/chargingstations/action/export": {
       "get": {
         "security": [
           {
@@ -2807,7 +2830,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -2816,19 +2839,19 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -2859,12 +2882,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
     },
-    "/api/chargingstations/firmware/{id}": {
+    "/api/chargingstations/firmware/download": {
       "get": {
         "security": [
           {
@@ -2874,9 +2897,9 @@
         "description": "Get Charging Station firmware",
         "parameters": [
           {
-            "in": "path",
-            "name": "id",
-            "description": "Firmware ID",
+            "in": "query",
+            "name": "FileName",
+            "description": "Firmware file name",
             "required": true,
             "schema": {
               "type": "string"
@@ -2903,7 +2926,7 @@
             "description": "Firmware not found"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2930,7 +2953,39 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/smartcharging/trigger": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Trigger smart charging",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Smart Charging triggered successfully on site area"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -2945,7 +3000,7 @@
         "description": "Get Charging Profiles",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorID"
@@ -2972,7 +3027,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3022,10 +3077,12 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           }
         }
-      },
+      }
+    },
+    "/api/chargingprofiles/{id}": {
       "put": {
         "security": [
           {
@@ -3033,6 +3090,11 @@
           }
         ],
         "description": "Update a Charging Station profile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingProfileID"
+          }
+        ],
         "tags": [
           "Charging Profiles"
         ],
@@ -3072,15 +3134,13 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "585": {
             "$ref": "#/components/responses/NotSupportedError"
           }
         }
-      }
-    },
-    "/api/chargingprofiles/{id}": {
+      },
       "delete": {
         "security": [
           {
@@ -3107,7 +3167,7 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "537": {
             "description": "Error occured while clearing Charging Profile"
@@ -3131,7 +3191,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "in": "query",
@@ -3206,6 +3266,9 @@
             "$ref": "#/components/parameters/SortFields"
           },
           {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
             "$ref": "#/components/parameters/ProjectFields"
           }
         ],
@@ -3255,7 +3318,52 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a User",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "$ref": "#/components/responses/EmailAlreadyUsed"
           }
         }
       }
@@ -3345,10 +3453,422 @@
             "$ref": "#/components/responses/ForbiddenError"
           },
           "500": {
-            "$ref": "#/components/responses/500BackendError"
+            "$ref": "#/components/responses/BackendError"
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "$ref": "#/components/responses/EmailAlreadyUsed"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a User",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "510": {
+            "description": "User cannot be deleted due to billing constraints"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "in": "query",
+            "name": "Active",
+            "description": "Active attribute",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tags list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "active": true,
+                      "createdBy": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "createdOn": "2021-03-10T09:58:10.560Z",
+                      "default": false,
+                      "description": "##########",
+                      "issuer": true,
+                      "ocpiToken": null,
+                      "userID": "###",
+                      "user": {
+                        "email": "###",
+                        "firstName": "###",
+                        "name": "###",
+                        "id": "###"
+                      },
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create a Tag",
+        "tags": [
+          "Tags"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tag"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "User does not exist"
+          },
+          "576": {
+            "description": "Tag already exists"
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tag",
+            "content": {
+              "application/json": {
+                "example": {
+                  "active": true,
+                  "createdBy": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "createdOn": "2021-03-10T09:58:10.560Z",
+                  "default": false,
+                  "description": "##########",
+                  "issuer": true,
+                  "ocpiToken": null,
+                  "userID": "###",
+                  "user": {
+                    "email": "###",
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": ["userID", "issuer", "active", "description"],
+                "properties": {
+                  "userID": {
+                    "type": "string",
+                    "example": "###"
+                  },
+                  "issuer": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Badge description"
+                  },
+                  "default": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "575": {
+            "$ref": "#/components/responses/TagHasTransactionsError"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/tagID"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          },
+          "575": {
+            "$ref": "#/components/responses/TagHasTransactionsError"
           }
         }
       }
@@ -3369,8 +3889,11 @@
       "ForbiddenError": {
         "description": "Not authorized to execute this operation"
       },
-      "500BackendError": {
+      "BackendError": {
         "description": "Unexpected Backend error, checks the Logs"
+      },
+      "EmailAlreadyUsed": {
+        "description": "Email already used"
       },
       "NoBadgeError": {
         "description": "User doesn't have any badge"
@@ -3380,6 +3903,9 @@
       },
       "ResourceDoesNotExists": {
         "description": "Resource does not exist"
+      },
+      "TagHasTransactionsError": {
+        "description": "Cannot change user or delete a tag having transactions"
       }
     },
     "schemas": {
@@ -3441,7 +3967,21 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "gireve"
+                      "ocpi"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "oicp": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "oicp"
                     ]
                   },
                   "active": {
@@ -3956,6 +4496,210 @@
           "chargingRateUnit",
           "chargingSchedulePeriod"
         ]
+      },
+      "Tag": {
+        "type": "object",
+        "required": ["id", "userID", "issuer", "active", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "T12345678"
+          },
+          "userID": {
+            "type": "string",
+            "example": "###"
+          },
+          "issuer": {
+            "type": "boolean",
+            "example": true
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "description": {
+            "type": "string",
+            "example": "Badge description"
+          },
+          "default": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "costCenter": {
+            "type": "string",
+            "example": "######"
+          },
+          "name": {
+            "type": "string",
+            "example": "Demo"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "User"
+          },
+          "iNumber": {
+            "type": "string",
+            "example": "1234567"
+          },
+          "image": {
+            "type": "string"
+          },
+          "mobile": {
+            "type": "string",
+            "example": "0000000000"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en_EN"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "passwords": {
+            "type": "object",
+            "properties": {
+              "password": {
+                "type": "string",
+                "example": "DeM*Us$r1"
+              }
+            }
+          },
+          "phone": {
+            "type": "string",
+            "example": "0000000000"
+          },
+          "email": {
+            "type": "string",
+            "example": "user.demo@sap.com"
+          },
+          "issuer": {
+            "type": "boolean"
+          },
+          "notifcationsActive": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "P",
+              "A",
+              "I",
+              "B",
+              "L"
+            ]
+          },
+          "plateID": {
+            "type": "string",
+            "example": "DEMO"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "S",
+              "A",
+              "B",
+              "D"
+            ],
+            "example": "B"
+          },
+          "notifications": {
+            "$ref": "#/components/schemas/Notifications"
+          }
+        }
+      },
+      "Notifications": {
+        "type": "object",
+        "properties": {
+          "sendSessionStarted": {
+            "type": "boolean"
+          },
+          "sendOptimalChargeReached": {
+            "type": "boolean"
+          },
+          "sendEndOfCharge": {
+            "type": "boolean"
+          },
+          "sendEndOfSession": {
+            "type": "boolean"
+          },
+          "sendUserAccountStatusChanged": {
+            "type": "boolean"
+          },
+          "sendSessionNotStarted": {
+            "type": "boolean"
+          },
+          "sendCarCatalogSynchronizationFailed": {
+            "type": "boolean"
+          },
+          "sendUserAccountInactivity": {
+            "type": "boolean"
+          },
+          "sendPreparingSessionNotStarted": {
+            "type": "boolean"
+          },
+          "sendBillingSynchronizationFailed": {
+            "type": "boolean"
+          },
+          "sendBillingNewInvoice": {
+            "type": "boolean"
+          },
+          "sendNewRegisteredUser": {
+            "type": "boolean"
+          },
+          "sendUnknownUserBadged": {
+            "type": "boolean"
+          },
+          "sendChargingStationStatusError": {
+            "type": "boolean"
+          },
+          "sendChargingStationRegistered": {
+            "type": "boolean"
+          },
+          "sendOcpiPatchStatusError": {
+            "type": "boolean"
+          },
+          "sendSmtpError": {
+            "type": "boolean"
+          },
+          "sendOfflineChargingStations": {
+            "type": "boolean"
+          },
+          "sendEndUserErrorNotification": {
+            "type": "boolean"
+          },
+          "sendComputeAndApplyChargingProfilesFailed": {
+            "type": "boolean"
+          },
+          "sendAccountVerificationNotification": {
+            "type": "boolean"
+          },
+          "sendAdminAccountVerificationNotification": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OcppConfigurationStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "RebootRequired",
+              "NotSupported"
+            ]
+          }
+        }
       }
     },
     "parameters": {
@@ -4008,18 +4752,12 @@
           "type": "string"
         }
       },
-      "ErrorType": {
+      "ErrorTypes": {
         "in": "query",
         "name": "ErrorType",
-        "description": "Error type",
+        "description": "Pipe separated error types (missing_settings, connection_broken, missing_site_area, connection_error)",
         "schema": {
-          "type": "string",
-          "enum": [
-            "missing_settings",
-            "connection_broken",
-            "missing_site_area",
-            "connection_error"
-          ]
+          "type": "string"
         }
       },
       "StartDateTime": {
@@ -4071,6 +4809,15 @@
         "in": "query",
         "name": "ChargingStationID",
         "description": "Charging Station ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ChargingStationIDs": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Pipe separated Charging Station IDs",
         "required": false,
         "schema": {
           "type": "string"
@@ -4141,7 +4888,7 @@
           ]
         }
       },
-      "SiteID": {
+      "SiteIDs": {
         "in": "query",
         "name": "SiteID",
         "description": "Pipe separated Site IDs",
@@ -4159,6 +4906,14 @@
         }
       },
       "SiteAreaID": {
+        "in": "query",
+        "name": "SiteAreaID",
+        "description": "Site Area ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteAreaIDs": {
         "in": "query",
         "name": "SiteAreaID",
         "description": "Pipe separated Site Area IDs",
@@ -4182,18 +4937,18 @@
           "type": "boolean"
         }
       },
-      "ConnectorStatus": {
+      "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Connector status",
+        "description": "Pipe separated connector statuses",
         "schema": {
           "type": "string"
         }
       },
-      "ConnectorType": {
+      "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Connector type",
+        "description": "Pipe separated connector types",
         "schema": {
           "type": "string"
         }
@@ -4236,6 +4991,15 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "tagID": {
+        "in": "path",
+        "name": "id",
+        "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }

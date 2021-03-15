@@ -30,7 +30,7 @@ export default class BillingFactory {
         }
         return billingIntegrationImpl;
       }
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'getBillingImpl',

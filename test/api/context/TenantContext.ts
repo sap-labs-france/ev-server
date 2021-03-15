@@ -297,6 +297,9 @@ export default class TenantContext {
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
     expect(createdChargingStation.voltage).to.eql(230);
+    if (siteArea) {
+      expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
+    }
     // Connectors
     expect(createdChargingStation.connectors.length).to.eql(2,
       `Number of connector of charging station ${createdChargingStation.id} must be 2`);
@@ -380,6 +383,9 @@ export default class TenantContext {
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
     expect(createdChargingStation.voltage).to.eql(230);
+    if (siteArea) {
+      expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
+    }
     // Connectors
     expect(createdChargingStation.connectors.length).to.eql(2,
       `Number of connector of charging station ${createdChargingStation.id} must be 2`);
@@ -469,6 +475,9 @@ export default class TenantContext {
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
     expect(createdChargingStation.voltage).to.eql(230);
+    if (siteArea) {
+      expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
+    }
     // Connectors
     expect(createdChargingStation.connectors.length).to.eql(2,
       `Number of connector of charging station ${createdChargingStation.id} must be 2`);

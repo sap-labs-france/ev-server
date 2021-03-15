@@ -1,17 +1,18 @@
+import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
-import { HttpBillingInvoiceRequest } from '../../../../../types/requests/HttpBillingRequest';
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
+import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {
     const filteredUser: HttpSynchronizeUserRequest = {} as HttpSynchronizeUserRequest;
-    if (request.id) {
+    if (Utils.objectHasProperty(request, 'id')) {
       filteredUser.id = sanitize(request.id);
     }
-    if (request.email) {
+    if (Utils.objectHasProperty(request, 'email')) {
       filteredUser.email = sanitize(request.email);
     }
     return filteredUser;
@@ -19,19 +20,19 @@ export default class BillingSecurity {
 
   static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
-    if (request.UserID) {
+    if (Utils.objectHasProperty(request, 'UserID')) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
-    if (request.Status) {
+    if (Utils.objectHasProperty(request, 'Status')) {
       filteredRequest.Status = sanitize(request.Status);
     }
-    if (request.StartDateTime) {
+    if (Utils.objectHasProperty(request, 'StartDateTime')) {
       filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     }
-    if (request.EndDateTime) {
+    if (Utils.objectHasProperty(request, 'EndDateTime')) {
       filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     }
-    if (request.Search) {
+    if (Utils.objectHasProperty(request, 'Search')) {
       filteredRequest.Search = sanitize(request.Search);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -54,6 +55,26 @@ export default class BillingSecurity {
   static filterDownloadInvoiceRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)
+    };
+  }
+
+  static filterChargeInvoiceRequest(request: any): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
+  }
+
+  static filterBillingWebHookRequest(requestQuery: any): HttpBillingWebHookRequest {
+    return {
+      tenantID: sanitize(requestQuery.TenantID)
+    };
+  }
+
+  static filterSetupPaymentMethodRequest(request: any): HttpSetupPaymentMethod {
+    return {
+      user: sanitize(request.user),
+      currentUserID: sanitize(request.body.userID),
+      paymentMethodId: sanitize(request.body.paymentMethodId)
     };
   }
 }

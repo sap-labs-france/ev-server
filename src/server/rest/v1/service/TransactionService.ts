@@ -193,22 +193,80 @@ export default class TransactionService {
         user: req.user, action: action
       });
     }
+    // Check if transaction was handled with Gireve or Hubject
     // Check OCPI
-    if (!transaction.ocpiData) {
+    if (transaction.ocpiData.session) {
+      // CDR already pushed
+      if (transaction.ocpiData.cdr?.id) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+          message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          user: req.user, action: action
+        });
+      }
+      // Get the lock
+      const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+      if (ocpiLock) {
+        try {
+          // Post CDR
+          await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          // Ok
+          Logging.logInfo({
+            tenantID: req.user.tenantID,
+            action: action,
+            user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+            module: MODULE_NAME, method: 'handlePushTransactionCdr',
+            message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+            detailedMessages: { cdr: transaction.ocpiData.cdr }
+          });
+        } finally {
+          // Release the lock
+          await LockingManager.release(ocpiLock);
+        }
+      }
+    }
+    // Check OICP
+    if (transaction.oicpData.session) {
+      // CDR already pushed
+      if (transaction.oicpData.cdr?.SessionID) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
+          message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+          module: MODULE_NAME, method: 'handlePushTransactionCdr',
+          user: req.user,
+          action: action
+        });
+      }
+      // Get the lock
+      const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(req.user.tenantID, transaction.id);
+      if (oicpLock) {
+        try {
+          // Post CDR
+          await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          // Ok
+          Logging.logInfo({
+            tenantID: req.user.tenantID,
+            action: action,
+            user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+            module: MODULE_NAME, method: 'handlePushTransactionCdr',
+            message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
+            detailedMessages: { cdr: transaction.ocpiData.cdr }
+          });
+        } finally {
+          // Release the lock
+          await LockingManager.release(oicpLock);
+        }
+      }
+    }
+    // No Roaming Cdr to push
+    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
-        message: `The transaction ID '${transaction.id}' has no OCPI data`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action: action
-      });
-    }
-    // CDR already pushed
-    if (transaction.ocpiData.cdr?.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
-        message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         user: req.user, action: action
       });

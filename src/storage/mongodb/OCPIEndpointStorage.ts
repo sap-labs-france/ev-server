@@ -63,7 +63,7 @@ export default class OCPIEndpointStorage {
       businessDetails: ocpiEndpointToSave.businessDetails,
       availableEndpoints: ocpiEndpointToSave.availableEndpoints,
       versionUrl: ocpiEndpointToSave.versionUrl,
-      lastPatchJobOn: ocpiEndpointToSave.lastPatchJobOn,
+      lastPatchJobOn: Utils.convertToDate(ocpiEndpointToSave.lastPatchJobOn),
       lastPatchJobResult: ocpiEndpointToSave.lastPatchJobResult
     };
     // Add Last Changed/Created props

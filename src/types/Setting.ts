@@ -39,6 +39,7 @@ export interface SettingDBContent {
   | CryptoSettingsType
   | UserSettingsType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
   stripe?: StripeBillingSetting;
@@ -86,13 +87,15 @@ export interface ConvergentChargingPricingSetting extends PricingSetting {
 }
 
 export enum RoamingSettingsType {
-  GIREVE = 'gireve'
+  OCPI = 'ocpi',
+  OICP = 'oicp',
 }
 
 export interface RoamingSettings extends Setting {
-  identifier: TenantComponents.OCPI;
+  identifier: TenantComponents.OCPI | TenantComponents.OICP;
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
 }
 
 export interface OcpiSetting {
@@ -102,12 +105,41 @@ export interface OcpiSetting {
   businessDetails: OcpiBusinessDetails;
 }
 
-export interface OcpiIdentifier {
+export interface OicpSetting {
+  cpo: OicpIdentifier;
+  emsp: OicpIdentifier;
+  currency: string;
+  businessDetails: OicpBusinessDetails;
+}
+
+export interface RoamingIdentifier {
   countryCode: string;
   partyID: string;
 }
 
+export type OcpiIdentifier = RoamingIdentifier;
+
+// Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
+// Because the roles CPO and EMSP probably need different certificates to call the Hubject Backend
+export interface OicpIdentifier extends RoamingIdentifier {
+  key?: string;
+  cert?: string;
+}
+
 export interface OcpiBusinessDetails {
+  name: string;
+  website: string;
+  logo?: {
+    url: string;
+    thumbnail: string;
+    category: string;
+    type: string;
+    width: string;
+    height: string;
+  };
+}
+
+export interface OicpBusinessDetails {
   name: string;
   website: string;
   logo?: {
@@ -201,7 +233,7 @@ export interface BillingSettings extends Setting{
 
 export interface BillingSetting {
   usersLastSynchronizedOn?: Date;
-  invoicesLastSynchronizedOn?: Date;
+  invoicesLastSynchronizedOn?: Date
 }
 
 export interface StripeBillingSetting extends BillingSetting {

@@ -68,6 +68,14 @@
       "title": "Sende Roaming Status",
       "body": "Der Status der Ladestation konnte nicht zur Roaming-Plattform übermittelt werden. Ort: '{{location}}' Organisation: '{{tenantName}}', überprüfen Sie die Logs"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Senden des Roaming Status",
+      "body": "Der Status der Ladestationen konnte nicht zur Hubject Roaming-Plattform übermittelt werden. Organisation: '{{tenantName}}', überprüfen Sie die Logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Senden der Hubject EVSE Daten",
+      "body": "Die EVSE Daten der Ladestationen konnte nicht zur Hubject Roaming-Plattform übermittelt werden. Organisation: '{{tenantName}}', überprüfen Sie die Logs"
+    },
     "smtpError": {
       "title": "Email Server Error",
       "body": "Das E-Mail Server ist fehlgeschlagen. Organisation: '{{tenantName}}', überprüfen Sie die Einstellungen"

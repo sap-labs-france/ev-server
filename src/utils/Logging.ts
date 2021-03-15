@@ -14,6 +14,7 @@ import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
+import { OICPResult } from '../types/oicp/OICPResult';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
@@ -265,6 +266,12 @@ export default class Logging {
     }
   }
 
+  public static logOicpResult(tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): void {
+    Logging.logOcpiResult(tenantID, action, module, method, oicpResult,
+      messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
+  }
+
   public static logExpressResponse(req: Request, res: Response, next: NextFunction): void {
     res.on('finish', () => {
       try {
@@ -376,32 +383,48 @@ export default class Logging {
         console.error(chalk.red('===================================='));
       }
     }
-    await Logging.logSecurityDebug({
-      tenantID: tenantID,
-      action: ServerAction.HTTP_RESPONSE,
-      message,
-      module: MODULE_NAME, method: 'logAxiosResponse',
-      detailedMessages: {
-        status: response.status,
-        statusText: response.statusText,
-        request: Utils.cloneObject(response.config),
-        headers: Utils.cloneObject(response.headers),
-        response: Utils.cloneObject(response.data)
-      }
-    });
-    await PerformanceStorage.savePerformanceRecord(
-      Utils.buildPerformanceRecord({
-        tenantID,
-        httpUrl: response.config.url,
-        httpCode: response.status,
-        httpMethod: response.config.method.toLocaleUpperCase(),
-        durationMs: executionDurationMillis,
-        sizeKb: sizeOfDataKB,
-        source: Constants.AXIOS_CLIENT,
-        module: MODULE_NAME, method: 'logAxiosResponse',
+    try {
+      await Logging.logSecurityDebug({
+        tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
-      })
-    );
+        message,
+        module: MODULE_NAME, method: 'logAxiosResponse',
+        detailedMessages: {
+          status: response.status,
+          statusText: response.statusText,
+          request: Utils.cloneObject(response.config),
+          headers: Utils.cloneObject(response.headers),
+          response: Utils.cloneObject(response.data)
+        }
+      });
+      await PerformanceStorage.savePerformanceRecord(
+        Utils.buildPerformanceRecord({
+          tenantID,
+          httpUrl: response.config.url,
+          httpCode: response.status,
+          httpMethod: response.config.method.toLocaleUpperCase(),
+          durationMs: executionDurationMillis,
+          sizeKb: sizeOfDataKB,
+          source: Constants.AXIOS_CLIENT,
+          module: MODULE_NAME, method: 'logAxiosResponse',
+          action: ServerAction.HTTP_RESPONSE,
+        })
+      );
+    } catch (error) {
+      // FIXME
+      // Error Message: Converting circular structure to JSON
+      // Temporary FIX: Utils.cloneObject() removed
+      await Logging.logSecurityDebug({
+        tenantID: tenantID,
+        action: ServerAction.HTTP_RESPONSE,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        module: MODULE_NAME, method: 'interceptor',
+        detailedMessages: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+    }
   }
 
   public static async logAxiosError(tenantID: string, error: AxiosError): Promise<void> {
