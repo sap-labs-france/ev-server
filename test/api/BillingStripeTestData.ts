@@ -231,7 +231,7 @@ export default class StripeIntegrationTestData {
       invoiceItem.taxes = [ taxId ];
     }
     // Let's attempt to bill the line item
-    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
+    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
     assert(billingInvoice, 'Billing invoice should not be null');
     return billingInvoice;
   }
