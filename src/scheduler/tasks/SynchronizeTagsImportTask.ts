@@ -1,5 +1,6 @@
 import Constants from '../../utils/Constants';
-import { ImportStatus } from '../../types/GlobalType';
+import DbParams from '../../types/database/DbParams';
+import { HTTPError } from '../../types/HTTPError';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -7,7 +8,6 @@ import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import Tag from '../../types/Tag';
 import TagStorage from '../../storage/mongodb/TagStorage';
-import TagValidator from '../../server/rest/v1/validator/TagValidation';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 
@@ -18,13 +18,22 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
     const synchronizeTagsImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.TAGS, 'synchronize-tags-import');
     if (await LockingManager.acquire(synchronizeTagsImport)) {
       try {
-        const importedTags = await TagStorage.getImportedTags(tenant.id, { statuses: [ImportStatus.UNKNOWN] }, Constants.DB_PARAMS_MAX_LIMIT);
-        if (importedTags.count !== 0) {
+        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0, onlyRecordCount: true };
+        let importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
+        let count = importedTags.count;
+        delete dbParams.onlyRecordCount;
+        let skip = 0;
+        // Limit the number of records
+        if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
+          count = Constants.EXPORT_RECORD_MAX_COUNT;
+        }
+        do {
+          importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
           for (const importedTag of importedTags.result) {
             const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
             if (foundTag) {
-              importedTag.status = ImportStatus.ERROR;
-              importedTag.error = 'Tag id already exists';
+              importedTag.errorCode = HTTPError.TAG_ALREADY_EXIST_ERROR;
+              importedTag.errorDescription = `Tag with ID '${foundTag.id}' already exists`;
               await TagStorage.saveImportedTag(tenant.id, importedTag);
             } else {
               const tag: Tag = {
@@ -32,15 +41,13 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
                 description: importedTag.description,
                 issuer: true,
                 deleted: false,
-                active: true,
+                active: false,
                 createdBy: { id: importedTag.importedBy },
-                createdOn: new Date()
+                createdOn: importedTag.importedOn
               };
               try {
-                TagValidator.getInstance().validateTagCreation(tag);
                 await TagStorage.saveTag(tenant.id, tag);
-                importedTag.status = ImportStatus.IMPORTED;
-                await TagStorage.saveImportedTag(tenant.id, importedTag);
+                await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
                 await Logging.logDebug({
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_TAGS,
@@ -48,8 +55,8 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
                   message: `Tag with id: ${importedTag.id} have been created in Tenant ${tenant.name}`
                 });
               } catch (error) {
-                importedTag.status = ImportStatus.ERROR;
-                importedTag.error = error.message;
+                importedTag.errorCode = HTTPError.GENERAL_ERROR;
+                importedTag.errorDescription = error.message;
                 await TagStorage.saveImportedTag(tenant.id, importedTag);
                 // Error
                 await Logging.logError({
@@ -62,7 +69,8 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
               }
             }
           }
-        }
+          skip += Constants.EXPORT_PAGE_SIZE;
+        } while (skip < count);
       } catch (error) {
         // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_TAGS, error);

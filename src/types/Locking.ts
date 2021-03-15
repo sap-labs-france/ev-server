@@ -27,4 +27,5 @@ export enum LockEntity {
   ASSET = 'asset',
   OCPI_ENDPOINT = 'ocpi-endpoint',
   TAGS = 'tags',
+  OICP_ENDPOINT = 'oicp-endpoint',
 }

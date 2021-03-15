@@ -19,7 +19,6 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
-import { ImportStatus } from '../../../../types/GlobalType';
 import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
@@ -37,6 +36,7 @@ import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import UserValidator from '../validator/UserValidation';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
@@ -1278,16 +1278,16 @@ export default class UserService {
     try {
       const newUploadedUser: ImportedUser = {
         name: user.Name,
-        firstName: user.First_Name,
+        firstName: user.FirstName,
         email: user.Email,
-        importedBy: req.user.id,
-        status: ImportStatus.UNKNOWN
       };
+      UserValidator.getInstance().validateUserCreation(newUploadedUser);
+      newUploadedUser.importedBy = req.user.id;
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {
       await Logging.logError({
         tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+        module: MODULE_NAME, method: 'handleUploadUsersFile',
         action: action,
         message: 'User cannot be imported',
         detailedMessages: { error: error.message, stack: error.stack }

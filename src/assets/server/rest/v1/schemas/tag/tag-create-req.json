@@ -4,30 +4,17 @@
   "type": "object",
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-zA-Z0-9]*$"
     },
     "description": {
       "type": "string"
-    },
-    "issuer": {
-      "type": "boolean"
-    },
-    "deleted": {
-      "type": "boolean"
-    },
-    "active": {
-      "type": "boolean"
-    },
-    "createdOn": {
-      "format": "date"
-    },
-    "createdBy": {
-      "type": "object"
     }
   },
   "required": [
     "id",
-    "issuer",
-    "active"
+    "description"
   ]
 }
