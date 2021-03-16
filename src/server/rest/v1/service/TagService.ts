@@ -14,6 +14,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
@@ -315,7 +316,7 @@ export default class TagService {
       message: `Tag with ID '${newTag.id}'has been created successfully`,
       detailedMessages: { tag: newTag }
     });
-    res.json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(StatusCodes.CREATED).json(Object.assign({ id: newTag.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -330,7 +331,7 @@ export default class TagService {
       });
     }
     // Filter
-    const filteredRequest = TagSecurity.filterTagUpdateRequest(req.body, req.user);
+    const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
     let formerTagUserID: string;
     let formerTagDefault: boolean;
     // Check

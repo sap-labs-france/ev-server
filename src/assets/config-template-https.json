@@ -34,9 +34,9 @@
     "protocol": "https",
     "host": "localhost",
     "port": 443,
-    "ssl-key": "",
-    "ssl-cert": "",
-    "ssl-ca": [],
+    "sslKey": "",
+    "sslCert": "",
+    "sslCa": [],
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
@@ -59,9 +59,19 @@
     "protocol": "https",
     "host": "localhost",
     "port": 9090,
-    "ssl-key": "",
-    "ssl-cert": "",
-    "ssl-ca": [],
+    "sslKey": "",
+    "sslCert": "",
+    "sslCa": [],
+    "debug": false,
+    "externalProtocol": "https"
+  },
+  "OICPService": {
+    "protocol": "https",
+    "host": "localhost",
+    "port": 8443,
+    "sslKey": "**insert key in PEM format**",
+    "sslCert": "**insert certificate in PEM format**",
+    "sslCa": ["**insert certificate in PEM format**"],
     "debug": false,
     "externalProtocol": "https"
   },
@@ -74,9 +84,9 @@
     "protocol": "https",
     "host": "localhost",
     "port": 9090,
-    "ssl-key": "",
-    "ssl-cert": "",
-    "ssl-ca": [],
+    "sslKey": "",
+    "sslCert": "",
+    "sslCa": [],
     "debug": false,
     "externalProtocol": "https"
   },
@@ -164,7 +174,23 @@
   },
   "Scheduler": {
     "active": false,
-    "tasks": []
+    "tasks": [
+      {
+      "name": "OICPPushEVSEDataTask",
+      "active": false,
+      "periodicity": "*/10 * * * *",
+      "config": {
+        "processAllEVSEs": true
+      }
+    },
+    {
+      "name": "OICPPushEvseStatusTask",
+      "active": false,
+      "periodicity": "*/5 * * * *",
+      "config": {
+        "processAllEVSEs": true
+      }
+    }]
   },
   "Logging": {
     "logLevel": "D",

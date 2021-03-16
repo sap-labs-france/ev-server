@@ -136,7 +136,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
-        message: `Charging Station ID '${startSession.evse_uid}' cannot be used in with OCPI`,
+        message: `Charging Station ID '${startSession.evse_uid}' cannot be used with OCPI`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -286,7 +286,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       connectorId: connector.connectorId,
       idTag: startSession.token.uid
     });
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+    if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
@@ -303,7 +303,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       transactionId: transactionId
     });
 
-    if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+    if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);

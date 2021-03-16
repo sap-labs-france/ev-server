@@ -82,6 +82,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.REGISTER, Action.TRIGGER_JOB],
         attributes: ['*']
       },
+      { resource: Entity.OICP_ENDPOINTS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.OICP_ENDPOINT,
+        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.PING,
+          Action.REGISTER, Action.TRIGGER_JOB],
+        attributes: ['*']
+      },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
@@ -93,6 +100,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      },
     ]
   },
   basic: {
@@ -111,11 +123,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*']
       },
-      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      {
-        resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
+      // -----------------------------------------------------------------------------------------------
+      // TODO - put it pack as soon as BILLING has been validated of SLF
+      // -----------------------------------------------------------------------------------------------
+      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
+      // {
+      //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
+      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      // },
+      // -----------------------------------------------------------------------------------------------
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
@@ -199,6 +215,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
+      {
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      },
     ]
   },
   demo: {

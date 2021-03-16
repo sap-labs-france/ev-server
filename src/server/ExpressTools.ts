@@ -14,7 +14,6 @@ import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
 import cors from 'cors';
-import fs from 'fs';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
@@ -95,20 +94,29 @@ export default class ExpressTools {
       // Create the options
       const options: https.ServerOptions = {};
       // Set the keys
-      options.key = fs.readFileSync(serverConfig['ssl-key']);
-      options.cert = fs.readFileSync(serverConfig['ssl-cert']);
+      // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
+      if (serverConfig.sslKey && serverConfig.sslCert) {
+        options.key = serverConfig.sslKey;
+        options.cert = serverConfig.sslCert;
+      }
+      // pragma options.requestCert = true; // TODO: Test on QA System: Reject incoming requests without valid certificate (OICP: accept only requests from Hubject)
+      // options.rejectUnauthorized = true; // TODO: Test on QA System
+
       // Intermediate cert?
-      if (serverConfig['ssl-ca']) {
+      if (serverConfig.sslCa) {
         // Array?
-        if (Array.isArray(serverConfig['ssl-ca'])) {
+        if (Array.isArray(serverConfig.sslCa)) {
           options.ca = [];
           // Add all
-          for (let i = 0; i < serverConfig['ssl-ca'].length; i++) {
-            options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
+          for (let i = 0; i < serverConfig.sslCa.length; i++) {
+            // FIXME: read certificates directly from config.json file. In the future: config for OICP in default tenant
+            if (serverConfig.sslCa[i]) {
+              options.ca.push(serverConfig.sslCa[i]);
+            }
           }
         } else {
           // Add one
-          options.ca = fs.readFileSync(serverConfig['ssl-ca']);
+          options.ca = serverConfig.sslCa;
         }
       }
       // Https server
