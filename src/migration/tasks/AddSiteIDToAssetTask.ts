@@ -38,7 +38,10 @@ export default class AddSiteIDToAssetTask extends MigrationTask {
     // Delete siteIDs for assets without site area
     const result = await global.database.getCollection(tenant.id, 'assets').updateMany(
       {
-        siteAreaID: null,
+        siteAreaID: {
+          $exists: true,
+          $eq: null
+        }
       },
       {
         $set: {

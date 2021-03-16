@@ -39,7 +39,10 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
     // Delete siteIDs for charging stations without site area
     const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
       {
-        siteAreaID: null,
+        siteAreaID: {
+          $exists: true,
+          $eq: null
+        }
       },
       {
         $set: {
