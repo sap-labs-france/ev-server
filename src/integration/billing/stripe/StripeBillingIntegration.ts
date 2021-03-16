@@ -213,25 +213,32 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
+  // TODO - name of the method is confusing - the returned value is a partial billing invoice (id is null)
   public async getInvoice(id: string): Promise<BillingInvoice> {
     // Check Stripe
     await this.checkConnection();
     // Get Invoice
     try {
       const stripeInvoice = await this.stripe.invoices.retrieve(id);
+      const { id: invoiceID, customer, number, amount_due: amount, amount_paid, status, currency, invoice_pdf: downloadUrl } = stripeInvoice;
       const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
-      return {
-        invoiceID: stripeInvoice.id,
-        customerID: stripeInvoice.customer,
-        number: stripeInvoice.number,
-        amount: stripeInvoice.amount_due,
-        status: stripeInvoice.status as BillingInvoiceStatus,
-        currency: stripeInvoice.currency,
+      const customerID = customer as string;
+      const billingInvoice: BillingInvoice = {
+        id: null, // TODO - must be clarified - We cannot guess the Billing Invoice ID
+        invoiceID,
+        customerID,
+        number,
+        amount,
+        amount_paid,
+        status: status as BillingInvoiceStatus,
+        currency,
         createdOn: new Date(stripeInvoice.created * 1000),
         nbrOfItems: nbrOfItems,
-        downloadUrl: stripeInvoice.invoice_pdf
-      } as BillingInvoice;
+        downloadUrl
+      };
+      return billingInvoice;
     } catch (e) {
+      // TODO - This is suspicious
       return null;
     }
   }
@@ -356,6 +363,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       customerID: stripeInvoice.customer as string,
       number: stripeInvoice.number,
       amount: stripeInvoice.amount_due,
+      amount_paid: stripeInvoice.amount_paid,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
       createdOn: moment.unix(stripeInvoice.created).toDate(), // epoch to Date!

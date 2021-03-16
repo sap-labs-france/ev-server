@@ -74,6 +74,7 @@ export interface BillingInvoice {
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;
+  amount_paid?: number;
   currency?: string;
   customerID?: string;
   createdOn?: Date;
