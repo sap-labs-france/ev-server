@@ -195,7 +195,7 @@ export default class SiteAreaService {
     }
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
-      await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+      await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, siteArea, filteredRequest.chargingStationIDs);
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     }
