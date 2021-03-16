@@ -8,7 +8,7 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   name: string;
   siteAreaID: string;
   siteArea?: SiteArea;
-  siteID: string;
+  siteID?: string;
   assetType: AssetType;
   fluctuationPercent: number;
   staticValueWatt: number;
