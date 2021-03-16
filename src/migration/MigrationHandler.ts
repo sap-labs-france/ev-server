@@ -11,6 +11,8 @@ import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUse
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddSiteAreaIDToAssetConsumptionTask from './tasks/AddSiteAreaIDToAssetConsumptionTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
+import AddSiteIDToAssetTask from './tasks/AddSiteIDToAssetTask';
+import AddSiteIDToChargingStationTask from './tasks/AddSiteIDToChargingStationTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
@@ -35,6 +37,7 @@ import MigrateUserSettingsTask from './tasks/MigrateUserSettingsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RecomputeAllTransactionsConsumptionsTask from './tasks/RecomputeAllTransactionsConsumptionsTask';
+import RecomputeAllTransactionsWithSimplePricingTask from './tasks/RecomputeAllTransactionsWithSimplePricingTask';
 import RenameChargingStationPropertiesTask from './tasks/RenameChargingStationPropertiesTask';
 import RenameSMTPAuthErrorTask from './tasks/RenameSMTPAuthErrorTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
@@ -49,7 +52,6 @@ import UpdateConsumptionsToObjectIDsTask from './tasks/UpdateConsumptionsToObjec
 import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
-import RecomputeAllTransactionsWithSimplePricingTask from './tasks/RecomputeAllTransactionsWithSimplePricingTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -116,6 +118,8 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new RenameSMTPAuthErrorTask());
         currentMigrationTasks.push(new ResetCarCatalogsHashTask());
         currentMigrationTasks.push(new AddSiteAreaIDToAssetConsumptionTask());
+        currentMigrationTasks.push(new AddSiteIDToChargingStationTask());
+        currentMigrationTasks.push(new AddSiteIDToAssetTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();

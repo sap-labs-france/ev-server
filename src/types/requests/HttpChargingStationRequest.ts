@@ -4,7 +4,7 @@ import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpTriggerSmartChargingRequest {
-  siteAreaID: string;
+  SiteAreaID: string;
 }
 
 export interface HttpChargingStationLimitPowerRequest {
@@ -102,5 +102,5 @@ export interface HttpIsAuthorizedRequest {
 }
 
 export interface HttpChargingStationGetFirmwareRequest {
-  ID: string;
+  FileName: string;
 }

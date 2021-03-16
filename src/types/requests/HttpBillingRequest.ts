@@ -1,5 +1,6 @@
 import { BillingInvoiceStatus } from '../Billing';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import UserToken from '../UserToken';
 
 export interface HttpBillingRequest {
 }
@@ -11,4 +12,14 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;
+}
+
+export interface HttpBillingWebHookRequest {
+  tenantID?: string
+}
+
+export interface HttpSetupPaymentMethod {
+  user: UserToken;
+  currentUserID: string;
+  paymentMethodId?: string;
 }

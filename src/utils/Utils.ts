@@ -512,6 +512,13 @@ export default class Utils {
     return 0;
   }
 
+  public static convertWattHourToKiloWattHour(wattHours: number, decimalPlaces?: number): number {
+    if (decimalPlaces) {
+      return Utils.truncTo((Utils.createDecimal(wattHours).div(1000)).toNumber(), decimalPlaces);
+    }
+    return Utils.convertToFloat((Utils.createDecimal(wattHours).div(1000)));
+  }
+
   public static createDecimal(value: number): Decimal {
     if (Utils.isNullOrUndefined(value)) {
       value = 0;
@@ -1131,7 +1138,7 @@ export default class Utils {
 
   public static containsGPSCoordinates(coordinates: number[]): boolean {
     // Check if GPs are available
-    if (coordinates && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
+    if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
       if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
         new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
@@ -1243,7 +1250,6 @@ export default class Utils {
           }
         }
         break;
-
       // Billing
       case TenantComponents.BILLING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
@@ -1254,7 +1260,6 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-
       // Refund
       case TenantComponents.REFUND:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
@@ -1265,18 +1270,26 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-
       // OCPI
       case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
-            'type': RoamingSettingsType.GIREVE,
+            'type': RoamingSettingsType.OCPI,
             'ocpi': {}
           } as SettingDBContent;
         }
         break;
-
+      // OICP
+      case TenantComponents.OICP:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Hubject
+          return {
+            'type': RoamingSettingsType.OICP,
+            'oicp': {}
+          } as SettingDBContent;
+        }
+        break;
       // SAC
       case TenantComponents.ANALYTICS:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
@@ -1287,7 +1300,6 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-
       // Smart Charging
       case TenantComponents.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
@@ -1298,7 +1310,6 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-
       // Asset
       case TenantComponents.ASSET:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
