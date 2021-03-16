@@ -146,6 +146,7 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'forceInactive')) {
       chargingStation.forceInactive = filteredRequest.forceInactive;
     }
+    let resetAndApplyTemplate = false;
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
       // Check manual config
       if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
@@ -159,9 +160,9 @@ export default class ChargingStationService {
       (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
-        const templateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(req.user.tenantID, chargingStation);
+        const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
         // If not template was found, throw error (Check is done on technical configuration)
-        if (!templateUpdateResult.technicalUpdated) {
+        if (!chargingStationTemplate) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             action: action,
@@ -171,6 +172,7 @@ export default class ChargingStationService {
             user: req.user,
           });
         }
+        resetAndApplyTemplate = true;
       }
     }
     // Existing Connectors
@@ -268,6 +270,22 @@ export default class ChargingStationService {
     chargingStation.lastChangedOn = new Date();
     // Update
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+    if (resetAndApplyTemplate) {
+      try {
+        // Use the reset to apply the template again
+        await OCPPUtils.triggerChargingStationReset(req.user.tenantID, chargingStation, true);
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Error occurred while restarting the charging station',
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user, actionOnUser: req.user,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
