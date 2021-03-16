@@ -1081,6 +1081,11 @@ export default class OCPPService {
         await this.updateOCPIConnectorStatus(tenantID, chargingStation, foundConnector);
       }
     }
+    // Update connector's order
+    if (!Utils.isEmptyArray(chargingStation?.connectors)) {
+      chargingStation.connectors.sort((connector1: Connector, connector2: Connector) =>
+        connector1?.connectorId - connector2?.connectorId);
+    }
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Trigger Smart Charging
