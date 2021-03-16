@@ -282,7 +282,7 @@ export default class UserStorage {
       name: importedUserToSave.name,
       errorCode: importedUserToSave.errorCode,
       errorDescription: importedUserToSave.errorDescription,
-      importedOn: new Date(),
+      importedOn:importedUserToSave.importedOn ? importedUserToSave.importedOn : new Date(),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
     await global.database.getCollection<any>(tenantID, 'usersImport').findOneAndUpdate(

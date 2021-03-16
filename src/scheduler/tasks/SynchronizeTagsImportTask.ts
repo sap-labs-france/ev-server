@@ -22,7 +22,6 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
         const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
         let importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
         while (importedTags && !Utils.isEmptyArray(importedTags.result)) {
-          importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
           for (const importedTag of importedTags.result) {
             const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
             if (foundTag) {
