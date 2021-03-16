@@ -1,10 +1,12 @@
+import { ImportedTag } from '../../../../types/Tag';
+import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class TagValidator extends SchemaValidator {
   private static instance: TagValidator|null = null;
-  private tagCreation: any;
+  private tagCreation: Schema;
 
   private constructor() {
     super('TagValidator');
@@ -18,7 +20,7 @@ export default class TagValidator extends SchemaValidator {
     return TagValidator.instance;
   }
 
-  validateTagCreation(content): void {
-    this.validate(this.tagCreation, content);
+  validateTagCreation(importedTag: ImportedTag): void {
+    this.validate(this.tagCreation, importedTag);
   }
 }

@@ -499,8 +499,8 @@ export default class TagService {
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('tags.*');
-        parser.on('data', async (tag) => {
-          await TagService.importTag(action, req, tag);
+        parser.on('data', (tag) => {
+          void TagService.importTag(action, req, tag);
         });
         parser.on('error', function(error) {
           void Logging.logError({

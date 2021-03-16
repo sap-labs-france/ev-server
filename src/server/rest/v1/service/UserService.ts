@@ -886,8 +886,8 @@ export default class UserService {
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
-        parser.on('data', async (user) => {
-          await UserService.importUser(action, req, user);
+        parser.on('data', (user) => {
+          void UserService.importUser(action, req, user);
         });
         parser.on('error', function(error) {
           void Logging.logError({

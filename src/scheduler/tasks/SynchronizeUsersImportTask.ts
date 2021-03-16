@@ -11,6 +11,7 @@ import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
@@ -19,17 +20,9 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
     const synchronizeUsersImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-users-import');
     if (await LockingManager.acquire(synchronizeUsersImport)) {
       try {
-        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0, onlyRecordCount: true };
+        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
         let importedUsers = await UserStorage.getImportedUsers(tenant.id, { withNoError: true }, dbParams);
-        let count = importedUsers.count;
-        delete dbParams.onlyRecordCount;
-        let skip = 0;
-        // Limit the number of records
-        if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
-          count = Constants.EXPORT_RECORD_MAX_COUNT;
-        }
-        do {
-          importedUsers = await UserStorage.getImportedUsers(tenant.id, { withNoError: true }, dbParams);
+        while (importedUsers && !Utils.isEmptyArray(importedUsers.result)) {
           for (const importedUser of importedUsers.result) {
             const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
             if (foundUser) {
@@ -78,8 +71,8 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
               }
             }
           }
-          skip += Constants.EXPORT_PAGE_SIZE;
-        } while (skip < count);
+          importedUsers = await UserStorage.getImportedUsers(tenant.id, { withNoError: true }, dbParams);
+        }
       } catch (error) {
         // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_USERS, error);

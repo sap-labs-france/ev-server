@@ -1,10 +1,12 @@
+import { ImportedUser } from '../../../../types/User';
+import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class UserValidator extends SchemaValidator {
   private static instance: UserValidator|null = null;
-  private userCreation: any;
+  private userCreation: Schema;
 
   private constructor() {
     super('UserValidator');
@@ -18,7 +20,7 @@ export default class UserValidator extends SchemaValidator {
     return UserValidator.instance;
   }
 
-  validateUserCreation(content): void {
-    this.validate(this.userCreation, content);
+  validateUserCreation(importedUser: ImportedUser): void {
+    this.validate(this.userCreation, importedUser);
   }
 }

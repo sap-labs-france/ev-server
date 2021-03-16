@@ -10,6 +10,7 @@ import Tag from '../../types/Tag';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
@@ -18,16 +19,9 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
     const synchronizeTagsImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.TAGS, 'synchronize-tags-import');
     if (await LockingManager.acquire(synchronizeTagsImport)) {
       try {
-        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0, onlyRecordCount: true };
+        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
         let importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
-        let count = importedTags.count;
-        delete dbParams.onlyRecordCount;
-        let skip = 0;
-        // Limit the number of records
-        if (count > Constants.EXPORT_RECORD_MAX_COUNT) {
-          count = Constants.EXPORT_RECORD_MAX_COUNT;
-        }
-        do {
+        while (importedTags && !Utils.isEmptyArray(importedTags.result)) {
           importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
           for (const importedTag of importedTags.result) {
             const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
@@ -69,8 +63,8 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
               }
             }
           }
-          skip += Constants.EXPORT_PAGE_SIZE;
-        } while (skip < count);
+          importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
+        }
       } catch (error) {
         // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_TAGS, error);
