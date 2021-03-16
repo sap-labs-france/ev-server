@@ -163,6 +163,87 @@ describe('Site tests', function() {
 
     });
 
+    describe('Where basic user', () => {
+
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+        }
+      });
+
+      // it('Should find the created site by id', async () => {
+      //   // Check if the created entity can be retrieved with its id
+      //   await testData.userService.getEntityById(
+      //     testData.userService.siteApi,
+      //     testData.newSite
+      //   );
+      // });
+
+      // it('Should find the created site in the site list', async () => {
+      //   // Check if the created entity is in the list
+      //   await testData.userService.checkEntityInList(
+      //     testData.userService.siteApi,
+      //     testData.newSite
+      //   );
+      // });
+
+      // it('Should find the updated site by id', async () => {
+      //   // Check if the updated entity can be retrieved with its id
+      //   const updatedSite = await testData.userService.getEntityById(
+      //     testData.userService.siteApi,
+      //     testData.newSite
+      //   );
+      //   // Check
+      //   expect(updatedSite.name).to.equal(testData.newSite.name);
+      // });
+
+
+      it('Should not be able to create a new site', async () => {
+        try {
+          await testData.userService.createEntity(
+            testData.userService.siteApi,
+            Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to update the site', async () => {
+        try {
+          // Change entity
+          testData.newSite.name = 'New Name';
+          // Update
+          await testData.userService.updateEntity(
+            testData.userService.siteApi,
+            testData.newSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+      it('Should not be able to delete the created site', async () => {
+        try {
+        // Delete the created entity
+          await testData.userService.deleteEntity(
+            testData.userService.siteApi,
+            testData.newSite
+          );
+        } catch (error) {
+          expect(error.actual).to.eq(403);
+        }
+      });
+
+    });
+
   });
 
 });
