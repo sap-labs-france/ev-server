@@ -36,7 +36,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
       );
       modifiedCount += result.modifiedCount;
     }
-    // delete siteIDs for charging stations without site area
+    // Delete siteIDs for charging stations without site area
     const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
       {
         siteAreaID: null,
@@ -60,7 +60,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.3';
+    return '1.1';
   }
 
   getName(): string {
