@@ -865,11 +865,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's create a new draft invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, this.buildIdemPotencyKey(idemPotencyKey));
     }
-    let billingOperationResult: BillingOperationResult;
+    let paymentOperationResult: BillingOperationResult;
     if (this.settings.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
       try {
-        billingOperationResult = await this._chargeStripeInvoice(stripeInvoice.id);
+        paymentOperationResult = await this._chargeStripeInvoice(stripeInvoice.id);
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenantID,
@@ -884,9 +884,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     // Let's replicate some information on our side
     const billingInvoice = await this._replicateStripeInvoice(userID, stripeInvoice.id);
-    // Let's persist last payment failure (if any)
-    if (!billingOperationResult?.succeeded && billingOperationResult?.error) {
-      await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult.error);
+    // We have now a Billing Invoice - Let's update it with details about the last payment failure (if any)
+    if (!paymentOperationResult?.succeeded && paymentOperationResult?.error) {
+      await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, paymentOperationResult.error);
     }
     // Return the billing invoice
     return billingInvoice;
