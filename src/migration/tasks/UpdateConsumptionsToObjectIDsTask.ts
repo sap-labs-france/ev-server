@@ -71,7 +71,7 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
     } while (consumptionsMDB.length > 0);
     // Log
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',

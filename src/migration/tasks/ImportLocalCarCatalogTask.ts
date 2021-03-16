@@ -216,7 +216,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
 
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.CAR_CATALOG_SYNCHRONIZATION,
@@ -225,7 +225,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
       });
     } // Log in the default tenant
     if (created > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
