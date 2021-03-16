@@ -112,7 +112,7 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationUnlockConnector(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_UNLOCK_CONNECTOR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.chargeBoxID = req.params.id;
-      req.body.connectorId = req.params.connectorId;
+      req.body.args = { ...req.body.args, connectorId: req.params.connectorId };
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, req, res, next);
     });
   }
