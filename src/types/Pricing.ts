@@ -20,7 +20,6 @@ export interface KWHPricingItem extends PricingItem {
   pricePerKWH: number;
 }
 
-
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;

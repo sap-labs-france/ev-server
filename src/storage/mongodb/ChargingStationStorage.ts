@@ -353,8 +353,6 @@ export default class ChargingStationStorage {
     // Reorder connector ID
     // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
-      // Always add Connector ID
-      dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
       aggregation.push({
         $sort: dbParams.sort
       });
