@@ -75,7 +75,7 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
-        message: `Tenant ${tenant.name} (${tenant.id}): ${updated} consumptions have been updated`
+        message: `Tenant ${Utils.buildTenantName(tenant)} (${tenant.id}): ${updated} consumptions have been updated`
       });
     }
   }

@@ -30,7 +30,7 @@ export default class RenameSMTPAuthErrorTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Users' properties have been updated in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${result.modifiedCount} Users' properties have been updated in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
     result = await global.database.getCollection<Notification>(tenant.id, 'notifications').updateMany(
@@ -48,7 +48,7 @@ export default class RenameSMTPAuthErrorTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Notifications' properties have been updated in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${result.modifiedCount} Notifications' properties have been updated in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
   }

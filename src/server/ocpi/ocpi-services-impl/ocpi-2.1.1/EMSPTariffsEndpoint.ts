@@ -76,7 +76,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'getTariffRequest',
           action: ServerAction.OCPI_GET_TARIFF,
           errorCode: StatusCodes.BAD_REQUEST,
-          message: `Simple Pricing setting not found on tenant ${tenant.name}`,
+          message: `Simple Pricing setting not found on Tenant ${Utils.buildTenantName(tenant)}`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }

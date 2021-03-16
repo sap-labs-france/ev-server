@@ -54,7 +54,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_USERS,
                   module: MODULE_NAME, method: 'SYNCHRONIZE_USERS',
-                  message: `User with email: ${importedUser.email} have been created in Tenant ${tenant.name}`
+                  message: `User with email: ${importedUser.email} have been created in Tenant ${Utils.buildTenantName(tenant)}`
                 });
               } catch (error) {
                 importedUser.errorCode = HTTPError.GENERAL_ERROR;

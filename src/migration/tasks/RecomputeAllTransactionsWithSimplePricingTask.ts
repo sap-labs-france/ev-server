@@ -46,7 +46,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
         }
       ]).toArray();
     if (transactionsMDB.length > 0) {
-      let message = `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`;
+      let message = `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant ${Utils.buildTenantName(tenant)})...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
@@ -57,7 +57,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
       await Promise.map(transactionsMDB, async (transactionMDB) => {
         const numberOfProcessedTransactions = transactionsUpdated.inError + transactionsUpdated.inSuccess;
         if (numberOfProcessedTransactions > 0 && (numberOfProcessedTransactions % 100) === 0) {
-          message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')`;
+          message = `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Transaction consumptions recomputed in Tenant ${Utils.buildTenantName(tenant)})`;
           await Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
@@ -84,7 +84,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.MIGRATION,
             module: TASK_NAME, method: 'migrateTenant',
-            message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+            message: `> ${transactionsUpdated.inError + transactionsUpdated.inSuccess}/${transactionsMDB.length} - Cannot recompute the consumptions of Transaction ID '${transactionMDB._id}' in Tenant ${Utils.buildTenantName(tenant)})`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }
@@ -93,10 +93,10 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
         // Log in the default tenant
         void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
           TASK_NAME, 'migrateTenant', transactionsUpdated,
-          `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed to be processed in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-          `All the transactions are up to date in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+          `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)})`,
+          `{{inError}} transaction(s) failed to be processed in ${totalDurationSecs} secs in Tenant ${Utils.buildTenantName(tenant)})`,
+          `{{inSuccess}} transaction(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed to be processed in Tenant ${Utils.buildTenantName(tenant)})`,
+          `All the transactions are up to date in Tenant ${Utils.buildTenantName(tenant)})`
         );
       });
     }

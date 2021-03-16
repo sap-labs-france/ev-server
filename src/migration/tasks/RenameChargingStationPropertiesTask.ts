@@ -29,7 +29,7 @@ export default class RenameChargingStationPropertiesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Charging Stations' properties have been updated in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${result.modifiedCount} Charging Stations' properties have been updated in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
   }

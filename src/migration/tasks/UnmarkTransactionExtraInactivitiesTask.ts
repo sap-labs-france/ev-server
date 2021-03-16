@@ -33,7 +33,7 @@ export default class UnmarkTransactionExtraInactivitiesTask extends MigrationTas
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Transaction(s) have been marked to be recomputed in Tenant '${tenant.name}' ('${tenant.subdomain}')...`,
+        message: `${result.modifiedCount} Transaction(s) have been marked to be recomputed in Tenant ${Utils.buildTenantName(tenant)})...`,
       });
     }
   }

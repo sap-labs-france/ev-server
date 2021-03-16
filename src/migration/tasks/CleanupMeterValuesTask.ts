@@ -56,7 +56,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
-        message: `Tenant ${tenant.name} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
+        message: `Tenant ${Utils.buildTenantName(tenant)} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }
   }

@@ -50,7 +50,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-        message: `Bypassed tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `Bypassed tenant ${Utils.buildTenantName(tenant)})`
       });
       return;
     }
@@ -132,7 +132,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-              message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+              message: `Apply Template's OCPP Parameters for '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
             });
             // Request the latest configuration
             const result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
@@ -144,7 +144,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
                 action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                 source: chargingStation.id,
                 module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-                message: `Cannot request OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+                message: `Cannot request OCPP Parameters from '${chargingStation.id}' in Tenant ${Utils.buildTenantName(tenant)})`,
               });
               continue;
             }
@@ -157,9 +157,9 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               tenant.id,
               ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,
-              `{{inSuccess}} OCPP Parameter(s) were successfully synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-              `{{inError}} OCPP Parameter(s) failed to be synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
-              `{{inSuccess}} OCPP Parameter(s) were successfully synchronized and {{inError}} failed to be synchronized, check details in the Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+              `{{inSuccess}} OCPP Parameter(s) were successfully synchronized, check details in the Tenant ${Utils.buildTenantName(tenant)})`,
+              `{{inError}} OCPP Parameter(s) failed to be synchronized, check details in the Tenant ${Utils.buildTenantName(tenant)})`,
+              `{{inSuccess}} OCPP Parameter(s) were successfully synchronized and {{inError}} failed to be synchronized, check details in the Tenant ${Utils.buildTenantName(tenant)})`,
               'All the OCPP Parameters are up to date'
             );
           }
@@ -170,7 +170,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Template update error in Tenant '${tenant.name}' ('${tenant.subdomain}'): ${error.message}`,
+          message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -180,7 +180,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-        message: `${updated} Charging Stations have been processed with Template in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${updated} Charging Stations have been processed with Template in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
   }

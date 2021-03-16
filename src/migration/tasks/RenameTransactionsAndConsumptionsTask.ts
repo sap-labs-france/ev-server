@@ -49,7 +49,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'deleteConsumptionProperties',
-        message: `${result.modifiedCount} Consumption(s) unused properties have been removed in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${result.modifiedCount} Consumption(s) unused properties have been removed in Tenant ${Utils.buildTenantName(tenant)})`
       });
     }
   }
