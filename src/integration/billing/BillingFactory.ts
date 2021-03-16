@@ -25,7 +25,10 @@ export default class BillingFactory {
         let billingIntegrationImpl = null;
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings.stripe);
+            if (StripeBillingIntegration.checkSettingsConsistency(settings.stripe)) {
+              // Only call the constructor when the prerequisites are met
+              billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings.stripe);
+            }
             break;
         }
         return billingIntegrationImpl;

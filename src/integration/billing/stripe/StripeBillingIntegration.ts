@@ -34,6 +34,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
   }
 
+  public static checkSettingsConsistency(settings: StripeBillingSetting): boolean {
+    if (settings.url && settings.secretKey && settings.publicKey) {
+      return true;
+    }
+    // STRIPE prerequisites are not met
+    return false ;
+  }
+
   public async getStripeInstance(): Promise<Stripe> {
     // TODO - To be removed - only used by automated tests!
     await this.checkConnection();
