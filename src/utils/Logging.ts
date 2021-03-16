@@ -172,7 +172,7 @@ export default class Logging {
   public static async logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): Promise<void> {
+    messageNoSuccessNoError: string, user?: UserToken): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -182,6 +182,7 @@ export default class Logging {
     if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccessAndError
@@ -190,6 +191,7 @@ export default class Logging {
     } else if (actionsResponse.inSuccess > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccess
@@ -198,6 +200,7 @@ export default class Logging {
     } else if (actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageError
@@ -206,6 +209,7 @@ export default class Logging {
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageNoSuccessNoError
@@ -266,9 +270,9 @@ export default class Logging {
     }
   }
 
-  public static logOicpResult(tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): void {
-    Logging.logOcpiResult(tenantID, action, module, method, oicpResult,
+  public static async logOicpResult(tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): Promise<void> {
+    await Logging.logOcpiResult(tenantID, action, module, method, oicpResult,
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
 

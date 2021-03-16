@@ -34,7 +34,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         await this.applyTemplateToChargingStations(tenant);
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
       } finally {
         // Release the lock
         await LockingManager.release(offlineChargingStationLock);
@@ -46,7 +46,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     let updated = 0;
     // Bypass perf tenant
     if (tenant.subdomain === 'testperf') {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -114,7 +114,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
             sectionsUpdated.push('OCPP');
           }
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -127,7 +127,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           updated++;
           // Retrieve OCPP parameters and update them if needed
           if (chargingStationTemplateUpdated.ocppStandardUpdated || chargingStationTemplateUpdated.ocppVendorUpdated) {
-            Logging.logDebug({
+            await Logging.logDebug({
               tenantID: tenant.id,
               action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               source: chargingStation.id,
@@ -139,7 +139,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation),
               `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in requesting OCPP Parameters`);
             if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-              Logging.logError({
+              await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                 source: chargingStation.id,
@@ -153,7 +153,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
               Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationTemplateOcppParameters(tenant.id, chargingStation),
               `Time out error (${Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
             // Log
-            Logging.logActionsResponse(
+            await Logging.logActionsResponse(
               tenant.id,
               ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
               MODULE_NAME, 'applyTemplateToChargingStations', updatedOcppParameters,
@@ -165,7 +165,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           }
         }
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
@@ -176,7 +176,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
       }
     }
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
@@ -189,7 +189,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     // Update current Chargers
     ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
       (error) => {
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+        void Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
       });
   }
 }

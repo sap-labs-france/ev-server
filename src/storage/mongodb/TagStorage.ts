@@ -44,7 +44,7 @@ export default class TagStorage {
     const tagMDB = {
       _id: importedTagToSave.id,
       description: importedTagToSave.description,
-      importedOn: importedTagToSave.importedOn ? importedTagToSave.importedOn : new Date(),
+      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedTagToSave.importedBy),
       errorCode: importedTagToSave.errorCode,
       errorDescription: importedTagToSave.errorDescription

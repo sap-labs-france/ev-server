@@ -473,24 +473,39 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
+    // Default values for Tag import
+    const importedBy = req.user.id;
+    const importedOn = new Date();
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
-    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    busboy.on('file', (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
           delimiter: ['\t'],
           quote: 'off'
         });
-        void converter.subscribe(async (tag) => {
-          await TagService.importTag(action, req, tag);
+        void converter.subscribe(async (tag: ImportedTag) => {
+          // Set default value
+          tag.importedBy = importedBy;
+          tag.importedOn = importedOn;
+          // Import
+          if (await TagService.importTag(action, req, tag)) {
+            result.inSuccess++;
+          } else {
+            result.inError++;
+          }
         }, (error) => {
           void Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportTags',
             action: action,
             user: req.user.id,
-            message: 'Invalid csv file',
+            message: `Invalid Csv file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -499,8 +514,17 @@ export default class TagService {
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('tags.*');
-        parser.on('data', (tag) => {
-          void TagService.importTag(action, req, tag);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('data', async (tag: ImportedTag) => {
+          // Set default value
+          tag.importedBy = importedBy;
+          tag.importedOn = importedOn;
+          // Import
+          if (await TagService.importTag(action, req, tag)) {
+            result.inSuccess++;
+          } else {
+            result.inError++;
+          }
         });
         parser.on('error', function(error) {
           void Logging.logError({
@@ -508,7 +532,7 @@ export default class TagService {
             module: MODULE_NAME, method: 'handleImportTags',
             action: action,
             user: req.user.id,
-            message: 'Invalid json file',
+            message: `Invalid Json file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -521,19 +545,28 @@ export default class TagService {
           module: MODULE_NAME, method: 'handleImportTags',
           action: action,
           user: req.user.id,
-          message: 'Invalid file format'
+          message: `Invalid file format '${mimetype}'`
         });
         res.writeHead(HTTPError.INVALID_FILE_FORMAT);
         res.end();
       }
     });
-    busboy.on('finish', function() {
+    busboy.on('finish', () => {
+      // Log
+      void Logging.logActionsResponse(
+        req.user.tenantID, action,
+        MODULE_NAME, 'deleteTransactions', result,
+        '{{inSuccess}} Tag(s) were successfully uploaded and ready for asynchronous import',
+        '{{inError}} Tag(s) failed to be uploaded',
+        '{{inSuccess}}  Tag(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
+        'No Tag have been uploaded', req.user
+      );
       void Logging.logInfo({
         tenantID: req.user.tenantID,
         action: action,
         module: MODULE_NAME, method: 'handleImportTags',
         user: req.user,
-        message: 'File successfully uploaded',
+        message: 'File has been successfully uploaded in database and ready for asynchronous import',
       });
       res.end();
       next();
@@ -633,28 +666,31 @@ export default class TagService {
       '{{inSuccess}} tag(s) were successfully deleted',
       '{{inError}} tag(s) failed to be deleted',
       '{{inSuccess}} tag(s) were successfully deleted and {{inError}} failed to be deleted',
-      'No tags have been deleted'
+      'No tags have been deleted', loggedUser
     );
     return result;
   }
 
-  private static async importTag(action: ServerAction, req: Request, tag: any): Promise<void> {
+  private static async importTag(action: ServerAction, req: Request, importedTag: ImportedTag): Promise<boolean> {
     try {
-      const newUploadedTag: ImportedTag = {
-        id: tag.id.toUpperCase(),
-        description: tag.description ? tag.description : `Badge ID '${tag.id}'`,
+      const newImportedTag: ImportedTag = {
+        id: importedTag.id.toUpperCase(),
+        description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
       };
-      TagValidator.getInstance().validateTagCreation(newUploadedTag);
-      newUploadedTag.importedBy = req.user.id;
-      await TagStorage.saveImportedTag(req.user.tenantID, newUploadedTag);
+      // Validate Tad data
+      TagValidator.getInstance().validateTagCreation(newImportedTag);
+      // Save it for import
+      await TagStorage.saveImportedTag(req.user.tenantID, newImportedTag);
+      return true;
     } catch (error) {
       await Logging.logError({
         tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'importTag',
         action: action,
-        message: 'tag cannot be imported',
-        detailedMessages: { error: error.message, stack: error.stack }
+        message: 'Tag cannot be imported',
+        detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
       });
+      return false;
     }
   }
 }
