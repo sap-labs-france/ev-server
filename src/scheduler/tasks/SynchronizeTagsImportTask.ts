@@ -3,7 +3,7 @@ import Tag, { ImportedTag } from '../../types/Tag';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
-import { HTTPError } from '../../types/HTTPError';
+import { ImportStatus } from '../../types/GlobalType';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -25,7 +25,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
         let importedTags: DataResult<ImportedTag>;
         do {
           // Get the imported tags
-          importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
+          importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
           for (const importedTag of importedTags.result) {
             try {
               // Existing tags
@@ -67,7 +67,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
               });
             } catch (error) {
               // Update the imported Tag
-              importedTag.errorCode = HTTPError.GENERAL_ERROR;
+              importedTag.status = ImportStatus.ERROR;
               importedTag.errorDescription = error.message;
               // Update it
               await TagStorage.saveImportedTag(tenant.id, importedTag);

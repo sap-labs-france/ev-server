@@ -2,7 +2,7 @@ import User, { UserRole, UserStatus } from '../../types/User';
 
 import Constants from '../../utils/Constants';
 import DbParams from '../../types/database/DbParams';
-import { HTTPError } from '../../types/HTTPError';
+import { ImportStatus } from '../../types/GlobalType';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -21,12 +21,12 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
     if (await LockingManager.acquire(synchronizeUsersImport)) {
       try {
         const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
-        let importedUsers = await UserStorage.getImportedUsers(tenant.id, { withNoError: true }, dbParams);
+        let importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
         while (importedUsers && !Utils.isEmptyArray(importedUsers.result)) {
           for (const importedUser of importedUsers.result) {
             const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
             if (foundUser) {
-              importedUser.errorCode = HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR;
+              importedUser.status = ImportStatus.ERROR;
               importedUser.errorDescription = 'Email already exists';
               await UserStorage.saveImportedUser(tenant.id, importedUser);
             } else {
@@ -57,7 +57,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   message: `User with email: ${importedUser.email} have been created in Tenant ${Utils.buildTenantName(tenant)}`
                 });
               } catch (error) {
-                importedUser.errorCode = HTTPError.GENERAL_ERROR;
+                importedUser.status = ImportStatus.ERROR;
                 importedUser.errorDescription = error.message;
                 await UserStorage.saveImportedUser(tenant.id, importedUser);
                 // Error
@@ -71,7 +71,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
               }
             }
           }
-          importedUsers = await UserStorage.getImportedUsers(tenant.id, { withNoError: true }, dbParams);
+          importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
         }
       } catch (error) {
         // Log error

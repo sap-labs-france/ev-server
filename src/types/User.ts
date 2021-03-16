@@ -2,8 +2,7 @@ import Address from './Address';
 import { AuthorizationActions } from './Authorization';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { HTTPError } from './HTTPError';
-import { StatusCodes } from 'http-status-codes';
+import { ImportStatus } from './GlobalType';
 import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps, AuthorizationActions {
@@ -65,7 +64,7 @@ export interface ImportedUser {
   email: string;
   importedBy?: string;
   importedOn?: Date;
-  errorCode?: HTTPError | StatusCodes;
+  status?: ImportStatus
   errorDescription?: string;
 }
 
