@@ -1,3 +1,4 @@
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
@@ -20,7 +21,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
 
   async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
-    // Get Assets
+    // Get Site Areas
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
@@ -35,6 +36,21 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
       );
       modifiedCount += result.modifiedCount;
     }
+    // Delete siteIDs for charging stations without site area
+    const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
+      {
+        siteAreaID: {
+          $exists: true,
+          $eq: null
+        }
+      },
+      {
+        $set: {
+          siteID: null,
+        }
+      }
+    );
+    modifiedCount += result.modifiedCount;
     // Log in the default tenant
     if (modifiedCount > 0) {
       await Logging.logDebug({
@@ -47,7 +63,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {

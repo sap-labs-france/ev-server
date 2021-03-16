@@ -35,6 +35,21 @@ export default class AddSiteIDToAssetTask extends MigrationTask {
       );
       modifiedCount += result.modifiedCount;
     }
+    // Delete siteIDs for assets without site area
+    const result = await global.database.getCollection(tenant.id, 'assets').updateMany(
+      {
+        siteAreaID: {
+          $exists: true,
+          $eq: null
+        }
+      },
+      {
+        $set: {
+          siteID: null,
+        }
+      }
+    );
+    modifiedCount += result.modifiedCount;
     // Log in the default tenant
     if (modifiedCount > 0) {
       await Logging.logDebug({
