@@ -678,7 +678,7 @@ export default class TagService {
         description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
       };
       // Validate Tad data
-      TagValidator.getInstance().validateTagCreation(newImportedTag);
+      TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
       // Save it for import
       await TagStorage.saveImportedTag(req.user.tenantID, newImportedTag);
       return true;

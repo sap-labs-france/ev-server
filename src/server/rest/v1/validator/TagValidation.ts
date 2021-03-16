@@ -6,11 +6,11 @@ import global from '../../../../types/GlobalType';
 
 export default class TagValidator extends SchemaValidator {
   private static instance: TagValidator|null = null;
-  private tagCreation: Schema;
+  private importedTagCreation: Schema;
 
   private constructor() {
     super('TagValidator');
-    this.tagCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create-req.json`, 'utf8'));
+    this.importedTagCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/imported-tag-create-req.json`, 'utf8'));
   }
 
   public static getInstance(): TagValidator {
@@ -20,7 +20,7 @@ export default class TagValidator extends SchemaValidator {
     return TagValidator.instance;
   }
 
-  validateTagCreation(importedTag: ImportedTag): void {
-    this.validate(this.tagCreation, importedTag);
+  validateImportedTagCreation(importedTag: ImportedTag): void {
+    this.validate(this.importedTagCreation, importedTag);
   }
 }
