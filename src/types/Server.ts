@@ -447,6 +447,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_RESET = 'chargingstations/:id/reset',
   REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/:id/cache/clear',
   REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'chargingstations/:id/configuration/retrieve',
+  REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'chargingstations/:id/configuration',
   REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/:id/remote/start',
   REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/:id/remote/stop',
   REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/:id/connectors/:connectorId/unlock',
@@ -473,6 +474,7 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_EXPORT = 'chargingstations/action/export',
 
   REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/connection/check',
+  REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'chargingstations/smartcharging/trigger',
 
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',

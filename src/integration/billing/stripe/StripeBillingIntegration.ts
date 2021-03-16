@@ -718,13 +718,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       const customer = await this.getStripeCustomer(transaction.user);
       if (customer) {
         // Let's call the concrete implementation for stripe
-        const billingInvoice: BillingInvoice = await this.billTransaction(transaction);
-        // Return the operation result as a BillingDataTransactionStop
-        return {
-          status: BillingStatus.BILLED,
-          invoiceID: billingInvoice.id,
-          invoiceStatus: billingInvoice.status
-        };
+        const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
+        return billingDataTransactionStop;
       } else if (this.__liveMode) {
         throw new Error('Unexpected situation - no customer - The transaction should not have been started in this context');
       }
@@ -754,18 +749,21 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return (list.data.length > 0) ? list.data[0] : null;
   }
 
-  public async billTransaction(transaction: Transaction): Promise<BillingInvoice> {
+  public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // ACHTUNG: a single transaction may generate several lines in the invoice
-    const invoiceItems: Array<BillingInvoiceItem> = this.convertToBillingInvoiceItems(transaction);
-    const billingInvoice = await this.billInvoiceItems(transaction.user, invoiceItems, `${transaction.id}`);
-    if (billingInvoice) {
-      // Send a notification to the user
-      void this.sendInvoiceNotification(billingInvoice);
-    }
-    return billingInvoice;
+    const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
+    const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, `${transaction.id}`);
+    // Send a notification to the user
+    void this.sendInvoiceNotification(billingInvoice);
+    return {
+      status: BillingStatus.BILLED,
+      invoiceID: billingInvoice.id,
+      invoiceStatus: billingInvoice.status,
+      invoiceItem
+    };
   }
 
-  private convertToBillingInvoiceItems(transaction: Transaction) : Array<BillingInvoiceItem> {
+  private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     // Destructuring transaction.stop
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     // TODO - make it more precise - Pricing transparency!
@@ -798,17 +796,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         end: timestamp?.valueOf()
       }
     };
-    return [ billingInvoiceItem] ;
+    return billingInvoiceItem ;
   }
 
-  public async billInvoiceItems(user: User, billingInvoiceItems: Array<BillingInvoiceItem>, idemPotencyKey?: string): Promise<BillingInvoice> {
+  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice> {
     // Let's collect the required information
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
     let stripeInvoice = await this._getLatestDraftInvoice(customerID);
-    // TODO - well ... for now we only have one item! - Should be done for all items!
-    const billingInvoiceItem = billingInvoiceItems[0];
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
     const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
     if (!stripeInvoiceItem) {
@@ -817,7 +813,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         user: user.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'billInvoiceItems',
+        module: MODULE_NAME, method: 'billInvoiceItem',
         message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id }'`
       });
     }
@@ -836,7 +832,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           user: user.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'billInvoiceItems',
+          module: MODULE_NAME, method: 'billInvoiceItem',
           message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id }'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
