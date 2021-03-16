@@ -1281,7 +1281,7 @@ export default class UserService {
         firstName: user.FirstName,
         email: user.Email,
       };
-      UserValidator.getInstance().validateUserCreation(newUploadedUser);
+      UserValidator.getInstance().validateImportedUserCreation(newUploadedUser);
       newUploadedUser.importedBy = req.user.id;
       await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
     } catch (error) {

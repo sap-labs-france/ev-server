@@ -31,6 +31,7 @@ export default class Constants {
   public static readonly EXPORT_PDF_PAGE_SIZE = 100;
   public static readonly EXPORT_PAGE_SIZE = 1000;
   public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
+  public static readonly IMPORT_PAGE_SIZE = 1000;
 
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({

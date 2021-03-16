@@ -43,7 +43,7 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Tag(s) description have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Tag(s) description have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

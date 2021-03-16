@@ -1,7 +1,7 @@
 import Site, { SiteUser } from '../../types/Site';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
-import global, { FilterParams, Image } from '../../types/GlobalType';
+import global, { FilterParams, Image, ImportStatus } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
@@ -280,7 +280,7 @@ export default class UserStorage {
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
-      errorCode: importedUserToSave.errorCode,
+      status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn:importedUserToSave.importedOn ? importedUserToSave.importedOn : new Date(),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
@@ -683,9 +683,7 @@ export default class UserStorage {
   }
 
   public static async getImportedUsers(tenantID: string,
-    params: {
-      withNoError?: boolean; search?: string
-    },
+    params: { status?: ImportStatus; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsers');
@@ -708,12 +706,9 @@ export default class UserStorage {
         { 'email': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // Only entries with no error
-    if (params.withNoError) {
-      filters.$or = [
-        { 'errorCode': { '$exists': false } },
-        { 'errorCode': null }
-      ];
+    // Status
+    if (params.status) {
+      filters.status = params.status;
     }
     // Remove deleted
     filters.deleted = { '$ne': true };

@@ -6,6 +6,7 @@ import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SetDefaultTagToUserTask';
 
@@ -38,11 +39,11 @@ export default class SetDefaultTagToUserTask extends MigrationTask {
     }
     // Log in the default tenant
     if (modifiedCount > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Tag(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

@@ -990,12 +990,13 @@ export default class TransactionService {
       '{{inSuccess}} transaction(s) were successfully deleted',
       '{{inError}} transaction(s) failed to be deleted',
       '{{inSuccess}} transaction(s) were successfully deleted and {{inError}} failed to be deleted',
-      'No transactions have been deleted'
+      'No transactions have been deleted', loggedUser
     );
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction,
+    params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({

@@ -1,12 +1,14 @@
+import Tag, { ImportedTag } from '../../types/Tag';
+
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
-import { HTTPError } from '../../types/HTTPError';
+import { ImportStatus } from '../../types/GlobalType';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
-import Tag from '../../types/Tag';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
@@ -19,16 +21,30 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
     const synchronizeTagsImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.TAGS, 'synchronize-tags-import');
     if (await LockingManager.acquire(synchronizeTagsImport)) {
       try {
-        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
-        let importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
-        while (importedTags && !Utils.isEmptyArray(importedTags.result)) {
+        const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
+        let importedTags: DataResult<ImportedTag>;
+        do {
+          // Get the imported tags
+          importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
           for (const importedTag of importedTags.result) {
-            const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
-            if (foundTag) {
-              importedTag.errorCode = HTTPError.TAG_ALREADY_EXIST_ERROR;
-              importedTag.errorDescription = `Tag with ID '${foundTag.id}' already exists`;
-              await TagStorage.saveImportedTag(tenant.id, importedTag);
-            } else {
+            try {
+              // Existing tags
+              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
+              if (foundTag) {
+                // Update it
+                await TagStorage.saveImportedTag(tenant.id, { ...foundTag, ...importedTag });
+                // Remove the imported Tag
+                await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
+                // Log
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  action: ServerAction.SYNCHRONIZE_TAGS,
+                  module: MODULE_NAME, method: 'processTenant',
+                  message: `Tag with id: ${importedTag.id} have been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
+                });
+                continue;
+              }
+              // New Tag
               const tag: Tag = {
                 id: importedTag.id,
                 description: importedTag.description,
@@ -36,34 +52,36 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
                 deleted: false,
                 active: false,
                 createdBy: { id: importedTag.importedBy },
-                createdOn: importedTag.importedOn
+                createdOn: importedTag.importedOn,
               };
-              try {
-                await TagStorage.saveTag(tenant.id, tag);
-                await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
-                await Logging.logDebug({
-                  tenantID: tenant.id,
-                  action: ServerAction.SYNCHRONIZE_TAGS,
-                  module: MODULE_NAME, method: 'SYNCHRONIZE_TAGS',
-                  message: `Tag with id: ${importedTag.id} have been created in Tenant ${tenant.name}`
-                });
-              } catch (error) {
-                importedTag.errorCode = HTTPError.GENERAL_ERROR;
-                importedTag.errorDescription = error.message;
-                await TagStorage.saveImportedTag(tenant.id, importedTag);
-                // Error
-                await Logging.logError({
-                  tenantID: tenant.id,
-                  action: ServerAction.SYNCHRONIZE_TAGS,
-                  module: MODULE_NAME, method: 'createTag',
-                  message: `An error occurred when importing tag with id: ${importedTag.id}`,
-                  detailedMessages: { error }
-                });
-              }
+              // Save the new Tag
+              await TagStorage.saveTag(tenant.id, tag);
+              // Remove the imported Tag
+              await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
+              // Log
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                action: ServerAction.SYNCHRONIZE_TAGS,
+                module: MODULE_NAME, method: 'processTenant',
+                message: `Tag with id: ${importedTag.id} have been created in Tenant ${Utils.buildTenantName(tenant)}`
+              });
+            } catch (error) {
+              // Update the imported Tag
+              importedTag.status = ImportStatus.ERROR;
+              importedTag.errorDescription = error.message;
+              // Update it
+              await TagStorage.saveImportedTag(tenant.id, importedTag);
+              // Log
+              await Logging.logError({
+                tenantID: tenant.id,
+                action: ServerAction.SYNCHRONIZE_TAGS,
+                module: MODULE_NAME, method: 'processTenant',
+                message: `An error occurred while importing the Tag ID '${importedTag.id}'`,
+                detailedMessages: { error: error.message, stack: error.stack }
+              });
             }
           }
-          importedTags = await TagStorage.getImportedTags(tenant.id, { withNoError: true }, dbParams);
-        }
+        } while (!Utils.isEmptyArray(importedTags?.result));
       } catch (error) {
         // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_TAGS, error);

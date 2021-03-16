@@ -1,5 +1,5 @@
 import Tag, { ImportedTag } from '../../types/Tag';
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { FilterParams, ImportStatus } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -44,9 +44,9 @@ export default class TagStorage {
     const tagMDB = {
       _id: importedTagToSave.id,
       description: importedTagToSave.description,
-      importedOn: importedTagToSave.importedOn ? importedTagToSave.importedOn : new Date(),
+      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedTagToSave.importedBy),
-      errorCode: importedTagToSave.errorCode,
+      status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription
     };
     await global.database.getCollection<any>(tenantID, 'tagsImport').findOneAndUpdate(
@@ -74,9 +74,7 @@ export default class TagStorage {
   }
 
   public static async getImportedTags(tenantID: string,
-    params: {
-      withNoError?: boolean; search?: string
-    },
+    params: { status?: ImportStatus; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedTags');
@@ -98,12 +96,9 @@ export default class TagStorage {
         { 'description': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // Only entries with no error
-    if (params.withNoError) {
-      filters.$or = [
-        { 'errorCode': { '$exists': false } },
-        { 'errorCode': null }
-      ];
+    // Status
+    if (params.status) {
+      filters.status = params.status;
     }
     // Add filters
     aggregation.push({
