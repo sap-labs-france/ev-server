@@ -317,13 +317,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedInvoiceIDs;
   }
 
-  private async _createStripeInvoice(customerID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
+  private async _createStripeInvoice(customerID: string, userID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
       customer: customerID,
-      collection_method: 'send_invoice',
-      days_until_due: 30,
-      auto_advance: false
+      collection_method: 'send_invoice', // TODO - must be clarified - other option is 'charge_automatically' ==> triggering an implicit payment!
+      days_until_due: 30, // TODO - must be clarified - get rid of this hardcoded default value
+      auto_advance: false, // our integration is responsible for transitioning the invoice between statuses
+      metadata: {
+        userID
+      }
     }, {
       // idempotency_key: idempotencyKey?.toString(),
       idempotencyKey: idempotencyKey?.toString(), // STRIPE version 8.137.0 - property as been renamed!!!
@@ -828,7 +831,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Stripe invoice ID is not yet known - Let's create a pending invoice item
     if (!stripeInvoice) {
       // Let's create a new draft invoice (if none has been found)
-      stripeInvoice = await this._createStripeInvoice(customerID, this.buildIdemPotencyKey(idemPotencyKey));
+      stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
     if (this.settings.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
@@ -1053,7 +1056,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         description: description,
         name: fullName,
         preferred_locales: [locale],
-        metadata: { 'userID': user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
+        metadata: { userID: user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
       });
     }
     // Update user data
