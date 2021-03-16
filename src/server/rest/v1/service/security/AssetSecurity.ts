@@ -29,6 +29,7 @@ export default class AssetSecurity {
     const filteredRequest: HttpAssetsRequest = {
       Search: sanitize(request.Search),
       SiteAreaID: sanitize(request.SiteAreaID),
+      SiteID: sanitize(request.SiteID),
       WithSiteArea: UtilsSecurity.filterBoolean(request.WithSiteArea),
       WithNoSiteArea: UtilsSecurity.filterBoolean(request.WithNoSiteArea),
       DynamicOnly: UtilsSecurity.filterBoolean(request.DynamicOnly),
