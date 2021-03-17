@@ -474,7 +474,7 @@ export enum ServerRoute {
   REST_TRANSACTIONS = 'transactions/history',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTIONS_IN_PROGRESS = 'transactions/status/inprogress',
-  REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumption',
+  REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',
