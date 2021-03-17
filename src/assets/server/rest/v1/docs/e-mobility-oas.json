@@ -744,7 +744,7 @@
           {
             "in": "query",
             "name": "RefundStatus",
-            "description": "Pipe separated refund statuses",
+            "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
             "schema": {
               "type": "string"
             }
