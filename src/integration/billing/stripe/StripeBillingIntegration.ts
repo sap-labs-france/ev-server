@@ -220,7 +220,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Get Invoice
     try {
       const stripeInvoice = await this.stripe.invoices.retrieve(id);
-      const { id: invoiceID, customer, number, amount_due: amount, amount_paid, status, currency, invoice_pdf: downloadUrl } = stripeInvoice;
+      const { id: invoiceID, customer, number, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl } = stripeInvoice;
       const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
       const customerID = customer as string;
       const billingInvoice: BillingInvoice = {
@@ -229,12 +229,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         customerID,
         number,
         amount,
-        amount_paid,
+        amountPaid,
         status: status as BillingInvoiceStatus,
         currency,
         createdOn: new Date(stripeInvoice.created * 1000),
         nbrOfItems: nbrOfItems,
-        downloadUrl
+        downloadUrl,
+        downloadable: !!downloadUrl
       };
       return billingInvoice;
     } catch (e) {
@@ -341,12 +342,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  private async _replicateStripeInvoice(userID: string, stripeInvoiceID: string): Promise<BillingInvoice> {
+  public async synchronizeAsBillingInvoice(userID: string, stripeInvoiceID: string): Promise<BillingInvoice> {
     // Make sure to get fresh data !
     const stripeInvoice: Stripe.Invoice = await this.getStripeInvoice(stripeInvoiceID);
     if (!stripeInvoice) {
       throw new BackendError({
         message: `Unexpected situation - invoice not found - ${stripeInvoiceID}`,
+        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING_TRANSACTION,
+        method: '_replicateStripeInvoice',
+      });
+    }
+    // Destructuring the STRIPE invoice to extract the required information
+    const { id: invoiceID, customer, number, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata } = stripeInvoice;
+    const customerID = customer as string;
+    const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
+    // Check metadata consistency - userID is mandatory!
+    const eMobilityUserID = metadata?.userID;
+    if (userID !== eMobilityUserID) {
+      throw new BackendError({
+        message: `Unexpected situation - userID metadata is not properly set in invoice - ${stripeInvoiceID}`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: '_replicateStripeInvoice',
@@ -354,26 +368,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Get the corresponding BillingInvoice (if any)
-    const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, stripeInvoice.id);
+    const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenantID, stripeInvoice.id);
     const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
     const invoiceToSave: BillingInvoice = {
-      id: billingInvoice?.id,
-      userID,
-      invoiceID: stripeInvoice.id,
-      customerID: stripeInvoice.customer as string,
-      number: stripeInvoice.number,
-      amount: stripeInvoice.amount_due,
-      amount_paid: stripeInvoice.amount_paid,
-      status: stripeInvoice.status as BillingInvoiceStatus,
-      currency: stripeInvoice.currency,
-      createdOn: moment.unix(stripeInvoice.created).toDate(), // epoch to Date!
-      nbrOfItems,
-      downloadUrl: stripeInvoice.invoice_pdf,
-      downloadable: !!stripeInvoice.invoice_pdf,
+      id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
+      userID, invoiceID, customerID, number, amount, amountPaid, currency, createdOn, nbrOfItems, downloadUrl, downloadable: !!downloadUrl,
+      status: status as BillingInvoiceStatus,
     };
     // Let's persist the up-to-date data
-    const invoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, invoiceId);
+    const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
+    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, freshInvoiceId);
     if (freshBillingInvoice?.downloadable) {
       // Replicate the invoice as a PDF document
       const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
@@ -489,7 +493,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const stripeInvoice = await this._chargeStripeInvoice(invoice.invoiceID);
-      const billingInvoice = await this._replicateStripeInvoice(invoice.userID, stripeInvoice.id);
+      const billingInvoice = await this.synchronizeAsBillingInvoice(invoice.userID, stripeInvoice.id);
       return billingInvoice;
     } catch (error) {
       throw new BackendError({
@@ -858,7 +862,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this._replicateStripeInvoice(userID, stripeInvoice.id);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(userID, stripeInvoice.id);
     // Return the billing invoice
     return billingInvoice;
   }

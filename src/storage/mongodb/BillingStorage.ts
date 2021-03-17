@@ -19,7 +19,7 @@ export default class BillingStorage {
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
-  public static async getInvoiceByBillingInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
+  public static async getInvoiceByInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
       billingInvoiceID: id
     }, Constants.DB_PARAMS_SINGLE_RECORD);
@@ -169,6 +169,7 @@ export default class BillingStorage {
       userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
+      amountPaid: Utils.convertToFloat(invoiceToSave.amountPaid),
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
