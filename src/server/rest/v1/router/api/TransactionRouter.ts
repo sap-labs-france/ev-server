@@ -14,12 +14,35 @@ export default class TransactionRouter {
 
   public buildRoutes(): express.Router {
     this.buildRouteCompletedTransactions();
+    this.buildRouteTransaction();
+    this.buildRouteTransactionConsumption();
+    this.buildRouteTransactionsInProgress();
     return this.router;
   }
 
   protected buildRouteCompletedTransactions(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsCompleted.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransaction(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransaction.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsInProgress(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_IN_PROGRESS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsActive.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionConsumption(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.TransactionId = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
     });
   }
 }

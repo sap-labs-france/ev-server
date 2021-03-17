@@ -471,7 +471,10 @@ export enum ServerRoute {
   REST_CHARGING_PROFILES = 'chargingprofiles',
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
 
-  REST_TRANSACTIONS = 'transactions',
+  REST_TRANSACTIONS = 'transactions/history',
+  REST_TRANSACTION = 'transactions/:id',
+  REST_TRANSACTIONS_IN_PROGRESS = 'transactions/status/inprogress',
+  REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumption',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',

@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class TransactionApi extends CrudApi {
@@ -11,7 +12,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllActive(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/TransactionsActive');
+    return await super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS_IN_PROGRESS}`);
   }
 
   public async readAllCompleted(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
