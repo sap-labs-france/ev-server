@@ -47,3 +47,7 @@ export interface HttpConsumptionFromTransactionRequest {
   StartDateTime: Date;
   EndDateTime: Date;
 }
+
+export interface HttpGetTransactionsRequest {
+  Status?: 'completed' | 'active';
+}

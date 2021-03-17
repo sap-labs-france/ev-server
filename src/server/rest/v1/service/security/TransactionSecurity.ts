@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpGetTransactionsRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../../types/requests/HttpTransactionRequest';
 
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -109,5 +109,11 @@ export default class TransactionSecurity {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }
     return filteredRequest;
+  }
+
+  public static filterGetTransactions(request: any): HttpGetTransactionsRequest {
+    return {
+      Status: sanitize(request.Status),
+    };
   }
 }

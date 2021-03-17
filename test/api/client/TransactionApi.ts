@@ -12,11 +12,11 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllActive(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS_IN_PROGRESS}`);
+    return await super.readAll({ ...params, Status: 'active' }, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS}`);
   }
 
   public async readAllCompleted(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS}`);
+    return await super.readAll({ ...params, Status: 'completed' }, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS}`);
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
