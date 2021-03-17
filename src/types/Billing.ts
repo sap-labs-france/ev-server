@@ -74,6 +74,7 @@ export interface BillingInvoice {
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;
+  amountPaid?: number;
   currency?: string;
   customerID?: string;
   createdOn?: Date;
@@ -112,8 +113,11 @@ export interface BillingInvoiceDocument {
 
 export interface BillingOperationResult {
   succeeded: boolean
-  error?: {
-    message: string
-  };
+  error?: BillingError
   internalData?: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
+}
+
+export interface BillingError {
+  message: string
+  context?: unknown; // e.g.: payment ==> last_payment_error
 }

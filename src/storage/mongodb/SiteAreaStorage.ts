@@ -12,20 +12,23 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SiteAreaStorage';
 
 export default class SiteAreaStorage {
-  public static async addAssetsToSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
+  public static async addAssetsToSiteArea(tenantID: string, siteArea: SiteArea, assetIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addAssetsToSiteArea');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Site Area provided?
-    if (siteAreaID) {
+    if (siteArea) {
       // At least one Asset
       if (assetIDs && assetIDs.length > 0) {
         // Update all assets
         await global.database.getCollection<any>(tenantID, 'assets').updateMany(
           { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
           {
-            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+            $set: {
+              siteAreaID: Utils.convertToObjectID(siteArea.id),
+              siteID: Utils.convertToObjectID(siteArea.siteID)
+            }
           });
       }
     }
@@ -46,7 +49,10 @@ export default class SiteAreaStorage {
         await global.database.getCollection<any>(tenantID, 'assets').updateMany(
           { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
           {
-            $set: { siteAreaID: null }
+            $set: {
+              siteAreaID: null,
+              siteID: null
+            }
           });
       }
     }
@@ -311,20 +317,23 @@ export default class SiteAreaStorage {
     };
   }
 
-  public static async addChargingStationsToSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
+  public static async addChargingStationsToSiteArea(tenantID: string, siteArea: SiteArea, chargingStationIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addChargingStationsToSiteArea');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Site provided?
-    if (siteAreaID) {
+    if (siteArea) {
       // At least one ChargingStation
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
           { '_id': { $in: chargingStationIDs } },
           {
-            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+            $set: {
+              siteAreaID: Utils.convertToObjectID(siteArea.id),
+              siteID: Utils.convertToObjectID(siteArea.siteID)
+            }
           });
       }
     }
@@ -345,7 +354,10 @@ export default class SiteAreaStorage {
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
           { '_id': { $in: chargingStationIDs } },
           {
-            $set: { siteAreaID: null }
+            $set: {
+              siteAreaID: null,
+              siteID: null
+            }
           });
       }
     }
