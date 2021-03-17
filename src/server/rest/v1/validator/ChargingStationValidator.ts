@@ -5,7 +5,7 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class ChargingStationValidator extends SchemaValidator {
-  private static _instance: ChargingStationValidator | undefined;
+  private static instance: ChargingStationValidator | undefined;
   private chargingStationsGet: Schema;
 
 
@@ -15,10 +15,10 @@ export default class ChargingStationValidator extends SchemaValidator {
   }
 
   public static getInstance(): ChargingStationValidator {
-    if (!ChargingStationValidator._instance) {
-      ChargingStationValidator._instance = new ChargingStationValidator();
+    if (!ChargingStationValidator.instance) {
+      ChargingStationValidator.instance = new ChargingStationValidator();
     }
-    return ChargingStationValidator._instance;
+    return ChargingStationValidator.instance;
   }
 
   public validateChargingStationsGetReq(data: any): HttpChargingStationsRequest {
