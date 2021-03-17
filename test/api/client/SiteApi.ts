@@ -41,4 +41,21 @@ export default class SiteApi extends CrudApi {
   public async delete(id) {
     return super.delete(id, '/client/api/SiteDelete');
   }
+
+  public async assignSiteAdmin(siteId, userId) {
+    return super.update({
+      siteID: siteId,
+      userID: userId,
+      siteAdmin: true
+    }, '/client/api/SiteUserAdmin');
+  }
+
+  public async assignSiteOwner(siteId, userId) {
+    return super.update({
+      siteID: siteId,
+      userID: userId,
+      siteOwner: true
+    }, '/client/api/SiteOwner');
+  }
+
 }
