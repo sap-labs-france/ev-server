@@ -283,6 +283,7 @@ export enum ServerAction {
   TRANSACTION_YEARS = 'TransactionYears',
   UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
+  TRANSACTIONS = 'Transactions',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
 
   TRANSACTION_OCPI_CDR_EXPORT = 'TransactionOcpiCdrExport',
@@ -472,9 +473,7 @@ export enum ServerRoute {
   REST_CHARGING_PROFILE = 'chargingprofiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
-  REST_TRANSACTIONS_HISTORY = 'transactions/history',
   REST_TRANSACTION = 'transactions/:id',
-  REST_TRANSACTIONS_IN_PROGRESS = 'transactions/status/inprogress',
   REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
 
   REST_USERS = 'users',
