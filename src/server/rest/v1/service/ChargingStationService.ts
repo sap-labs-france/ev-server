@@ -818,8 +818,8 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleGetChargingStation', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -827,7 +827,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleGetChargingStation',
-        value: filteredRequest.ID
+        value: filteredRequest.id
       });
     }
     let projectFields = [
@@ -844,15 +844,15 @@ export default class ChargingStationService {
     }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
-      req.user.tenantID, filteredRequest.ID, {}, projectFields);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
+      req.user.tenantID, filteredRequest.id, {}, projectFields);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
     if (chargingStation.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
+        message: `ChargingStation with ID '${filteredRequest.id}' is logically deleted`,
         module: MODULE_NAME,
         method: 'handleGetChargingStation',
         user: req.user
