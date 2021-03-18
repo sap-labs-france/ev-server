@@ -1,5 +1,5 @@
 {
-  "title": "Command Charging Station Request",
+  "title": "Charging Station Action Request",
   "type": "object",
   "properties": {
     "chargeBoxID": {
