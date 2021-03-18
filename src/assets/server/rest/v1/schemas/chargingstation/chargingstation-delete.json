@@ -1,0 +1,12 @@
+{
+  "title": "Delete a Charging Station",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "id"
+  ]
+}
