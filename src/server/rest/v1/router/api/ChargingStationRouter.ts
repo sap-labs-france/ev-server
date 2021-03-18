@@ -55,14 +55,12 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStation(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStation.bind(this), ServerAction.CHARGING_STATION, req, res, next);
     });
   }
 
   protected buildRouteChargingStationDelete(): void {
     this.router.delete(`/${ServerRoute.REST_CHARGING_STATIONS}/:id`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleDeleteChargingStation.bind(this), ServerAction.CHARGING_STATION_DELETE, req, res, next);
     });
   }

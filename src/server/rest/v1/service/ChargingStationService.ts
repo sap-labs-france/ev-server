@@ -695,7 +695,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.query).id;
+    const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.params).id;
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME,
       'handleDeleteChargingStation', req.user);
@@ -818,7 +818,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleGetChargingStation', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
@@ -839,8 +839,9 @@ export default class ChargingStationService {
       'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
     ];
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
@@ -1081,7 +1082,7 @@ export default class ChargingStationService {
   public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice(15) as Command;
-    const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -1342,7 +1343,13 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    let filteredRequest;
+    try {
+      filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    } catch (e) {
+      const a = 5;
+    }
+
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {

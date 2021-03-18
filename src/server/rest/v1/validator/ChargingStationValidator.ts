@@ -1,6 +1,6 @@
-import HttpByIDRequest, { HttpRestByIDRequest } from '../../../../types/requests/HttpByIDRequest';
+import { HttpChargingStationCommandRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
-import { HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpRestByIDRequest } from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -11,6 +11,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationsGet: Schema;
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
+  private chargingStationAction: Schema;
 
 
   private constructor() {
@@ -18,6 +19,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstations-get.json`, 'utf8'));
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
+    this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -42,6 +44,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationDeleteReq(data: any): HttpRestByIDRequest {
     // Validate schema
     this.validate(this.chargingStationDelete, data);
+    return data;
+  }
+
+  public validateChargingStationActionReq(data: any): HttpChargingStationCommandRequest {
+    // Validate schema
+    this.validate(this.chargingStationAction, data);
     return data;
   }
 }

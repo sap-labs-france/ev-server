@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "id": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "chargingstation.json#/definitions/id"
     }
   },
   "required": [
