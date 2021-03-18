@@ -89,12 +89,12 @@ export default class SiteAreaService {
     }
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
+      await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, siteArea, filteredRequest.assetIDs);
     } else {
       await SiteAreaStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME,
@@ -195,12 +195,12 @@ export default class SiteAreaService {
     }
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
-      await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+      await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, siteArea, filteredRequest.chargingStationIDs);
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
@@ -248,7 +248,7 @@ export default class SiteAreaService {
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
@@ -460,7 +460,7 @@ export default class SiteAreaService {
     } as SiteArea;
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
@@ -571,7 +571,7 @@ export default class SiteAreaService {
               await smartCharging.computeAndApplyChargingProfiles(siteArea);
             }
           } catch (error) {
-            Logging.logError({
+            await Logging.logError({
               tenantID: req.user.tenantID,
               source: Constants.CENTRAL_SERVER,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
@@ -587,7 +587,7 @@ export default class SiteAreaService {
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
