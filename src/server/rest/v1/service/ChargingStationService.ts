@@ -13,6 +13,7 @@ import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStatio
 import { ChargingStationInErrorType } from '../../../../types/InError';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationValidator from '../validator/ChargingStationValidator';
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
@@ -1416,7 +1417,7 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
@@ -1440,8 +1441,9 @@ export default class ChargingStationService {
       ];
     }
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -1462,7 +1464,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields
