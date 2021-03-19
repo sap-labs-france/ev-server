@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Development",
+      "description": "localhost - Development",
       "url": "http://localhost:8080/v1"
     },
     {
@@ -28,7 +28,7 @@
     },
     "license": {
       "name": "Apache 2.0",
-      "url": "https://github.com/LucasBrazi06/ev-server/blob/master/LICENSE"
+      "url": "https://github.com/sap-labs-france/ev-server/blob/master/LICENSE"
     }
   },
   "tags": [
