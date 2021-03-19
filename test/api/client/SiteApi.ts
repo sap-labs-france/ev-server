@@ -34,6 +34,12 @@ export default class SiteApi extends CrudApi {
     }, '/client/api/AddUsersToSite');
   }
 
+  public async readUsersForSite(siteId) {
+    return super.read({
+      SiteID: siteId
+    }, '/client/api/SiteUsers');
+  }
+
   public async update(data) {
     return super.update(data, '/client/api/SiteUpdate');
   }
