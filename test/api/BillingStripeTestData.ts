@@ -62,8 +62,8 @@ export default class StripeIntegrationTestData {
   public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
-    this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
+    expect(this.billingImpl, 'Billing implementation should not ber null');
+    this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
     expect(this.billingUser, 'Billing user should not ber null');
   }
 

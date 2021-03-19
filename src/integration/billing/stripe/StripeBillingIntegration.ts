@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -136,20 +136,26 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return users;
   }
 
-
-  private convertToBillingUser(customer: Stripe.Customer) : BillingUser {
-    if (customer) {
+  private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
+    // Check for the deletion flag
+    const deleted: boolean = customer?.deleted as unknown as boolean; // ACHTUNG - Hack because STRIPE type definition is wrong!
+    if (customer && !deleted) {
+      const previousBillingData = user?.billingData;
+      const newBillingData: BillingUserData = {
+        ...previousBillingData, // Preserve previous values if any
+        customerID: customer.id,
+        lastChangedOn: new Date(),
+        hasSynchroError: false
+      };
+      const userID = customer.metadata?.['userID'];
       const billingUser: BillingUser = {
-        userID: customer.metadata['userID'],
-        // email: customer.email,
+        userID,
         name: customer.name,
-        billingData: {
-          customerID: customer.id
-        }
+        billingData: newBillingData
       };
       return billingUser;
     }
-
+    // return null when the customer is marked as deleted in STRIPE
     return null;
   }
 
@@ -186,15 +192,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
 
     // Return the corresponding  Billing User
-    return this.convertToBillingUser(customer);
-  }
-
-  public async getBillingUserByInternalID(customerID: string): Promise<BillingUser> {
-    // Check Stripe
-    await this.checkConnection();
-    // Get customIDer
-    const customer: Stripe.Customer = await this.getStripeCustomer(customerID);
-    return this.convertToBillingUser(customer);
+    return this.convertToBillingUser(customer, user);
   }
 
   public async getTaxes(): Promise<BillingTax[]> {
@@ -1130,6 +1128,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       customer.id, userDataToUpdate
     );
     // Let's return the corresponding Billing User
-    return this.convertToBillingUser(customer);
+    return this.convertToBillingUser(customer, user);
   }
 }

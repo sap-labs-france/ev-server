@@ -109,7 +109,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           continue;
         }
         // Get Billing User
-        const billingUser = await this.getBillingUserByInternalID(userBillingIDChangedInBilling);
+        const billingUser = await this.getUser(user);
         if (!billingUser) {
           // Only triggers an error if e-Mobility user is not deleted
           actionsDone.inError++;
@@ -637,8 +637,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
 
   abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
-
-  abstract getBillingUserByInternalID(id: string): Promise<BillingUser>;
 
   abstract getUsers(): Promise<BillingUser[]>;
 
