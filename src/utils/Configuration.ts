@@ -233,6 +233,8 @@ export default class Configuration {
 
   // Central System Front-End config
   public static getCentralSystemFrontEndConfig(): CentralSystemFrontEndConfiguration {
+    Configuration.deprecateConfigurationKey('distEnabled', 'CentralSystemFrontEnd');
+    Configuration.deprecateConfigurationKey('distPath', 'CentralSystemFrontEnd');
     // Read conf
     return Configuration.getConfig().CentralSystemFrontEnd;
   }
