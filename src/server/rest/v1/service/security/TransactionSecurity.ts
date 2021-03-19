@@ -74,6 +74,9 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'ReportIDs')) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
+    if (Utils.objectHasProperty(request, 'Status')) {
+      filteredRequest.Status = sanitize(request.Status);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     UtilsSecurity.filterProject(request, filteredRequest);

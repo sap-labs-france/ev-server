@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class TransactionApi extends CrudApi {
@@ -7,15 +8,15 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readById(id) {
-    return await super.readById(id, '/client/api/Transaction');
+    return await super.readById(id, `/v1/api/transactions/${id}`);
   }
 
   public async readAllActive(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/TransactionsActive');
+    return await super.readAll({ ...params, Status: 'active' }, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS}`);
   }
 
   public async readAllCompleted(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/TransactionsCompleted');
+    return await super.readAll({ ...params, Status: 'completed' }, paging, ordering, `/v1/api/${ServerRoute.REST_TRANSACTIONS}`);
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -23,7 +24,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllConsumption(params) {
-    return await super.read(params, '/client/api/TransactionConsumption');
+    return await super.read(params, `/v1/api/transactions/${params.TransactionId}/consumptions`);
   }
 
   public async readAllYears(params) {
