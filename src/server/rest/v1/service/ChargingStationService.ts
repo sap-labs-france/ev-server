@@ -149,7 +149,7 @@ export default class ChargingStationService {
     }
     let resetAndApplyTemplate = false;
     if (Utils.objectHasProperty(filteredRequest, 'manualConfiguration')) {
-      // Check manual config
+      // Auto config -> Manual Config
       if (!chargingStation.manualConfiguration && filteredRequest.manualConfiguration) {
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         delete chargingStation.templateHash;
@@ -157,8 +157,9 @@ export default class ChargingStationService {
         delete chargingStation.templateHashOcppStandard;
         delete chargingStation.templateHashOcppVendor;
         delete chargingStation.templateHashTechnical;
+      // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-      (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
+        (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -192,9 +193,11 @@ export default class ChargingStationService {
         connector.phaseAssignmentToGrid = filteredConnector.phaseAssignmentToGrid;
       }
     }
+    // Manual Config
     if (chargingStation.manualConfiguration) {
       // Existing charge points
       if (!Utils.isEmptyArray(filteredRequest.chargePoints)) {
+        // Update and check the Charge Points
         for (const filteredChargePoint of filteredRequest.chargePoints) {
           const chargePoint = Utils.getChargePointFromID(chargingStation, filteredChargePoint.chargePointID);
           // Update Connectors only if manual configuration is enabled
@@ -213,12 +216,16 @@ export default class ChargingStationService {
             UtilsService.checkIfChargePointValid(chargingStation, chargePoint, req);
           } else {
             // If charging station does not have charge points, but request contains charge points, add it to the station
-            chargingStation.chargePoints ? chargingStation.chargePoints.push(filteredChargePoint) : chargingStation.chargePoints = [filteredChargePoint];
+            if (chargingStation.chargePoints) {
+              chargingStation.chargePoints.push(filteredChargePoint);
+            } else {
+              chargingStation.chargePoints = [ filteredChargePoint ];
+            }
             UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
           }
         }
-      } else if (Utils.isEmptyArray(filteredRequest.chargePoints) && !Utils.isEmptyArray(chargingStation.chargePoints)) {
-        // If charging station contains charge points, but request does not contain charge points, delete them
+      // If charging station contains charge points, but request does not contain charge points, delete them
+      } else if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
         delete chargingStation.chargePoints;
       }
     }
@@ -271,6 +278,7 @@ export default class ChargingStationService {
     chargingStation.lastChangedOn = new Date();
     // Update
     await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+    // Reboot the Charging Station to reapply the templates
     if (resetAndApplyTemplate) {
       try {
         // Use the reset to apply the template again
