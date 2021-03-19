@@ -2,20 +2,8 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "localhost - Development",
-      "url": "http://localhost:8080/v1"
-    },
-    {
-      "description": "SCP - Production system",
-      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "SCP - Quality system",
-      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "AWS - Production system",
-      "url": "https://rest.e-mobility-group.com/v1"
+      "description": "Current server",
+      "url": "/v1"
     }
   ],
   "info": {
