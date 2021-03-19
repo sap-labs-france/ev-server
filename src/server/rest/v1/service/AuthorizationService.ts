@@ -70,13 +70,7 @@ export default class AuthorizationService {
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
     // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
-    // Set to user
-    userToken.sitesAdmin = siteAdminIDs;
-    userToken.sitesOwner = siteOwnerIDs;
     // Enrich
-    const assignedSites = await AuthorizationService.getAssignedUserSites(tenant.id, userToken.id);
-    const sitesOwner = assignedSites.filter((site) => site.siteOwner === true).map((site) => site.id);
-    const sitesAdmin = assignedSites.filter((site) => site.siteAdmin === true).map((site) => site.id);
     for (const site of sites) {
       if (userToken.role === UserRole.ADMIN) {
         site.canRead = true;
@@ -84,8 +78,8 @@ export default class AuthorizationService {
         site.canDelete = true;
       } else {
         site.canRead = Authorizations.canReadSite(userToken);
-        site.canUpdate = Authorizations.canUpdateSite(userToken) && (sitesAdmin.includes(site.id) || sitesOwner.includes(site.id));
-        site.canDelete = Authorizations.canDeleteSite(userToken) && (sitesAdmin.includes(site.id));
+        site.canUpdate = Authorizations.canUpdateSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
+        site.canDelete = Authorizations.canDeleteSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
       }
     }
   }
@@ -519,15 +513,15 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getAssignedUserSites(tenantID: string, userID: string) {
-    // Get the Sites assigned to the user - id, siteOwner, siteAdmin
-    const sites = await UserStorage.getUserSites(tenantID, { userID: userID }, Constants.DB_PARAMS_MAX_LIMIT);
-    return sites.result.map((siteUser) => ({
-      id: siteUser.site.id,
-      siteAdmin: siteUser.siteAdmin,
-      siteOwner: siteUser.siteOwner
-    }));
-  }
+  // private static async getAssignedUserSites(tenantID: string, userID: string) {
+  //   // Get the Sites assigned to the user - id, siteOwner, siteAdmin
+  //   const sites = await UserStorage.getUserSites(tenantID, { userID: userID }, Constants.DB_PARAMS_MAX_LIMIT);
+  //   return sites.result.map((siteUser) => ({
+  //     id: siteUser.site.id,
+  //     siteAdmin: siteUser.siteAdmin,
+  //     siteOwner: siteUser.siteOwner
+  //   }));
+  // }
 
   private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Sites where the user is Site Admin
