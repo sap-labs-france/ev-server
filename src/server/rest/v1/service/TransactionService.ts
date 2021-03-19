@@ -42,7 +42,13 @@ const MODULE_NAME = 'TransactionService';
 export default class TransactionService {
 
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await TransactionService.getTransactions(req, action, {}, []));
+    res.json(await TransactionService.getTransactions(req, action, {}, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+    ]));
     next();
   }
 
@@ -1049,24 +1055,11 @@ export default class TransactionService {
     if (Utils.objectHasProperty(params, 'withTag')) {
       extrafilters.withTag = params.withTag;
     }
-    if (filteredRequest.Status) {
-      if (filteredRequest.Status === 'completed') {
-        projectFields = [
-          ...projectFields,
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID'
-        ];
-        extrafilters.stop = { $exists: true };
-      } else if (filteredRequest.Status === 'active') {
-        projectFields = [
-          ...projectFields,
-          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
-          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID'
-        ];
-        extrafilters.stop = { $exists: false };
-      }
+    if (filteredRequest.Status === 'completed') {
+      extrafilters.stop = { $exists: true };
+    }
+    if (filteredRequest.Status === 'active') {
+      extrafilters.stop = { $exists: false };
     }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
