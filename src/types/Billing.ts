@@ -1,6 +1,5 @@
 import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
 
-import { Timestamp } from 'mongodb';
 import User from './User';
 
 export interface BillingTransactionData {
