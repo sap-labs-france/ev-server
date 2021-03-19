@@ -689,6 +689,15 @@
         "description": "Retrieve a list of Transactions",
         "parameters": [
           {
+            "in": "query",
+            "name": "Status",
+            "description": "Transaction status",
+            "schema": {
+              "type": "string",
+              "enum": ["completed", "active"]
+            }
+          },
+          {
             "$ref": "#/components/parameters/Issuer"
           },
           {
@@ -701,16 +710,16 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargeBoxIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorID"
+            "$ref": "#/components/parameters/ConnectorIDs"
           },
           {
-            "$ref": "#/components/parameters/UserID"
+            "$ref": "#/components/parameters/UserIDs"
           },
           {
-            "$ref": "#/components/parameters/TagID"
+            "$ref": "#/components/parameters/TagIDs"
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
@@ -719,10 +728,34 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/InactivityStatus"
+            "$ref": "#/components/parameters/InactivityStatuses"
           },
           {
             "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "in": "query",
+            "name": "RefundStatus",
+            "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "description": "Transactions minimal price",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "description": "Pipe separated report IDs",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -799,6 +832,175 @@
                         "vehicleModel": "Model 3",
                         "vehicleModelVersion": "Long Range Dual Motor"
                       }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned Transaction",
+            "content": {
+              "application/json": {
+                "example": {
+                  "issuer": true,
+                  "siteID": "###",
+                  "siteAreaID": "###",
+                  "connectorId": 1,
+                  "tagID": "###",
+                  "userID": "###",
+                  "chargeBoxID": "###",
+                  "meterStart": 0,
+                  "timestamp": "2019-06-12T06:49:46.000Z",
+                  "price": 0,
+                  "roundedPrice": 0,
+                  "priceUnit": "EUR",
+                  "stateOfCharge": 0,
+                  "timezone": "Europe/Paris",
+                  "signedData": null,
+                  "stop": {
+                    "userID": "###",
+                    "timestamp": "2019-06-12T09:54:18.000Z",
+                    "tagID": "###",
+                    "meterStop": 18540,
+                    "stateOfCharge": 0,
+                    "signedData": null,
+                    "totalConsumptionWh": 18540,
+                    "totalInactivitySecs": 0,
+                    "inactivityStatus": "I",
+                    "totalDurationSecs": 11072,
+                    "price": 2.5956,
+                    "roundedPrice": 2.59,
+                    "priceUnit": "EUR",
+                    "pricingSource": "simple"
+                  },
+                  "id": 1234567890
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/consumptions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Transaction consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          },
+          {
+            "in": "query",
+            "name": "LoadAllConsumptions",
+            "description": "Load all consumptions",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a Transaction consumption",
+            "content": {
+              "application/json": {
+                "example": {
+                  "issuer": true,
+                  "siteID": "###",
+                  "siteAreaID": "###",
+                  "connectorId": 1,
+                  "tagID": "###",
+                  "userID": "###",
+                  "chargeBoxID": "###",
+                  "meterStart": 0,
+                  "timestamp": "2019-06-12T06:49:46.000Z",
+                  "stateOfCharge": 0,
+                  "timezone": "Europe/Paris",
+                  "stop": {
+                    "userID": "###",
+                    "timestamp": "2019-06-12T09:54:18.000Z",
+                    "tagID": "###",
+                    "stateOfCharge": 0,
+                    "totalConsumptionWh": 18540,
+                    "totalInactivitySecs": 0,
+                    "inactivityStatus": "I",
+                    "totalDurationSecs": 11072,
+                    "price": 2.5956,
+                    "roundedPrice": 2.59,
+                    "priceUnit": "EUR",
+                    "pricingSource": "simple"
+                  },
+                  "id": 1234567890,
+                  "values": [
+                    {
+                      "startedAt": "2019-06-12T06:49:46.000Z",
+                      "endedAt": "2019-06-12T06:50:46.000Z",
+                      "cumulatedAmount": 0.01344,
+                      "cumulatedConsumptionWh": 96,
+                      "cumulatedConsumptionAmps": 0.417391304348,
+                      "instantWatts": 5760,
+                      "instantWattsL1": 0,
+                      "instantWattsL2": 0,
+                      "instantWattsL3": 0,
+                      "instantWattsDC": 0,
+                      "instantAmps": 25.04347826087,
+                      "instantAmpsL1": 0,
+                      "instantAmpsL2": 0,
+                      "instantAmpsL3": 0,
+                      "instantAmpsDC": 0,
+                      "instantVolts": 0,
+                      "instantVoltsL1": 0,
+                      "instantVoltsL2": 0,
+                      "instantVoltsL3": 0,
+                      "instantVoltsDC": 0,
+                      "stateOfCharge": 0,
+                      "limitAmps": 96,
+                      "limitWatts": 22080
                     }
                   ]
                 }
@@ -4773,7 +4975,16 @@
       "TagID": {
         "in": "query",
         "name": "TagID",
-        "description": "Badge ID",
+        "description": "Tag ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TagIDs": {
+        "in": "query",
+        "name": "TagID",
+        "description": "Pipe separated Tag IDs",
         "required": false,
         "schema": {
           "type": "string"
@@ -4783,6 +4994,15 @@
         "in": "query",
         "name": "UserID",
         "description": "User ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserIDs": {
+        "in": "query",
+        "name": "UserID",
+        "description": "Pipe separated User IDs",
         "required": false,
         "schema": {
           "type": "string"
@@ -4815,6 +5035,15 @@
           "type": "string"
         }
       },
+      "ChargeBoxIDs": {
+        "in": "query",
+        "name": "ChargeBoxID",
+        "description": "Pipe separated Charging Station IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ConnectorID": {
         "in": "query",
         "name": "ConnectorID",
@@ -4822,6 +5051,15 @@
         "required": false,
         "schema": {
           "type": "number"
+        }
+      },
+      "ConnectorIDs": {
+        "in": "query",
+        "name": "ConnectorID",
+        "description": "Pipe separated Connector IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
         }
       },
       "InactivityStatus": {
@@ -4836,6 +5074,15 @@
             "W",
             "E"
           ]
+        }
+      },
+      "InactivityStatuses": {
+        "in": "query",
+        "name": "InactivityStatus",
+        "description": "Pipe separated Inactivity Statuses (I, W, E)",
+        "required": false,
+        "schema": {
+          "type": "string"
         }
       },
       "chargingProfileID": {
@@ -4989,6 +5236,15 @@
         "in": "path",
         "name": "id",
         "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "transactionID": {
+        "in": "path",
+        "name": "id",
+        "description": "Transaction ID",
         "required": true,
         "schema": {
           "type": "string"
