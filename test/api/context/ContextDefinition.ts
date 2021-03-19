@@ -114,7 +114,7 @@ export default class ContextDefinition {
       asset: {},
       ocpi: {
         content: {
-          type: RoamingSettingsType.GIREVE,
+          type: RoamingSettingsType.OCPI,
           ocpi: {
             currency: 'EUR',
             cpo: {
@@ -244,7 +244,7 @@ export default class ContextDefinition {
     componentSettings: {
       ocpi: {
         content: {
-          type: RoamingSettingsType.GIREVE,
+          type: RoamingSettingsType.OCPI,
           ocpi: {
             cpo: {
               countryCode: 'FR',

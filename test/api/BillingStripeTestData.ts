@@ -57,8 +57,12 @@ export default class StripeIntegrationTestData {
     assert(userData && userData.id, 'response should not be null');
     // Let's get the newly created user
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
+  }
+
+  public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
+    // The tests requires some settings to be forced
+    this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
     // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
-    this.billingImpl = await this.setBillingSystemValidCredentials(false);
     this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
     expect(this.billingUser, 'Billing user should not ber null');
   }
@@ -180,6 +184,36 @@ export default class StripeIntegrationTestData {
     return nbDraftInvoice;
   }
 
+  public async checkImmediateBillingWithTaxes() : Promise<void> {
+    // Inputs / Expected Outputs
+    const transactionPrice = 4 /* EUR */;
+    const tax20percent = 20 /* VAT 20 % */;
+    const expectedTotal = 480; /* in cents, including taxes */
+    // PREREQUISITE - immediateBillingAllowed MUST BE ON!
+    const taxRate: Stripe.TaxRate = await this.assignTaxRate(tax20percent);
+    const taxId = taxRate.id;
+    // The user should have no DRAFT invoices
+    await this.checkForDraftInvoices(this.dynamicUser.id, 0);
+    // Let's create an Invoice with a first Item
+    const beforeInvoiceDateTime = new Date().getTime();
+    const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
+    assert(dynamicInvoice, 'Invoice should not be null');
+    // User should have a PAID invoice
+    const paidInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
+    // The last invoice should be the one that has just been created
+    const lastPaidInvoice: BillingInvoice = paidInvoices[0];
+    assert(lastPaidInvoice, 'User should have at least a paid invoice');
+    // TODO - Why do we get the amount in cents here?
+    expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
+    const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
+    expect(lastPaidInvoiceDateTime).to.be.gt(beforeInvoiceDateTime);
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
+    expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
+    // User should not have any DRAFT invoices
+    const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
+    expect(nbDraftInvoice).to.be.eql(0);
+  }
+
   public async billInvoiceItem(quantity: number, amount: number, taxId?: string) : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
     const price = amount / quantity;
@@ -197,7 +231,7 @@ export default class StripeIntegrationTestData {
       invoiceItem.taxes = [ taxId ];
     }
     // Let's attempt to bill the line item
-    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItems(this.dynamicUser, [ invoiceItem ]);
+    const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
     assert(billingInvoice, 'Billing invoice should not be null');
     return billingInvoice;
   }

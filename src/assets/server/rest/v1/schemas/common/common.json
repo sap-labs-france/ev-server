@@ -45,6 +45,10 @@
       "type": "string",
       "sanitize": "mongo"
     },
+    "onlyRecordCount": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "skip": {
       "type": "number",
       "sanitize": "mongo"

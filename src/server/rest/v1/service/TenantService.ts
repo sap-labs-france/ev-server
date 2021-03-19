@@ -61,7 +61,7 @@ export default class TenantService {
     // Remove collection
     await TenantStorage.deleteTenantDB(tenant.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
@@ -218,7 +218,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
+    const filteredRequest = await TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -306,7 +306,7 @@ export default class TenantService {
       }
     ).catch(() => { });
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
@@ -320,7 +320,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = await TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -368,7 +368,7 @@ export default class TenantService {
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleUpdateTenant',
       message: `Tenant '${filteredRequest.name}' has been updated successfully`,
