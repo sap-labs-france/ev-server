@@ -75,7 +75,6 @@ export default class AuthorizationService {
       if (userToken.role === UserRole.ADMIN) {
         site.canRead = true;
         site.canUpdate = true;
-        site.canDelete = true;
       } else {
         site.canRead = Authorizations.canReadSite(userToken);
         site.canUpdate = Authorizations.canUpdateSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
@@ -512,16 +511,6 @@ export default class AuthorizationService {
     );
     return userSites.result.map((userSite) => userSite.siteID);
   }
-
-  // private static async getAssignedUserSites(tenantID: string, userID: string) {
-  //   // Get the Sites assigned to the user - id, siteOwner, siteAdmin
-  //   const sites = await UserStorage.getUserSites(tenantID, { userID: userID }, Constants.DB_PARAMS_MAX_LIMIT);
-  //   return sites.result.map((siteUser) => ({
-  //     id: siteUser.site.id,
-  //     siteAdmin: siteUser.siteAdmin,
-  //     siteOwner: siteUser.siteOwner
-  //   }));
-  // }
 
   private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Sites where the user is Site Admin
