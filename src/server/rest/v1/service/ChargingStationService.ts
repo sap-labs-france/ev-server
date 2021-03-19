@@ -1343,13 +1343,7 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    let filteredRequest;
-    try {
-      filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
-    } catch (e) {
-      const a = 5;
-    }
-
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {

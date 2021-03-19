@@ -12,7 +12,7 @@
           "$ref": "common.json#/definitions/id"
         },
         "transactionId": {
-          "$ref": "common.json#/definitions/id"
+          "$ref": "transaction.json#/definitions/id"
         },
         "stackLevel": {
           "$ref": "#/definitions/stackLevel"
@@ -52,7 +52,7 @@
         },
         "startSchedule": {
           "type": "string",
-          "format": "date",
+          "format": "date-time",
           "sanitize": "mongo"
         },
         "chargingRateUnit": {
