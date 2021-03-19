@@ -285,7 +285,7 @@ export default class CarService {
         carUserToAdd.owner = true;
       }
     }
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateCar',
       message: `Car with VIN '${newCar.vin}' and plate ID '${newCar.licensePlate}' has been created successfully`,
@@ -368,7 +368,7 @@ export default class CarService {
       car.lastChangedOn = new Date();
       await CarStorage.saveCar(req.user.tenantID, car);
       // Log
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUpdateCar',
         message: `Car '${car.id}' has been updated successfully`,
@@ -423,7 +423,7 @@ export default class CarService {
       [
         'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
         'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        'carCatalog.image', 'carCatalog.fastChargePowerMax',
+        'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
         ...userProject
       ]);
     res.json(cars);
@@ -538,7 +538,7 @@ export default class CarService {
     if (Authorizations.isBasic(req.user) && !carUser.owner) {
       // Delete the association
       await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
         message: `User has been unassigned successfully from the car '${Utils.buildCarName(car, true)}'`,
@@ -553,7 +553,7 @@ export default class CarService {
       await CarStorage.deleteCarUsersByCarID(req.user.tenantID, carId);
       // Delete the car
       await CarStorage.deleteCar(req.user.tenantID, carId);
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
         message: `Car '${Utils.buildCarName(car)}' has been deleted successfully`,
@@ -649,7 +649,7 @@ export default class CarService {
         await CarStorage.insertCarUsers(tenantID, userCarsToInsert);
       }
       // Log
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenantID,
         user: loggedUser.id,
         source: Constants.CENTRAL_SERVER,
@@ -663,7 +663,7 @@ export default class CarService {
       // Delete
       await CarStorage.deleteCarUsers(tenantID, usersToDelete.map((userToDelete) => userToDelete.id));
       // Log
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenantID,
         user: loggedUser.id,
         source: Constants.CENTRAL_SERVER,

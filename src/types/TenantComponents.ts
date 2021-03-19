@@ -1,5 +1,6 @@
 enum TenantComponents {
   OCPI = 'ocpi',
+  OICP = 'oicp',
   REFUND = 'refund',
   PRICING = 'pricing',
   ORGANIZATION = 'organization',

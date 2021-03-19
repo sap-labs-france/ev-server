@@ -107,7 +107,7 @@ class TestData {
     assert((user.tags && user.tags.length), 'User must have a valid tag');
     const tagId = user.tags[0].id;
     const meterStart = 0;
-    const meterStop = 50000; // Unit: Wh
+    const meterStop = 32325; // Unit: Wh
     const startDate = moment().toDate();
     const stopDate = moment(startDate).add(1, 'hour').toDate();
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);

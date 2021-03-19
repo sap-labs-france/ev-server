@@ -8,6 +8,7 @@ export interface HttpAssetRequest extends HttpByIDRequest {
 export interface HttpAssetsRequest extends HttpDatabaseRequest {
   Search?: string;
   SiteAreaID?: string;
+  SiteID?: string;
   WithSiteArea?: boolean;
   WithNoSiteArea?: boolean;
   DynamicOnly?: boolean;
