@@ -52,6 +52,10 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    carConnector?: {
+      active: boolean;
+      type: string;
+    };
   };
 }
 
