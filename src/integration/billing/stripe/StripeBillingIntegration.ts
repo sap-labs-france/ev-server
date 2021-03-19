@@ -153,7 +153,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return null;
   }
 
-  public async userExists(user: User, strictMode: boolean): Promise<boolean> {
+  public async userExists(user: User): Promise<boolean> {
     // Check Stripe
     await this.checkConnection();
     // Make sure the billing data has been provided
@@ -161,7 +161,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       user = await UserStorage.getUser(this.tenantID, user.id);
     }
     // Retrieve the STRIPE customer (if any)
-    const customer = await this.getStripeCustomer(user, strictMode);
+    const customerID: string = user?.billingData?.customerID;
+    const customer = await this.getStripeCustomer(customerID);
     return !!customer;
   }
 
@@ -172,8 +173,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!user.billingData) {
       user = await UserStorage.getUser(this.tenantID, user.id);
     }
-    // Get the STRIPE customer
-    const customer = await this.getStripeCustomer(user);
+    // Retrieve the STRIPE customer (if any)
+    const customerID: string = user.billingData?.customerID;
+    const customer = await this.getStripeCustomer(customerID);
+    if (!customer) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getStripeCustomer',
+        action: ServerAction.BILLING,
+        message: `STRIPE Customer not found: ${customerID}`,
+      });
+    }
+
     // Return the corresponding  Billing User
     return this.convertToBillingUser(customer);
   }
@@ -676,11 +687,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     this.checkStartTransaction(transaction);
 
     if (this.__liveMode) {
-      // Check that the customer STRIPE
-      const customer = await this.getStripeCustomer(transaction.user);
+      // Check that the customer STRIPE exists
+      const customerID: string = transaction.user?.billingData?.customerID;
+      const customer = await this.getStripeCustomer(customerID);
       if (!customer) {
         throw new BackendError({
-          message: 'Stripe customer ID of the transaction user is invalid',
+          message: `Stripe customer ID of the transaction user is invalid - ${customerID}`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
@@ -773,13 +785,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check object
     this.checkStopTransaction(transaction);
     try {
-      const customer = await this.getStripeCustomer(transaction.user);
+      // Check that the customer STRIPE exists
+      const customerID: string = transaction.user?.billingData?.customerID;
+      const customer = await this.getStripeCustomer(customerID);
       if (customer) {
-        // Let's call the concrete implementation for stripe
         const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
         return billingDataTransactionStop;
       } else if (this.__liveMode) {
-        throw new Error('Unexpected situation - no customer - The transaction should not have been started in this context');
+        // This should not happen - the startTransaction should have been rejected
+        throw new Error(`Unexpected situation - No STRIPE customer - Transaction ID '${transaction.id}'`);
       }
     } catch (error) {
       await Logging.logError({
@@ -787,8 +801,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'billTransaction',
-        message: `Failed to bill the Transaction ID '${transaction.id}'`,
+        module: MODULE_NAME, method: 'stopTransaction',
+        message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
@@ -1044,7 +1058,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // const customer = await this.getCustomerByEmail(user.email);
-    const customer = await this.getStripeCustomer(user);
+    const customerID = user.billingData?.customerID;
+    const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
       await this.stripe.customers.del(
         customer.id
@@ -1052,19 +1067,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async getStripeCustomer(userOrCustomerID: User | string, strictMode = true): Promise<Stripe.Customer> {
-    await this.checkConnection();
-    // Get customer
-
-    let customerID ;
-    if (typeof userOrCustomerID === 'string') {
-      customerID = userOrCustomerID;
-    } else {
-      customerID = userOrCustomerID?.billingData?.customerID;
-    }
-
+  private async getStripeCustomer(customerID: string): Promise<Stripe.Customer> {
     if (customerID) {
       try {
+        // Gets the STRIPE Customer
         const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
         return customer;
       } catch (error) {
@@ -1073,23 +1079,15 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         // The customerID refers to something which does not exists anymore in the STRIPE account
         // May happen when billing settings are changed to point to a different STRIPE account
         // ---------------------------------------------------------------------------------------
-        if (strictMode) {
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME, method: 'getStripeCustomer',
-            action: ServerAction.BILLING,
-            message: `Stripe Inconsistency: ${error.message as string}`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        } else {
-        // ---------------------------------------------------------------------------------------
-          // Here we do not throw an exception and simply return null!
-          // This to let the caller the chance to repair the inconsistency
-          // ---------------------------------------------------------------------------------------
-        }
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'getStripeCustomer',
+          action: ServerAction.BILLING,
+          message: `Stripe Inconsistency: ${error.message as string}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
       }
     }
-
     // No Customer in STRIPE DB so far!
     return null;
   }
@@ -1101,7 +1099,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     // Let's check if the STRIPE customer exists
-    let customer = await this.getStripeCustomer(user, false /* !strictMode */);
+    const customerID:string = user?.billingData?.customerID;
+    let customer = await this.getStripeCustomer(customerID);
     if (!customer) {
       customer = await this.stripe.customers.create({
         email: user.email,

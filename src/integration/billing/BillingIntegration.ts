@@ -167,7 +167,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
-    const billingUser = await this._synchronizeUser(user, true /* strictMode */);
+    const billingUser = await this._synchronizeUser(user);
     await Logging.logInfo({
       tenantID: this.tenantID,
       source: Constants.CENTRAL_SERVER,
@@ -180,7 +180,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   }
 
   public async forceSynchronizeUser(user: User): Promise<BillingUser> {
-    const billingUser = await this._synchronizeUser(user, false /* !strictMode */);
+    const billingUser = await this._synchronizeUser(user, true /* !forceMode */);
     if (user?.billingData?.customerID !== billingUser?.billingData?.customerID) {
       await Logging.logWarning({
         tenantID: this.tenantID,
@@ -201,9 +201,19 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return billingUser;
   }
 
-  private async _synchronizeUser(user: User, strictMode: boolean): Promise<BillingUser> {
+  private async _synchronizeUser(user: User, repairMode = false): Promise<BillingUser> {
     // Check whether the customer exists
-    const exists = await this.userExists(user, strictMode); // returns false when the customerID is not set or is inconsistent
+    let exists = false;
+    try {
+      exists = await this.userExists(user); // returns false when the customerID is not set or is inconsistent
+    } catch (error) {
+      // An inconsistency has been detected - the customerID refers to a customer which does not exist anymore
+      if (!repairMode) {
+        // Let's report the error as it is
+        throw error;
+      }
+    }
+    // Create or Update the user and its billing data
     let billingUser: BillingUser;
     if (!exists) {
       billingUser = await this.createUser(user);
@@ -571,7 +581,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract deleteUser(user: User): Promise<void>;
 
-  abstract userExists(user: User, strictMode?: boolean): Promise<boolean>;
+  abstract userExists(user: User): Promise<boolean>;
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
