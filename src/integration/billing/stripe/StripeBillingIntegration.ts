@@ -137,39 +137,37 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
-    // Check for the deletion flag
-    const deleted: boolean = customer?.deleted as unknown as boolean; // ACHTUNG - Hack because STRIPE type definition is wrong!
-    if (customer && !deleted) {
-      const previousBillingData = user?.billingData;
-      const newBillingData: BillingUserData = {
-        ...previousBillingData, // Preserve previous values if any
-        customerID: customer.id,
-        lastChangedOn: new Date(),
-        hasSynchroError: false
-      };
-      const userID = customer.metadata?.['userID'];
-      const billingUser: BillingUser = {
-        userID,
-        name: customer.name,
-        billingData: newBillingData
-      };
-      return billingUser;
+    if (!user) {
+      throw new Error('Unexpected situation - user cannot be null');
     }
-    // return null when the customer is marked as deleted in STRIPE
-    return null;
+    if (!customer) {
+      throw new Error('Unexpected situation - customer cannot be null');
+    }
+    const userID = customer.metadata?.['userID'];
+    if (userID !== user.id) {
+      throw new Error('Unexpected situation - the STRIPE metadata does not match');
+    }
+    const billingData = {
+      ...user?.billingData
+    };
+    const billingUser: BillingUser = {
+      userID,
+      name: customer.name,
+      billingData
+    };
+    return billingUser;
   }
 
   public async userExists(user: User): Promise<boolean> {
     // Check Stripe
     await this.checkConnection();
-    // Make sure the billing data has been provided
     if (!user.billingData) {
+      // Make sure the billing data has been provided
       user = await UserStorage.getUser(this.tenantID, user.id);
     }
-    // Retrieve the STRIPE customer (if any)
     const customerID: string = user?.billingData?.customerID;
-    const customer = await this.getStripeCustomer(customerID);
-    return !!customer;
+    // returns true when the customerID is properly set!
+    return !!customerID;
   }
 
   public async getUser(user: User): Promise<BillingUser> {
@@ -182,15 +180,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Retrieve the STRIPE customer (if any)
     const customerID: string = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
-    if (!customer) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'getStripeCustomer',
-        action: ServerAction.BILLING,
-        message: `STRIPE Customer not found: ${customerID}`,
-      });
-    }
-
     // Return the corresponding  Billing User
     return this.convertToBillingUser(customer, user);
   }
@@ -1032,7 +1021,34 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot create the user'
       });
     }
-    return this.generateStripeCustomer(user);
+    // Check connection
+    await this.checkConnection();
+    if (user.billingData?.customerID) {
+      throw new Error('Unexpected situation - the customerID is already set');
+    }
+    const name = Utils.buildUserFullName(user, false, false);
+    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
+    // Checks create a new STRIPE customer
+    const customer: Stripe.Customer = await this.stripe.customers.create({
+      email: user.email,
+      description,
+      name,
+      preferred_locales: [locale],
+      metadata: { userID: user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
+    });
+    // Let's populate the initial Billing Data of our new customer
+    const billingData: BillingUserData = {
+      customerID: customer.id,
+      lastChangedOn: new Date(),
+      hasSynchroError: false,
+      invoicesLastSynchronizedOn: null
+    };
+    // TODO - to be clarified - The caller is here responsible for storing the changes!!!
+    user.billingData = billingData;
+    // Let's return the corresponding Billing User
+    return this.convertToBillingUser(customer, user);
   }
 
   public async updateUser(user: User): Promise<BillingUser> {
@@ -1047,7 +1063,36 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'Cannot update the user'
       });
     }
-    return this.generateStripeCustomer(user);
+    // Check connection
+    await this.checkConnection();
+    const name = Utils.buildUserFullName(user, false, false);
+    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
+    // Let's check if the STRIPE customer exists
+    const customerID:string = user?.billingData?.customerID;
+    if (!customerID) {
+      throw new Error('Unexpected situation - the customerID is NOT set');
+    }
+    let customer = await this.getStripeCustomer(customerID);
+    const userID = customer?.metadata?.['userID'];
+    if (userID !== user.id) {
+      throw new Error('Unexpected situation - the STRIPE metadata does not match');
+    }
+    // Update user data
+    const updateParams: Stripe.CustomerUpdateParams = {
+      description,
+      name,
+      email: user.email,
+      preferred_locales: [locale]
+    };
+    // Update changed data
+    customer = await this.stripe.customers.update(customerID, updateParams);
+    // Let's update the Billing Data of our customer
+    // TODO - to be clarified - The caller is here responsible for storing the changes!!!
+    user.billingData.lastChangedOn = new Date();
+    // Let's return the corresponding Billing User
+    return this.convertToBillingUser(customer, user);
   }
 
   public async deleteUser(user: User): Promise<void> {
@@ -1068,66 +1113,35 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       try {
         // Gets the STRIPE Customer
         const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
+        // Check for the deletion flag
+        const deleted: boolean = customer?.deleted as unknown as boolean; // ACHTUNG - Hack because STRIPE type definition is wrong!
+        if (deleted) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'getStripeCustomer',
+            action: ServerAction.BILLING,
+            message: `Customer is marked as deleted - ${customerID}`
+          });
+        }
         return customer;
       } catch (error) {
         // ---------------------------------------------------------------------------------------
-        // This should not happen - The customerID
-        // The customerID refers to something which does not exists anymore in the STRIPE account
+        // This should not happen - The customerID should be stable
         // May happen when billing settings are changed to point to a different STRIPE account
         // ---------------------------------------------------------------------------------------
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getStripeCustomer',
           action: ServerAction.BILLING,
-          message: `Stripe Inconsistency: ${error.message as string}`,
+          message: `Customer ID is inconsistent - ${customerID}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
-    // No Customer in STRIPE DB so far!
+    // -----------------------------------------------------------------
+    // Returns null only when the customerID input parameter is null
+    // Everything else should throw an error
+    // --------------------------------------------------------------
     return null;
-  }
-
-  private async generateStripeCustomer(user: User): Promise<BillingUser> {
-    await this.checkConnection();
-    const fullName = Utils.buildUserFullName(user, false, false);
-    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
-    // Let's check if the STRIPE customer exists
-    const customerID:string = user?.billingData?.customerID;
-    let customer = await this.getStripeCustomer(customerID);
-    if (!customer) {
-      customer = await this.stripe.customers.create({
-        email: user.email,
-        description: description,
-        name: fullName,
-        preferred_locales: [locale],
-        metadata: { userID: user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
-      });
-    }
-    // Update user data
-    const userDataToUpdate: Stripe.CustomerUpdateParams = {};
-    if (customer.description !== description) {
-      userDataToUpdate.description = description;
-    }
-    if (customer.name !== fullName) {
-      userDataToUpdate.name = fullName;
-    }
-    if (customer.email !== user.email) {
-      userDataToUpdate.email = user.email;
-    }
-    if (locale &&
-      (!customer.preferred_locales ||
-        customer.preferred_locales.length === 0 ||
-        customer.preferred_locales[0] !== locale)) {
-      userDataToUpdate.preferred_locales = [locale];
-    }
-    // Update
-    customer = await this.stripe.customers.update(
-      customer.id, userDataToUpdate
-    );
-    // Let's return the corresponding Billing User
-    return this.convertToBillingUser(customer, user);
   }
 }

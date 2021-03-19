@@ -201,16 +201,25 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return billingUser;
   }
 
-  private async _synchronizeUser(user: User, repairMode = false): Promise<BillingUser> {
-    // Check whether the customer exists
-    let exists = false;
-    try {
+  private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
+    // Check if we need to create or update a STRIPE customer
+    let exists;
+    if (!forceMode) {
+      // -------------------------------------------------------------------------------------------
+      // Regular Situation - CustomerID is set and we trust it!
+      // -------------------------------------------------------------------------------------------
       exists = await this.userExists(user); // returns false when the customerID is not set or is inconsistent
-    } catch (error) {
-      // An inconsistency has been detected - the customerID refers to a customer which does not exist anymore
-      if (!repairMode) {
-        // Let's report the error as it is
-        throw error;
+    } else {
+      // -------------------------------------------------------------------------------------------
+      // Specific use-case - Trying to REPAIR inconsistencies
+      // CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
+      // -------------------------------------------------------------------------------------------
+      try {
+        exists = await this.getUser(user);
+      } catch (error) {
+        // Let's create a new customer and get rid of the previous customerID
+        exists = false;
+        user.billingData.customerID = null;
       }
     }
     // Create or Update the user and its billing data
