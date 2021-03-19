@@ -12,6 +12,10 @@
     {
       "description": "SCP - Quality system",
       "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+    },
+    {
+      "description": "AWS - Production system",
+      "url": "https://rest.e-mobility-group.com/v1"
     }
   ],
   "info": {
