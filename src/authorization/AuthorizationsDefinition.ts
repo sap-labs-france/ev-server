@@ -95,8 +95,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
+        // condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
   },
@@ -209,7 +209,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
       {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]

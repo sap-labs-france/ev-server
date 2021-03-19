@@ -1,10 +1,11 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingMethod, BillingOperationResult, BillingPaymentMethod, BillingPaymentMethodResult, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
 import { BillingSetting } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -580,4 +581,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
+  abstract paymentMethodsList(user: User): Promise<BillingPaymentMethodResult>;
+
+  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult>;
 }

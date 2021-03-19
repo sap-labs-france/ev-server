@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethodsList, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -74,7 +74,24 @@ export default class BillingSecurity {
     return {
       user: sanitize(request.user),
       currentUserID: sanitize(request.body.userID),
-      paymentMethodId: sanitize(request.body.paymentMethodId)
+      paymentMethodId: sanitize(request.body.paymentMethodId),
+    };
+  }
+
+  static filterPaymentMethodsListRequest(request: any): HttpPaymentMethodsList {
+    const filteredRequest: HttpPaymentMethodsList = {
+      loggedUser: sanitize(request.user),
+      selectedUserID: sanitize(request.query.userID)
+    };
+    UtilsSecurity.filterSkipAndLimit(request.query, filteredRequest);
+    return filteredRequest;
+  }
+
+  // should add currentuserid to check canDeletePm() ??
+  static filterDeletePaymentMethodRequest(request: any): HttpDeletePaymentMethod {
+    return {
+      loggedUser: sanitize(request.user),
+      paymentMethodId: sanitize(request.body.paymentMethodId),
     };
   }
 }
