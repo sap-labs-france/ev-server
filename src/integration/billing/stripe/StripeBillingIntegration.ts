@@ -353,13 +353,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(userID: string, stripeInvoiceID: string): Promise<BillingInvoice> {
+  public async synchronizeAsBillingInvoice(stripeInvoiceID: string): Promise<BillingInvoice> {
     // Make sure to get fresh data !
     const stripeInvoice: Stripe.Invoice = await this.getStripeInvoice(stripeInvoiceID);
     if (!stripeInvoice) {
       throw new BackendError({
         message: `Unexpected situation - invoice not found - ${stripeInvoiceID}`,
-        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING_TRANSACTION,
+        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
         method: '_replicateStripeInvoice',
       });
     }
@@ -368,14 +368,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const customerID = customer as string;
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
-    const eMobilityUserID = metadata?.userID;
-    if (userID !== eMobilityUserID) {
+    const userID = metadata?.userID;
+    if (!userID) {
       throw new BackendError({
-        message: `Unexpected situation - userID metadata is not properly set in invoice - ${stripeInvoiceID}`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: '_replicateStripeInvoice',
-        action: ServerAction.BILLING_TRANSACTION
+        message: `Unexpected situation - invoice is not an e-Mobility invoice - ${stripeInvoiceID}`,
+        source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
+        method: 'synchronizeAsBillingInvoice',
       });
     }
     // Get the corresponding BillingInvoice (if any)
@@ -504,7 +502,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const billingOperationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
-      billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.userID, billingInvoice.invoiceID);
+      billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID);
       if (!billingOperationResult.succeeded) {
         // TODO - how to determine the root cause of the error
         await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
@@ -912,7 +910,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(userID, stripeInvoice.id);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id);
     // We have now a Billing Invoice - Let's update it with details about the last payment failure (if any)
     if (!paymentOperationResult?.succeeded && paymentOperationResult?.error) {
       await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, paymentOperationResult.error);
