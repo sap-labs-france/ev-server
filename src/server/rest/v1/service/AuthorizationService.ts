@@ -507,6 +507,18 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
+  private static async getSiteOwnerSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+    // Get the Sites where the user is Site Owner
+    const userSites = await UserStorage.getUserSites(tenantID,
+      {
+        userID: userToken.id,
+        siteOwner: true
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['siteID']
+    );
+    return userSites.result.map((userSite) => userSite.siteID);
+  }
+
   private static async getAssignedUserSites(tenantID: string, userID: string) {
     // Get the Sites assigned to the user - id, siteOwner, siteAdmin
     const sites = await UserStorage.getUserSites(tenantID, { userID: userID }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -565,11 +577,13 @@ export default class AuthorizationService {
     authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
-          // Force the filter
-          authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
+        // Get Site IDs from Site Admin & Site Owner flag
+        const siteAdminSiteIDs: Array<string> = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        const siteOwnerSiteIDs: Array<string> = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
+        const allSites: Array<string> = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
+        if (!Utils.isEmptyArray(allSites)) {
+          // Force the filterß
+          authorizationFilters.filters.siteIDs = allSites;
           // Check if filter is provided
           if (Utils.objectHasProperty(filteredRequest, 'SiteID') &&
               !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
