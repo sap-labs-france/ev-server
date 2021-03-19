@@ -42,23 +42,7 @@ const MODULE_NAME = 'TransactionService';
 export default class TransactionService {
 
   public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const filteredRequest = TransactionSecurity.filterGetTransactions(req.query);
-    let transactions: DataResult<Transaction>;
-    if (filteredRequest.Status) {
-      if (filteredRequest.Status === 'completed') {
-        transactions = await TransactionService.getTransactionsCompleted(ServerAction.TRANSACTIONS_COMPLETED, req);
-      } else if (filteredRequest.Status === 'active') {
-        transactions = await TransactionService.getTransactionsActive(ServerAction.TRANSACTIONS_ACTIVE, req);
-      }
-    } else {
-      const completed = await TransactionService.getTransactionsCompleted(ServerAction.TRANSACTIONS_COMPLETED, req);
-      const active = await TransactionService.getTransactionsActive(ServerAction.TRANSACTIONS_ACTIVE, req);
-      transactions = {
-        count: completed.count + active.count,
-        result: [...completed.result, ...active.result]
-      };
-    }
-    res.json(transactions);
+    res.json(await TransactionService.getTransactions(req, action, {}, []));
     next();
   }
 
@@ -683,7 +667,8 @@ export default class TransactionService {
 
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -707,14 +692,24 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const transactions = await TransactionService.getTransactionsActive(action, req);
+    req.query.Status = 'active';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
+    ]);
     res.json(transactions);
     next();
   }
 
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    const transactions = await TransactionService.getTransactionsCompleted(action, req);
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+    ]);
     res.json(transactions);
     next();
   }
@@ -726,7 +721,8 @@ export default class TransactionService {
     // Only e-Mobility transactions
     req.query.issuer = 'true';
     // Call
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -791,7 +787,8 @@ export default class TransactionService {
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true, withTag: true }, [
+    req.query.Status = 'completed';
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
@@ -806,7 +803,8 @@ export default class TransactionService {
   }
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -1009,7 +1007,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction, params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, params: { withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -1046,17 +1044,33 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Build
+    const extrafilters: any = {};
+    if (Utils.objectHasProperty(params, 'withTag')) {
+      extrafilters.withTag = params.withTag;
+    }
+    if (filteredRequest.Status) {
+      if (filteredRequest.Status === 'completed') {
+        projectFields = [
+          ...projectFields,
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+          'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+          'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID'
+        ];
+        extrafilters.stop = { $exists: true };
+      } else if (filteredRequest.Status === 'active') {
+        projectFields = [
+          ...projectFields,
+          'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
+          'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+          'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID'
+        ];
+        extrafilters.stop = { $exists: false };
+      }
+    }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
       projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
-    // Build
-    const extrafilters: any = {};
-    if (Utils.objectHasProperty(params, 'completedTransactions')) {
-      extrafilters.stop = params.completedTransactions ? { $exists: true } : { $exists: false };
-    }
-    if (Utils.objectHasProperty(params, 'withTag')) {
-      extrafilters.withTag = params.withTag;
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
@@ -1084,21 +1098,5 @@ export default class TransactionService {
       projectFields
     );
     return transactions;
-  }
-
-  private static async getTransactionsCompleted(action: ServerAction, req: Request): Promise<DataResult<Transaction>> {
-    return await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
-    ]);
-  }
-
-  private static async getTransactionsActive(action: ServerAction, req: Request): Promise<DataResult<Transaction>> {
-    return await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
-    ]);
   }
 }

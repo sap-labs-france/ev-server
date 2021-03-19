@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpGetTransactionsRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../../types/requests/HttpTransactionRequest';
 
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -74,6 +74,9 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'ReportIDs')) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
+    if (Utils.objectHasProperty(request, 'Status')) {
+      filteredRequest.Status = sanitize(request.Status);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     UtilsSecurity.filterProject(request, filteredRequest);
@@ -109,11 +112,5 @@ export default class TransactionSecurity {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }
     return filteredRequest;
-  }
-
-  public static filterGetTransactions(request: any): HttpGetTransactionsRequest {
-    return {
-      Status: sanitize(request.Status),
-    };
   }
 }

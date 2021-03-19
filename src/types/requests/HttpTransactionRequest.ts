@@ -39,6 +39,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   MinimalPrice?: boolean;
   Statistics?: 'refund' | 'history';
   ReportIDs?: string;
+  Status?: 'completed' | 'active';
 }
 
 export interface HttpConsumptionFromTransactionRequest {
@@ -46,8 +47,4 @@ export interface HttpConsumptionFromTransactionRequest {
   LoadAllConsumptions?: boolean;
   StartDateTime: Date;
   EndDateTime: Date;
-}
-
-export interface HttpGetTransactionsRequest {
-  Status?: 'completed' | 'active';
 }
