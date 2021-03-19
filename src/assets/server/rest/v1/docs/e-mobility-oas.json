@@ -2,16 +2,8 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
-    },
-    {
-      "description": "SCP - Production system",
-      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "SCP - Quality system",
-      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+      "description": "Current server",
+      "url": "/v1"
     }
   ],
   "info": {
@@ -24,7 +16,7 @@
     },
     "license": {
       "name": "Apache 2.0",
-      "url": "https://github.com/LucasBrazi06/ev-server/blob/master/LICENSE"
+      "url": "https://github.com/sap-labs-france/ev-server/blob/master/LICENSE"
     }
   },
   "tags": [
