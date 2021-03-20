@@ -85,6 +85,7 @@ export enum ServerAction {
 
   LOGS_CLEANUP = 'LogsCleanup',
   PERFORMANCES_CLEANUP = 'PerformancesCleanup',
+  PERFORMANCES = 'Performances',
 
   SCHEDULER = 'Scheduler',
 
