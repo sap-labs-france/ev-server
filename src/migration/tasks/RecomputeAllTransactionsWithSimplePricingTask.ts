@@ -35,6 +35,8 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
       .aggregate([
         {
           $match: {
+            'chargeBoxID':'SAP-Mougins-15',
+            'timestamp': { $lt: new Date('2021-03-15') },
             'stop.totalConsumptionWh': { $gt: 0 },
             'stop.pricingSource': 'simple',
             'refundData': { $exists: false },
@@ -104,7 +106,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
   }
 
   getVersion(): string {
-    return '1.4';
+    return '1.5';
   }
 
   getName(): string {
