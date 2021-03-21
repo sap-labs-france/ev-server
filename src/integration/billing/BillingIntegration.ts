@@ -259,7 +259,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       for (const invoiceID of invoiceIDs) {
         try {
           // Let's replicate invoice data as a Billing Invoice
-          const billingInvoice = await this.synchronizeAsBillingInvoice(invoiceID);
+          const billingInvoice = await this.synchronizeAsBillingInvoice(invoiceID, true /* checkUserExists */);
           // Make sure we get the actual user - the one the invoice refers to
           const userInInvoice = await UserStorage.getUser(this.tenantID, billingInvoice.userID);
           // Update user billing data
@@ -511,7 +511,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
-  abstract synchronizeAsBillingInvoice(stripeInvoiceID: string): Promise<BillingInvoice>;
+  abstract synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists: boolean): Promise<BillingInvoice>;
 
   abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
 

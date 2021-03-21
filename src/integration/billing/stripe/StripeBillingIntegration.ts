@@ -309,7 +309,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(stripeInvoiceID: string): Promise<BillingInvoice> {
+  public async synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists:boolean): Promise<BillingInvoice> {
     // Make sure to get fresh data !
     const stripeInvoice: Stripe.Invoice = await this.getStripeInvoice(stripeInvoiceID);
     if (!stripeInvoice) {
@@ -331,6 +331,16 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
+    } else if (checkUserExists) {
+      // Let's make sure the userID is still valid
+      const user = await UserStorage.getUser(this.tenantID, userID);
+      if (!user) {
+        throw new BackendError({
+          message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
+          source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
+          method: 'synchronizeAsBillingInvoice',
+        });
+      }
     }
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenantID, stripeInvoice.id);
@@ -458,7 +468,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     await this.checkConnection();
     try {
       const billingOperationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
-      billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID);
+      billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
       if (!billingOperationResult.succeeded) {
         // TODO - how to determine the root cause of the error
         await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
@@ -866,7 +876,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id, false);
     // We have now a Billing Invoice - Let's update it with details about the last payment failure (if any)
     if (!paymentOperationResult?.succeeded && paymentOperationResult?.error) {
       await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, paymentOperationResult.error);
