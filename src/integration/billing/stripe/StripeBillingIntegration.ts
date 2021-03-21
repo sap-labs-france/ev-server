@@ -211,37 +211,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  // TODO - name of the method is confusing - the returned value is a partial billing invoice (id is null)
-  public async getInvoice(id: string): Promise<BillingInvoice> {
-    // Check Stripe
-    await this.checkConnection();
-    // Get Invoice
-    try {
-      const stripeInvoice = await this.stripe.invoices.retrieve(id);
-      const { id: invoiceID, customer, number, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl } = stripeInvoice;
-      const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
-      const customerID = customer as string;
-      const billingInvoice: BillingInvoice = {
-        id: null, // TODO - must be clarified - We cannot guess the Billing Invoice ID
-        invoiceID,
-        customerID,
-        number,
-        amount,
-        amountPaid,
-        status: status as BillingInvoiceStatus,
-        currency,
-        createdOn: new Date(stripeInvoice.created * 1000),
-        nbrOfItems: nbrOfItems,
-        downloadUrl,
-        downloadable: !!downloadUrl
-      };
-      return billingInvoice;
-    } catch (e) {
-      // TODO - This is suspicious
-      return null;
-    }
-  }
-
   private getNumberOfItems(stripeInvoice: Stripe.Invoice): number {
     // STRIPE version 8.137.0 - total_count property is deprecated - TODO - find another way to get it!
     const nbrOfItems: number = stripeInvoice.lines['total_count'];
