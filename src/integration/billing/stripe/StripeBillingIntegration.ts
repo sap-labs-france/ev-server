@@ -316,7 +316,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         message: `Unexpected situation - invoice not found - ${stripeInvoiceID}`,
         source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
-        method: '_replicateStripeInvoice',
+        method: 'synchronizeAsBillingInvoice',
       });
     }
     // Destructuring the STRIPE invoice to extract the required information
@@ -343,8 +343,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Let's persist the up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
     const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, freshInvoiceId);
-    if (freshBillingInvoice?.downloadable) {
-      // Replicate the invoice as a PDF document
+    if (!billingInvoice?.downloadable && freshBillingInvoice?.downloadable) {
+      // Perf optimization - download the PDF document (only when downloadable flag has changed)
       const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
       await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
     }
