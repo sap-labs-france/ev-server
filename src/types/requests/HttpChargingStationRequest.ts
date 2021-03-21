@@ -1,4 +1,4 @@
-import { ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
+import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
 
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
@@ -53,10 +53,13 @@ export interface HttpChargingStationParamsUpdateRequest {
   public: boolean;
   excludeFromSmartCharging: boolean;
   forceInactive: boolean;
+  manualConfiguration: boolean;
   siteAreaID: string;
   coordinates: number[];
+  chargePoints: ChargePoint[];
   connectors: {
     connectorId: number;
+    chargePointID: number;
     type: ConnectorType;
     power: number;
     amperage: number;
