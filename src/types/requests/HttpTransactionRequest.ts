@@ -39,6 +39,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   MinimalPrice?: boolean;
   Statistics?: 'refund' | 'history';
   ReportIDs?: string;
+  Status?: 'completed' | 'active';
 }
 
 export interface HttpConsumptionFromTransactionRequest {

@@ -48,6 +48,7 @@ export default class AssetStorage {
       _id: assetToSave.id ? Utils.convertToObjectID(assetToSave.id) : new ObjectID(),
       name: assetToSave.name,
       siteAreaID: Utils.convertToObjectID(assetToSave.siteAreaID),
+      siteID: Utils.convertToObjectID(assetToSave.siteID),
       coordinates: Utils.containsGPSCoordinates(assetToSave.coordinates) ? assetToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
@@ -97,7 +98,7 @@ export default class AssetStorage {
   }
 
   public static async getAssets(tenantID: string,
-    params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
+    params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
       withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
@@ -126,6 +127,11 @@ export default class AssetStorage {
     } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = {
         $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
+      };
+    }
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
       };
     }
     // Dynamic Asset
@@ -211,7 +217,7 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-    params: { search?: string; siteAreaIDs?: string[]; errorType?: string[] } = {},
+    params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');
@@ -232,6 +238,9 @@ export default class AssetStorage {
     }
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+    }
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = { $in: params.siteIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Create Aggregation
     const aggregation = [];

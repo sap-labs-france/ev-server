@@ -1,4 +1,3 @@
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
@@ -9,9 +8,9 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'AddSiteIDToChargingStationTask';
+const MODULE_NAME = 'AddSiteIDToAssetTask';
 
-export default class AddSiteIDToChargingStationTask extends MigrationTask {
+export default class AddSiteIDToAssetTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -21,10 +20,10 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
 
   async migrateTenant(tenant: Tenant): Promise<void> {
     let modifiedCount = 0;
-    // Get Site Areas
+    // Get Assets
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
-      const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
+      const result = await global.database.getCollection(tenant.id, 'assets').updateMany(
         {
           siteAreaID: Utils.convertToObjectID(siteArea.id),
         },
@@ -36,8 +35,8 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
       );
       modifiedCount += result.modifiedCount;
     }
-    // Delete siteIDs for charging stations without site area
-    const result = await global.database.getCollection(tenant.id, 'chargingstations').updateMany(
+    // Delete siteIDs for assets without site area
+    const result = await global.database.getCollection(tenant.id, 'assets').updateMany(
       {
         siteAreaID: {
           $exists: true,
@@ -57,17 +56,17 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${modifiedCount} Charging stations have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Assets have been updated in Tenant '${tenant.name}'`
       });
     }
   }
 
   getVersion(): string {
-    return '1.1';
+    return '1.0';
   }
 
   getName(): string {
-    return 'AddSiteIDToChargingStationTask';
+    return 'AddSiteIDToAssetTask';
   }
 
   isAsynchronous(): boolean {

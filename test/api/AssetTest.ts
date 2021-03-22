@@ -151,10 +151,11 @@ describe('Asset Test', function() {
 
       it('Should find the created asset by id', async () => {
         // Check if the created entity can be retrieved with its id
-        await testData.userService.getEntityById(
+        const createdAsset = await testData.userService.getEntityById(
           testData.userService.assetApi,
           testData.newAsset
         );
+        expect(createdAsset.siteID).to.equal(testData.createdSiteAreas[0].siteID);
       });
 
       it('Should find the created asset in the asset list', async () => {
