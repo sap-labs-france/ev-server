@@ -1,4 +1,4 @@
-import { HttpChargingStationCommandRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
@@ -12,6 +12,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
   private chargingStationAction: Schema;
+  private chargingStationQRCodeGenerate: Schema;
 
 
   private constructor() {
@@ -20,6 +21,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
+    this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -50,6 +52,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationActionReq(data: any): HttpChargingStationCommandRequest {
     // Validate schema
     this.validate(this.chargingStationAction, data);
+    return data;
+  }
+
+  public validateChargingStationQRCodeGenerateReq(data: any): HttpChargingStationConnectorRequest {
+    // Validate schema
+    this.validate(this.chargingStationQRCodeGenerate, data);
     return data;
   }
 }
