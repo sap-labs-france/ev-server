@@ -2,7 +2,7 @@
   "title": "Get one Charging Station",
   "type": "object",
   "properties": {
-    "id": {
+    "ID": {
       "$ref": "chargingstation.json#/definitions/id"
     },
     "ProjectFields": {
@@ -10,6 +10,6 @@
     }
   },
   "required": [
-    "id"
+    "ID"
   ]
 }

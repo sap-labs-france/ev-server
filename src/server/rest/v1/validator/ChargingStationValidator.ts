@@ -1,6 +1,6 @@
 import { HttpChargingStationCommandRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
-import { HttpRestByIDRequest } from '../../../../types/requests/HttpByIDRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -35,13 +35,13 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationGetReq(data: any): HttpRestByIDRequest {
+  public validateChargingStationGetReq(data: any): HttpByIDRequest {
     // Validate schema
     this.validate(this.chargingStationGet, data);
     return data;
   }
 
-  public validateChargingStationDeleteReq(data: any): HttpRestByIDRequest {
+  public validateChargingStationDeleteReq(data: any): HttpByIDRequest {
     // Validate schema
     this.validate(this.chargingStationDelete, data);
     return data;
