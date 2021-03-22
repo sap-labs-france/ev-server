@@ -101,6 +101,16 @@ export default class TenantValidator extends SchemaValidator {
           module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
+      // Car Connector active: Car must be active
+      if (tenant.components.carConnector && tenant.components.car &&
+        tenant.components.carConnector.active && !tenant.components.car.active) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Car must be active to use the Car Connector component',
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+        });
+      }
       // Billing active: Pricing must be active
       if (tenant.components.billing && tenant.components.pricing &&
           tenant.components.billing.active && !tenant.components.pricing.active) {

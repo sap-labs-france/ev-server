@@ -37,7 +37,8 @@ export interface SettingDBContent {
   | AssetSettingsType
   | SmartChargingContentType
   | CryptoSettingsType
-  | UserSettingsType;
+  | UserSettingsType
+  | CarConnectorSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
   simple?: SimplePricingSetting;
@@ -48,6 +49,7 @@ export interface SettingDBContent {
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
+  carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
 }
@@ -295,6 +297,42 @@ export interface AssetGreencomConnectionType {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
+
+export enum CarConnectorSettingsType {
+  CAR_CONNECTOR = 'carConnector',
+}
+
+export interface CarConnectorSettings extends Setting {
+  identifier: TenantComponents.CAR_CONNECTOR;
+  type: CarConnectorSettingsType;
+  carConnector?: CarConnectorSetting;
+}
+
+export interface CarConnectorSetting {
+  connections: CarConnectorConnectionSetting[];
+}
+
+export interface CarConnectorConnectionSetting {
+  id: string;
+  name: string;
+  description: string;
+  timestamp: Date;
+  type: CarConnectorConnectionType;
+  mercedesConnection?: CarConnectorMercedesConnectionType;
+}
+
+export enum CarConnectorConnectionType {
+  NONE = '',
+  MERCEDES = 'mercedes',
+}
+
+export interface CarConnectorMercedesConnectionType {
+  authenticationUrl: string;
+  apiUrl: string;
+  clientId: string;
+  clientSecret: string;
+}
+
 
 export enum CryptoSettingsType {
   CRYPTO = 'crypto'
