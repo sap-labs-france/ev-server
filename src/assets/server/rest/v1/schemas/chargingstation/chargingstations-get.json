@@ -14,14 +14,14 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common.json#/definitions/ids"
     },
     "WithSite": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/id"
+      "$ref": "common.json#/definitions/ids"
     },
     "ConnectorStatus": {
       "type": "string",
@@ -32,8 +32,7 @@
       "sanitize": "mongo"
     },
     "ChargeBoxID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "chargingstation.json#/definitions/id"
     },
     "IncludeDeleted": {
       "type": "boolean",
