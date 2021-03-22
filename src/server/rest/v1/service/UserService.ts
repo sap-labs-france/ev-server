@@ -20,7 +20,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
-import JSONStream from 'jsonstream';
+import JSONStream from 'JSONStream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -888,6 +888,7 @@ export default class UserService {
           quote: 'off'
         });
         void converter.subscribe(async (user: ImportedUser) => {
+          // Check the format of the first entry
           if (!result.inSuccess && !result.inError) {
             if (!UserRequiredImportProperties.every((property) => Object.keys(user).includes(property))) {
               void Logging.logError({

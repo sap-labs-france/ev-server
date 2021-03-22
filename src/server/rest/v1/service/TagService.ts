@@ -3,7 +3,7 @@ import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import Tag, { ImportedTag } from '../../../../types/Tag';
+import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -490,6 +490,20 @@ export default class TagService {
           quote: 'off'
         });
         void converter.subscribe(async (tag: ImportedTag) => {
+          // Check the format of the first entry
+          if (!result.inSuccess && !result.inError) {
+            if (!TagRequiredImportProperties.every((property) => Object.keys(tag).includes(property))) {
+              void Logging.logError({
+                tenantID: req.user.tenantID,
+                module: MODULE_NAME, method: 'handleImportTags',
+                action: action,
+                user: req.user.id,
+                message: `Invalid Csv file '${filename}', all properties: '${TagRequiredImportProperties.join(', ')}' are required`,
+              });
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          }
           // Set default value
           tag.importedBy = importedBy;
           tag.importedOn = importedOn;
