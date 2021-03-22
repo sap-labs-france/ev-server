@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, CarConnectorConnectionSetting, CarConnectorConnectionType, CarConnectorSettingsType, ConcurRefundSetting, CryptoSettingsType, OcpiBusinessDetails, OcpiSetting, OicpBusinessDetails, OicpSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType, UserSettingsType } from '../../../../../types/Setting';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../../types/requests/HttpSettingRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -224,6 +224,32 @@ export default class SettingSecurity {
                 break;
             }
             settings.content.asset.connections.push(sanitizedConnection);
+          }
+          break;
+        case CarConnectorSettingsType.CAR_CONNECTOR:
+          settings.content.carConnector = {
+            connections: [],
+          };
+          for (const connection of request.content.carConnector.connections) {
+            const sanitizedConnection: CarConnectorConnectionSetting = {
+              id: sanitize(connection.id),
+              name: sanitize(connection.name),
+              description: sanitize(connection.description),
+              type: sanitize(connection.type),
+              timestamp: new Date(),
+            };
+            // Check type
+            switch (connection.type) {
+              case CarConnectorConnectionType.MERCEDES:
+                sanitizedConnection.mercedesConnection = {
+                  authenticationUrl: sanitize(connection.mercedesConnection.authenticationUrl),
+                  apiUrl: sanitize(connection.mercedesConnection.apiUrl),
+                  clientId: sanitize(connection.mercedesConnection.clientId),
+                  clientSecret: sanitize(connection.mercedesConnection.clientSecret),
+                };
+                break;
+            }
+            settings.content.carConnector.connections.push(sanitizedConnection);
           }
           break;
         case CryptoSettingsType.CRYPTO:
