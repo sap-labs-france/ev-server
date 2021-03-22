@@ -771,7 +771,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: '_detachPaymentMethod',
-          action: ServerAction.BILLING_TRANSACTION
+          action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         });
       }
       // Detach payment method from the stripe customer
@@ -792,14 +792,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         module: MODULE_NAME, method: '_detachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been detached - customer '${customerID}'`
       });
-    } catch (e) {
+    } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenantID,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        actionOnUser: customerID,
+        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_detachPaymentMethod',
-        message: `Stripe operation failed - ${e?.message as string}`
+        message: `Failed to detach payment method - customer '${customerID}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return {
@@ -814,14 +814,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         customerID
       );
       return customer.deleted ? customer.deleted : false;
-    } catch (e) {
+    } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        actionOnUser: customerID,
         module: MODULE_NAME, method: '_getPaymentMethods',
-        message: `Stripe operation failed - ${e?.message as string}`
+        message: `Failed to check for deletion - customer '${customerID}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
