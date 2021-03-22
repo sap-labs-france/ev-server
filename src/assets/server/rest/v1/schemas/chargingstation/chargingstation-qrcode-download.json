@@ -1,5 +1,5 @@
 {
-  "title": "Generate QRCode for Charging Station",
+  "title": "Download QRCode of Charging Stations",
   "type": "object",
   "properties": {
     "ChargingStationID": {

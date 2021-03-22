@@ -1,4 +1,4 @@
-import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
@@ -14,6 +14,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationAction: Schema;
   private chargingStationQRCodeGenerate: Schema;
   private chargingStationQRCodeDownload: Schema;
+  private chargingStationOcppParametersGet: Schema;
 
 
   private constructor() {
@@ -24,6 +25,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
     this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
     this.chargingStationQRCodeDownload = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-download.json`, 'utf8'));
+    this.chargingStationOcppParametersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-ocpp-parameters-get.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -66,6 +68,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationQRCodeDownloadReq(data: any): HttpDownloadQrCodeRequest {
     // Validate schema
     this.validate(this.chargingStationQRCodeDownload, data);
+    return data;
+  }
+
+  public validateChargingStationOcppParametersGetReq(data: any): HttpChargingStationOcppRequest {
+    // Validate schema
+    this.validate(this.chargingStationOcppParametersGet, data);
     return data;
   }
 }
