@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
@@ -1312,11 +1312,23 @@ export default class Utils {
         break;
       // Asset
       case TenantComponents.ASSET:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Asset
           return {
             'type': AssetSettingsType.ASSET,
             'asset': {
+              connections: []
+            }
+          } as SettingDBContent;
+        }
+        break;
+        // Car Connector
+      case TenantComponents.CAR_CONNECTOR:
+        if (!currentSettingContent) {
+          // Only Car Connector
+          return {
+            'type': CarConnectorSettingsType.CAR_CONNECTOR,
+            'carConnector': {
               connections: []
             }
           } as SettingDBContent;

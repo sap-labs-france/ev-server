@@ -1096,7 +1096,7 @@ export default class UserStorage {
   }
 
   private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getEndUserLicenseAgreementFromFile');
     let eulaText = null;
@@ -1106,8 +1106,8 @@ export default class UserStorage {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
     }
     // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port.toString();
+    const frontEndURL = centralSystemFrontEndConfig.protocol + '://' +
+      centralSystemFrontEndConfig.host + ':' + centralSystemFrontEndConfig.port.toString();
     // Parse the auth and replace values
     eulaText = Mustache.render(
       eulaText,

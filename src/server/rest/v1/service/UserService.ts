@@ -244,9 +244,6 @@ export default class UserService {
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Get tags
-    const tags = (await TagStorage.getTags(req.user.tenantID,
-      { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -260,14 +257,22 @@ export default class UserService {
     }
     // OCPI User
     if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleDeleteUser',
+      // Delete all tags
+      const numberOfDeletedTags = await TagStorage.deleteTagsByUser(req.user.tenantID, user.id);
+      // Delete User
+      await UserStorage.deleteUser(req.user.tenantID, user.id);
+      // Log
+      await Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
+        module: MODULE_NAME, method: 'handleDeleteUser',
+        message: `User with ID '${user.id}' has been deleted successfully along '${numberOfDeletedTags}' Tag(s)`,
         action: action
       });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+      return;
     }
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
@@ -342,6 +347,8 @@ export default class UserService {
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
       // Disable/Delete Tags
+      const tags = (await TagStorage.getTags(req.user.tenantID,
+        { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
       for (const tag of tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
@@ -364,6 +371,9 @@ export default class UserService {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
+          // Get tags
+          const tags = (await TagStorage.getTags(req.user.tenantID,
+            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
           for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,

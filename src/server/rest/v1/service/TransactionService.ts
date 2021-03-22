@@ -40,6 +40,18 @@ import moment from 'moment-timezone';
 const MODULE_NAME = 'TransactionService';
 
 export default class TransactionService {
+
+  public static async handleGetTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    res.json(await TransactionService.getTransactions(req, action, {}, [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+      'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
+      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+    ]));
+    next();
+  }
+
   static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!Authorizations.isAdmin(req.user)) {
@@ -213,7 +225,7 @@ export default class TransactionService {
           // Post CDR
           await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
           // Ok
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
             user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -247,7 +259,7 @@ export default class TransactionService {
           // Post CDR
           await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
           // Ok
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
             user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -661,7 +673,8 @@ export default class TransactionService {
 
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -685,7 +698,8 @@ export default class TransactionService {
   }
 
   public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: false }, [
+    req.query.Status = 'active';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'status', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
@@ -696,7 +710,8 @@ export default class TransactionService {
 
   public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
@@ -712,7 +727,8 @@ export default class TransactionService {
     // Only e-Mobility transactions
     req.query.issuer = 'true';
     // Call
-    const transactions = await TransactionService.getTransactions(req, action, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -777,7 +793,8 @@ export default class TransactionService {
 
   public static async getCompletedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
     // Get transaction
-    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { completedTransactions: true, withTag: true }, [
+    req.query.Status = 'completed';
+    return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
@@ -792,7 +809,8 @@ export default class TransactionService {
   }
 
   public static async getRefundedTransactionsToExport(req: Request): Promise<DataResult<Transaction>> {
-    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, { completedTransactions: true }, [
+    req.query.Status = 'completed';
+    return await TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
@@ -995,8 +1013,7 @@ export default class TransactionService {
     return result;
   }
 
-  private static async getTransactions(req: Request, action: ServerAction,
-    params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+  private static async getTransactions(req: Request, action: ServerAction, params: { withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -1033,17 +1050,20 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    // Build
+    const extrafilters: any = {};
+    if (Utils.objectHasProperty(params, 'withTag')) {
+      extrafilters.withTag = params.withTag;
+    }
+    if (filteredRequest.Status === 'completed') {
+      extrafilters.stop = { $exists: true };
+    }
+    if (filteredRequest.Status === 'active') {
+      extrafilters.stop = { $exists: false };
+    }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
       projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
-    // Build
-    const extrafilters: any = {};
-    if (Utils.objectHasProperty(params, 'completedTransactions')) {
-      extrafilters.stop = params.completedTransactions ? { $exists: true } : { $exists: false };
-    }
-    if (Utils.objectHasProperty(params, 'withTag')) {
-      extrafilters.withTag = params.withTag;
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,

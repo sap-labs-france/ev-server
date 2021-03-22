@@ -35,6 +35,8 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
       .aggregate([
         {
           $match: {
+            'chargeBoxID':'SAP-Mougins-15',
+            'timestamp': { $lt: new Date('2021-03-15') },
             'stop.totalConsumptionWh': { $gt: 0 },
             'stop.pricingSource': 'simple',
             'refundData': { $exists: false },
@@ -74,6 +76,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           // Rebuild the pricing
           await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transaction);
           // Read the priced transaction
+          // FIXME: Power limitation will be lost in consumptions (to check the implementation)
           const pricedTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
           // Rebuild Consumptions
           await OCPPUtils.rebuildTransactionConsumptions(tenant.id, pricedTransaction);
@@ -103,7 +106,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
   }
 
   getVersion(): string {
-    return '1.4';
+    return '1.5';
   }
 
   getName(): string {

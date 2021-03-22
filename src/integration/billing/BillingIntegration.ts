@@ -249,7 +249,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           // Get billing invoice
           const invoiceInBilling = await this.getInvoice(invoiceIDInBilling);
           // Get e-Mobility invoice
-          const invoice = await BillingStorage.getInvoiceByBillingInvoiceID(this.tenantID, invoiceIDInBilling);
+          const invoice = await BillingStorage.getInvoiceByInvoiceID(this.tenantID, invoiceIDInBilling);
           if (!invoiceInBilling && !invoice) {
             actionsDone.inError++;
             await Logging.logError({

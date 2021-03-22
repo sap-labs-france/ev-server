@@ -186,9 +186,26 @@ export default class TagStorage {
     await global.database.getCollection<any>(tenantID, 'tags').deleteOne(
       {
         '_id': tagID,
-      });
+      }
+    );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTag', uniqueTimerID, { id: tagID });
+  }
+
+  public static async deleteTagsByUser(tenantID: string, userID: string): Promise<number> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteTagsByUser');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Delete
+    const result = await global.database.getCollection<any>(tenantID, 'tags').deleteMany(
+      {
+        'userID': Utils.convertToObjectID(userID),
+      }
+    );
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteTagsByUser', uniqueTimerID, { id: userID });
+    return result.deletedCount;
   }
 
   public static async getTag(tenantID: string, id: string,
