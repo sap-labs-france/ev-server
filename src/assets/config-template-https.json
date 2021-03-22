@@ -51,9 +51,7 @@
   "CentralSystemFrontEnd": {
     "protocol": "https",
     "host": "localhost",
-    "port": 443,
-    "distEnabled": false,
-    "distPath": "../dist/front-end"
+    "port": 443
   },
   "OCPIService": {
     "protocol": "https",
