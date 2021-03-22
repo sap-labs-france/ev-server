@@ -217,36 +217,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return nbrOfItems;
   }
 
-  public async getUpdatedUserIDsInBilling(): Promise<string[]> {
-    const createdSince = this.settings.usersLastSynchronizedOn ? moment(this.settings.usersLastSynchronizedOn).unix() : 0;
-    const collectedCustomerIDs: string[] = [];
-    const queryRange: Stripe.RangeQueryParam = { gt: createdSince };
-    const request: Stripe.EventListParams = {
-      created: queryRange,
-      limit: StripeBillingIntegration.STRIPE_MAX_LIST,
-      type: 'customer.*',
-    };
-    // Check Stripe
-    await this.checkConnection();
-    // Loop until all users are read
-    do {
-      const events: Stripe.ApiList<Stripe.Event> = await this.stripe.events.list(request);
-      for (const evt of events.data) {
-        // c.f.: https://stripe.com/docs/api/events/object
-        const customer: Stripe.Customer = evt.data.object as Stripe.Customer; // TODO - to be clarified how to determine the object type?
-        if (customer.object === 'customer' && customer.id) {
-          if (!collectedCustomerIDs.includes(customer.id)) {
-            collectedCustomerIDs.push(customer.id);
-          }
-        }
-      }
-      if (request['has_more']) {
-        request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
-      }
-    } while (request['has_more']);
-    return collectedCustomerIDs;
-  }
-
+  // ----------------------------------------------------------
+  // TODO - get rid of this logic and use webhooks instead!
+  // ----------------------------------------------------------
   public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
     let createdSince: number;
     // Check Stripe
@@ -372,8 +345,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private getTaxRateIds(): Array<string> {
-    // TODO - just a hack for now - tax rate should be part of the billing settings
-    // return [ 'txr_1IP3FJKHtGlSi68frTdAro48' ];
     if (this.settings.taxID) {
       return [this.settings.taxID] ;
     }
@@ -802,7 +773,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     // Destructuring transaction.stop
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    // TODO - make it more precise - Pricing transparency!
     const description = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
