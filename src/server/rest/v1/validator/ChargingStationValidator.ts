@@ -1,4 +1,4 @@
-import { HttpChargingStationCommandRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
@@ -14,6 +14,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationAction: Schema;
   private chargingStationRequestOCPPParameters: Schema;
   private chargingStationUpdateParameters: Schema;
+  private chargingStationLimitPower: Schema;
 
 
   private constructor() {
@@ -24,6 +25,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
     this.chargingStationRequestOCPPParameters = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-ocpp-request-parameters.json`, 'utf8'));
     this.chargingStationUpdateParameters = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-update-parameters.json`, 'utf8'));
+    this.chargingStationLimitPower = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-limit-power.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -66,6 +68,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationUpdateParametersReq(data: any): HttpChargingStationParamsUpdateRequest {
     // Validate schema
     this.validate(this.chargingStationUpdateParameters, data);
+    return data;
+  }
+
+  public validateChargingStationLimitPowerReq(data: any): HttpChargingStationLimitPowerRequest {
+    // Validate schema
+    this.validate(this.chargingStationLimitPower, data);
     return data;
   }
 }

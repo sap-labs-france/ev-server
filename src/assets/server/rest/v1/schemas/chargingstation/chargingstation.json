@@ -87,10 +87,6 @@
       },
       "required": ["startPeriod", "limit"]
     },
-    "connectorID": {
-      "type": "number",
-      "sanitize": "mongo"
-    },
     "chargingProfilePurpose": {
       "type": "string",
       "sanitize": "mongo"
@@ -103,7 +99,8 @@
       "type": "object",
       "properties": {
         "connectorId": {
-          "$ref": "#/definitions/connectorID"
+          "type": "number",
+          "sanitize": "mongo"
         },
         "power": {
           "type": "number",
@@ -150,7 +147,7 @@
       "type": "object",
       "properties": {
         "chargePointID": {
-          "type": "string",
+          "type": "number",
           "sanitize": "mongo"
         },
         "currentType": {
@@ -198,7 +195,7 @@
         "connectorIDs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/connectorID"
+            "$ref": "#/definitions/connector/properties/connectorId"
           }
         }
       }

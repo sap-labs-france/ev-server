@@ -313,7 +313,7 @@ export default class ChargingStationService {
 
   public static async handleChargingStationLimitPower(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationLimitPowerReq(req.body);
     // Check
     if (!filteredRequest.chargePointID) {
       throw new AppError({

@@ -3,7 +3,7 @@
   "servers": [
     {
       "description": "Current server",
-      "url": "http://localhost:8080/v1"
+      "url": "/v1"
     }
   ],
   "info": {
