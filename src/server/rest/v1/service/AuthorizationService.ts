@@ -72,11 +72,12 @@ export default class AuthorizationService {
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Enrich
     for (const site of sites) {
+      site.canRead = true; // all users can read sites
+
       if (userToken.role === UserRole.ADMIN) {
-        site.canRead = true;
         site.canUpdate = true;
+        site.canDelete = true;
       } else {
-        site.canRead = Authorizations.canReadSite(userToken);
         site.canUpdate = Authorizations.canUpdateSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
         site.canDelete = Authorizations.canDeleteSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
       }
