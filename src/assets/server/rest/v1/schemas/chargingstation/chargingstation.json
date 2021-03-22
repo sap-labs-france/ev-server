@@ -98,6 +98,110 @@
     "stackLevel": {
       "type": "number",
       "sanitize": "mongo"
+    },
+    "connector": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "#/definitions/connectorID"
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [110, 230],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": ["AC", "DC"],
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "phaseAssignmentToGrid": {
+          "type": "object",
+          "properties": {
+            "csPhaseL1": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL2": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL3": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        }
+      }
+    },
+    "chargePoint": {
+      "type": "object",
+      "properties": {
+        "chargePointID": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": ["AC", "DC"],
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [110, 230],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "cannotChargeInParallel": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "sharePowerToAllConnectors": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "excludeFromPowerLimitation": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "ocppParamForPowerLimitation": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "efficiency": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "connectorIDs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/connectorID"
+          }
+        }
+      }
     }
   }
 }

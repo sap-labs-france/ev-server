@@ -3,7 +3,7 @@
   "servers": [
     {
       "description": "Current server",
-      "url": "/v1"
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -2683,6 +2683,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargingStationUrl": {
+                    "type": "string"
+                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2694,6 +2697,9 @@
                   "forceInactive": {
                     "type": "boolean",
                     "example": false
+                  },
+                  "manualConfiguration": {
+                    "type": "boolean"
                   },
                   "public": {
                     "type": "boolean",
@@ -2710,6 +2716,12 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/Connector"
+                    }
+                  },
+                  "chargePoints": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ChargePoint"
                     }
                   }
                 }
@@ -4505,13 +4517,15 @@
             "type": "string"
           },
           "voltage": {
-            "type": "number"
+            "type": "number",
+            "enum": [110, 230]
           },
           "amperage": {
             "type": "number"
           },
           "currentType": {
-            "type": "string"
+            "type": "string",
+            "enum": ["AC", "DC"]
           },
           "numberOfConnectedPhase": {
             "type": "number"
@@ -4690,6 +4704,52 @@
           "chargingRateUnit",
           "chargingSchedulePeriod"
         ]
+      },
+      "ChargePoint": {
+        "type": "object",
+        "properties": {
+          "chargePointID": {
+            "type": "string"
+          },
+          "currentType": {
+            "type": "string",
+            "enum": ["AC", "DC"]
+          },
+          "voltage": {
+            "type": "number",
+            "enum": [110, 230]
+          },
+          "amperage": {
+            "type": "number"
+          },
+          "numberOfConnectedPhase": {
+            "type": "number"
+          },
+          "cannotChargeInParallel": {
+            "type": "boolean"
+          },
+          "sharePowerToAllConnectors": {
+            "type": "boolean"
+          },
+          "excludeFromPowerLimitation": {
+            "type": "boolean"
+          },
+          "ocppParamForPowerLimitiation": {
+            "type": "boolean"
+          },
+          "power": {
+            "type": "number"
+          },
+          "efficiency": {
+            "type": "number"
+          },
+          "connectorIDs": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
       },
       "Tag": {
         "type": "object",
