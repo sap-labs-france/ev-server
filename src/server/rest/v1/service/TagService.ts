@@ -1,10 +1,10 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import Tag, { ImportedTag } from '../../../../types/Tag';
 
-import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
@@ -555,7 +555,7 @@ export default class TagService {
       // Log
       void Logging.logActionsResponse(
         req.user.tenantID, action,
-        MODULE_NAME, 'deleteTransactions', result,
+        MODULE_NAME, 'handleImportTags', result,
         '{{inSuccess}} Tag(s) were successfully uploaded and ready for asynchronous import',
         '{{inError}} Tag(s) failed to be uploaded',
         '{{inSuccess}}  Tag(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
@@ -677,8 +677,11 @@ export default class TagService {
         id: importedTag.id.toUpperCase(),
         description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
       };
-      // Validate Tad data
+      // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
+      newImportedTag.importedBy = importedTag.importedBy;
+      newImportedTag.importedOn = importedTag.importedOn;
+      newImportedTag.status = ImportStatus.READY;
       // Save it for import
       await TagStorage.saveImportedTag(req.user.tenantID, newImportedTag);
       return true;

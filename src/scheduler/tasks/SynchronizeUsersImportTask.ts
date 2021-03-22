@@ -1,6 +1,7 @@
-import User, { UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import { ImportStatus } from '../../types/GlobalType';
 import { LockEntity } from '../../types/Locking';
@@ -20,16 +21,32 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
     const synchronizeUsersImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-users-import');
     if (await LockingManager.acquire(synchronizeUsersImport)) {
       try {
-        const dbParams: DbParams = { limit: Constants.EXPORT_PAGE_SIZE, skip: 0 };
-        let importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
-        while (importedUsers && !Utils.isEmptyArray(importedUsers.result)) {
+        const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
+        let importedUsers: DataResult<ImportedUser>;
+        do {
+          // Get the imported users
+          importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
           for (const importedUser of importedUsers.result) {
-            const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
-            if (foundUser) {
-              importedUser.status = ImportStatus.ERROR;
-              importedUser.errorDescription = 'Email already exists';
-              await UserStorage.saveImportedUser(tenant.id, importedUser);
-            } else {
+            try {
+            // Existing Users
+              const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
+              if (foundUser) {
+                // Update it
+                foundUser.name = importedUser.name;
+                foundUser.firstName = importedUser.firstName;
+                await UserStorage.saveUser(tenant.id, foundUser);
+                // Remove the imported User
+                await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+                // Log
+                await Logging.logDebug({
+                  tenantID: tenant.id,
+                  action: ServerAction.SYNCHRONIZE_USERS,
+                  module: MODULE_NAME, method: 'processTenant',
+                  message: `User with email: ${importedUser.email} have been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
+                });
+                continue;
+              }
+              // New User
               const user: Partial<User> = {
                 firstName: importedUser.firstName,
                 name: importedUser.name,
@@ -40,39 +57,40 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                 role: UserRole.BASIC,
                 status: UserStatus.ACTIVE,
                 createdBy: { id: importedUser.importedBy },
-                createdOn: new Date(),
+                createdOn: importedUser.importedOn,
                 notificationsActive: true
               };
-              try {
-                user.id = await UserStorage.saveUser(tenant.id, user);
-                // Role need to be set separately
-                await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
-                // Status need to be set separately
-                await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
-                await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
-                await Logging.logDebug({
-                  tenantID: tenant.id,
-                  action: ServerAction.SYNCHRONIZE_USERS,
-                  module: MODULE_NAME, method: 'SYNCHRONIZE_USERS',
-                  message: `User with email: ${importedUser.email} have been created in Tenant ${Utils.buildTenantName(tenant)}`
-                });
-              } catch (error) {
-                importedUser.status = ImportStatus.ERROR;
-                importedUser.errorDescription = error.message;
-                await UserStorage.saveImportedUser(tenant.id, importedUser);
-                // Error
-                await Logging.logError({
-                  tenantID: tenant.id,
-                  action: ServerAction.SYNCHRONIZE_USERS,
-                  module: MODULE_NAME, method: 'createUser',
-                  message: `An error occurred when importing user with email: ${importedUser.email}`,
-                  detailedMessages: { error }
-                });
-              }
+              // Save the new User
+              user.id = await UserStorage.saveUser(tenant.id, user);
+              // Role need to be set separately
+              await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
+              // Status need to be set separately
+              await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
+              // Remove the imported User
+              await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+              // Log
+              await Logging.logDebug({
+                tenantID: tenant.id,
+                action: ServerAction.SYNCHRONIZE_USERS,
+                module: MODULE_NAME, method: 'processTenant',
+                message: `User with email: ${importedUser.email} have been created in Tenant ${Utils.buildTenantName(tenant)}`
+              });
+            } catch (error) {
+              importedUser.status = ImportStatus.ERROR;
+              importedUser.errorDescription = error.message;
+              // Update it
+              await UserStorage.saveImportedUser(tenant.id, importedUser);
+              // Error
+              await Logging.logError({
+                tenantID: tenant.id,
+                action: ServerAction.SYNCHRONIZE_USERS,
+                module: MODULE_NAME, method: 'processTenant',
+                message: `An error occurred when importing user with email: ${importedUser.email}`,
+                detailedMessages: { error: error.message, stack: error.stack }
+              });
             }
           }
-          importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
-        }
+        } while (!Utils.isEmptyArray(importedUsers?.result));
       } catch (error) {
         // Log error
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_USERS, error);

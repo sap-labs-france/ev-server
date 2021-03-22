@@ -24,3 +24,6 @@ export interface ImportedTag {
   status?: ImportStatus;
   errorDescription?: string;
 }
+
+export const TagRequiredImportProperties = ['id'];
+

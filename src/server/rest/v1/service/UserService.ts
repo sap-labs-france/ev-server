@@ -1,8 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { ImportedUser, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -19,7 +20,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
-import JSONStream from 'JSONStream';
+import JSONStream from 'jsonstream';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -860,6 +861,13 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
+    // Default values for User import
+    const importedBy = req.user.id;
+    const importedOn = new Date();
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
     busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
@@ -869,15 +877,36 @@ export default class UserService {
           delimiter: ['\t'],
           quote: 'off'
         });
-        void converter.subscribe(async (user) => {
-          await UserService.importUser(action, req, user);
+        void converter.subscribe(async (user: ImportedUser) => {
+          if (!result.inSuccess && !result.inError) {
+            if (!UserRequiredImportProperties.every((property) => Object.keys(user).includes(property))) {
+              void Logging.logError({
+                tenantID: req.user.tenantID,
+                module: MODULE_NAME, method: 'handleImportUsers',
+                action: action,
+                user: req.user.id,
+                message: `Invalid Csv file '${filename}', all properties: '${UserRequiredImportProperties.join(', ')}' are required`,
+              });
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          }
+          // Set default value
+          user.importedBy = importedBy;
+          user.importedOn = importedOn;
+          // Import
+          if (await UserService.importUser(action, req, user)) {
+            result.inSuccess++;
+          } else {
+            result.inError++;
+          }
         }, (error) => {
           void Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: 'Invalid csv file',
+            message: `Invalid Csv file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -886,16 +915,25 @@ export default class UserService {
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
-        parser.on('data', (user) => {
-          void UserService.importUser(action, req, user);
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('data', async (user: ImportedUser) => {
+          // Set default value
+          user.importedBy = importedBy;
+          user.importedOn = importedOn;
+          // Import
+          if (await UserService.importUser(action, req, user)) {
+            result.inSuccess++;
+          } else {
+            result.inError++;
+          }
         });
         parser.on('error', function(error) {
           void Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: 'Invalid json file',
+            message: `Invalid Json file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -905,22 +943,31 @@ export default class UserService {
       } else {
         void Logging.logError({
           tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleUploadUsersFile',
+          module: MODULE_NAME, method: 'handleImportUsers',
           action: action,
           user: req.user.id,
-          message: 'Invalid file format'
+          message: `Invalid file format '${mimetype}'`
         });
         res.writeHead(HTTPError.INVALID_FILE_FORMAT);
         res.end();
       }
     });
     busboy.on('finish', function() {
+      // Log
+      void Logging.logActionsResponse(
+        req.user.tenantID, action,
+        MODULE_NAME, 'handleImportUsers', result,
+        '{{inSuccess}} User(s) were successfully uploaded and ready for asynchronous import',
+        '{{inError}} User(s) failed to be uploaded',
+        '{{inSuccess}}  User(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
+        'No User have been uploaded', req.user
+      );
       void Logging.logInfo({
         tenantID: req.user.tenantID,
         action: action,
-        module: MODULE_NAME, method: 'handleUploadUsersFile',
+        module: MODULE_NAME, method: 'handleImportUsers',
         user: req.user,
-        message: 'File successfully uploaded',
+        message: 'File has been successfully uploaded in database and ready for asynchronous import',
       });
       res.end();
       next();
@@ -1274,24 +1321,30 @@ export default class UserService {
     return users;
   }
 
-  private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
+  private static async importUser(action: ServerAction, req: Request, importedUser: ImportedUser): Promise<boolean> {
     try {
-      const newUploadedUser: ImportedUser = {
-        name: user.Name,
-        firstName: user.FirstName,
-        email: user.Email,
+      const newImportedUser: ImportedUser = {
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
-      UserValidator.getInstance().validateImportedUserCreation(newUploadedUser);
-      newUploadedUser.importedBy = req.user.id;
-      await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+      // Validate User data
+      UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+      newImportedUser.importedBy = importedUser.importedBy;
+      newImportedUser.importedOn = importedUser.importedOn;
+      newImportedUser.status = ImportStatus.READY;
+      // Save it for import
+      await UserStorage.saveImportedUser(req.user.tenantID, newImportedUser);
+      return true;
     } catch (error) {
       await Logging.logError({
         tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'handleUploadUsersFile',
+        module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
+      return false;
     }
   }
 }

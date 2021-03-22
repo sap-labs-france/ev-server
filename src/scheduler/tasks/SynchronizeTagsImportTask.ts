@@ -32,7 +32,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
               const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
               if (foundTag) {
                 // Update it
-                await TagStorage.saveImportedTag(tenant.id, { ...foundTag, ...importedTag });
+                await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
                 // Remove the imported Tag
                 await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
                 // Log

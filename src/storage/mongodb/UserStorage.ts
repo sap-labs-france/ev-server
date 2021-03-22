@@ -282,7 +282,7 @@ export default class UserStorage {
       name: importedUserToSave.name,
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
-      importedOn:importedUserToSave.importedOn ? importedUserToSave.importedOn : new Date(),
+      importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
     await global.database.getCollection<any>(tenantID, 'usersImport').findOneAndUpdate(
@@ -303,7 +303,7 @@ export default class UserStorage {
     // Delete
     await global.database.getCollection<any>(tenantID, 'usersImport').deleteOne(
       {
-        '_id': importedUserID,
+        '_id': Utils.convertToObjectID(importedUserID),
       });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
