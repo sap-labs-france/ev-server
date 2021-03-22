@@ -14,6 +14,7 @@ import Site from '../../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TenantComponents from '../../../../types/TenantComponents';
+import { UserRole } from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -221,6 +222,16 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
+        user: req.user
+      });
+    }
+    // a non-admin user should now be allowed to unassign himself
+    if (filteredRequest.userIDs.includes(req.user.id) && action !== ServerAction.ADD_USERS_TO_SITE && req.user.role !== UserRole.ADMIN) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The User is not allowed to remove himself',
         module: MODULE_NAME, method: 'handleAssignUsersToSite',
         user: req.user
       });
