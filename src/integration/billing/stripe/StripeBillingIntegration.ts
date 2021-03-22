@@ -585,7 +585,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return billingOperationResult;
   }
 
-  public async paymentMethodsList(user: User): Promise<DataResult<BillingPaymentMethod>> {
+  public async getPaymentMethods(user: User): Promise<DataResult<BillingPaymentMethod>> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -597,12 +597,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: 'User is not known in Stripe',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'paymentMethodsList',
+        method: 'getPaymentMethods',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
 
-    const paymentMethodResult: BillingPaymentMethodResult = await this._getPaymentMethodsList(user, user.billingData.customerID);
+    const paymentMethodResult: BillingPaymentMethodResult = await this._getPaymentMethods(user, user.billingData.customerID);
     return paymentMethodResult;
   }
 
@@ -710,8 +710,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async _getPaymentMethodsList(user: User, customerID: string): Promise<DataResult<BillingPaymentMethod>> {
-    const paymentMethodsList = [] as BillingPaymentMethod[];
+  private async _getPaymentMethods(user: User, customerID: string): Promise<DataResult<BillingPaymentMethod>> {
+    const paymentMethods: BillingPaymentMethod[] = [];
     try {
       let request;
       const requestParams : Stripe.PaymentMethodListParams = {
@@ -723,25 +723,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       do {
         request = await this.stripe.paymentMethods.list(requestParams);
         for (const paymentMethod of request.data) {
-          paymentMethodsList.push({
+          paymentMethods.push({
             id: paymentMethod.id,
             brand: paymentMethod.card.brand,
-            expiringOn: (paymentMethod.card.exp_month).toString().padStart(2, '0') + '/' + paymentMethod.card.exp_year,
+            expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
             last4: paymentMethod.card.last4,
             type: paymentMethod.type,
-            createdOn: new Date((paymentMethod.created) * 1000),
+            createdOn: moment.unix(paymentMethod.created).toDate(),
             isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
           });
         }
         if (request.has_more) {
-          requestParams.starting_after = paymentMethodsList[paymentMethodsList.length - 1].id;
+          requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
         }
       } while (request.has_more);
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_PAYMENT_METHODS_LIST,
-        module: MODULE_NAME, method: '_getPaymentMethodsList',
+        action: ServerAction.BILLING_PAYMENT_METHODS,
+        module: MODULE_NAME, method: '_getPaymentMethods',
         message: `Payment method has been listed for customer '${customerID}' - (${user.email})`
       });
     } catch (e) {
@@ -750,18 +750,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
-        module: MODULE_NAME, method: '_getPaymentMethodsList',
+        module: MODULE_NAME, method: '_getPaymentMethods',
         message: `Stripe operation failed - ${e?.message as string}`
       });
     }
     return {
-      count: paymentMethodsList.length,
-      result: paymentMethodsList
+      count: paymentMethods.length,
+      result: paymentMethods
     };
   }
 
   private async _detachPaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingPaymentMethodResult> {
-    const detachedPaymentMethod = [] as BillingPaymentMethod[];
+    const detachedPaymentMethod: BillingPaymentMethod[] = [];
     try {
       // Verify payment method to be deleted is not the default one
       const customer = await this.getStripeCustomer(customerID);
@@ -779,10 +779,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       detachedPaymentMethod.push({
         id: paymentMethod.id,
         brand: paymentMethod.card.brand,
-        expiringOn: (paymentMethod.card.exp_month).toString().padStart(2, '0') + '/' + paymentMethod.card.exp_year,
+        expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
         last4: paymentMethod.card.last4,
         type: paymentMethod.type,
-        createdOn: new Date((paymentMethod.created) * 1000),
+        createdOn: moment.unix(paymentMethod.created).toDate(),
         isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
       });
       await Logging.logInfo({
@@ -820,7 +820,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: customerID,
-        module: MODULE_NAME, method: '_getPaymentMethodsList',
+        module: MODULE_NAME, method: '_getPaymentMethods',
         message: `Stripe operation failed - ${e?.message as string}`
       });
     }

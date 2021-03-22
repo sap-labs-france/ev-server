@@ -196,7 +196,7 @@ class RequestMapper {
           [ServerAction.BILLING_TAXES]: BillingService.handleGetBillingTaxes.bind(this),
           [ServerAction.BILLING_INVOICES]: BillingService.handleGetInvoices.bind(this),
           [ServerAction.BILLING_DOWNLOAD_INVOICE]: BillingService.handleDownloadInvoice.bind(this),
-          [ServerAction.BILLING_PAYMENT_METHODS_LIST]: BillingService.handleBillingGetPaymentMethodsList.bind(this),
+          [ServerAction.BILLING_PAYMENT_METHODS]: BillingService.handleBillingGetPaymentMethods.bind(this),
           [ServerAction.OCPI_ENDPOINTS]: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           [ServerAction.OCPI_ENDPOINT]: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINTS]: OICPEndpointService.handleGetOicpEndpoints.bind(this),

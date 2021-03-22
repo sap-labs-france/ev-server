@@ -512,18 +512,18 @@ export default class BillingService {
     res.json(operationResult);
   }
 
-  public static async handleBillingGetPaymentMethodsList(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response): Promise<void> {
     // Filter
-    const filteredRequest = BillingSecurity.filterPaymentMethodsListRequest(req);
+    const filteredRequest = BillingSecurity.filterPaymentMethodsRequest(req);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(filteredRequest.loggedUser, TenantComponents.BILLING,
-      Action.BILLING_PAYMENT_METHODS_LIST, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethodsList');
+      Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
     if (!Authorizations.canListPaymentMethod(filteredRequest.loggedUser)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: filteredRequest.loggedUser,
         action: Action.CREATE, entity: Entity.PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'handleBillingGetPaymentMethodsList'
+        module: MODULE_NAME, method: 'handleBillingGetPaymentMethods'
       });
     }
     // Get the billing impl
@@ -533,7 +533,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingGetPaymentMethodsList',
+        module: MODULE_NAME, method: 'handleBillingGetPaymentMethods',
         action: action,
         user: filteredRequest.loggedUser
       });
@@ -541,9 +541,9 @@ export default class BillingService {
     // Get user
     const user: User = await UserStorage.getUser(filteredRequest.loggedUser.tenantID, filteredRequest.selectedUserID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.selectedUserID}' does not exist`,
-      MODULE_NAME, 'handleBillingGetPaymentMethodsList', filteredRequest.loggedUser);
+      MODULE_NAME, 'handleBillingGetPaymentMethods', filteredRequest.loggedUser);
     // Invoke the billing implementation
-    const paymentMethodResult: BillingPaymentMethodResult = await billingImpl.paymentMethodsList(user);
+    const paymentMethodResult: BillingPaymentMethodResult = await billingImpl.getPaymentMethods(user);
     if (paymentMethodResult) {
       console.log(paymentMethodResult);
     }
@@ -555,7 +555,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterDeletePaymentMethodRequest(req);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(filteredRequest.loggedUser, TenantComponents.BILLING,
-      Action.BILLING_PAYMENT_METHODS_LIST, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');
+      Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');
     if (!Authorizations.canDeletePaymentMethod(filteredRequest.loggedUser)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

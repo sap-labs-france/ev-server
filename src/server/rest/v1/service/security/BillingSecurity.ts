@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethodsList, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
@@ -78,8 +78,8 @@ export default class BillingSecurity {
     };
   }
 
-  static filterPaymentMethodsListRequest(request: any): HttpPaymentMethodsList {
-    const filteredRequest: HttpPaymentMethodsList = {
+  static filterPaymentMethodsRequest(request: any): HttpPaymentMethods {
+    const filteredRequest: HttpPaymentMethods = {
       loggedUser: sanitize(request.user),
       selectedUserID: sanitize(request.query.userID)
     };

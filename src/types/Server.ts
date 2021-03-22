@@ -409,7 +409,7 @@ export enum ServerAction {
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
-  BILLING_PAYMENT_METHODS_LIST = 'BillingPaymentMethodsList',
+  BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_WEB_HOOK = 'BillingWebHook',

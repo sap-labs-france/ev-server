@@ -591,7 +591,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  abstract paymentMethodsList(user: User): Promise<BillingPaymentMethodResult>;
+  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethodResult>;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult>;
 }

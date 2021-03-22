@@ -120,7 +120,7 @@ export interface BillingOperationResult {
 export interface BillingPaymentMethod {
   id: string;
   brand: string;
-  expiringOn: string;
+  expiringOn: Date;
   last4: string;
   type: string;
   createdOn: Date;

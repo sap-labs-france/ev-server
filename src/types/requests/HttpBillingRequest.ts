@@ -24,7 +24,7 @@ export interface HttpSetupPaymentMethod {
   paymentMethodId?: string;
 }
 
-export interface HttpPaymentMethodsList {
+export interface HttpPaymentMethods {
   loggedUser: UserToken;
   selectedUserID: string;
 }
