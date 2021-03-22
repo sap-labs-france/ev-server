@@ -778,7 +778,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.params).ID;
+    const chargingStationID = ChargingStationValidator.getInstance().validateChargingStationDeleteReq(req.query).ID;
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME,
       'handleDeleteChargingStation', req.user);
