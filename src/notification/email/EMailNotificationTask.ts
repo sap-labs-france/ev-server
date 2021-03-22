@@ -253,9 +253,16 @@ export default class EMailNotificationTask implements NotificationTask {
         const err: SMTPError = error;
         switch (err.smtp) {
           // TODO: Add a fitting data structure to types to cope with SMTP returned codes
+          case 421:
+          case 432:
           case 450:
+          case 451:
+          case 452:
+          case 454:
+          case 455:
           case 510:
           case 511:
+          case 550:
             sendSmtpError = false;
             break;
         }
