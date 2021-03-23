@@ -14,6 +14,7 @@ import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import UtilsService from './UtilsService';
@@ -118,7 +119,7 @@ export default class AssetService {
       res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
     } catch (error) {
       // KO
-      Logging.logError({
+      await Logging.logError({
         tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
@@ -223,6 +224,7 @@ export default class AssetService {
       {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         errorType
       },
       { limit: filteredRequest.Limit,
@@ -263,7 +265,7 @@ export default class AssetService {
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteAsset',
@@ -347,13 +349,14 @@ export default class AssetService {
       {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
-        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates',
+        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
         'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
       ]
     );
@@ -379,8 +382,9 @@ export default class AssetService {
     // Check Asset
     UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area
+    let siteArea: SiteArea = null;
     if (filteredRequest.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleCreateAsset', req.user);
     }
@@ -388,6 +392,7 @@ export default class AssetService {
     const newAsset: Asset = {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
+      siteID: siteArea ? siteArea.siteID : null,
       assetType: filteredRequest.assetType,
       excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
@@ -403,7 +408,7 @@ export default class AssetService {
     // Save
     newAsset.id = await AssetStorage.saveAsset(req.user.tenantID, newAsset);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleCreateAsset',
@@ -433,8 +438,9 @@ export default class AssetService {
       });
     }
     // Check Site Area
+    let siteArea: SiteArea = null;
     if (filteredRequest.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleUpdateAsset', req.user);
     }
@@ -448,6 +454,7 @@ export default class AssetService {
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
+    asset.siteID = siteArea ? siteArea.siteID : null,
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
@@ -462,7 +469,7 @@ export default class AssetService {
     // Update Asset
     await AssetStorage.saveAsset(req.user.tenantID, asset);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleUpdateAsset',

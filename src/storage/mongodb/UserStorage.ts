@@ -228,6 +228,7 @@ export default class UserStorage {
         sendChargingStationStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationStatusError) : false,
         sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
         sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
+        sendOicpPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOicpPatchStatusError) : false,
         sendSmtpError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpError) : false,
         sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
@@ -1007,6 +1008,7 @@ export default class UserStorage {
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
+        sendOicpPatchStatusError: false,
         sendSmtpError: false,
         sendUserAccountInactivity: false,
         sendPreparingSessionNotStarted: false,
@@ -1081,7 +1083,7 @@ export default class UserStorage {
   }
 
   private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    const centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getEndUserLicenseAgreementFromFile');
     let eulaText = null;
@@ -1091,8 +1093,8 @@ export default class UserStorage {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
     }
     // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port.toString();
+    const frontEndURL = centralSystemFrontEndConfig.protocol + '://' +
+      centralSystemFrontEndConfig.host + ':' + centralSystemFrontEndConfig.port.toString();
     // Parse the auth and replace values
     eulaText = Mustache.render(
       eulaText,

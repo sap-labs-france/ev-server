@@ -19,11 +19,18 @@ export default class BillingStorage {
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
-  public static async getInvoiceByBillingInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
+  public static async getInvoiceByInvoiceID(tenantID: string, id: string): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
       billingInvoiceID: id
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
+  }
+
+  public static async getInvoicesToPay(tenantID: string): Promise<DataResult<BillingInvoice>> {
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      invoiceStatus: [BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN]
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    return invoicesMDB;
   }
 
   public static async getInvoices(tenantID: string,
@@ -150,18 +157,19 @@ export default class BillingStorage {
     };
   }
 
-  public static async saveInvoice(tenantID: string, invoiceToSave: Partial<BillingInvoice>): Promise<string> {
+  public static async saveInvoice(tenantID: string, invoiceToSave: BillingInvoice): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoice');
     // Build Request
     // Properties to save
-    const invoiceMDB = {
+    const invoiceMDB: any = {
       _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       number: invoiceToSave.number,
-      userID: invoiceToSave.user ? Utils.convertToObjectID(invoiceToSave.user.id) : null,
+      userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
+      amountPaid: Utils.convertToFloat(invoiceToSave.amountPaid),
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
@@ -170,14 +178,34 @@ export default class BillingStorage {
       downloadUrl: invoiceToSave.downloadUrl
     };
     // Modify and return the modified document
-    await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndReplace(
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
-      invoiceMDB,
-      { upsert: true }
+      { $set: invoiceMDB },
+      { upsert: true, returnOriginal: false }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
     return invoiceMDB._id.toHexString();
+  }
+
+  public static async saveLastPaymentFailure(tenantID: string, invoiceID: string, error: unknown): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'savePaymentData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Set data
+    const updatedInvoiceMDB: any = {
+      lastPaymentFailure: {
+        eventReceivedOn: new Date(),
+        error
+      }
+    };
+    // Modify and return the modified document
+    await global.database.getCollection(tenantID, 'invoices').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(invoiceID) },
+      { $set: updatedInvoiceMDB });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'savePaymentData', uniqueTimerID, updatedInvoiceMDB);
   }
 
   public static async saveInvoiceDocument(tenantID: string, invoiceDocumentToSave: BillingInvoiceDocument): Promise<BillingInvoiceDocument> {

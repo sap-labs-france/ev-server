@@ -155,7 +155,7 @@ export default class ChargingStationStorage {
       search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
       connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number;
+      locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
@@ -197,6 +197,10 @@ export default class ChargingStationStorage {
     // Remove deleted
     if (!params.includeDeleted) {
       filters.deleted = { '$ne': true };
+    }
+    // Public Charging Stations
+    if (Utils.objectHasProperty(params, 'public')) {
+      filters.public = params.public;
     }
     // Charging Stations
     if (!Utils.isEmptyArray(params.chargingStationIDs)) {
@@ -349,8 +353,6 @@ export default class ChargingStationStorage {
     // Reorder connector ID
     // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
-      // Always add Connector ID
-      dbParams.sort = { ...dbParams.sort, 'connectors.connectorId': 1 };
       aggregation.push({
         $sort: dbParams.sort
       });
@@ -531,6 +533,7 @@ export default class ChargingStationStorage {
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
       excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       forceInactive: Utils.convertToBoolean(chargingStationToSave.forceInactive),
+      manualConfiguration: Utils.convertToBoolean(chargingStationToSave.manualConfiguration),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(

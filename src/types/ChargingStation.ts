@@ -5,6 +5,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { OICPIdentification } from './oicp/OICPIdentification';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -37,6 +38,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   deleted: boolean;
   inactive: boolean;
   forceInactive: boolean;
+  manualConfiguration?: boolean;
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
@@ -152,6 +154,7 @@ export interface RemoteAuthorization {
   connectorId: number;
   tagId: string;
   timestamp: Date;
+  oicpIdentification?: OICPIdentification;
 }
 
 export interface ConnectorCurrentLimit {
@@ -289,6 +292,7 @@ export enum ChargerVendor {
   EBEE = 'Ebee',
   EVBOX = 'EV-BOX',
   INNOGY = 'innogy',
+  INGETEAM = 'INGETEAM',
   IES = 'IES',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',

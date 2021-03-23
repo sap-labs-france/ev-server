@@ -13,13 +13,29 @@ export default class TransactionRouter {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteCompletedTransactions();
+    this.buildRouteTransactions();
+    this.buildRouteTransaction();
+    this.buildRouteTransactionConsumption();
     return this.router;
   }
 
-  protected buildRouteCompletedTransactions(): void {
+  protected buildRouteTransactions(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsCompleted.bind(this), ServerAction.CHARGING_STATIONS, req, res, next);
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactions.bind(this), ServerAction.TRANSACTIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransaction(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransaction.bind(this), ServerAction.TRANSACTION, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionConsumption(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.TransactionId = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
     });
   }
 }

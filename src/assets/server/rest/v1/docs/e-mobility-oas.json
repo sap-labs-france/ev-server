@@ -2,16 +2,8 @@
   "openapi": "3.0.3",
   "servers": [
     {
-      "description": "Localhost - Development",
-      "url": "http://localhost:8080/v1"
-    },
-    {
-      "description": "SCP - Production system",
-      "url": "https://sap-ev-rest-server-prod.cfapps.eu10.hana.ondemand.com/v1"
-    },
-    {
-      "description": "SCP - Quality system",
-      "url": "https://sap-ev-rest-server-qa.cfapps.eu10.hana.ondemand.com/v1"
+      "description": "Current server",
+      "url": "/v1"
     }
   ],
   "info": {
@@ -24,7 +16,7 @@
     },
     "license": {
       "name": "Apache 2.0",
-      "url": "https://github.com/LucasBrazi06/ev-server/blob/master/LICENSE"
+      "url": "https://github.com/sap-labs-france/ev-server/blob/master/LICENSE"
     }
   },
   "tags": [
@@ -697,6 +689,15 @@
         "description": "Retrieve a list of Transactions",
         "parameters": [
           {
+            "in": "query",
+            "name": "Status",
+            "description": "Transaction status",
+            "schema": {
+              "type": "string",
+              "enum": ["completed", "active"]
+            }
+          },
+          {
             "$ref": "#/components/parameters/Issuer"
           },
           {
@@ -709,28 +710,52 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargeBoxIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorID"
+            "$ref": "#/components/parameters/ConnectorIDs"
           },
           {
-            "$ref": "#/components/parameters/UserID"
+            "$ref": "#/components/parameters/UserIDs"
           },
           {
-            "$ref": "#/components/parameters/TagID"
+            "$ref": "#/components/parameters/TagIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/InactivityStatus"
+            "$ref": "#/components/parameters/InactivityStatuses"
           },
           {
             "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "in": "query",
+            "name": "RefundStatus",
+            "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "description": "Transactions minimal price",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "description": "Pipe separated report IDs",
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -825,6 +850,175 @@
         }
       }
     },
+    "/api/transactions/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned Transaction",
+            "content": {
+              "application/json": {
+                "example": {
+                  "issuer": true,
+                  "siteID": "###",
+                  "siteAreaID": "###",
+                  "connectorId": 1,
+                  "tagID": "###",
+                  "userID": "###",
+                  "chargeBoxID": "###",
+                  "meterStart": 0,
+                  "timestamp": "2019-06-12T06:49:46.000Z",
+                  "price": 0,
+                  "roundedPrice": 0,
+                  "priceUnit": "EUR",
+                  "stateOfCharge": 0,
+                  "timezone": "Europe/Paris",
+                  "signedData": null,
+                  "stop": {
+                    "userID": "###",
+                    "timestamp": "2019-06-12T09:54:18.000Z",
+                    "tagID": "###",
+                    "meterStop": 18540,
+                    "stateOfCharge": 0,
+                    "signedData": null,
+                    "totalConsumptionWh": 18540,
+                    "totalInactivitySecs": 0,
+                    "inactivityStatus": "I",
+                    "totalDurationSecs": 11072,
+                    "price": 2.5956,
+                    "roundedPrice": 2.59,
+                    "priceUnit": "EUR",
+                    "pricingSource": "simple"
+                  },
+                  "id": 1234567890
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/consumptions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a Transaction consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          },
+          {
+            "in": "query",
+            "name": "LoadAllConsumptions",
+            "description": "Load all consumptions",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a Transaction consumption",
+            "content": {
+              "application/json": {
+                "example": {
+                  "issuer": true,
+                  "siteID": "###",
+                  "siteAreaID": "###",
+                  "connectorId": 1,
+                  "tagID": "###",
+                  "userID": "###",
+                  "chargeBoxID": "###",
+                  "meterStart": 0,
+                  "timestamp": "2019-06-12T06:49:46.000Z",
+                  "stateOfCharge": 0,
+                  "timezone": "Europe/Paris",
+                  "stop": {
+                    "userID": "###",
+                    "timestamp": "2019-06-12T09:54:18.000Z",
+                    "tagID": "###",
+                    "stateOfCharge": 0,
+                    "totalConsumptionWh": 18540,
+                    "totalInactivitySecs": 0,
+                    "inactivityStatus": "I",
+                    "totalDurationSecs": 11072,
+                    "price": 2.5956,
+                    "roundedPrice": 2.59,
+                    "priceUnit": "EUR",
+                    "pricingSource": "simple"
+                  },
+                  "id": 1234567890,
+                  "values": [
+                    {
+                      "startedAt": "2019-06-12T06:49:46.000Z",
+                      "endedAt": "2019-06-12T06:50:46.000Z",
+                      "cumulatedAmount": 0.01344,
+                      "cumulatedConsumptionWh": 96,
+                      "cumulatedConsumptionAmps": 0.417391304348,
+                      "instantWatts": 5760,
+                      "instantWattsL1": 0,
+                      "instantWattsL2": 0,
+                      "instantWattsL3": 0,
+                      "instantWattsDC": 0,
+                      "instantAmps": 25.04347826087,
+                      "instantAmpsL1": 0,
+                      "instantAmpsL2": 0,
+                      "instantAmpsL3": 0,
+                      "instantAmpsDC": 0,
+                      "instantVolts": 0,
+                      "instantVoltsL1": 0,
+                      "instantVoltsL2": 0,
+                      "instantVoltsL3": 0,
+                      "instantVoltsDC": 0,
+                      "stateOfCharge": 0,
+                      "limitAmps": 96,
+                      "limitWatts": 22080
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/chargingstations": {
       "get": {
         "security": [
@@ -844,28 +1038,25 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/IncludeDeleted"
-          },
-          {
-            "$ref": "#/components/parameters/ErrorType"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -1237,7 +1428,7 @@
         }
       }
     },
-    "/api/chargingstations/reset": {
+    "/api/chargingstations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1245,15 +1436,17 @@
           }
         ],
         "description": "Reset a Charging Station",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1298,7 +1491,7 @@
         }
       }
     },
-    "/api/chargingstations/cache/clear": {
+    "/api/chargingstations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1306,20 +1499,11 @@
           }
         ],
         "description": "Clear a Charging Station cache",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1365,7 +1549,7 @@
         }
       }
     },
-    "/api/chargingstations/configuration/retrieve": {
+    "/api/chargingstations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1373,15 +1557,17 @@
           }
         ],
         "description": "Get the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1395,10 +1581,7 @@
                       }
                     }
                   }
-                },
-                "required": [
-                  "chargeBoxID"
-                ]
+                }
               }
             }
           }
@@ -1464,7 +1647,72 @@
         }
       }
     },
-    "/api/chargingstations/remote/start": {
+    "/api/chargingstations/{id}/configuration": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update the Charging Station's configuration",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Required. Configuration key to update",
+                        "example": ""
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Required. Value to set",
+                        "example": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return command success status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/chargingstations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1472,15 +1720,17 @@
           }
         ],
         "description": "Start a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "carID": {
                     "type": "string",
                     "example": ""
@@ -1563,7 +1813,7 @@
         }
       }
     },
-    "/api/chargingstations/remote/stop": {
+    "/api/chargingstations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1571,15 +1821,17 @@
           }
         ],
         "description": "Stop a remote transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1652,7 +1904,7 @@
         }
       }
     },
-    "/api/chargingstations/connectors/unlock": {
+    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1660,37 +1912,14 @@
           }
         ],
         "description": "Unlock a connector",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
-                  "args": {
-                    "type": "object",
-                    "properties": {
-                      "connectorId": {
-                        "type": "integer",
-                        "description": "Required. This contains the identifier of the connector to be unlocked.",
-                        "minimum": 1,
-                        "example": 1
-                      }
-                    },
-                    "required": [
-                      "connectorId"
-                    ]
-                  }
-                },
-                "required": [
-                  "args"
-                ]
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          },
+          {
+            "$ref": "#/components/parameters/connectorID"
           }
-        },
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -1739,7 +1968,7 @@
         }
       }
     },
-    "/api/chargingstations/compositeschedule": {
+    "/api/chargingstations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -1747,15 +1976,17 @@
           }
         ],
         "description": "Get Charging Station composite schedule",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1880,7 +2111,7 @@
         }
       }
     },
-    "/api/chargingstations/diagnostics": {
+    "/api/chargingstations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -1888,15 +2119,17 @@
           }
         ],
         "description": "Get Charging Station diagnostics",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -1974,7 +2207,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/update": {
+    "/api/chargingstations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -1982,15 +2215,17 @@
           }
         ],
         "description": "Update Charging Station firmware",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2049,7 +2284,7 @@
         }
       }
     },
-    "/api/chargingstations/availability/change": {
+    "/api/chargingstations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2057,15 +2292,17 @@
           }
         ],
         "description": "Update Charging Station availability",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
-                    "$ref": "#/components/schemas/ocppChargeBoxID"
-                  },
                   "args": {
                     "type": "object",
                     "properties": {
@@ -2201,7 +2438,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/download": {
+    "/api/chargingstations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2211,10 +2448,16 @@
         "description": "Download connector QRCode as PDF",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationID"
           },
           {
-            "$ref": "#/components/parameters/connectorID"
+            "$ref": "#/components/parameters/ConnectorID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
           }
         ],
         "tags": [
@@ -2364,38 +2607,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "accepted": {
-                    "summary": "Accepted",
-                    "value": {
-                      "status": "Accepted"
-                    }
-                  },
-                  "rejected": {
-                    "summary": "Rejected",
-                    "value": {
-                      "status": "Rejected"
-                    }
-                  },
-                  "rebootRequired": {
-                    "summary": "Reboot required",
-                    "value": {
-                      "status": "RebootRequired"
-                    }
-                  },
-                  "NotSupported": {
-                    "summary": "Not supported",
-                    "value": {
-                      "status": "NotSupported"
-                    }
-                  }
+                  "$ref": "#/components/schemas/OcppConfigurationStatus"
                 }
               }
             }
@@ -2412,7 +2624,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters/export": {
+    "/api/chargingstations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2422,7 +2634,7 @@
         "description": "Export Charging Station OCPP Parameters as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/chargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           }
         ],
         "tags": [
@@ -2452,7 +2664,7 @@
         }
       }
     },
-    "/api/chargingstations/parameters": {
+    "/api/chargingstations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2460,16 +2672,17 @@
           }
         ],
         "description": "Update Charging Station parameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2526,7 +2739,7 @@
         }
       }
     },
-    "/api/chargingstations/power/limit": {
+    "/api/chargingstations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2534,22 +2747,22 @@
           }
         ],
         "description": "Limit Charging Station power",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
-                  "chargeBoxID",
                   "chargePointID",
                   "ampLimitValue",
                   "forceUpdateChargingPlan"
                 ],
                 "properties": {
-                  "chargeBoxID": {
-                    "type": "string",
-                    "example": ""
-                  },
                   "chargePointID": {
                     "type": "string",
                     "example": 1
@@ -2654,10 +2867,10 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
             "in": "query",
@@ -2742,7 +2955,7 @@
         }
       }
     },
-    "/api/chargingstations/in-error": {
+    "/api/chargingstations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2755,13 +2968,13 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ErrorType"
+            "$ref": "#/components/parameters/ErrorTypes"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -2798,7 +3011,7 @@
         }
       }
     },
-    "/api/chargingstations/export": {
+    "/api/chargingstations/action/export": {
       "get": {
         "security": [
           {
@@ -2811,7 +3024,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/Issuer"
@@ -2820,19 +3033,19 @@
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/WithSite"
           },
           {
-            "$ref": "#/components/parameters/SiteAreaID"
+            "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ConnectorStatus"
+            "$ref": "#/components/parameters/ConnectorStatuses"
           },
           {
-            "$ref": "#/components/parameters/ConnectorType"
+            "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
             "$ref": "#/components/parameters/LocLongitude"
@@ -2939,6 +3152,38 @@
         }
       }
     },
+    "/api/chargingstations/smartcharging/trigger": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Trigger smart charging",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaID"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Smart Charging triggered successfully on site area"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/chargingprofiles": {
       "get": {
         "security": [
@@ -2949,7 +3194,7 @@
         "description": "Get Charging Profiles",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ChargingStationID"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorID"
@@ -2976,7 +3221,7 @@
             }
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3029,7 +3274,9 @@
             "$ref": "#/components/responses/BackendError"
           }
         }
-      },
+      }
+    },
+    "/api/chargingprofiles/{id}": {
       "put": {
         "security": [
           {
@@ -3037,6 +3284,11 @@
           }
         ],
         "description": "Update a Charging Station profile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingProfileID"
+          }
+        ],
         "tags": [
           "Charging Profiles"
         ],
@@ -3082,9 +3334,7 @@
             "$ref": "#/components/responses/NotSupportedError"
           }
         }
-      }
-    },
-    "/api/chargingprofiles/{id}": {
+      },
       "delete": {
         "security": [
           {
@@ -3135,7 +3385,7 @@
             "$ref": "#/components/parameters/Search"
           },
           {
-            "$ref": "#/components/parameters/SiteID"
+            "$ref": "#/components/parameters/SiteIDs"
           },
           {
             "in": "query",
@@ -3630,7 +3880,7 @@
             "$ref": "#/components/responses/BackendError"
           },
           "550": {
-            "description": "Tag does not exist"
+            "description": "User does not exist"
           },
           "576": {
             "description": "Tag already exists"
@@ -3911,7 +4161,21 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "gireve"
+                      "ocpi"
+                    ]
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "oicp": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "oicp"
                     ]
                   },
                   "active": {
@@ -4616,6 +4880,20 @@
             "type": "boolean"
           }
         }
+      },
+      "OcppConfigurationStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "Accepted",
+              "Rejected",
+              "RebootRequired",
+              "NotSupported"
+            ]
+          }
+        }
       }
     },
     "parameters": {
@@ -4668,18 +4946,12 @@
           "type": "string"
         }
       },
-      "ErrorType": {
+      "ErrorTypes": {
         "in": "query",
         "name": "ErrorType",
-        "description": "Error type",
+        "description": "Pipe separated error types (missing_settings, connection_broken, missing_site_area, connection_error)",
         "schema": {
-          "type": "string",
-          "enum": [
-            "missing_settings",
-            "connection_broken",
-            "missing_site_area",
-            "connection_error"
-          ]
+          "type": "string"
         }
       },
       "StartDateTime": {
@@ -4703,7 +4975,16 @@
       "TagID": {
         "in": "query",
         "name": "TagID",
-        "description": "Badge ID",
+        "description": "Tag ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TagIDs": {
+        "in": "query",
+        "name": "TagID",
+        "description": "Pipe separated Tag IDs",
         "required": false,
         "schema": {
           "type": "string"
@@ -4713,6 +4994,15 @@
         "in": "query",
         "name": "UserID",
         "description": "User ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserIDs": {
+        "in": "query",
+        "name": "UserID",
+        "description": "Pipe separated User IDs",
         "required": false,
         "schema": {
           "type": "string"
@@ -4736,6 +5026,24 @@
           "type": "string"
         }
       },
+      "ChargingStationIDs": {
+        "in": "query",
+        "name": "ChargingStationID",
+        "description": "Pipe separated Charging Station IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ChargeBoxIDs": {
+        "in": "query",
+        "name": "ChargeBoxID",
+        "description": "Pipe separated Charging Station IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ConnectorID": {
         "in": "query",
         "name": "ConnectorID",
@@ -4743,6 +5051,15 @@
         "required": false,
         "schema": {
           "type": "number"
+        }
+      },
+      "ConnectorIDs": {
+        "in": "query",
+        "name": "ConnectorID",
+        "description": "Pipe separated Connector IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
         }
       },
       "InactivityStatus": {
@@ -4757,6 +5074,15 @@
             "W",
             "E"
           ]
+        }
+      },
+      "InactivityStatuses": {
+        "in": "query",
+        "name": "InactivityStatus",
+        "description": "Pipe separated Inactivity Statuses (I, W, E)",
+        "required": false,
+        "schema": {
+          "type": "string"
         }
       },
       "chargingProfileID": {
@@ -4801,7 +5127,7 @@
           ]
         }
       },
-      "SiteID": {
+      "SiteIDs": {
         "in": "query",
         "name": "SiteID",
         "description": "Pipe separated Site IDs",
@@ -4819,6 +5145,14 @@
         }
       },
       "SiteAreaID": {
+        "in": "query",
+        "name": "SiteAreaID",
+        "description": "Site Area ID",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SiteAreaIDs": {
         "in": "query",
         "name": "SiteAreaID",
         "description": "Pipe separated Site Area IDs",
@@ -4842,18 +5176,18 @@
           "type": "boolean"
         }
       },
-      "ConnectorStatus": {
+      "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Connector status",
+        "description": "Pipe separated connector statuses",
         "schema": {
           "type": "string"
         }
       },
-      "ConnectorType": {
+      "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Connector type",
+        "description": "Pipe separated connector types",
         "schema": {
           "type": "string"
         }
@@ -4902,6 +5236,15 @@
         "in": "path",
         "name": "id",
         "description": "Tag ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "transactionID": {
+        "in": "path",
+        "name": "id",
+        "description": "Transaction ID",
         "required": true,
         "schema": {
           "type": "string"

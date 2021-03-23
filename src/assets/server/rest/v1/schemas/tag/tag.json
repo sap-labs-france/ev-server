@@ -1,0 +1,10 @@
+{
+  "$id": "tag.json",
+  "definitions": {
+    "id": {
+      "type": "string",
+      "pattern": "^[\\w\\d]*$",
+      "sanitize": "mongo"
+    }
+  }
+}

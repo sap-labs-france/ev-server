@@ -68,6 +68,14 @@
       "title": "Stati Invio in Roaming",
       "body": "Il trasferimento alla piattaforma di roaming degli stati della stazione di ricarica è fallito nella posizione '{{location}}' nell'organizzazione '{{tenantName}}', controlla i log"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Hubject Send Statuses",
+      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Hubject Send Charging Stations",
+      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+    },
     "smtpError": {
       "title": "Errore Server Email",
       "body": "Errore del server di posta elettronica principale nell'organizzazione '{{tenantName}}', controlla la configurazione"

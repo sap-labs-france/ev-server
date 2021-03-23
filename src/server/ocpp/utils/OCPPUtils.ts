@@ -15,12 +15,16 @@ import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../types/DataResult';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
+import { OICPRole } from '../../../types/oicp/OICPRole';
+import OICPUtils from '../../oicp/OICPUtils';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
@@ -147,6 +151,75 @@ export default class OCPPUtils {
         message: `Cannot ${transactionAction} Transaction ID '${transaction.id}' thought OCPI protocol`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
+    }
+  }
+
+  public static async processOICPTransaction(tenantID: string, transaction: Transaction,
+    chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
+    if (!transaction.user || transaction.user.issuer) {
+      return;
+    }
+    const user: User = transaction.user;
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    let action: ServerAction;
+    switch (transactionAction) {
+      case TransactionAction.START:
+        action = ServerAction.START_TRANSACTION;
+        break;
+      case TransactionAction.UPDATE:
+        action = ServerAction.UPDATE_TRANSACTION;
+        break;
+      case TransactionAction.STOP:
+      case TransactionAction.END:
+        action = ServerAction.STOP_TRANSACTION;
+        break;
+    }
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: MODULE_NAME,
+        method: 'processOICPTransaction',
+        message: `Unable to ${transactionAction} a Transaction for User '${user.id}' not issued locally`
+      });
+    }
+    const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+    if (!oicpClient) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: MODULE_NAME,
+        method: 'processOICPTransaction',
+        message: `OICP component requires at least one CPO endpoint to ${transactionAction} a Session`
+      });
+    }
+    let authorization;
+    switch (transactionAction) {
+      case TransactionAction.START:
+        // Retrieve session Id and identification from (remote) authorization
+        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(tenantID, chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
+        if (!authorization) {
+          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenantID, transaction);
+        }
+        if (!authorization) {
+          throw new BackendError({
+            source: transaction.chargeBoxID,
+            action: ServerAction.OICP_PUSH_SESSIONS,
+            message: 'No Authorization. OICP Session not started',
+            module: MODULE_NAME, method: 'startSession',
+          });
+        }
+        await oicpClient.startSession(chargingStation, transaction, authorization.sessionId, authorization.identification);
+        break;
+      case TransactionAction.UPDATE:
+        await oicpClient.updateSession(transaction);
+        break;
+      case TransactionAction.STOP:
+        await oicpClient.stopSession(transaction);
+        break;
+      case TransactionAction.END:
+        await oicpClient.pushCdr(transaction);
+        break;
     }
   }
 
@@ -1070,7 +1143,7 @@ export default class OCPPUtils {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
-    if (chargingStationTemplate) {
+    if (chargingStationTemplate && !chargingStation.manualConfiguration) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
         templateUpdate.chargingStationUpdate = true;

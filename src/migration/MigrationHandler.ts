@@ -11,6 +11,7 @@ import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUse
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddSiteAreaIDToAssetConsumptionTask from './tasks/AddSiteAreaIDToAssetConsumptionTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
+import AddSiteIDToAssetTask from './tasks/AddSiteIDToAssetTask';
 import AddSiteIDToChargingStationTask from './tasks/AddSiteIDToChargingStationTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
@@ -118,6 +119,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new ResetCarCatalogsHashTask());
         currentMigrationTasks.push(new AddSiteAreaIDToAssetConsumptionTask());
         currentMigrationTasks.push(new AddSiteIDToChargingStationTask());
+        currentMigrationTasks.push(new AddSiteIDToAssetTask());
         currentMigrationTasks.push(new RecomputeAllTransactionsWithSimplePricingTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();

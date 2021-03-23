@@ -16,6 +16,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -165,6 +166,48 @@ export default class UtilsService {
         message: 'The OCPI Endpoint token is mandatory',
         module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfOICPEndpointValid(oicpEndpoint: Partial<OICPEndpoint>, req: Request): void {
+    if (req.method !== 'POST' && !oicpEndpoint.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid'
+      });
+    }
+    if (!oicpEndpoint.name) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint name is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!oicpEndpoint.role) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint role is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!oicpEndpoint.baseUrl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The OICP Endpoint base URL is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid',
         user: req.user.id
       });
     }
@@ -410,6 +453,92 @@ export default class UtilsService {
           detailedMessages: { chargingSchedulePeriod }
         });
       }
+    }
+  }
+
+  public static checkIfChargePointValid(chargingStation: ChargingStation, chargePoint: ChargePoint, req: Request): void {
+    const connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    // Add helpers to check if charge point is valid
+    let chargePointAmperage = 0;
+    let chargePointPower = 0;
+    for (const connector of connectors) {
+      // Check if properties from charge point match the properties from the connector
+      if (connector.voltage && chargePoint.voltage && connector.voltage !== chargePoint.voltage) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+          message: 'Charge Point does not match the voltage of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      if (connector.numberOfConnectedPhase && chargePoint.numberOfConnectedPhase && connector.numberOfConnectedPhase !== chargePoint.numberOfConnectedPhase) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+          message: 'Charge Point does not match the number of phases of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      if (connector.currentType && chargePoint.currentType && connector.currentType !== chargePoint.currentType) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+          errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+          message: 'Charge Point does not match the currentType of its connectors',
+          module: MODULE_NAME, method: 'checkIfChargePointValid',
+          user: req.user.id
+        });
+      }
+      // Check connectors power when it is shared within the charge point
+      if (chargePoint.sharePowerToAllConnectors) {
+        if (connector.amperage && chargePoint.amperage && connector.amperage !== chargePoint.amperage) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+            errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+            message: 'Charge Points amperage does not equal the amperage of the connectors (shared power between connectors)',
+            module: MODULE_NAME, method: 'checkIfChargePointValid',
+            user: req.user.id
+          });
+        }
+        if (connector.power && chargePoint.power && connector.power !== chargePoint.power) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+            errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+            message: 'Charge Points power does not equal the power of the connectors (shared power between connectors)',
+            module: MODULE_NAME, method: 'checkIfChargePointValid',
+            user: req.user.id
+          });
+        }
+      } else {
+        chargePointAmperage += connector.amperage;
+        chargePointPower += connector.power;
+      }
+    }
+    if (chargePointAmperage > 0 && chargePointAmperage !== chargePoint.amperage) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+        errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+        message: `Charge Points amperage ${chargePoint.amperage}A does not match the combined amperage of the connectors ${chargePointPower}A`,
+        module: MODULE_NAME, method: 'checkIfChargePointValid',
+        user: req.user.id
+      });
+    }
+    if (chargePointPower > 0 && chargePointPower !== chargePoint.power) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CHARGING_STATION_UPDATE_PARAMS,
+        errorCode: HTTPError.CHARGE_POINT_NOT_VALID,
+        message: `Charge Points power ${chargePoint.power}W does not match the combined power of the connectors ${chargePointPower}W`,
+        module: MODULE_NAME, method: 'checkIfChargePointValid',
+        user: req.user.id
+      });
     }
   }
 

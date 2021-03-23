@@ -230,6 +230,11 @@ export default class Constants {
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';
+  public static readonly OICP_SERVER = 'OICP Server';
+
+  // OICP constants
+  public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
+  public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';
   public static readonly OCPP_SERVER = 'OCPP Server';
   public static readonly DATABASE_SERVER = 'Database Server';
   public static readonly REST_SERVER = 'REST Server';

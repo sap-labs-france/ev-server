@@ -87,7 +87,7 @@ describe('Tenant Settings test', function() {
         email: testData.credentials.email,
         subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
-          ocpi: { active: true, type: RoamingSettingsType.GIREVE },
+          ocpi: { active: true, type: RoamingSettingsType.OCPI },
           organization: { active: false, type: null },
           pricing: { active: false, type: null },
           refund: { active: false, type: null },
@@ -104,7 +104,7 @@ describe('Tenant Settings test', function() {
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(3);
-      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.OCPI);
     });
 
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {

@@ -11,11 +11,6 @@ import config from '../../config';
 
 export default class BillingContext {
 
-  static readonly USERS: any = [
-    ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN,
-    ContextDefinition.USER_CONTEXTS.BASIC_USER
-  ];
-
   private tenantContext: TenantContext;
 
   constructor(tenantContext: TenantContext) {
@@ -31,24 +26,21 @@ export default class BillingContext {
       advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
       currency: config.get('billing.currency'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-      periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-    } as StripeBillingSetting;
+      periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
+      taxID: config.get('billing.taxID')
+    };
   }
 
   public async createTestData(): Promise<void> {
-    let skip = false;
     const settings = BillingContext.getBillingSettings();
-    for (const [key, value] of Object.entries(settings)) {
-      if (!settings[key] || value === '') {
-        skip = true;
-      }
-    }
-    // Skip billing context generation if no settings are provided
+    const skip = (!settings.secretKey);
     if (skip) {
+      // Skip billing context generation if no settings are provided
       return;
     }
     await this.saveBillingSettings(BillingContext.getBillingSettings());
-    const billingImpl = await BillingFactory.getBillingImpl(this.tenantContext.getTenant().id);
+    const tenantID = this.tenantContext.getTenant().id;
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -57,28 +49,12 @@ export default class BillingContext {
         module: 'BillingContext'
       });
     }
-
-    const adminUser: User = this.tenantContext.getUserContext(BillingContext.USERS[0]);
-    const basicUser: User = this.tenantContext.getUserContext(BillingContext.USERS[1]);
-
-    await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, adminUser);
-    await billingImpl.synchronizeUser(this.tenantContext.getTenant().id, basicUser);
-
-    const adminBillingUser = await billingImpl.getUserByEmail(adminUser.email);
-    const basicBillingUser = await billingImpl.getUserByEmail(basicUser.email);
-
-    const adminInvoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin 1', amount: 100 });
-    const userInvoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic 1', amount: 100 });
-    await billingImpl.createInvoiceItem(adminBillingUser, adminInvoice.invoice.invoiceID, { description: 'TestAdmin 2', amount: 100 });
-    await billingImpl.createInvoiceItem(basicBillingUser, userInvoice.invoice.invoiceID, { description: 'TestBasic 2', amount: 100 });
-
-    let invoice = await billingImpl.createInvoice(adminBillingUser, { description: 'TestAdmin3', amount: 100 });
-    await billingImpl.finalizeInvoice(invoice.invoice);
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
-    invoice = await billingImpl.createInvoice(basicBillingUser, { description: 'TestBasic3', amount: 100 });
-    await billingImpl.finalizeInvoice(invoice.invoice);
-    await billingImpl.sendInvoiceToUser(invoice.invoice);
-    // pragma await billingImpl.synchronizeInvoices(this.tenantContext.getTenant().id);
+    // Create Users
+    const adminUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+    const basicUser: User = this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+    // Synchronize at least these 2 users - this creates a customer on the STRIPE side
+    await billingImpl.synchronizeUser(adminUser);
+    await billingImpl.synchronizeUser(basicUser);
   }
 
   private async saveBillingSettings(stripeSettings) {

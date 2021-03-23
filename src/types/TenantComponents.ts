@@ -1,5 +1,6 @@
 enum TenantComponents {
   OCPI = 'ocpi',
+  OICP = 'oicp',
   REFUND = 'refund',
   PRICING = 'pricing',
   ORGANIZATION = 'organization',
@@ -8,6 +9,7 @@ enum TenantComponents {
   BILLING = 'billing',
   ASSET = 'asset',
   SMART_CHARGING = 'smartCharging',
-  CAR = 'car'
+  CAR = 'car',
+  CAR_CONNECTOR = 'carConnector'
 }
 export default TenantComponents;

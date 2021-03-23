@@ -45,7 +45,7 @@ export default class ChargingStationSecurity {
 
   public static filterTriggerSmartCharging(request: any): HttpTriggerSmartChargingRequest {
     return {
-      siteAreaID: sanitize(request.SiteAreaID)
+      SiteAreaID: sanitize(request.SiteAreaID)
     };
   }
 
@@ -136,6 +136,9 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'forceInactive')) {
       filteredRequest.forceInactive = UtilsSecurity.filterBoolean(request.forceInactive);
     }
+    if (Utils.objectHasProperty(request, 'manualConfiguration')) {
+      filteredRequest.manualConfiguration = UtilsSecurity.filterBoolean(request.manualConfiguration);
+    }
     if (Utils.objectHasProperty(request, 'public')) {
       filteredRequest.public = UtilsSecurity.filterBoolean(request.public);
     }
@@ -161,6 +164,28 @@ export default class ChargingStationSecurity {
             currentType: sanitize(connector.currentType),
             numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase),
             phaseAssignmentToGrid: sanitize(connector.phaseAssignmentToGrid)
+          };
+        }
+        return null;
+      });
+    }
+    // Filter charge points
+    if (Utils.objectHasProperty(request, 'chargePoints') && !Utils.isEmptyArray(request.chargePoints)) {
+      filteredRequest.chargePoints = request.chargePoints.map((chargePoint) => {
+        if (chargePoint) {
+          return {
+            chargePointID: sanitize(chargePoint.chargePointID),
+            currentType: sanitize(chargePoint.currentType),
+            voltage: sanitize(chargePoint.voltage),
+            amperage: sanitize(chargePoint.amperage),
+            numberOfConnectedPhase: sanitize(chargePoint.numberOfConnectedPhase),
+            cannotChargeInParallel: sanitize(chargePoint.cannotChargeInParallel),
+            sharePowerToAllConnectors: sanitize(chargePoint.sharePowerToAllConnectors),
+            excludeFromPowerLimitation: sanitize(chargePoint.excludeFromPowerLimitation),
+            ocppParamForPowerLimitation: sanitize(chargePoint.ocppParamForPowerLimitation),
+            power: sanitize(chargePoint.power),
+            efficiency: sanitize(chargePoint.efficiency),
+            connectorIDs: chargePoint.connectorIDs.map(sanitize)
           };
         }
         return null;

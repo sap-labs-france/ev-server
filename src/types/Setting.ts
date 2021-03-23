@@ -37,8 +37,10 @@ export interface SettingDBContent {
   | AssetSettingsType
   | SmartChargingContentType
   | CryptoSettingsType
-  | UserSettingsType;
+  | UserSettingsType
+  | CarConnectorSettingsType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
   stripe?: StripeBillingSetting;
@@ -47,6 +49,7 @@ export interface SettingDBContent {
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   asset?: AssetSetting;
+  carConnector?: CarConnectorSetting;
   crypto?: CryptoSetting;
   user?: UserSetting;
 }
@@ -86,13 +89,15 @@ export interface ConvergentChargingPricingSetting extends PricingSetting {
 }
 
 export enum RoamingSettingsType {
-  GIREVE = 'gireve'
+  OCPI = 'ocpi',
+  OICP = 'oicp',
 }
 
 export interface RoamingSettings extends Setting {
-  identifier: TenantComponents.OCPI;
+  identifier: TenantComponents.OCPI | TenantComponents.OICP;
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
+  oicp?: OicpSetting;
 }
 
 export interface OcpiSetting {
@@ -102,12 +107,41 @@ export interface OcpiSetting {
   businessDetails: OcpiBusinessDetails;
 }
 
-export interface OcpiIdentifier {
+export interface OicpSetting {
+  cpo: OicpIdentifier;
+  emsp: OicpIdentifier;
+  currency: string;
+  businessDetails: OicpBusinessDetails;
+}
+
+export interface RoamingIdentifier {
   countryCode: string;
   partyID: string;
 }
 
+export type OcpiIdentifier = RoamingIdentifier;
+
+// Should be renamed. Certificate and Key are bundled with OperatorID / ProviderID at this moment.
+// Because the roles CPO and EMSP probably need different certificates to call the Hubject Backend
+export interface OicpIdentifier extends RoamingIdentifier {
+  key?: string;
+  cert?: string;
+}
+
 export interface OcpiBusinessDetails {
+  name: string;
+  website: string;
+  logo?: {
+    url: string;
+    thumbnail: string;
+    category: string;
+    type: string;
+    width: string;
+    height: string;
+  };
+}
+
+export interface OicpBusinessDetails {
   name: string;
   website: string;
   logo?: {
@@ -201,7 +235,7 @@ export interface BillingSettings extends Setting{
 
 export interface BillingSetting {
   usersLastSynchronizedOn?: Date;
-  invoicesLastSynchronizedOn?: Date;
+  invoicesLastSynchronizedOn?: Date
 }
 
 export interface StripeBillingSetting extends BillingSetting {
@@ -263,6 +297,42 @@ export interface AssetGreencomConnectionType {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
+
+export enum CarConnectorSettingsType {
+  CAR_CONNECTOR = 'carConnector',
+}
+
+export interface CarConnectorSettings extends Setting {
+  identifier: TenantComponents.CAR_CONNECTOR;
+  type: CarConnectorSettingsType;
+  carConnector?: CarConnectorSetting;
+}
+
+export interface CarConnectorSetting {
+  connections: CarConnectorConnectionSetting[];
+}
+
+export interface CarConnectorConnectionSetting {
+  id: string;
+  name: string;
+  description: string;
+  timestamp: Date;
+  type: CarConnectorConnectionType;
+  mercedesConnection?: CarConnectorMercedesConnectionType;
+}
+
+export enum CarConnectorConnectionType {
+  NONE = '',
+  MERCEDES = 'mercedes',
+}
+
+export interface CarConnectorMercedesConnectionType {
+  authenticationUrl: string;
+  apiUrl: string;
+  clientId: string;
+  clientSecret: string;
+}
+
 
 export enum CryptoSettingsType {
   CRYPTO = 'crypto'

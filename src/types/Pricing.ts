@@ -9,7 +9,7 @@ export interface PricingItem {
   category: PricingCategory;
   precisionPrice: number;
   calculatedPrice: number;
-  calculatedRoudedPrice: number;
+  calculatedRoundedPrice: number;
 }
 
 export enum PricingCategory {
@@ -19,7 +19,6 @@ export enum PricingCategory {
 export interface KWHPricingItem extends PricingItem {
   pricePerKWH: number;
 }
-
 
 export interface PricedConsumption {
   amount: number;

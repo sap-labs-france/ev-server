@@ -68,6 +68,14 @@
       "title": "Itinérance envoie des statuts",
       "body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
     },
+    "oicpPatchChargingStationsStatusesError": {
+      "title": "Hubject envoie des statuts",
+      "body": "La mise à jour des statuts vers Hubject a échoué pour le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
+    },
+    "oicpPatchChargingStationsError": {
+      "title": "Hubject envoie des bornes",
+      "body": "La mise à jour des bornes vers Hubject a échoué dans l'organisation '{{tenantName}}', vérifier les logs"
+    },
     "smtpAuthError": {
       "title": "Erreur serveur email",
       "body": "Le serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"

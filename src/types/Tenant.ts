@@ -13,6 +13,10 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    oicp?: {
+      active: boolean;
+      type: string;
+    };
     organization?: {
       active: boolean;
     };
@@ -45,6 +49,10 @@ export default interface Tenant extends CreatedUpdatedProps {
       type: string;
     };
     car?: {
+      active: boolean;
+      type: string;
+    };
+    carConnector?: {
       active: boolean;
       type: string;
     };
