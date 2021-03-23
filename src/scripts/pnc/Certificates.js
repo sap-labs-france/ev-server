@@ -38,8 +38,8 @@ switch (cmd) {
     console.info('Not yet implemented client side');
     break;
   default:
-    console.log(`Usage: - ./InstallCertificate.js put <certificateFile> <certificateType> <chargeBoxId>
-       - ./InstallCertificate.js get <certificateType> <chargeBoxId>`
+    console.log(`Usage: - ./Certificates.js put <certificateFile> <certificateType> <chargeBoxId>
+       - ./Certificates.js get <certificateType> <chargeBoxId>`
     );
 }
 
