@@ -2,6 +2,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
+import Tenant from '../types/Tenant';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
@@ -26,6 +27,58 @@ describe('Tenant tests', function() {
       // Create
       testData.newTenant = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, Factory.tenant.build());
+    });
+
+    it('Should be possible to create a valid tenant with components explicitly disabled', async () => {
+      // Create
+      const tenant = Factory.tenant.build() as Tenant;
+      tenant.components = {
+        'analytics': {
+          'active': false,
+          'type': null
+        },
+        'asset': {
+          'active': false,
+          'type': null
+        },
+        'billing': {
+          'active': false,
+          'type': null
+        },
+        'car': {
+          'active': false,
+          'type': null
+        },
+        'ocpi': {
+          'active': false,
+          'type': null
+        },
+        'oicp': {
+          'active': false,
+          'type': null
+        },
+        'organization': {
+          'active': false
+        },
+        'pricing': {
+          'active': false,
+          'type': null
+        },
+        'refund': {
+          'active': false,
+          'type': null
+        },
+        'smartCharging': {
+          'active': false,
+          'type': null
+        },
+        'statistics': {
+          'active': false,
+          'type': null
+        }
+      };
+      await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant);
     });
 
     it('Should find the created tenant by id', async () => {
