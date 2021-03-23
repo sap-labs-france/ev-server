@@ -7,9 +7,6 @@
     },
     "ConnectorID": {
       "$ref": "chargingstation.json#/definitions/connectorID"
-    },
-    "ProjectFields": {
-      "$ref": "common.json#/definitions/projectFields"
     }
   },
   "required": [
