@@ -334,11 +334,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Let's persist the up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
     const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, freshInvoiceId);
-    if (!billingInvoice?.downloadable && freshBillingInvoice?.downloadable) {
-      // Perf optimization - download the PDF document (only when downloadable flag has changed)
-      const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
-      await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-    }
+    // --------------------------------------------------------------------------------------
+    // TODO - downloading the PDF is slow - it makes sense to postpone it!
+    // --------------------------------------------------------------------------------------
+    // if (!billingInvoice?.downloadable && freshBillingInvoice?.downloadable) {
+    //   // Perf optimization - download the PDF document (only when downloadable flag has changed)
+    //   const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
+    //   await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
+    // }
     return freshBillingInvoice;
   }
 
@@ -360,7 +363,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
-    if (invoice.downloadUrl && invoice.downloadUrl !== '') {
+    if (invoice.downloadUrl) {
       // Get document
       const response = await this.axiosInstance.get(invoice.downloadUrl, {
         responseType: 'arraybuffer'
