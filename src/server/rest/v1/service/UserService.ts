@@ -880,7 +880,8 @@ export default class UserService {
     };
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
-    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
@@ -891,15 +892,17 @@ export default class UserService {
           // Check the format of the first entry
           if (!result.inSuccess && !result.inError) {
             if (!UserRequiredImportProperties.every((property) => Object.keys(user).includes(property))) {
-              void Logging.logError({
+              await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportUsers',
                 action: action,
                 user: req.user.id,
                 message: `Invalid Csv file '${filename}', all properties: '${UserRequiredImportProperties.join(', ')}' are required`,
               });
-              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-              res.end();
+              if (!res.headersSent) {
+                res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+                res.end();
+              }
               return;
             }
           }
@@ -913,8 +916,9 @@ export default class UserService {
           } else {
             result.inError++;
           }
-        }, (error) => {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async (error) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
@@ -922,8 +926,10 @@ export default class UserService {
             message: `Invalid Csv file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
         });
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
@@ -941,8 +947,9 @@ export default class UserService {
             result.inError++;
           }
         });
-        parser.on('error', function(error) {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('error', async (error) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
@@ -950,24 +957,29 @@ export default class UserService {
             message: `Invalid Json file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
         });
         file.pipe(parser);
       } else {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleImportUsers',
           action: action,
           user: req.user.id,
           message: `Invalid file format '${mimetype}'`
         });
-        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-        res.end();
+        if (!res.headersSent) {
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        }
       }
     });
-    busboy.on('finish', function() {
-      void Logging.logActionsResponse(
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('finish', async () => {
+      await Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportUsers', result,
         '{{inSuccess}} User(s) were successfully uploaded and ready for asynchronous import',

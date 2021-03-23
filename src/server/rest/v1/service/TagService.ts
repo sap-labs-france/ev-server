@@ -482,7 +482,8 @@ export default class TagService {
     };
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
-    busboy.on('file', (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
@@ -493,15 +494,17 @@ export default class TagService {
           // Check the format of the first entry
           if (!result.inSuccess && !result.inError) {
             if (!TagRequiredImportProperties.every((property) => Object.keys(tag).includes(property))) {
-              void Logging.logError({
+              await Logging.logError({
                 tenantID: req.user.tenantID,
                 module: MODULE_NAME, method: 'handleImportTags',
                 action: action,
                 user: req.user.id,
                 message: `Invalid Csv file '${filename}', all properties: '${TagRequiredImportProperties.join(', ')}' are required`,
               });
-              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-              res.end();
+              if (!res.headersSent) {
+                res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+                res.end();
+              }
               return;
             }
           }
@@ -515,8 +518,9 @@ export default class TagService {
           } else {
             result.inError++;
           }
-        }, (error) => {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async (error) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportTags',
             action: action,
@@ -524,8 +528,10 @@ export default class TagService {
             message: `Invalid Csv file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
         });
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
@@ -543,8 +549,9 @@ export default class TagService {
             result.inError++;
           }
         });
-        parser.on('error', function(error) {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('error', async (error) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportTags',
             action: action,
@@ -552,24 +559,29 @@ export default class TagService {
             message: `Invalid Json file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
         });
         file.pipe(parser);
       } else {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'handleImportTags',
           action: action,
           user: req.user.id,
           message: `Invalid file format '${mimetype}'`
         });
-        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-        res.end();
+        if (!res.headersSent) {
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        }
       }
     });
-    busboy.on('finish', () => {
-      void Logging.logActionsResponse(
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('finish', async () => {
+      await Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportTags', result,
         '{{inSuccess}} Tag(s) were successfully uploaded and ready for asynchronous import',
