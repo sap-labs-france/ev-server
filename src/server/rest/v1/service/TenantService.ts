@@ -261,17 +261,7 @@ export default class TenantService {
     // Save
     filteredRequest.id = await TenantStorage.saveTenant(filteredRequest);
     // OICP
-    if (filteredRequest.components && filteredRequest.components.oicp) {
-      // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getUserByEmail(filteredRequest.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-      // Activate virtual user
-      if (filteredRequest.components.oicp.active) {
-        // Create OICP user
-        if (!virtualOICPUser) {
-          await OICPUtils.createOICPVirtualUser(filteredRequest.id);
-        }
-      }
-    }
+    await TenantService.checkOICPStatus(filteredRequest);
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
@@ -381,27 +371,7 @@ export default class TenantService {
     // Update Tenant
     await TenantStorage.saveTenant(tenant, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // OICP
-    if (tenant.components && tenant.components.oicp) {
-      // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-      // Activate or deactivate virtual user depending on the oicp component status
-      if (tenant.components.oicp.active) {
-        // Create OICP user
-        if (!virtualOICPUser) {
-          await OICPUtils.createOICPVirtualUser(tenant.id);
-        }
-      } else {
-        // Clean up user
-        if (virtualOICPUser) {
-          await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
-        }
-        // Delete Endpoints if component is inactive
-        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
-          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
-        });
-      }
-    }
+    await TenantService.checkOICPStatus(tenant);
     // Update with components
     await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Log
@@ -454,6 +424,31 @@ export default class TenantService {
           // Save Setting
           await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
+      }
+    }
+  }
+
+  private static async checkOICPStatus(tenant: Tenant): Promise<void> {
+    // OICP
+    if (tenant.components && tenant.components.oicp) {
+      // Virtual user needed for unknown roaming user
+      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+      // Activate or deactivate virtual user depending on the oicp component status
+      if (tenant.components.oicp.active) {
+        // Create OICP user
+        if (!virtualOICPUser) {
+          await OICPUtils.createOICPVirtualUser(tenant.id);
+        }
+      } else if (virtualOICPUser) {
+        // Clean up user
+        if (virtualOICPUser) {
+          await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
+        }
+        // Delete Endpoints if component is inactive
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        oicpEndpoints.result.forEach(async (oicpEndpoint) => {
+          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
+        });
       }
     }
   }
