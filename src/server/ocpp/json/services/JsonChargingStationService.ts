@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPGet15118EVCertificateRequest, OCPPGet15118EVCertificateResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
 import ChargingStationConfiguration from '../../../../types/configuration/ChargingStationConfiguration';
 import Logging from '../../../../utils/Logging';
@@ -108,6 +108,13 @@ export default class JsonChargingStationService {
         status: result.idTagInfo.status
       }
     };
+  }
+
+  public async handleGet15118EVCertificate(headers: OCPPHeader, payload: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
+    // Forward
+    const result: OCPPGet15118EVCertificateResponse = await this.handle(ServerAction.GET_15118_EV_CERTIFICATE, headers, payload);
+    // Return the response
+    return result;
   }
 
   private async handle(command: ServerAction, headers: OCPPHeader, payload) {
