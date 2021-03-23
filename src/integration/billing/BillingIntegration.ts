@@ -13,7 +13,6 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
-import { UserInErrorType } from '../../types/InError';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
@@ -60,12 +59,23 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         module: MODULE_NAME, method: 'synchronizeUsers',
         message: `${users.length} new user(s) are going to be synchronized`
       });
-      for (const user of users) {
+      // Check LIVE MODE
+      if (!this.__liveMode) {
+        await Logging.logWarning({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'synchronizeUsers',
+          message: 'Live Mode is OFF - operation has been aborted'
+        });
+      } else {
+        for (const user of users) {
         // Synchronize user
-        if (await this.synchronizeUser(user)) {
-          actionsDone.inSuccess++;
-        } else {
-          actionsDone.inError++;
+          if (await this.synchronizeUser(user)) {
+            actionsDone.inSuccess++;
+          } else {
+            actionsDone.inError++;
+          }
         }
       }
     }
@@ -182,6 +192,17 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       inSuccess: 0,
       inError: 0
     };
+    // Check LIVE MODE
+    if (!this.__liveMode) {
+      await Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'synchronizeInvoices',
+        message: 'Live Mode is OFF - operation has been aborted'
+      });
+      return actionsDone;
+    }
     // Check billing settings consistency
     await this.checkConnection();
     // Let's make sure the billing data is consistent
@@ -342,7 +363,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
     if (this.__liveMode) {
       // Check Billing Data (only in Live Mode)
       if (!transaction.user.billingData) {
@@ -354,6 +374,14 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           action: ServerAction.BILLING_TRANSACTION
         });
       }
+    } else {
+      void Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'checkStopTransaction',
+        message: 'Live Mode is OFF - checkStopTransaction is being performed without checking billing data'
+      });
     }
   }
 
@@ -364,11 +392,10 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         message: 'User is not provided',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'startTransaction',
+        method: 'checkStartTransaction',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
     if (this.__liveMode) {
       // Check Billing Data (only in Live Mode)
       const billingUser = transaction.user;
@@ -377,10 +404,18 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           message: 'Transaction user has no billing method or no customer in Stripe',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
-          method: 'startTransaction',
+          method: 'checkStartTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }
+    } else {
+      void Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'checkStartTransaction',
+        message: 'Live Mode is OFF - checkStartTransaction is being performed without checking billing data'
+      });
     }
   }
 

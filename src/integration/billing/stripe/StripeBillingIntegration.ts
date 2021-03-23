@@ -793,6 +793,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
     } else {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
+      await Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'startTransaction',
+        message: 'Live Mode is OFF - Start transaction might have been started with NO customer data'
+      });
     }
     return {
       cancelTransaction: false
