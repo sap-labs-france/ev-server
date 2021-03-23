@@ -274,7 +274,8 @@ describe('Billing Service', function() {
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
 
-      it('should synchronize 1 invoice after a transaction', async () => {
+      xit('should synchronize 1 invoice after a transaction', async () => {
+        // TODO - Synchronize Invoices is for now disabled - c.f.: __liveMode!
         await testData.userService.billingApi.synchronizeInvoices({});
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
