@@ -277,8 +277,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
-      { resource: Entity.SITE, action: [Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.USERS_SITES, action: [Action.UNASSIGN], attributes: ['*'] },
+      { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
@@ -322,9 +322,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
-      { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
-      { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }

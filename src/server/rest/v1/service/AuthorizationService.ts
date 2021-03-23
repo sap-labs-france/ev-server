@@ -36,30 +36,48 @@ export default class AuthorizationService {
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
-    // Not an Admin?
+    // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin flag
-        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
-        if (!Utils.isEmptyArray(siteIDs)) {
-          if (!siteIDs.includes(filteredRequest.ID)) {
-            throw new AppAuthError({
-              errorCode: HTTPAuthError.FORBIDDEN,
-              user: userToken,
-              action: Action.READ, entity: Entity.SITE,
-              module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-            });
-          } else {
-            authorizationFilters.authorized = true;
-          }
-        } else {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action: Action.READ, entity: Entity.SITE,
-            module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-          });
-        }
+      // Get assigned Site IDs from DB
+      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
+      if (Utils.isEmptyArray(siteIDs) || !siteIDs.includes(filteredRequest.ID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.READ, entity: Entity.SITE,
+          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+        });
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetUpdateSiteAuthorizationFilters(
+    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin user?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get SiteIDs for which user is Site Admin
+      const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+      if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(filteredRequest.ID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.READ, entity: Entity.SITE,
+          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+        });
       } else {
         authorizationFilters.authorized = true;
       }
@@ -72,14 +90,14 @@ export default class AuthorizationService {
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Enrich
     for (const site of sites) {
-      site.canRead = true; // all users can read sites
+      site.canRead = Authorizations.canReadSite(userToken);
+      site.canDelete = Authorizations.canDeleteSite(userToken);
 
+      // update can be performed by admin or site admin
       if (userToken.role === UserRole.ADMIN) {
         site.canUpdate = true;
-        site.canDelete = true;
       } else {
-        site.canUpdate = Authorizations.canUpdateSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
-        site.canDelete = Authorizations.canDeleteSite(userToken) && (siteAdminIDs.includes(site.id) || siteOwnerIDs.includes(site.id));
+        site.canUpdate = Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id);
       }
     }
   }
@@ -105,7 +123,7 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs from Site Admin flag
+      // Get assigned Site IDs assigned to user from DB
       const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
       if (!Utils.isEmptyArray(siteIDs)) {
         // Force the filter
@@ -172,57 +190,34 @@ export default class AuthorizationService {
     };
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        const siteOwnerSiteIDs: Array<string> = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
-        const allSites: Array<string> = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
-        // Get User IDs from Site Admin flag
-        if (!Utils.isEmptyArray(allSites)) {
-          // Check Site ID
-          if (allSites.includes(filteredRequest.siteID)) {
-            // Site Authorized, now check users
-            if (!Utils.isEmptyArray(filteredRequest.userIDs)) {
-              let foundInvalidUserID = false;
-              // Get authorized User IDs
-              const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
-              switch (action) {
-                // Check if any of the users we want to assign are already assigned
-                case ServerAction.ADD_USERS_TO_SITE:
-                  for (const userID of filteredRequest.userIDs) {
-                    if (userIDs.includes(userID)) {
-                      foundInvalidUserID = true;
-                      break;
-                    }
-                  }
-                  break;
-                default:
-                  // Check if any of the users we want to unassign are already unassigned
-                  for (const userID of filteredRequest.userIDs) {
-                    if (!userIDs.includes(userID)) {
-                      foundInvalidUserID = true;
-                      break;
-                    }
-                  }
-                  break;
-              }
-              if (!foundInvalidUserID) {
-                authorizationFilters.authorized = true;
-              }
+      // Get Site IDs for which user is admin from db
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      // Check Site
+      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(filteredRequest.siteID)) {
+        // Site Authorized, now check users
+        if (!Utils.isEmptyArray(filteredRequest.userIDs)) {
+          let foundInvalidUserID = false;
+          // Get User IDs already assigned to the site
+          const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
+          // Check if any of the users we want to unassign are missing
+          for (const userID of filteredRequest.userIDs) {
+            if (!userIDs.includes(userID)) {
+              foundInvalidUserID = true;
             }
           }
+          if (!foundInvalidUserID) {
+            authorizationFilters.authorized = true;
+          }
         }
-        if (!authorizationFilters.authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-            entity: Entity.USERS_SITES,
-            module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
-          });
-        }
-      } else {
-        authorizationFilters.authorized = true;
+      }
+      if (!authorizationFilters.authorized) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
+          entity: Entity.USERS_SITES,
+          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
+        });
       }
     }
     return authorizationFilters;
@@ -529,7 +524,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
-    // Get the Sites where the user is Site Admin
+    // Get the Sites assigned to user
     const sites = await SiteStorage.getSites(tenantID,
       {
         siteIDs: siteID ? [siteID] : null,
@@ -542,7 +537,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedUsersIDs(tenantID: string, siteID: string): Promise<string[]> {
-    // Get the Sites where the user is Site Admin
+    // Get the Users assigned to the site
     const users = await UserStorage.getUsers(tenantID,
       {
         siteIDs: [siteID],
@@ -553,7 +548,7 @@ export default class AuthorizationService {
     return users.result.map((user) => user.id);
   }
 
-  private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
+  public static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
     const siteAdminIDs: string[] = [];
     const siteOwnerIDs: string[] = [];
     const userSites = await UserStorage.getUserSites(tenant.id, { userID: userToken.id }, Constants.DB_PARAMS_MAX_LIMIT);
