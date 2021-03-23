@@ -450,6 +450,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
       if (!billingOperationResult.succeeded) {
         // TODO - how to determine the root cause of the error
+        // c.f.: https://stripe.com/docs/error-codes#missing
         await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
       }
       return billingInvoice;
@@ -516,18 +517,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
-    if (!user?.billingData?.customerID) {
+    const customerID = user?.billingData?.customerID;
+    if (!customerID) {
       throw new BackendError({
-        message: 'User is not yet known in Stripe',
+        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
+    // Let's do it!
     let billingOperationResult: BillingOperationResult;
-    const customerID = user.billingData.customerID;
     if (!paymentMethodId) {
       // Let's create a setupIntent for the stripe customer
       billingOperationResult = await this._createSetupIntent(user, customerID);
@@ -542,20 +543,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
-    // necessary to check stripe user exists here ?
-    // if we don't verify here stripe answers we don't have payment methods - no error is thrown !!
-    if (!user?.billingData?.customerID || await this._isDeletedInStripe(user?.billingData?.customerID)) {
-    // if (!user?.billingData?.customerID) {
+    const customerID = user?.billingData?.customerID;
+    if (!customerID) {
       throw new BackendError({
-        message: 'User is not known in Stripe',
+        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getPaymentMethods',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
-    const paymentMethodResult: BillingPaymentMethodResult = await this._getPaymentMethods(user, user.billingData.customerID);
+    // Let's do it!
+    const paymentMethodResult: BillingPaymentMethodResult = await this._getPaymentMethods(user, customerID);
     return paymentMethodResult;
   }
 
@@ -563,18 +562,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
-    // necessary to check stripe user exists here ?
-    if (!user?.billingData?.customerID || await this._isDeletedInStripe(user?.billingData?.customerID)) {
+    const customerID = user?.billingData?.customerID;
+    if (!customerID) {
       throw new BackendError({
-        message: 'User is not known in Stripe',
+        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-
-    const paymentMethodResult: BillingPaymentMethodResult = await this._detachPaymentMethod(paymentMethodId, user.billingData.customerID);
+    // Let's do it!
+    const paymentMethodResult: BillingPaymentMethodResult = await this._detachPaymentMethod(paymentMethodId, customerID);
     return paymentMethodResult;
   }
 
@@ -1232,9 +1231,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (customerID) {
       try {
         // Gets the STRIPE Customer
-        const customer: Stripe.Customer = await this.stripe.customers.retrieve(customerID) as Stripe.Customer;
+        const customer: Stripe.Customer | Stripe.DeletedCustomer = await this.stripe.customers.retrieve(customerID);
         // Check for the deletion flag
-        const deleted: boolean = customer?.deleted as unknown as boolean; // ACHTUNG - Hack because STRIPE type definition is wrong!
+        const deleted = (customer.deleted) ? true : false; // ACHTUNG - STRIPE type definition is wrong!
         if (deleted) {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
@@ -1243,7 +1242,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
             message: `Customer is marked as deleted - ${customerID}`
           });
         }
-        return customer;
+        // We are now sure this is not a Stripe.DeletedCustomer!!
+        return customer as Stripe.Customer;
       } catch (error) {
         // ---------------------------------------------------------------------------------------
         // This should not happen - The customerID should be stable
