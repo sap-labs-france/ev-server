@@ -3,13 +3,9 @@ import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '..
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
-import { OICPRole } from '../../../../types/oicp/OICPRole';
-import OICPUtils from '../../../oicp/OICPUtils';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
