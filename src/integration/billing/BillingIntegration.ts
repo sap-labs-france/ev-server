@@ -1,5 +1,5 @@
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethodResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -465,4 +465,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
+  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethodResult>;
+
+  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult>;
 }

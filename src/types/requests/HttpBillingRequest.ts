@@ -23,3 +23,13 @@ export interface HttpSetupPaymentMethod {
   currentUserID: string;
   paymentMethodId?: string;
 }
+
+export interface HttpPaymentMethods {
+  loggedUser: UserToken;
+  selectedUserID: string;
+}
+
+export interface HttpDeletePaymentMethod {
+  loggedUser: UserToken;
+  paymentMethodId: string;
+}
