@@ -131,29 +131,6 @@ export default class TenantValidator extends SchemaValidator {
           module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
-      // OICP
-      if (tenant.components.oicp) {
-        const checkOICPComponent = tenant.components.oicp;
-        // Virtual user needed for unknown roaming user
-        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-        // Activate or deactivate virtual user depending on the oicp component status
-        if (checkOICPComponent.active) {
-          // Create OICP user
-          if (!virtualOICPUser) {
-            await OICPUtils.createOICPVirtualUser(tenant.id);
-          }
-        } else {
-          // Clean up user
-          if (virtualOICPUser) {
-            await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
-          }
-          // Delete Endpoints if component is inactive
-          const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-          oicpEndpoints.result.forEach(async (oicpEndpoint) => {
-            await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
-          });
-        }
-      }
     }
   }
 }

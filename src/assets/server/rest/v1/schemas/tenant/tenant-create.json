@@ -2,9 +2,6 @@
   "title": "Create one Tenant",
   "type": "object",
   "properties": {
-    "id": {
-      "$ref": "common.json#/definitions/id"
-    },
     "name": {
       "$ref": "common.json#/definitions/name"
     },
