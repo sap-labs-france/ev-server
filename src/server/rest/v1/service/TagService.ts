@@ -502,13 +502,15 @@ export default class TagService {
               });
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
               res.end();
+              return;
             }
           }
           // Set default value
           tag.importedBy = importedBy;
           tag.importedOn = importedOn;
           // Import
-          if (await TagService.importTag(action, req, tag)) {
+          const importSuccess = await TagService.importTag(action, req, tag);
+          if (importSuccess) {
             result.inSuccess++;
           } else {
             result.inError++;
@@ -534,7 +536,8 @@ export default class TagService {
           tag.importedBy = importedBy;
           tag.importedOn = importedOn;
           // Import
-          if (await TagService.importTag(action, req, tag)) {
+          const importSuccess = await TagService.importTag(action, req, tag);
+          if (importSuccess) {
             result.inSuccess++;
           } else {
             result.inError++;
@@ -566,7 +569,6 @@ export default class TagService {
       }
     });
     busboy.on('finish', () => {
-      // Log
       void Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportTags', result,
@@ -575,13 +577,6 @@ export default class TagService {
         '{{inSuccess}}  Tag(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
         'No Tag have been uploaded', req.user
       );
-      void Logging.logInfo({
-        tenantID: req.user.tenantID,
-        action: action,
-        module: MODULE_NAME, method: 'handleImportTags',
-        user: req.user,
-        message: 'File has been successfully uploaded in database and ready for asynchronous import',
-      });
       res.end();
       next();
     });
@@ -592,6 +587,7 @@ export default class TagService {
       inSuccess: 0,
       inError: 0
     };
+    // Delete Tags
     for (const tagID of tagsIDs) {
       // Get Tag
       const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withNbrTransactions: true, withUser: true });
@@ -693,6 +689,7 @@ export default class TagService {
       };
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
+      // Set properties
       newImportedTag.importedBy = importedTag.importedBy;
       newImportedTag.importedOn = importedTag.importedOn;
       newImportedTag.status = ImportStatus.READY;

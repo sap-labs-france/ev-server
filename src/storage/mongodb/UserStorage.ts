@@ -285,7 +285,7 @@ export default class UserStorage {
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
-    await global.database.getCollection<any>(tenantID, 'usersImport').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'importusers').findOneAndUpdate(
       { _id: userMDB._id },
       { $set: userMDB },
       { upsert: true, returnOriginal: false }
@@ -301,7 +301,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<any>(tenantID, 'usersImport').deleteOne(
+    await global.database.getCollection<any>(tenantID, 'importusers').deleteOne(
       {
         '_id': Utils.convertToObjectID(importedUserID),
       });
@@ -710,8 +710,6 @@ export default class UserStorage {
     if (params.status) {
       filters.status = params.status;
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Add filters
     aggregation.push({
       $match: filters
@@ -722,13 +720,13 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersImportCountMDB = await global.database.getCollection<any>(tenantID, 'usersImport')
+    const usersImportCountMDB = await global.database.getCollection<any>(tenantID, 'importusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsersImport', uniqueTimerID, usersImportCountMDB);
+      await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportCountMDB);
       return {
         count: (usersImportCountMDB.length > 0 ? usersImportCountMDB[0].count : 0),
         result: []
@@ -760,7 +758,7 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const usersImportMDB = await global.database.getCollection<any>(tenantID, 'usersImport')
+    const usersImportMDB = await global.database.getCollection<any>(tenantID, 'importusers')
       .aggregate(aggregation, {
         allowDiskUse: true
       })

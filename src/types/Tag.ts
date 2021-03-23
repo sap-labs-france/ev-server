@@ -25,5 +25,7 @@ export interface ImportedTag {
   errorDescription?: string;
 }
 
-export const TagRequiredImportProperties = ['id'];
+export const TagRequiredImportProperties = [
+  'id'
+];
 

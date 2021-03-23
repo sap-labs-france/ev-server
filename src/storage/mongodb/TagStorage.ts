@@ -44,12 +44,12 @@ export default class TagStorage {
     const tagMDB = {
       _id: importedTagToSave.id,
       description: importedTagToSave.description,
-      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedTagToSave.importedBy),
       status: importedTagToSave.status,
-      errorDescription: importedTagToSave.errorDescription
+      errorDescription: importedTagToSave.errorDescription,
+      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
+      importedBy: Utils.convertToObjectID(importedTagToSave.importedBy)
     };
-    await global.database.getCollection<any>(tenantID, 'tagsImport').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'importtags').findOneAndUpdate(
       { _id: tagMDB._id },
       { $set: tagMDB },
       { upsert: true, returnOriginal: false }
@@ -65,7 +65,7 @@ export default class TagStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<any>(tenantID, 'tagsImport').deleteOne(
+    await global.database.getCollection<any>(tenantID, 'importtags').deleteOne(
       {
         '_id': importedTagID,
       });
@@ -110,7 +110,7 @@ export default class TagStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const tagsImportCountMDB = await global.database.getCollection<any>(tenantID, 'tagsImport')
+    const tagsImportCountMDB = await global.database.getCollection<any>(tenantID, 'importtags')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -148,7 +148,7 @@ export default class TagStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const tagsImportMDB = await global.database.getCollection<any>(tenantID, 'tagsImport')
+    const tagsImportMDB = await global.database.getCollection<any>(tenantID, 'importtags')
       .aggregate(aggregation, {
         allowDiskUse: true
       })

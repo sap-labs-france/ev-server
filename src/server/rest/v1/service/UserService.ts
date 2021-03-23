@@ -900,13 +900,15 @@ export default class UserService {
               });
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
               res.end();
+              return;
             }
           }
           // Set default value
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          if (await UserService.importUser(action, req, user)) {
+          const importSuccess = await UserService.importUser(action, req, user);
+          if (importSuccess) {
             result.inSuccess++;
           } else {
             result.inError++;
@@ -932,7 +934,8 @@ export default class UserService {
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          if (await UserService.importUser(action, req, user)) {
+          const importSuccess = await UserService.importUser(action, req, user);
+          if (importSuccess) {
             result.inSuccess++;
           } else {
             result.inError++;
@@ -964,7 +967,6 @@ export default class UserService {
       }
     });
     busboy.on('finish', function() {
-      // Log
       void Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportUsers', result,
@@ -973,13 +975,6 @@ export default class UserService {
         '{{inSuccess}}  User(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
         'No User have been uploaded', req.user
       );
-      void Logging.logInfo({
-        tenantID: req.user.tenantID,
-        action: action,
-        module: MODULE_NAME, method: 'handleImportUsers',
-        user: req.user,
-        message: 'File has been successfully uploaded in database and ready for asynchronous import',
-      });
       res.end();
       next();
     });
@@ -1341,6 +1336,7 @@ export default class UserService {
       };
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+      // Set properties
       newImportedUser.importedBy = importedUser.importedBy;
       newImportedUser.importedOn = importedUser.importedOn;
       newImportedUser.status = ImportStatus.READY;
