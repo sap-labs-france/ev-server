@@ -61,8 +61,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Initialize Stripe
     if (!this.stripe) {
       // STRIPE not yet initialized - let's do it!
-      this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.settings.secretKey);
-      // Check Key
       if (!this.settings.secretKey) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -71,6 +69,18 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           message: 'No secret key provided for connection to Stripe'
         });
       }
+      try {
+        this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.settings.secretKey);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_CONNECTION,
+          message: 'Failed to connect to Stripe',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+      // Try to connect
       this.stripe = new Stripe(this.settings.secretKey, {
         apiVersion: '2020-08-27',
       });
@@ -86,12 +96,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Validate the connection
       let isKeyValid = false;
       try {
-        // Get one customer
-        const list = await this.stripe.customers.list(
-          { limit: 1 }
-        );
-        if (('object' in list) &&
-          (list.object === 'list')) {
+        // TODO - Get one customer - to be clarified - Is this call necessary?
+        const list = await this.stripe.customers.list({ limit: 1 });
+        if (('object' in list) && (list.object === 'list')) {
           isKeyValid = true;
         }
       } catch (error) {
@@ -99,7 +106,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_CONNECTION,
-          message: `Error occurred when connecting to Stripe: ${error.message as string}`,
+          message: 'Failed to connect to Stripe',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -108,7 +115,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_CONNECTION,
-          message: 'Error occurred when connecting to Stripe: Invalid key'
+          message: 'Failed to connect to Stripe - Invalid Key',
         });
       }
     }
