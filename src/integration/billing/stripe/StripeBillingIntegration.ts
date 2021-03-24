@@ -333,15 +333,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
     // Let's persist the up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
+    // TODO - perf improvement? - can't we just reuse
     const freshBillingInvoice = await BillingStorage.getInvoice(this.tenantID, freshInvoiceId);
-    // --------------------------------------------------------------------------------------
-    // TODO - downloading the PDF is slow - it makes sense to postpone it!
-    // --------------------------------------------------------------------------------------
-    // if (!billingInvoice?.downloadable && freshBillingInvoice?.downloadable) {
-    //   // Perf optimization - download the PDF document (only when downloadable flag has changed)
-    //   const invoiceDocument = await this.downloadInvoiceDocument(freshBillingInvoice);
-    //   await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-    // }
     return freshBillingInvoice;
   }
 
@@ -380,29 +373,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       };
     }
   }
-
-  // No use-case so far - exposing it at the Billing Integration level is useless
-  // public async finalizeInvoice(invoice: BillingInvoice): Promise<string> {
-  //   await this.checkConnection();
-  //   try {
-  //     const stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoice.invoiceID);
-  //     invoice.downloadUrl = stripeInvoice.invoice_pdf;
-  //     invoice.status = BillingInvoiceStatus.OPEN;
-  //     invoice.downloadable = true;
-  //     await BillingStorage.saveInvoice(this.tenantID, invoice);
-  //     const invoiceDocument = await this.downloadInvoiceDocument(invoice);
-  //     await BillingStorage.saveInvoiceDocument(this.tenantID, invoiceDocument);
-  //     return stripeInvoice.invoice_pdf;
-  //   } catch (error) {
-  //     throw new BackendError({
-  //       message: 'Failed to finalize invoice',
-  //       source: Constants.CENTRAL_SERVER,
-  //       module: MODULE_NAME,
-  //       method: 'finalizeInvoice',
-  //       action: ServerAction.BILLING_SEND_INVOICE
-  //     });
-  //   }
-  // }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async consumeBillingEvent(req: Request): Promise<boolean> {
