@@ -733,24 +733,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     };
   }
 
-  private async _isDeletedInStripe(customerID: string): Promise<boolean> {
-    try {
-      const customer = await this.stripe.customers.retrieve(
-        customerID
-      );
-      return customer.deleted ? customer.deleted : false;
-    } catch (error) {
-      // catch stripe errors and send the information back to the client
-      await Logging.logError({
-        tenantID: this.tenantID,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
-        module: MODULE_NAME, method: '_getPaymentMethods',
-        message: `Failed to check for deletion - customer '${customerID}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
     // Check Stripe
     await this.checkConnection();
