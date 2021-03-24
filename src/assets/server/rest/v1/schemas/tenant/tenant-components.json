@@ -128,6 +128,15 @@
               "sanitize": "mongo"
             }
           }
+        },
+        "carConnector": {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "boolean",
+              "sanitize": "mongo"
+            }
+          }
         }
       }
     }

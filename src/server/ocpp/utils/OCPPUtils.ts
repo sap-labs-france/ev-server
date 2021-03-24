@@ -1103,7 +1103,7 @@ export default class OCPPUtils {
     // Get the Templates
     const chargingStationTemplates: ChargingStationTemplate[] =
       await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
-    // Parse Them
+    // Parse them
     for (const chargingStationTemplate of chargingStationTemplates) {
       // Keep it
       foundTemplate = chargingStationTemplate;
@@ -1143,7 +1143,7 @@ export default class OCPPUtils {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
-    if (chargingStationTemplate) {
+    if (chargingStationTemplate && !chargingStation.manualConfiguration) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
         templateUpdate.chargingStationUpdate = true;

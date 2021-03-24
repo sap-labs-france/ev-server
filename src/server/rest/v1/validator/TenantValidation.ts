@@ -3,13 +3,9 @@ import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '..
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import OICPEndpointStorage from '../../../../storage/mongodb/OICPEndpointStorage';
-import { OICPRole } from '../../../../types/oicp/OICPRole';
-import OICPUtils from '../../../oicp/OICPUtils';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -101,6 +97,16 @@ export default class TenantValidator extends SchemaValidator {
           module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
       }
+      // Car Connector active: Car must be active
+      if (tenant.components.carConnector && tenant.components.car &&
+        tenant.components.carConnector.active && !tenant.components.car.active) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Car must be active to use the Car Connector component',
+          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+        });
+      }
       // Billing active: Pricing must be active
       if (tenant.components.billing && tenant.components.pricing &&
           tenant.components.billing.active && !tenant.components.pricing.active) {
@@ -120,29 +126,6 @@ export default class TenantValidator extends SchemaValidator {
           message: 'Pricing must be active to use the Refund component',
           module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
         });
-      }
-      // OICP
-      if (tenant.components.oicp) {
-        const checkOICPComponent = tenant.components.oicp;
-        // Virtual user needed for unknown roaming user
-        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-        // Activate or deactivate virtual user depending on the oicp component status
-        if (checkOICPComponent.active) {
-          // Create OICP user
-          if (!virtualOICPUser) {
-            await OICPUtils.createOICPVirtualUser(tenant.id);
-          }
-        } else {
-          // Clean up user
-          if (virtualOICPUser) {
-            await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
-          }
-          // Delete Endpoints if component is inactive
-          const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
-          oicpEndpoints.result.forEach(async (oicpEndpoint) => {
-            await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
-          });
-        }
       }
     }
   }
