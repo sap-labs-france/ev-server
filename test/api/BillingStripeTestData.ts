@@ -33,8 +33,6 @@ export default class StripeIntegrationTestData {
   // Billing Implementation - STRIPE
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
-  public source: Stripe.Response<Stripe.CustomerSource>;
-  public deletedSourceId: string;
 
   public async initialize(): Promise<void> {
 
@@ -136,26 +134,24 @@ export default class StripeIntegrationTestData {
       source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
     expect(source).to.not.be.null;
-    this.source = source;
     return source;
   }
 
   // Detach the latest assigned source
-  public async detachPaymentMethod() : Promise<BillingPaymentMethodResult> {
+  public async checkDetachPaymentMethod(newSourceId: string) : Promise<void> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl;
     // TODO: check this is not the default pm as here we are dealing with source and not pm
-    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, this.source.id);
+    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
     expect(deletedSource).to.not.be.null;
-    this.deletedSourceId = deletedSource.result[0].id;
-    return deletedSource;
+    await this.retrievePaymentMethod(deletedSource.result[0].id);
   }
 
   // TODO : modify this test with concrete implementation when we have implemented getPaymentMethod(pmID)
-  public async retrieveDeletedPaymentMethod() : Promise<void> {
+  public async retrievePaymentMethod(deletedSourceId: string) : Promise<void> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     try {
-      await stripeInstance.paymentMethods.retrieve(this.deletedSourceId);
+      await stripeInstance.paymentMethods.retrieve(deletedSourceId);
     } catch (error) {
       expect(error.code).to.equal('resource_missing');
     }

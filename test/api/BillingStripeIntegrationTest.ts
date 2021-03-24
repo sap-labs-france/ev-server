@@ -64,9 +64,8 @@ describe('Billing Stripe Service', function() {
 
       // TODO : change this as soon as we can test pm - now it's sources, not pm
       it('Should detach newly added source to BILLING-TEST user', async () => {
-        await testData.assignPaymentMethod('tok_fr');
-        await testData.detachPaymentMethod();
-        await testData.retrieveDeletedPaymentMethod();
+        const newSource = await testData.assignPaymentMethod('tok_fr');
+        await testData.checkDetachPaymentMethod(newSource.id);
       });
     });
   });
