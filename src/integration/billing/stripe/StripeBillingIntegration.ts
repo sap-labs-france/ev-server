@@ -220,7 +220,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.BILLING_TAXES,
-        actionOnUser: 'user',
         module: MODULE_NAME, method: 'getTaxes',
         message: `Stripe operation failed - ${e?.message as string}`
       });
