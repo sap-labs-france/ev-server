@@ -476,47 +476,58 @@ export default class TagService {
     // Default values for Tag import
     const importedBy = req.user.id;
     const importedOn = new Date();
+    const tagsToBeImported: ImportedTag[] = [];
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
+    // Delete all previously imported tags
+    await TagStorage.deleteImportedTags(req.user.tenantID);
+    // Get the stream
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
+    // Handle closed socket
+    let connectionClosed = false;
+    req.socket.on('close', () => {
+      connectionClosed = true;
+    });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
-          delimiter: ['\t'],
-          quote: 'off'
+          delimiter: Constants.CSV_SEPARATOR,
+          output: 'json',
+          quote: 'on',
         });
         void converter.subscribe(async (tag: ImportedTag) => {
+          // Check connection
+          if (connectionClosed) {
+            throw new Error('HTTP connection has been closed');
+          }
           // Check the format of the first entry
           if (!result.inSuccess && !result.inError) {
-            if (!TagRequiredImportProperties.every((property) => Object.keys(tag).includes(property))) {
-              await Logging.logError({
-                tenantID: req.user.tenantID,
-                module: MODULE_NAME, method: 'handleImportTags',
-                action: action,
-                user: req.user.id,
-                message: `Invalid Csv file '${filename}', all properties: '${TagRequiredImportProperties.join(', ')}' are required`,
-              });
+            // Check header
+            const tagKeys = Object.keys(tag);
+            if (!TagRequiredImportProperties.every((property) => tagKeys.includes(property))) {
               if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
                 res.end();
               }
-              return;
+              throw new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`);
             }
           }
           // Set default value
           tag.importedBy = importedBy;
           tag.importedOn = importedOn;
           // Import
-          const importSuccess = await TagService.importTag(action, req, tag);
-          if (importSuccess) {
-            result.inSuccess++;
-          } else {
+          const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
+          if (!importSuccess) {
             result.inError++;
+          }
+          // Insert batched
+          if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
           }
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async (error) => {
@@ -525,7 +536,7 @@ export default class TagService {
             module: MODULE_NAME, method: 'handleImportTags',
             action: action,
             user: req.user.id,
-            message: `Invalid Csv file '${filename}'`,
+            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (!res.headersSent) {
@@ -533,6 +544,7 @@ export default class TagService {
             res.end();
           }
         });
+        // Start processing the file
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('tags.*');
@@ -542,11 +554,13 @@ export default class TagService {
           tag.importedBy = importedBy;
           tag.importedOn = importedOn;
           // Import
-          const importSuccess = await TagService.importTag(action, req, tag);
-          if (importSuccess) {
-            result.inSuccess++;
-          } else {
+          const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
+          if (!importSuccess) {
             result.inError++;
+          }
+          // Insert batched
+          if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
           }
         });
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -589,9 +603,33 @@ export default class TagService {
         '{{inSuccess}}  Tag(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
         'No Tag have been uploaded', req.user
       );
-      res.end();
+      // Insert batched
+      if (tagsToBeImported.length > 0) {
+        await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+      }
+      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();
     });
+  }
+
+  private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
+    try {
+      const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);
+      result.inSuccess += nbrInsertedTags;
+    } catch (error) {
+      // Handle dup keys
+      result.inSuccess += error.result.nInserted;
+      result.inError += error.writeErrors.length;
+      await Logging.logError({
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'insertTags',
+        action: action,
+        user: user.id,
+        message: `Cannot import '${error.writeErrors.length as number}' tags!`,
+        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+      });
+    }
+    tagsToBeImported.length = 0;
   }
 
   private static async deleteTags(action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
@@ -693,7 +731,7 @@ export default class TagService {
     return result;
   }
 
-  private static async importTag(action: ServerAction, req: Request, importedTag: ImportedTag): Promise<boolean> {
+  private static async processTag(action: ServerAction, req: Request, importedTag: ImportedTag, tagsToBeImported: ImportedTag[]): Promise<boolean> {
     try {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
@@ -705,15 +743,15 @@ export default class TagService {
       newImportedTag.importedBy = importedTag.importedBy;
       newImportedTag.importedOn = importedTag.importedOn;
       newImportedTag.status = ImportStatus.READY;
-      // Save it for import
-      await TagStorage.saveImportedTag(req.user.tenantID, newImportedTag);
+      // Save it later on
+      tagsToBeImported.push(newImportedTag);
       return true;
     } catch (error) {
       await Logging.logError({
         tenantID: req.user.tenantID,
         module: MODULE_NAME, method: 'importTag',
         action: action,
-        message: 'Tag cannot be imported',
+        message: `Tag ID '${importedTag.id}' cannot be imported`,
         detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
       });
       return false;

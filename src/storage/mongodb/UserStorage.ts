@@ -285,7 +285,7 @@ export default class UserStorage {
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
     };
-    await global.database.getCollection<any>(tenantID, 'importusers').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
       { $set: userMDB },
       { upsert: true, returnOriginal: false }
@@ -295,18 +295,51 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
+  public static async saveImportedUsers(tenantID: string, importedUsersToSave: ImportedUser[]): Promise<number> {
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUsers');
+    const importedUsersToSaveMDB: any = importedUsersToSave.map((importedUserToSave) => ({
+      _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      email: importedUserToSave.email,
+      firstName: importedUserToSave.firstName,
+      name: importedUserToSave.name,
+      status: importedUserToSave.status,
+      errorDescription: importedUserToSave.errorDescription,
+      importedOn: Utils.convertToDate(importedUserToSave.importedOn),
+      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
+    }));
+    // Insert all at once
+    const result = await global.database.getCollection<any>(tenantID, 'importedusers').insertMany(
+      importedUsersToSaveMDB,
+      { ordered: false }
+    );
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUsers', uniqueTimerID);
+    return result.insertedCount;
+  }
+
   public static async deleteImportedUser(tenantID: string, importedUserID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteImportedUser');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<any>(tenantID, 'importusers').deleteOne(
+    await global.database.getCollection<any>(tenantID, 'importedusers').deleteOne(
       {
         '_id': Utils.convertToObjectID(importedUserID),
       });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
+  }
+
+  public static async deleteImportedUsers(tenantID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteImportedUsers');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<any>(tenantID, 'importedusers').deleteMany({});
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedUsers', uniqueTimerID);
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -720,7 +753,7 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersImportCountMDB = await global.database.getCollection<any>(tenantID, 'importusers')
+    const usersImportCountMDB = await global.database.getCollection<any>(tenantID, 'importedusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -758,7 +791,7 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const usersImportMDB = await global.database.getCollection<any>(tenantID, 'importusers')
+    const usersImportMDB = await global.database.getCollection<any>(tenantID, 'importedusers')
       .aggregate(aggregation, {
         allowDiskUse: true
       })

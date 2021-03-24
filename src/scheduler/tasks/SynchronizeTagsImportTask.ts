@@ -40,7 +40,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_TAGS,
                   module: MODULE_NAME, method: 'processTenant',
-                  message: `Tag with id: ${importedTag.id} have been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
+                  message: `Tag ID '${importedTag.id}' has been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
                 });
                 continue;
               }
@@ -63,7 +63,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
                 tenantID: tenant.id,
                 action: ServerAction.SYNCHRONIZE_TAGS,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `Tag with id: ${importedTag.id} have been created in Tenant ${Utils.buildTenantName(tenant)}`
+                message: `Tag ID '${importedTag.id}' have been created in Tenant ${Utils.buildTenantName(tenant)}`
               });
             } catch (error) {
               // Update the imported Tag

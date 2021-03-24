@@ -48,7 +48,7 @@ export default class Logging {
 
   // Debug DB
   public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
-    if (Utils.isDevelopmentEnv()) {
+    if (!Utils.isDevelopmentEnv()) {
       // Compute duration if provided
       let executionDurationMillis: number;
       let found = false;

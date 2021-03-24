@@ -42,7 +42,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                   tenantID: tenant.id,
                   action: ServerAction.SYNCHRONIZE_USERS,
                   module: MODULE_NAME, method: 'processTenant',
-                  message: `User with email: ${importedUser.email} have been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
+                  message: `User with email '${importedUser.email}' have been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
                 });
                 continue;
               }
@@ -73,7 +73,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                 tenantID: tenant.id,
                 action: ServerAction.SYNCHRONIZE_USERS,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `User with email: ${importedUser.email} have been created in Tenant ${Utils.buildTenantName(tenant)}`
+                message: `User with email '${importedUser.email}' have been created in Tenant ${Utils.buildTenantName(tenant)}`
               });
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;
@@ -85,7 +85,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
                 tenantID: tenant.id,
                 action: ServerAction.SYNCHRONIZE_USERS,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `An error occurred when importing user with email: ${importedUser.email}`,
+                message: `An error occurred when importing user with email '${importedUser.email}'`,
                 detailedMessages: { error: error.message, stack: error.stack }
               });
             }

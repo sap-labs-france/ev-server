@@ -37,6 +37,7 @@ import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidation';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -874,47 +875,58 @@ export default class UserService {
     // Default values for User import
     const importedBy = req.user.id;
     const importedOn = new Date();
+    const usersToBeImported: ImportedUser[] = [];
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
+    // Delete all previously imported tags
+    await UserStorage.deleteImportedUsers(req.user.tenantID);
+    // Get the stream
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
+    // Handle closed socket
+    let connectionClosed = false;
+    req.socket.on('close', () => {
+      connectionClosed = true;
+    });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
-          delimiter: ['\t'],
-          quote: 'off'
+          delimiter: Constants.CSV_SEPARATOR,
+          output: 'json',
+          quote: 'on',
         });
         void converter.subscribe(async (user: ImportedUser) => {
+          // Check connection
+          if (connectionClosed) {
+            throw new Error('HTTP connection has been closed');
+          }
           // Check the format of the first entry
           if (!result.inSuccess && !result.inError) {
-            if (!UserRequiredImportProperties.every((property) => Object.keys(user).includes(property))) {
-              await Logging.logError({
-                tenantID: req.user.tenantID,
-                module: MODULE_NAME, method: 'handleImportUsers',
-                action: action,
-                user: req.user.id,
-                message: `Invalid Csv file '${filename}', all properties: '${UserRequiredImportProperties.join(', ')}' are required`,
-              });
+            // Check header
+            const userKeys = Object.keys(user);
+            if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
               if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
                 res.end();
               }
-              return;
+              throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
             }
           }
           // Set default value
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.importUser(action, req, user);
-          if (importSuccess) {
-            result.inSuccess++;
-          } else {
+          const importSuccess = await UserService.processUser(action, req, user);
+          if (!importSuccess) {
             result.inError++;
+          }
+          // Insert batched
+          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
           }
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async (error) => {
@@ -940,11 +952,13 @@ export default class UserService {
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.importUser(action, req, user);
-          if (importSuccess) {
-            result.inSuccess++;
-          } else {
+          const importSuccess = await UserService.processUser(action, req, user);
+          if (!importSuccess) {
             result.inError++;
+          }
+          // Insert batched
+          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
           }
         });
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -987,7 +1001,11 @@ export default class UserService {
         '{{inSuccess}}  User(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
         'No User have been uploaded', req.user
       );
-      res.end();
+      // Insert batched
+      if (usersToBeImported.length > 0) {
+        await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+      }
+      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();
     });
   }
@@ -1252,6 +1270,26 @@ export default class UserService {
     }
   }
 
+  private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
+    try {
+      const nbrInsertedTags = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
+      result.inSuccess += nbrInsertedTags;
+    } catch (error) {
+      // Handle dup keys
+      result.inSuccess += error.result.nInserted;
+      result.inError += error.writeErrors.length;
+      await Logging.logError({
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'insertUsers',
+        action: action,
+        user: user.id,
+        message: `Cannot import '${error.writeErrors.length as number}' users!`,
+        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+      });
+    }
+    usersToBeImported.length = 0;
+  }
+
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
@@ -1339,7 +1377,7 @@ export default class UserService {
     return users;
   }
 
-  private static async importUser(action: ServerAction, req: Request, importedUser: ImportedUser): Promise<boolean> {
+  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
         name: importedUser.name.toUpperCase(),
