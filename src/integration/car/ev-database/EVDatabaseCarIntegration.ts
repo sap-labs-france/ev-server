@@ -232,28 +232,22 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
     return image;
   }
 
-  public async getCarCatalogImages(carCatalog: CarCatalog, imageURL:string): Promise<string> {
-    const images: string[] = [];
-    // Retrieve all images
-    // for (const imageURL of carCatalog.imageURLs) {
+  public async getCarCatalogImage(carCatalog: CarCatalog, imageURL:string): Promise<string> {
     try {
       const response = await this.axiosInstance.get(imageURL, { responseType: 'arraybuffer' });
       const base64Image = Buffer.from(response.data).toString('base64');
       const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-      images.push(encodedImage);
       return encodedImage;
     } catch (error) {
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-        module: MODULE_NAME, method: 'getCarCatalogImages',
+        module: MODULE_NAME, method: 'getCarCatalogImage',
         message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
-    // }
-    // return images;
   }
 
   private convertToThumbImage(image: string): string {

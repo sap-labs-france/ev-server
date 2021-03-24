@@ -19,6 +19,7 @@ export default abstract class CarIntegration {
     for (const externalCar of externalCars) {
       try {
         const internalCar = await CarStorage.getCarCatalog(externalCar.id);
+        let image = '', imagesCount = 0;
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
@@ -28,13 +29,15 @@ export default abstract class CarIntegration {
           externalCar.image = await this.getCarCatalogThumb(externalCar);
           for (const imageURL of externalCar.imageURLs) {
             // Get images
-            // externalCar.images = await this.getCarCatalogImages(externalCar, imageURL);
+            image = await this.getCarCatalogImage(externalCar, imageURL);
+            await CarStorage.saveCarImage(externalCar.id, image);
+            imagesCount++;
           }
           // Create the Hash
-          externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === externalCar.images.length && externalCar.image) ?
+          externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === imagesCount && externalCar.image) ?
             Cypher.hash(externalCar.imageURLs.toString()) : null;
           // Save
-          externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
+          externalCar.id = await CarStorage.saveCarCatalog(externalCar);
           actionsDone.inSuccess++;
           // Log
           await Logging.logDebug({
@@ -53,25 +56,25 @@ export default abstract class CarIntegration {
           if (!internalCar.imagesHash || (Cypher.hash(externalCar.imageURLs.toString()) !== internalCar.imagesHash)) {
             // Get image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
+            // Delete old car catalogs images
+            await CarStorage.deleteCarImages(externalCar.id);
             // Get images
-            let i = 0;
             for (const imageURL of externalCar.imageURLs) {
               // Get images
-              const image = await this.getCarCatalogImages(externalCar, imageURL);
-              await CarStorage.saveCarImages(externalCar.id, [image]);
-              i++;
+              image = await this.getCarCatalogImage(externalCar, imageURL);
+              await CarStorage.saveCarImage(externalCar.id, image);
+              imagesCount++;
             }
             // Create the Hash
-            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === i && externalCar.image) ?
+            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === imagesCount
+              && externalCar.image) ?
               Cypher.hash(externalCar.imageURLs.toString()) : null;
-            // Save
-            await CarStorage.saveCarCatalog(externalCar, true);
           } else {
             externalCar.image = internalCar.image;
             externalCar.imagesHash = internalCar.imagesHash;
-            // Save
-            await CarStorage.saveCarCatalog(externalCar, false);
           }
+          // Save
+          await CarStorage.saveCarCatalog(externalCar);
           actionsDone.inSuccess++;
           // Log
           await Logging.logDebug({
@@ -109,5 +112,5 @@ export default abstract class CarIntegration {
 
   public abstract getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
 
-  public abstract getCarCatalogImages(carCatalog: CarCatalog, imageURL: string): Promise<string>;
+  public abstract getCarCatalogImage(carCatalog: CarCatalog, imageURL: string): Promise<string>;
 }

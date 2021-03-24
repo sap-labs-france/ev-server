@@ -143,7 +143,7 @@ export default class CarStorage {
     };
   }
 
-  public static async saveCarCatalog(carToSave: CarCatalog, saveImage = false): Promise<number> {
+  public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog');
     // Build Request
@@ -312,31 +312,33 @@ export default class CarStorage {
       carMDB,
       { upsert: true }
     );
-    if (saveImage) {
-      await CarStorage.saveCarImages(carToSave.id, carToSave.images);
-    }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog', uniqueTimerID, carMDB);
     return carToSave.id;
   }
 
-  public static async saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
+  public static async saveCarImage(carID: number, carImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages');
-    // Delete old images
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage');
+    // Save new images
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
+      { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
+      { carID: Utils.convertToInt(carID), image: carImageToSave },
+      { upsert: true }
+    );
+    // Debug
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage', uniqueTimerID, carImageToSave);
+  }
+
+  public static async deleteCarImages(carID: number): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteCarImages');
+    // Delete car catalogs images
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
       { carID: Utils.convertToInt(carID) }
     );
-    // Save new images
-    for (const carImageToSave of carImagesToSave) {
-      await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
-        { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
-        { carID: Utils.convertToInt(carID), image: carImageToSave },
-        { upsert: true }
-      );
-    }
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages', uniqueTimerID, carImagesToSave);
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteCarImages', uniqueTimerID, carID);
   }
 
   public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
