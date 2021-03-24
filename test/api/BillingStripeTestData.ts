@@ -12,13 +12,11 @@ import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
-import TestData from './client/utils/TestData';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
-import { result } from 'lodash';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -142,7 +140,7 @@ export default class StripeIntegrationTestData {
     return source;
   }
 
-  // Detach the last assigned source
+  // Detach the latest assigned source
   public async detachPaymentMethod() : Promise<BillingPaymentMethodResult> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl;
     // TODO: check this is not the default pm as here we are dealing with source and not pm
@@ -152,7 +150,7 @@ export default class StripeIntegrationTestData {
     return deletedSource;
   }
 
-  // TODO : modify this test with conrete implementation when we have implemented getPaymentMethod(pmID)
+  // TODO : modify this test with concrete implementation when we have implemented getPaymentMethod(pmID)
   public async retrieveDeletedPaymentMethod() : Promise<void> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl;
     const stripeInstance = await concreteImplementation.getStripeInstance();

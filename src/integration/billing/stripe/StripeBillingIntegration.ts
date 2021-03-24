@@ -187,7 +187,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.convertToBillingUser(customer);
   }
 
-  // TODO : check we retrieve only the active ones
+  // TODO : is it ok we retrieve only the active ones ??
   public async getTaxes(): Promise<BillingTax[]> {
     await this.checkConnection();
     const taxes = [] as BillingTax[];
