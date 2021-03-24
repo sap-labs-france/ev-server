@@ -320,7 +320,7 @@ export default class CarStorage {
   public static async saveCarImage(carID: number, carImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage');
-    // Save new images
+    // Save new image
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
       { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
       { carID: Utils.convertToInt(carID), image: carImageToSave },
