@@ -67,7 +67,10 @@
           "sanitize": "mongo"
         }
       },
-      "required": ["chargingRateUnit", "chargingSchedulePeriod"]
+      "required": [
+        "chargingRateUnit",
+        "chargingSchedulePeriod"
+      ]
     },
     "chargingSchedulePeriod": {
       "type": "object",
@@ -85,7 +88,10 @@
           "sanitize": "mongo"
         }
       },
-      "required": ["startPeriod", "limit"]
+      "required": [
+        "startPeriod",
+        "limit"
+      ]
     },
     "connectorID": {
       "type": "number",
@@ -98,6 +104,18 @@
     "stackLevel": {
       "type": "number",
       "sanitize": "mongo"
+    },
+    "certificateType": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "V2GRootCertificate",
+        "MORootCertificate",
+        "CSOSubCA1",
+        "CSOSubCA2",
+        "CSMSRootCertificate",
+        "ManufacturerRootCertificate"
+      ]
     }
   }
 }

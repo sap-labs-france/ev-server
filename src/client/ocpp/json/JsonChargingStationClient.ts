@@ -87,7 +87,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   public async deleteCertificate(params: OCPPDeleteCertificateCommandParam): Promise<OCPPDeleteCertificateCommandResult> {
-    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.INSTALL_CERTIFICATE);
+    return this.sendMessage(params, OCPPMessageType.CALL_MESSAGE, Command.DELETE_CERTIFICATE);
   }
 
   public async getInstalledCertificateIds(params: OCPPGetInstalledCertificateIdsCommandParam): Promise<OCPPGetInstalledCertificateIdsCommandResult> {

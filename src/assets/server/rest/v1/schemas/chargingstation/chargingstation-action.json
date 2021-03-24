@@ -16,7 +16,10 @@
           "sanitize": "mongo"
         },
         "key": {
-          "type": ["string", "array"],
+          "type": [
+            "string",
+            "array"
+          ],
           "sanitize": "mongo"
         },
         "value": {
@@ -37,7 +40,10 @@
         "chargingRateUnit": {
           "type": "string",
           "sanitize": "mongo",
-          "enum": ["A", "W"]
+          "enum": [
+            "A",
+            "W"
+          ]
         },
         "chargingProfilePurpose": {
           "$ref": "chargingstation.json#/definitions/chargingProfilePurpose"
@@ -80,6 +86,42 @@
         },
         "csChargingProfile": {
           "$ref": "chargingstation.json#/definitions/chargingProfile"
+        },
+        "certificateType": {
+          "$ref": "chargingstation.json#/definitions/certificateType"
+        },
+        "certificate": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "typeOfCertificate": {
+          "$ref": "chargingstation.json#/definitions/certificateType"
+        },
+        "certificateHashData": {
+          "type": "object",
+          "properties": {
+            "hashAlgorithm": {
+              "type": "string",
+              "sanitize": "mongo",
+              "enum": [
+                "SHA256",
+                "SHA384",
+                "SHA512"
+              ]
+            },
+            "issuerNameHash": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "issuerKeyHash": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "serialNumber": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
         }
       }
     },
