@@ -5,6 +5,7 @@ import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
 import { ServerAction } from '../../../../types/Server';
+import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonChargingStationService';
@@ -60,7 +61,8 @@ export default class JsonChargingStationService {
     return {
       idTagInfo: {
         status: result.idTagInfo.status
-      }
+      },
+      ...!Utils.isUndefined(result.idTokenInfo) && { idTokenInfo: { status: result.idTokenInfo.status } }
     };
   }
 
