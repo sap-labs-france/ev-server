@@ -173,7 +173,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       } catch (error) {
         // Let's create a new customer and get rid of the previous customerID
         exists = false;
-        user.billingData.customerID = null;
       }
     }
     // Create or Update the user and its billing data
