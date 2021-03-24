@@ -117,6 +117,20 @@ export interface BillingOperationResult {
   internalData?: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
 }
 
+export interface BillingPaymentMethod {
+  id: string;
+  brand: string;
+  expiringOn: Date;
+  last4: string;
+  type: string;
+  createdOn: Date;
+  isDefault: boolean;
+}
+
+export interface BillingPaymentMethodResult {
+  result: BillingPaymentMethod[];
+  count: number;
+}
 export interface BillingError {
   message: string
   context?: unknown; // e.g.: payment ==> last_payment_error
