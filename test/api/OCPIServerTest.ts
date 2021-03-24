@@ -199,7 +199,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
 
 
   /**
-  * Test Invalid Enpoint /ocpi/cpo/2.1.1/invalidEndpoint
+  * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
   */
   describe('Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint', () => {
     let response;
@@ -227,7 +227,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
   });
 
   /**
-   * Test Invalid Enpoint /ocpi/emsp/2.1.1/invalidEndpoint
+   * Test Invalid Endpoint /ocpi/emsp/2.1.1/invalidEndpoint
    */
   describe('Test Invalid Endpoint /ocpi/emsp/2.1.1/invalidEndpoint', () => {
     let response;
