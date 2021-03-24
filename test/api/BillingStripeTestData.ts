@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser } from '../../src/types/Billing';
 import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
@@ -12,11 +12,13 @@ import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
+import TestData from './client/utils/TestData';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import { result } from 'lodash';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -33,6 +35,8 @@ export default class StripeIntegrationTestData {
   // Billing Implementation - STRIPE
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+  public source: Stripe.Response<Stripe.CustomerSource>;
+  public deletedSourceId: string;
 
   public async initialize(): Promise<void> {
 
@@ -126,7 +130,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
-    // Assign a payment method using test tokens (instead of test card numbers)
+    // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
@@ -134,7 +138,29 @@ export default class StripeIntegrationTestData {
       source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
     expect(source).to.not.be.null;
+    this.source = source;
     return source;
+  }
+
+  // Detach the last assigned source
+  public async detachPaymentMethod() : Promise<BillingPaymentMethodResult> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    // TODO: check this is not the default pm as here we are dealing with source and not pm
+    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, this.source.id);
+    expect(deletedSource).to.not.be.null;
+    this.deletedSourceId = deletedSource.result[0].id;
+    return deletedSource;
+  }
+
+  // TODO : modify this test with conrete implementation when we have implemented getPaymentMethod(pmID)
+  public async retrieveDeletedPaymentMethod() : Promise<void> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    try {
+      await stripeInstance.paymentMethods.retrieve(this.deletedSourceId);
+    } catch (error) {
+      expect(error.code).to.equal('resource_missing');
+    }
   }
 
   public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
