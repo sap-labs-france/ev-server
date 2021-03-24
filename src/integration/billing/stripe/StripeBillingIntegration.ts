@@ -190,7 +190,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   // TODO : is it ok we retrieve only the active ones ??
   public async getTaxes(): Promise<BillingTax[]> {
     await this.checkConnection();
-    const taxes = [] as BillingTax[];
+    const taxes : BillingTax[] = [];
     try {
       let request;
       const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
