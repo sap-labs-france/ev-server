@@ -95,10 +95,10 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
-          [ServerAction.OICP_ENPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
-          [ServerAction.OICP_ENPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
-          [ServerAction.OICP_ENPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
-          [ServerAction.OICP_ENPOINT_SEND_EVSES]: OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_SEND_EVSE_STATUSES]: OICPEndpointService.handleSendEVSEStatusesOicpEndpoint.bind(this),
+          [ServerAction.OICP_ENDPOINT_SEND_EVSES]: OICPEndpointService.handleSendEVSEsOicpEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
           [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
@@ -161,7 +161,7 @@ class RequestMapper {
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
           [ServerAction.TAG]: TagService.handleGetTag.bind(this),
-          [ServerAction.USER_DEFAUlT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
+          [ServerAction.USER_DEFAULT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
@@ -189,7 +189,7 @@ class RequestMapper {
           [ServerAction.TRANSACTION_CONSUMPTION]: TransactionService.handleGetTransactionConsumption.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS]: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
           [ServerAction.CHARGING_STATIONS_IN_ERROR]: ChargingStationService.handleGetChargingStationsInError.bind(this),
-          [ServerAction.SETTING_BY_INDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
+          [ServerAction.SETTING_BY_IDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
           [ServerAction.SETTINGS]: SettingService.handleGetSettings.bind(this),
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
           [ServerAction.CHECK_BILLING_CONNECTION]: BillingService.handleCheckBillingConnection.bind(this),
@@ -371,7 +371,7 @@ export default class CentralRestServerService {
     }
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
-      Logging.logActionExceptionMessageAndSendResponse(
+      await Logging.logActionExceptionMessageAndSendResponse(
         null, new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }

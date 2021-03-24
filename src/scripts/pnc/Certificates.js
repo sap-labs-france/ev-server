@@ -86,7 +86,7 @@ function pushCertificateFile(certificateFile, certificateType, chargeBoxId) {
       chargeBoxID: chargeBoxId,
       args: {
         certificateType: certificateType,
-        certificate: x509Certificate.toString('pem')
+        certificate: x509Certificate.toString('hex')
       }
     }));
     httpRequest.end();
