@@ -166,7 +166,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return billingUser;
   }
 
-  public async userExists(user: User): Promise<boolean> {
+  public async isUserSynchronized(user: User): Promise<boolean> {
     // Check Stripe
     await this.checkConnection();
     if (!user.billingData) {
@@ -418,24 +418,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async chargeInvoice(billingInvoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
-    try {
-      const billingOperationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
-      billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
-      if (!billingOperationResult.succeeded) {
-        // TODO - how to determine the root cause of the error
-        // c.f.: https://stripe.com/docs/error-codes#missing
-        await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
-      }
-      return billingInvoice;
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'chargeInvoice',
-        action: ServerAction.BILLING,
-        message: `Stripe Operation Failed: ${error.message as string}`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
+    const billingOperationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
+    billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
+    if (!billingOperationResult.succeeded) {
+      // TODO - how to determine the root cause of the error
+      // c.f.: https://stripe.com/docs/error-codes#missing
+      await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
     }
+    return billingInvoice;
   }
 
   private async _chargeStripeInvoice(invoiceID: string): Promise<BillingOperationResult> {
@@ -1013,15 +1003,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
-    // Check
-    return this.checkIfUserCanBeUpdated(user);
+    return true;
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
-    // Check connection
-    // await this.checkConnection();
     return true;
   }
 
@@ -1085,7 +1073,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async createUser(user: User): Promise<BillingUser> {
     // Check
-    const success = await this.checkIfUserCanBeUpdated(user);
+    const success = await this.checkIfUserCanBeCreated(user);
     if (!success) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

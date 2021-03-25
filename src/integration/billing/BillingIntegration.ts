@@ -162,7 +162,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       // -------------------------------------------------------------------------------------------
       // Regular Situation - CustomerID is set and we trust it!
       // -------------------------------------------------------------------------------------------
-      exists = await this.userExists(user); // returns false when the customerID is not set
+      exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
     } else {
       // -------------------------------------------------------------------------------------------
       // Specific use-case - Trying to REPAIR inconsistencies
@@ -292,7 +292,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CHARGE_INVOICE,
           module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Successfully charge invoice '${openInvoice.id}'`
+          message: `Successfully charged invoice '${openInvoice.id}'`
         });
         actionsDone.inSuccess++;
       } catch (error) {
@@ -479,7 +479,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract deleteUser(user: User): Promise<void>;
 
-  abstract userExists(user: User): Promise<boolean>;
+  abstract isUserSynchronized(user: User): Promise<boolean>;
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
@@ -491,13 +491,11 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
 
-  // abstract finalizeInvoice(invoice: BillingInvoice): Promise<string>;
-
-  abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
-
   abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
+
+  abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethodResult>;
 

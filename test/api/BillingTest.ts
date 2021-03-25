@@ -237,8 +237,8 @@ describe('Billing Service', function() {
         );
         testData.createdUsers.push(fakeUser);
         // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
-        let exists = await testData.billingImpl.userExists(fakeUser);
-        expect(exists).to.be.true;
+        let billingUser = await testData.billingImpl.getUser(fakeUser);
+        expect(billingUser).to.be.not.null;
         // Let's update the new user
         fakeUser.firstName = 'Test';
         fakeUser.name = 'NAME';
@@ -249,7 +249,7 @@ describe('Billing Service', function() {
           false
         );
         // Let's check that the corresponding billing user was updated as well
-        const billingUser = await testData.billingImpl.getUser(fakeUser);
+        billingUser = await testData.billingImpl.getUser(fakeUser);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
         // Let's delete the user
         await testData.userService.deleteEntity(
@@ -257,12 +257,10 @@ describe('Billing Service', function() {
           { id: testData.createdUsers[0].id }
         );
         // Verify that the corresponding billing user is gone
-        exists = await testData.billingImpl.userExists(testData.createdUsers[0]);
+        const exists = await testData.billingImpl.isUserSynchronized(testData.createdUsers[0]);
         expect(exists).to.be.false;
         testData.createdUsers.shift();
-
       });
-
 
       it('should add an item to the existing invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
@@ -481,7 +479,7 @@ describe('Billing Service', function() {
         testData.createdUsers.push(fakeUser);
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        const userExists = await testData.billingImpl.userExists(fakeUser);
+        const userExists = await testData.billingImpl.isUserSynchronized(fakeUser);
         expect(userExists).to.be.true;
       });
     });
