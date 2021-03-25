@@ -91,11 +91,11 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
     updated += result.modifiedCount;
     // Log
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Charging Stations amperage limit has been updated in Tenant '${tenant.name}'`
+        message: `${updated} Charging Stations amperage limit has been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

@@ -2,6 +2,7 @@ import Address from './Address';
 import { AuthorizationActions } from './Authorization';
 import { BillingUserData } from './Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { ImportStatus } from './GlobalType';
 import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps, AuthorizationActions {
@@ -61,10 +62,10 @@ export interface ImportedUser {
   name: string;
   firstName: string;
   email: string;
-  importedBy: string,
-  importedOn?: Date,
-  error?: string,
-  status?: UserImportStatus
+  importedBy?: string;
+  importedOn?: Date;
+  status?: ImportStatus
+  errorDescription?: string;
 }
 
 export enum UserStatus {
@@ -75,16 +76,16 @@ export enum UserStatus {
   LOCKED = 'L',
 }
 
-export enum UserImportStatus {
-  UNKNOWN = 'U',
-  IMPORTED = 'I',
-  ERROR = 'E',
-}
-
 export enum UserRole {
   SUPER_ADMIN = 'S',
   ADMIN = 'A',
   BASIC = 'B',
   DEMO = 'D',
 }
+
+export const UserRequiredImportProperties = [
+  'email',
+  'firstName',
+  'name'
+];
 

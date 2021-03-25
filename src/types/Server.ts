@@ -153,8 +153,8 @@ export enum ServerAction {
   OCPI_ENDPOINT_DELETE = 'OcpiEndpointDelete',
 
   OICP_SETTINGS = 'OicpSettings',
-  OICP_ENPOINT_CREATE = 'OicpEndpointCreate',
-  OICP_ENPOINT_PING = 'OicpEndpointPing',
+  OICP_ENDPOINT_CREATE = 'OicpEndpointCreate',
+  OICP_ENDPOINT_PING = 'OicpEndpointPing',
   OICP_ENDPOINT = 'OicpEndpoint',
   OICP_ENDPOINTS = 'OicpEndpoints',
   OICP_ENDPOINT_START = 'OicpEndpointStart',
@@ -172,8 +172,8 @@ export enum ServerAction {
   OICP_SEND_CHARGING_NOTIFICATION_PROGRESS = 'OicpSendChargingNotificationProgress',
   OICP_SEND_CHARGING_NOTIFICATION_END = 'OicpSendChargingNotificationEnd',
   OICP_SEND_CHARGING_NOTIFICATION_ERROR = 'OicpSendChargingNotificationError',
-  OICP_ENPOINT_SEND_EVSE_STATUSES = 'OicpEndpointSendEVSEStatuses',
-  OICP_ENPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
+  OICP_ENDPOINT_SEND_EVSE_STATUSES = 'OicpEndpointSendEVSEStatuses',
+  OICP_ENDPOINT_SEND_EVSES = 'OicpEndpointSendEVSEs',
   OICP_PUSH_SESSIONS = 'OicpPushSessions',
   OICP_CREATE_AXIOS_INSTANCE = 'OicpCreateAxiosInstance',
   OICP_ENDPOINT_UPDATE = 'OicpEndpointUpdate',
@@ -358,7 +358,7 @@ export enum ServerAction {
   SYNCHRONIZE_REFUNDED_TRANSACTIONS = 'SynchronizeRefundedTransactions',
 
   SETTING_CREATE = 'SettingCreate',
-  SETTING_BY_INDENTIFIER = 'SettingByIdentifier',
+  SETTING_BY_IDENTIFIER = 'SettingByIdentifier',
   SETTINGS = 'Settings',
   SETTING = 'Setting',
   SETTING_UPDATE = 'SettingUpdate',
@@ -380,15 +380,17 @@ export enum ServerAction {
   USER_IMAGE = 'UserImage',
   TAGS = 'Tags',
   TAG = 'Tag',
-  USER_DEFAUlT_TAG_CAR = 'UserDefaultTagCar',
+  USER_DEFAULT_TAG_CAR = 'UserDefaultTagCar',
   TAG_CREATE = 'TagCreate',
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',
   TAGS_DELETE = 'TagsDelete',
+  TAGS_IMPORT = 'TagsImport',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
-  SYNCHRONIZE_USERS = 'SynchronizeUsers',
+  IMPORT_USERS = 'ImportUsers',
+  IMPORT_TAGS = 'ImportTags',
 
   NOTIFICATIONS = 'Notifications',
 
@@ -411,6 +413,8 @@ export enum ServerAction {
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
+  BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
+  BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_WEB_HOOK = 'BillingWebHook',
 
@@ -485,5 +489,8 @@ export enum ServerRoute {
 
   REST_PING = 'ping',
 
-  REST_TENANTS = 'tenants'
+  REST_TENANTS = 'tenants',
+
+  // shouldn't we have this rest here ?? for the route building
+  // REST_BILLING_PAYMENT_METHODS = 'billing/paymentmethods'
 }

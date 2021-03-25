@@ -48,11 +48,11 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
     }
     // Log in the default tenant
     if (counter > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${counter} Tags's last changed properties have been updated in Tenant '${tenant.name}'`
+        message: `${counter} Tags's last changed properties have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
