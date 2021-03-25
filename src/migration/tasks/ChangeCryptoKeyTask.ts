@@ -40,7 +40,7 @@ export default class ChangeCryptoKeyTask extends MigrationTask {
         }
       } as CryptoSettings;
       await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
-      // migrate sensitive data to the new key
+      // Migrate sensitive data to the new key
       await Cypher.handleCryptoSettingsChange(tenant.id);
       // Log in the default tenant
       Logging.logDebug({
