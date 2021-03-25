@@ -1,6 +1,9 @@
+import chai, { expect } from 'chai';
+
+import { BillingInvoiceStatus } from '../../src/types/Billing';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import StripeIntegrationTestData from './BillingStripeTestData';
-import chai from 'chai';
+import TestConstants from './client/utils/TestConstants';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -34,14 +37,24 @@ describe('Billing Stripe Service', function() {
         // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
+      it('should create a DRAFT invoice and fail to pay', async () => {
+        await testData.checkBusinessProcessBillToPay(true);
+      });
+
       it('Should add a payment method to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_visa');
       });
 
-      it('should create and pay a first invoice for BILLING-TEST user', async () => {
-        await testData.checkBusinessProcessBillToPay();
+      it('should create a DRAFT invoice and pay it for BILLING-TEST user', async () => {
+        await testData.checkBusinessProcessBillToPay(false, true);
       });
 
+      it('Should download invoice as PDF', async () => {
+        const response = await testData.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        expect(response.data.result.length).to.be.gt(0);
+        const downloadResponse = await testData.adminUserService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
+        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
+      });
     });
 
     describe('immediate billing ON', () => {

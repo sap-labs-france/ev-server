@@ -62,8 +62,8 @@ export default class StripeIntegrationTestData {
   public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
-    this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
+    expect(this.billingImpl, 'Billing implementation should not ber null');
+    this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
     expect(this.billingUser, 'Billing user should not ber null');
   }
 
@@ -176,7 +176,7 @@ export default class StripeIntegrationTestData {
     return taxRate;
   }
 
-  public async checkBusinessProcessBillToPay(withTax?:boolean) : Promise<number> {
+  public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<number> {
 
     let taxId: string = null;
     if (withTax) {
@@ -196,7 +196,7 @@ export default class StripeIntegrationTestData {
     assert(draftInvoices, 'User should have at least a draft invoice');
     expect(draftInvoices.length).to.be.eql(1);
     // Let's pay that particular DRAFT invoice
-    await this.payDraftInvoice(draftInvoices[0]);
+    await this.payDraftInvoice(draftInvoices[0], paymentShouldFail);
     // Next step should not be necessary
     // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
     // Let's check that the user do not have any DRAFT invoice anymore
@@ -256,12 +256,19 @@ export default class StripeIntegrationTestData {
     return billingInvoice;
   }
 
-  public async payDraftInvoice(draftInvoice: { id: string }): Promise<void> {
+  public async payDraftInvoice(draftInvoice: { id: string }, paymentShouldFail: boolean): Promise<void> {
     const draftInvoiceId = draftInvoice.id;
     let billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.getTenantID(), draftInvoiceId);
     // Let's attempt a payment using the default payment method
     billingInvoice = await this.billingImpl.chargeInvoice(billingInvoice);
-    assert(billingInvoice.status === BillingInvoiceStatus.PAID, 'Invoice should have been paid');
+    if (paymentShouldFail) {
+      assert(billingInvoice.status === BillingInvoiceStatus.OPEN, 'Invoice should have been be finalized but not yet paid');
+      // TODO - retrieve and check the last payment error and the corresponding error code
+      // billingInvoice = await BillingStorage.getInvoice(draftInvoiceId);
+      // assert(billingInvoice.lastPaymentFailure.error.error_code === "missing"!!!!
+    } else {
+      assert(billingInvoice.status === BillingInvoiceStatus.PAID, 'Invoice should have been paid');
+    }
   }
 
   public getTenantID(): string {
