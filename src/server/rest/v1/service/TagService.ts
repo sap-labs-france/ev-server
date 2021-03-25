@@ -504,8 +504,11 @@ export default class TagService {
     req.pipe(busboy);
     // Handle closed socket
     let connectionClosed = false;
-    req.socket.on('close', () => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    req.socket.on('close', async () => {
       connectionClosed = true;
+      // Release the lock
+      await LockingManager.release(importTagsLock);
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
