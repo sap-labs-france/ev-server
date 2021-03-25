@@ -908,6 +908,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       taxes,
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
+        tenantID: this.tenantID,
         userID: transaction.userID,
         price,
         roundedPrice,
@@ -1005,11 +1006,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeCreated(user: User): Promise<boolean> {
+    // throw new BackendError({
+    //   source: Constants.CENTRAL_SERVER,
+    //   module: MODULE_NAME, method: 'createUser',
+    //   action: ServerAction.USER_CREATE,
+    //   user: user,
+    //   message: 'Cannot create the user'
+    // });
     return true;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
+    // throw new BackendError({
+    //   source: Constants.CENTRAL_SERVER,
+    //   module: MODULE_NAME, method: 'updateUser',
+    //   action: ServerAction.USER_CREATE,
+    //   user: user,
+    //   message: 'Cannot update the user'
+    // });
     return true;
   }
 
@@ -1072,33 +1087,19 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async createUser(user: User): Promise<BillingUser> {
-    // Check
-    const success = await this.checkIfUserCanBeCreated(user);
-    if (!success) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'createUser',
-        action: ServerAction.USER_CREATE,
-        user: user,
-        message: 'Cannot create the user'
-      });
-    }
     // Check connection
     await this.checkConnection();
+    await this.checkIfUserCanBeCreated(user);
     if (user.billingData?.customerID) {
       throw new Error('Unexpected situation - the customerID is already set');
     }
-    const name = Utils.buildUserFullName(user, false, false);
-    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     // Checks create a new STRIPE customer
     const customer: Stripe.Customer = await this.stripe.customers.create({
-      email: user.email,
-      description,
-      name,
-      preferred_locales: [locale],
-      metadata: { userID: user.id } // IMPORTANT - keep track on the stripe side of the original eMobility user
+      ...this._buildCustomerCommonProperties(user),
+      metadata: {
+        tenantID: this.tenantID,
+        userID: user.id // IMPORTANT - keep track on the stripe side of the original eMobility user
+      }
     });
     // Let's populate the initial Billing Data of our new customer
     const billingData: BillingUserData = {
@@ -1107,30 +1108,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       hasSynchroError: false,
       invoicesLastSynchronizedOn: null
     };
-    // TODO - to be clarified - The caller is here responsible for storing the changes!!!
+    // Save the billing data
     user.billingData = billingData;
+    await UserStorage.saveUserBillingData(this.tenantID, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
   }
 
   public async updateUser(user: User): Promise<BillingUser> {
-    // Check
-    const success = await this.checkIfUserCanBeUpdated(user);
-    if (!success) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateUser',
-        action: ServerAction.USER_CREATE,
-        user: user,
-        message: 'Cannot update the user'
-      });
-    }
     // Check connection
     await this.checkConnection();
-    const name = Utils.buildUserFullName(user, false, false);
-    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
+    await this.checkIfUserCanBeUpdated(user);
     // Let's check if the STRIPE customer exists
     const customerID:string = user?.billingData?.customerID;
     if (!customerID) {
@@ -1143,18 +1131,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     // Update user data
     const updateParams: Stripe.CustomerUpdateParams = {
-      description,
-      name,
-      email: user.email,
-      preferred_locales: [locale]
+      ...this._buildCustomerCommonProperties(user),
     };
     // Update changed data
     customer = await this.stripe.customers.update(customerID, updateParams);
     // Let's update the Billing Data of our customer
-    // TODO - to be clarified - The caller is here responsible for storing the changes!!!
     user.billingData.lastChangedOn = new Date();
+    await UserStorage.saveUserBillingData(this.tenantID, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
+  }
+
+  private _buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string } {
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    return {
+      name: Utils.buildUserFullName(user, false, false),
+      description: i18nManager.translate('billing.generatedUser', { email: user.email }),
+      preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
+      email: user.email
+    };
   }
 
   public async deleteUser(user: User): Promise<void> {

@@ -182,7 +182,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     } else {
       billingUser = await this.updateUser(user);
     }
-    await UserStorage.saveUserBillingData(this.tenantID, user.id, billingUser.billingData);
     return billingUser;
   }
 
