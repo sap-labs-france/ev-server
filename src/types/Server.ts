@@ -358,7 +358,7 @@ export enum ServerAction {
   SYNCHRONIZE_REFUNDED_TRANSACTIONS = 'SynchronizeRefundedTransactions',
 
   SETTING_CREATE = 'SettingCreate',
-  SETTING_BY_INDENTIFIER = 'SettingByIdentifier',
+  SETTING_BY_IDENTIFIER = 'SettingByIdentifier',
   SETTINGS = 'Settings',
   SETTING = 'Setting',
   SETTING_UPDATE = 'SettingUpdate',
