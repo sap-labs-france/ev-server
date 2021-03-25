@@ -715,6 +715,18 @@ export default class UserStorage {
     };
   }
 
+  public static async getImportedUsersCount(tenantID: string): Promise<number> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsersCount');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Count documents
+    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedusers').count();
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedUsersCount', uniqueTimerID);
+    return nbrOfDocuments;
+  }
+
   public static async getImportedUsers(tenantID: string,
     params: { status?: ImportStatus; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {

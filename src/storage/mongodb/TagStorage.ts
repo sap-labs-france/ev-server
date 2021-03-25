@@ -104,6 +104,18 @@ export default class TagStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedTags', uniqueTimerID);
   }
 
+  public static async getImportedTagsCount(tenantID: string): Promise<number> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedTagsCount');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Count documents
+    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedtags').count();
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedTagsCount', uniqueTimerID);
+    return nbrOfDocuments;
+  }
+
   public static async getImportedTags(tenantID: string,
     params: { status?: ImportStatus; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {

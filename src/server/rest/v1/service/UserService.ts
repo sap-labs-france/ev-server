@@ -20,6 +20,7 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import ImportUsersTask from '../../../../scheduler/tasks/ImportUsersTask';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -1021,6 +1022,9 @@ export default class UserService {
       }
       // Release the lock
       await LockingManager.release(importUsersLock);
+      // Trigger manually and asynchronously the job
+      void new ImportUsersTask().processTenant(req.tenant);
+      // Respond
       res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();
     });

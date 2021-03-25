@@ -12,6 +12,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import ImportTagsTask from '../../../../scheduler/tasks/ImportTagsTask';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -623,6 +624,8 @@ export default class TagService {
       }
       // Release the lock
       await LockingManager.release(importTagsLock);
+      // Trigger manually and asynchronously the job
+      void new ImportTagsTask().processTenant(req.tenant);
       // Respond
       res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();

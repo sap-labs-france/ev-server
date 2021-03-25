@@ -1338,7 +1338,7 @@ export default class Utils {
   }
 
   public static buildTenantName(tenant: Tenant): string {
-    return `'${tenant.name}' ('${tenant.subdomain}'`;
+    return `'${tenant.name}' ('${tenant.subdomain}')`;
   }
 
   public static isChargingStationIDValid(name: string): boolean {

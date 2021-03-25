@@ -1,9 +1,9 @@
+import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 import Tag, { ImportedTag } from '../../types/Tag';
 
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
-import { ImportStatus } from '../../types/GlobalType';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -17,12 +17,18 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
 export default class ImportTagsTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  public async processTenant(tenant: Tenant, config?: TaskConfig): Promise<void> {
     const importTagsLock = await LockingHelper.createImportTagsLock(tenant.id);
     if (importTagsLock) {
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedTags: DataResult<ImportedTag>;
+        const result: ActionsResponse = {
+          inError: 0,
+          inSuccess: 0,
+        };
+        // Get total number of Tags to import
+        const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant.id);
         do {
           // Get the imported tags
           importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
@@ -35,13 +41,7 @@ export default class ImportTagsTask extends SchedulerTask {
                 await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
                 // Remove the imported Tag
                 await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
-                // Log
-                await Logging.logDebug({
-                  tenantID: tenant.id,
-                  action: ServerAction.SYNCHRONIZE_TAGS,
-                  module: MODULE_NAME, method: 'processTenant',
-                  message: `Tag ID '${importedTag.id}' has been updated successfully in Tenant ${Utils.buildTenantName(tenant)}`
-                });
+                result.inSuccess++;
                 continue;
               }
               // New Tag
@@ -58,33 +58,44 @@ export default class ImportTagsTask extends SchedulerTask {
               await TagStorage.saveTag(tenant.id, tag);
               // Remove the imported Tag
               await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
-              // Log
-              await Logging.logDebug({
-                tenantID: tenant.id,
-                action: ServerAction.SYNCHRONIZE_TAGS,
-                module: MODULE_NAME, method: 'processTenant',
-                message: `Tag ID '${importedTag.id}' have been created in Tenant ${Utils.buildTenantName(tenant)}`
-              });
+              result.inSuccess++;
             } catch (error) {
               // Update the imported Tag
               importedTag.status = ImportStatus.ERROR;
               importedTag.errorDescription = error.message;
+              result.inError++;
               // Update it
               await TagStorage.saveImportedTag(tenant.id, importedTag);
               // Log
               await Logging.logError({
                 tenantID: tenant.id,
-                action: ServerAction.SYNCHRONIZE_TAGS,
+                action: ServerAction.IMPORT_TAGS,
                 module: MODULE_NAME, method: 'processTenant',
                 message: `An error occurred while importing the Tag ID '${importedTag.id}'`,
                 detailedMessages: { error: error.message, stack: error.stack }
               });
             }
           }
+          // Log
+          if (importedTags.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+            await Logging.logDebug({
+              tenantID: tenant.id,
+              action: ServerAction.IMPORT_TAGS,
+              module: MODULE_NAME, method: 'processTenant',
+              message: `${result.inError + result.inSuccess}/${totalTagsToImport} Tag(s) have been processed`
+            });
+          }
         } while (!Utils.isEmptyArray(importedTags?.result));
+        // Log final results
+        await Logging.logActionsResponse(tenant.id, ServerAction.IMPORT_TAGS, MODULE_NAME, 'processTenant', result,
+          `{{inSuccess}} Tag(s) have been imported successfully in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inError}} Tag(s) failed to be imported in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inSuccess}} Tag(s) have been imported successfully but {{inError}} failed in Tenant ${Utils.buildTenantName(tenant)}`,
+          `Not Tag has been imported in Tenant ${Utils.buildTenantName(tenant)}`
+        );
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_TAGS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.IMPORT_TAGS, error);
       } finally {
         // Release the lock
         await LockingManager.release(importTagsLock);
