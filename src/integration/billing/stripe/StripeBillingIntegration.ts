@@ -277,10 +277,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
       customer: customerID,
-      collection_method: 'send_invoice', // TODO - must be clarified - other option is 'charge_automatically' ==> triggering an implicit payment!
-      days_until_due: 30, // TODO - must be clarified - get rid of this hardcoded default value
+      // collection_method: 'send_invoice', //Default option is 'charge_automatically'
+      // days_until_due: 30, // Optional when using default settings
       auto_advance: false, // our integration is responsible for transitioning the invoice between statuses
       metadata: {
+        tenantID: this.tenantID,
         userID
       }
     }, {
