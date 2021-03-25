@@ -349,7 +349,7 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.BILLING_WEB_HOOK:
-              await BillingService.handleBillingWebHook(action, req, res);
+              await BillingService.handleBillingWebHook(action, req, res, next);
               // Res.sendStatus(StatusCodes.OK);
               break;
             default:
