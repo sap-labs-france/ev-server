@@ -194,6 +194,22 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  public static filterChargingProfileCreateRequest(request: any): ChargingProfile {
+    const filteredRequest: ChargingProfile = {} as ChargingProfile;
+    if (Utils.objectHasProperty(request, 'chargingStationID')) {
+      filteredRequest.chargingStationID = sanitize(request.chargingStationID);
+    }
+    if (Utils.objectHasProperty(request, 'connectorID')) {
+      filteredRequest.connectorID = sanitize(request.connectorID);
+    }
+    if (Utils.objectHasProperty(request, 'chargePointID')) {
+      filteredRequest.chargePointID = sanitize(request.chargePointID);
+    }
+    if (Utils.objectHasProperty(request, 'profile')) {
+      filteredRequest.profile = ChargingStationSecurity.filterChargingProfileRequest(request.profile);
+    }
+    return filteredRequest;
+  }
 
   public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
     const filteredRequest: ChargingProfile = {} as ChargingProfile;
