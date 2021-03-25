@@ -37,12 +37,16 @@ describe('Billing Stripe Service', function() {
         // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
+      it('should create a DRAFT invoice and fail to pay', async () => {
+        await testData.checkBusinessProcessBillToPay(true);
+      });
+
       it('Should add a payment method to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_visa');
       });
 
-      it('should create and pay a first invoice for BILLING-TEST user', async () => {
-        await testData.checkBusinessProcessBillToPay();
+      it('should create a DRAFT invoice and pay it for BILLING-TEST user', async () => {
+        await testData.checkBusinessProcessBillToPay(false, true);
       });
 
       it('Should download invoice as PDF', async () => {
