@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser } from '../../src/types/Billing';
 import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
@@ -126,7 +126,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
-    // Assign a payment method using test tokens (instead of test card numbers)
+    // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
@@ -135,6 +135,26 @@ export default class StripeIntegrationTestData {
     });
     expect(source).to.not.be.null;
     return source;
+  }
+
+  // Detach the latest assigned source
+  public async checkDetachPaymentMethod(newSourceId: string) : Promise<void> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    // TODO: check this is not the default pm as here we are dealing with source and not pm
+    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
+    expect(deletedSource).to.not.be.null;
+    await this.retrievePaymentMethod(deletedSource.result[0].id);
+  }
+
+  // TODO : modify this test with concrete implementation when we have implemented getPaymentMethod(pmID)
+  public async retrievePaymentMethod(deletedSourceId: string) : Promise<void> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    try {
+      await stripeInstance.paymentMethods.retrieve(deletedSourceId);
+    } catch (error) {
+      expect(error.code).to.equal('resource_missing');
+    }
   }
 
   public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {

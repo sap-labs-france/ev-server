@@ -472,7 +472,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSetupPaymentMethodRequest(req);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(filteredRequest.user, TenantComponents.BILLING,
@@ -510,9 +510,10 @@ export default class BillingService {
       console.log(operationResult);
     }
     res.json(operationResult);
+    next();
   }
 
-  public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingSecurity.filterPaymentMethodsRequest(req);
     // Check if component is active
@@ -548,6 +549,7 @@ export default class BillingService {
       console.log(paymentMethodResult);
     }
     res.json(paymentMethodResult);
+    next();
   }
 
   public static async handleBillingDeletePaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -586,6 +588,7 @@ export default class BillingService {
       console.log(paymentMethodResult);
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
@@ -692,7 +695,7 @@ export default class BillingService {
     // });
   }
 
-  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     // ?? How to do it in this context
     // Filter
@@ -726,5 +729,6 @@ export default class BillingService {
     const done = await billingImpl.consumeBillingEvent(req);
     // Return a response to acknowledge receipt of the event
     res.json({ received: done });
+    next();
   }
 }

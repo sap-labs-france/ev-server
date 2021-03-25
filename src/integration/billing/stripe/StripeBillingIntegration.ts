@@ -187,24 +187,43 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.convertToBillingUser(customer);
   }
 
+  // TODO : is it ok we retrieve only the active ones ??
   public async getTaxes(): Promise<BillingTax[]> {
-    const taxes = [] as BillingTax[];
-    let request;
-    const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST };
-    do {
-      request = await this.stripe.taxRates.list(requestParams);
-      for (const tax of request.data) {
-        taxes.push({
-          id: tax.id,
-          description: tax.description,
-          displayName: tax.display_name,
-          percentage: tax.percentage
-        });
-      }
-      if (request.has_more) {
-        requestParams.starting_after = taxes[taxes.length - 1].id;
-      }
-    } while (request.has_more);
+    await this.checkConnection();
+    const taxes : BillingTax[] = [];
+    try {
+      let request;
+      const requestParams : Stripe.TaxRateListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST, active: true };
+      do {
+        request = await this.stripe.taxRates.list(requestParams);
+        for (const tax of request.data) {
+          taxes.push({
+            id: tax.id,
+            description: tax.description,
+            displayName: tax.display_name,
+            percentage: tax.percentage
+          });
+        }
+        if (request.has_more) {
+          requestParams.starting_after = taxes[taxes.length - 1].id;
+        }
+      } while (request.has_more);
+      await Logging.logInfo({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TAXES,
+        module: MODULE_NAME, method: 'getTaxes',
+        message: `Retrieved tax list (${taxes.length} taxes)`
+      });
+    } catch (e) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenantID,
+        action: ServerAction.BILLING_TAXES,
+        module: MODULE_NAME, method: 'getTaxes',
+        message: `Stripe operation failed - ${e?.message as string}`
+      });
+    }
     return taxes;
   }
 

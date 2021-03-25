@@ -54,7 +54,7 @@ describe('Billing Stripe Service', function() {
         await testData.forceBillingSettings(immediateBilling);
       });
 
-      it('Should add a different payment method to BILLING-TEST user', async () => {
+      it('Should add a different source to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_fr');
       });
 
@@ -62,8 +62,12 @@ describe('Billing Stripe Service', function() {
         await testData.checkImmediateBillingWithTaxes();
       });
 
+      // TODO : change this as soon as we can test pm - now it's sources, not pm
+      it('Should detach newly added source to BILLING-TEST user', async () => {
+        const newSource = await testData.assignPaymentMethod('tok_fr');
+        await testData.checkDetachPaymentMethod(newSource.id);
+      });
     });
-
   });
 
 });
