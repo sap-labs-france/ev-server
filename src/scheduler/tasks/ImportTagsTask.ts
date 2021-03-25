@@ -4,7 +4,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import { ImportStatus } from '../../types/GlobalType';
-import { LockEntity } from '../../types/Locking';
+import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
@@ -16,10 +16,10 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
-export default class SynchronizeTagsImportTask extends SchedulerTask {
+export default class ImportTagsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    const synchronizeTagsImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.TAGS, 'synchronize-tags-import');
-    if (await LockingManager.acquire(synchronizeTagsImport)) {
+    const importTagsLock = await LockingHelper.createImportTagsLock(tenant.id);
+    if (importTagsLock) {
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedTags: DataResult<ImportedTag>;
@@ -87,7 +87,7 @@ export default class SynchronizeTagsImportTask extends SchedulerTask {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_TAGS, error);
       } finally {
         // Release the lock
-        await LockingManager.release(synchronizeTagsImport);
+        await LockingManager.release(importTagsLock);
       }
     }
   }

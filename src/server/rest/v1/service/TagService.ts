@@ -13,6 +13,8 @@ import Busboy from 'busboy';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
@@ -473,6 +475,18 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleImportTags'
       });
     }
+    // Acquire the lock
+    const importTagsLock = await LockingHelper.createImportTagsLock(req.tenant.id);
+    if (!importTagsLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleImportTags',
+        message: 'Error in importing the Tags: cannot acquire the lock',
+        user: req.user
+      });
+    }
     // Default values for Tag import
     const importedBy = req.user.id;
     const importedOn = new Date();
@@ -607,6 +621,9 @@ export default class TagService {
       if (tagsToBeImported.length > 0) {
         await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
       }
+      // Release the lock
+      await LockingManager.release(importTagsLock);
+      // Respond
       res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();
     });

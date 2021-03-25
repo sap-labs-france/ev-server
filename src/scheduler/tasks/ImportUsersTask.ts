@@ -4,7 +4,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import { ImportStatus } from '../../types/GlobalType';
-import { LockEntity } from '../../types/Locking';
+import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
@@ -16,10 +16,10 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeUsersImportTask';
 
-export default class SynchronizeUsersImportTask extends SchedulerTask {
+export default class ImportUsersTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    const synchronizeUsersImport = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-users-import');
-    if (await LockingManager.acquire(synchronizeUsersImport)) {
+    const importUsersLock = await LockingHelper.createImportUsersLock(tenant.id);
+    if (importUsersLock) {
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedUsers: DataResult<ImportedUser>;
@@ -96,7 +96,7 @@ export default class SynchronizeUsersImportTask extends SchedulerTask {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_USERS, error);
       } finally {
         // Release the lock
-        await LockingManager.release(synchronizeUsersImport);
+        await LockingManager.release(importUsersLock);
       }
     }
   }

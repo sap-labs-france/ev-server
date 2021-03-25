@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 export enum HTTPError {
   GENERAL_ERROR = StatusCodes.INTERNAL_SERVER_ERROR,
   NOT_IMPLEMENTED_ERROR = StatusCodes.NOT_IMPLEMENTED,
+  MISSING_SETTINGS = 505,
   OBJECT_DOES_NOT_EXIST_ERROR = 550,
   FEATURE_NOT_SUPPORTED_ERROR = 585,
 

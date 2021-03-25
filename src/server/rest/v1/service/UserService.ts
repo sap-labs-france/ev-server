@@ -21,6 +21,8 @@ import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
 import JSONStream from 'JSONStream';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -872,6 +874,18 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
+    // Acquire the lock
+    const importUsersLock = await LockingHelper.createImportUsersLock(req.tenant.id);
+    if (!importUsersLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleImportUsers',
+        message: 'Error in importing the Users: cannot acquire the lock',
+        user: req.user
+      });
+    }
     // Default values for User import
     const importedBy = req.user.id;
     const importedOn = new Date();
@@ -1005,6 +1019,8 @@ export default class UserService {
       if (usersToBeImported.length > 0) {
         await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
       }
+      // Release the lock
+      await LockingManager.release(importUsersLock);
       res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
       next();
     });
