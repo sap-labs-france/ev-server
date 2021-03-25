@@ -891,6 +891,7 @@ export default class UserService {
     const importedBy = req.user.id;
     const importedOn = new Date();
     const usersToBeImported: ImportedUser[] = [];
+    const startTime = new Date().getTime();
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
@@ -1008,13 +1009,14 @@ export default class UserService {
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('finish', async () => {
+      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
       await Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportUsers', result,
-        '{{inSuccess}} User(s) were successfully uploaded and ready for asynchronous import',
-        '{{inError}} User(s) failed to be uploaded',
-        '{{inSuccess}}  User(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
-        'No User have been uploaded', req.user
+        `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+        `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+        `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+        `No User have been uploaded in ${executionDurationSecs}s`, req.user
       );
       // Insert batched
       if (usersToBeImported.length > 0) {

@@ -492,6 +492,7 @@ export default class TagService {
     const importedBy = req.user.id;
     const importedOn = new Date();
     const tagsToBeImported: ImportedTag[] = [];
+    const startTime = new Date().getTime();
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
@@ -610,13 +611,14 @@ export default class TagService {
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('finish', async () => {
+      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
       await Logging.logActionsResponse(
         req.user.tenantID, action,
         MODULE_NAME, 'handleImportTags', result,
-        '{{inSuccess}} Tag(s) were successfully uploaded and ready for asynchronous import',
-        '{{inError}} Tag(s) failed to be uploaded',
-        '{{inSuccess}}  Tag(s) were successfully uploaded and ready for asynchronous import and {{inError}} failed to be uploaded',
-        'No Tag have been uploaded', req.user
+        `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+        `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
+        `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+        `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
       );
       // Insert batched
       if (tagsToBeImported.length > 0) {

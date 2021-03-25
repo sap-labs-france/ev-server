@@ -27,8 +27,17 @@ export default class ImportTagsTask extends SchedulerTask {
           inError: 0,
           inSuccess: 0,
         };
+        const startTime = new Date().getTime();
         // Get total number of Tags to import
         const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant.id);
+        if (totalTagsToImport > 0) {
+          await Logging.logDebug({
+            tenantID: tenant.id,
+            action: ServerAction.IMPORT_TAGS,
+            module: MODULE_NAME, method: 'processTenant',
+            message: `${totalTagsToImport} Tag(s) are going to be imported...`
+          });
+        }
         do {
           // Get the imported tags
           importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
@@ -78,20 +87,22 @@ export default class ImportTagsTask extends SchedulerTask {
           }
           // Log
           if (importedTags.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+            const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,
               action: ServerAction.IMPORT_TAGS,
               module: MODULE_NAME, method: 'processTenant',
-              message: `${result.inError + result.inSuccess}/${totalTagsToImport} Tag(s) have been processed`
+              message: `${result.inError + result.inSuccess}/${totalTagsToImport} Tag(s) have been processed in ${intermediateDurationSecs}s...`
             });
           }
         } while (!Utils.isEmptyArray(importedTags?.result));
         // Log final results
+        const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
         await Logging.logActionsResponse(tenant.id, ServerAction.IMPORT_TAGS, MODULE_NAME, 'processTenant', result,
-          `{{inSuccess}} Tag(s) have been imported successfully in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inError}} Tag(s) failed to be imported in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inSuccess}} Tag(s) have been imported successfully but {{inError}} failed in Tenant ${Utils.buildTenantName(tenant)}`,
-          `Not Tag has been imported in Tenant ${Utils.buildTenantName(tenant)}`
+          `{{inSuccess}} Tag(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inError}} Tag(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inSuccess}} Tag(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `Not Tag has been imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
         // Log error

@@ -27,8 +27,17 @@ export default class ImportUsersTask extends SchedulerTask {
           inError: 0,
           inSuccess: 0,
         };
+        const startTime = new Date().getTime();
         // Get total number of Users to import
         const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant.id);
+        if (totalUsersToImport > 0) {
+          await Logging.logDebug({
+            tenantID: tenant.id,
+            action: ServerAction.IMPORT_USERS,
+            module: MODULE_NAME, method: 'processTenant',
+            message: `${totalUsersToImport} User(s) are going to be imported...`
+          });
+        }
         do {
           // Get the imported users
           importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
@@ -87,20 +96,22 @@ export default class ImportUsersTask extends SchedulerTask {
           }
           // Log
           if (importedUsers.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+            const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,
               action: ServerAction.IMPORT_USERS,
               module: MODULE_NAME, method: 'processTenant',
-              message: `${result.inError + result.inSuccess}/${totalUsersToImport} User(s) have been processed`
+              message: `${result.inError + result.inSuccess}/${totalUsersToImport} User(s) have been processed in ${intermediateDurationSecs}s...`
             });
           }
         } while (!Utils.isEmptyArray(importedUsers?.result));
         // Log final results
+        const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
         await Logging.logActionsResponse(tenant.id, ServerAction.IMPORT_USERS, MODULE_NAME, 'processTenant', result,
-          `{{inSuccess}} User(s) have been imported successfully in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inError}} User(s) failed to be imported in Tenant ${Utils.buildTenantName(tenant)}`,
-          `{{inSuccess}} User(s) have been imported successfully but {{inError}} failed in Tenant ${Utils.buildTenantName(tenant)}`,
-          `Not User has been imported in Tenant ${Utils.buildTenantName(tenant)}`
+          `{{inSuccess}} User(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inError}} User(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `{{inSuccess}} User(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
+          `Not User has been imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`
         );
       } catch (error) {
         // Log error
