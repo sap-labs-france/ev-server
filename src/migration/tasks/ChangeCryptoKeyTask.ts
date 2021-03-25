@@ -1,14 +1,27 @@
 import { CryptoSettings, CryptoSettingsType, TechnicalSettings } from '../../types/Setting';
 
 import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import SchedulerTask from '../SchedulerTask';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
+import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
-export default class ChangeCryptoKeyTask extends SchedulerTask {
-  public async processTenant(tenant: Tenant): Promise<void> {
+const MODULE_NAME = 'ChangeCryptoKeyTask';
+
+export default class ChangeCryptoKeyTask extends MigrationTask {
+  async migrate(): Promise<void> {
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const tenant of tenants.result) {
+      await this.migrateTenant(tenant);
+    }
+  }
+
+  async migrateTenant(tenant: Tenant): Promise<void> {
     // Get crypto key settings from config file & db
     const historicalCryptoSettings = Configuration.getCryptoConfig();
     const currentCryptoSettings = await SettingStorage.getCryptoSettings(tenant.id);
@@ -29,6 +42,22 @@ export default class ChangeCryptoKeyTask extends SchedulerTask {
       await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
       // migrate sensitive data to the new key
       await Cypher.handleCryptoSettingsChange(tenant.id);
+      // Log in the default tenant
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MIGRATION,
+        module: MODULE_NAME,
+        method: 'migrateTenant',
+        message: `Crypto settings have been updated in Tenant '${tenant.name}'`
+      });
     }
+  }
+
+  getVersion(): string {
+    return '1.0';
+  }
+
+  getName(): string {
+    return 'ChangeCryptoKeyTask';
   }
 }

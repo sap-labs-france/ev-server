@@ -1,5 +1,4 @@
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
-import ChangeCryptoKeyTask from './tasks/ChangeCryptoKeyTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
@@ -138,9 +137,6 @@ export default class SchedulerManager {
             break;
           case 'MigrateSensitiveDataTask':
             schedulerTask = new MigrateSensitiveDataTask();
-            break;
-          case 'ChangeCryptoKeyTask':
-            schedulerTask = new ChangeCryptoKeyTask();
             break;
           default:
             Logging.logError({
