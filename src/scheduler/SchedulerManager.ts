@@ -7,6 +7,8 @@ import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotSta
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
+import ImportTagsTask from './tasks/ImportTagsTask';
+import ImportUsersTask from './tasks/ImportUsersTask';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import MigrateSensitiveDataTask from './tasks/MigrateSensitiveDataTask';
@@ -27,7 +29,6 @@ import SynchronizeBillingInvoicesTask from './tasks/SynchronizeBillingInvoicesTa
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import SynchronizeUsersImportTask from './tasks/SynchronizeUsersImportTask';
 import Utils from '../utils/Utils';
 import cron from 'node-cron';
 
@@ -36,11 +37,11 @@ const MODULE_NAME = 'SchedulerManager';
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
 
-  public static init(): void {
+  public static async init(): Promise<void> {
     // Active?
     if (SchedulerManager.schedulerConfig.active) {
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'init',
@@ -50,7 +51,7 @@ export default class SchedulerManager {
       for (const task of SchedulerManager.schedulerConfig.tasks) {
         // Active?
         if (!task.active) {
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'init',
@@ -132,14 +133,17 @@ export default class SchedulerManager {
           case 'CheckChargingStationTemplateTask':
             schedulerTask = new CheckChargingStationTemplateTask();
             break;
-          case 'SynchronizeUsersImportTask':
-            schedulerTask = new SynchronizeUsersImportTask();
+          case 'ImportUsersTask':
+            schedulerTask = new ImportUsersTask();
+            break;
+          case 'ImportTagsTask':
+            schedulerTask = new ImportTagsTask();
             break;
           case 'MigrateSensitiveDataTask':
             schedulerTask = new MigrateSensitiveDataTask();
             break;
           default:
-            Logging.logError({
+            await Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
               action: ServerAction.SCHEDULER,
               module: MODULE_NAME, method: 'init',
@@ -156,7 +160,7 @@ export default class SchedulerManager {
           for (let i = 0; i < numberOfInstance; i++) {
             cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
           }
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'init',
@@ -166,7 +170,7 @@ export default class SchedulerManager {
       }
     } else {
       // Log
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'init',

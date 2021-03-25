@@ -17,12 +17,6 @@
       "minLength": 1,
       "maxLength": 150
     },
-    "createdOn": {
-      "format": "date"
-    },
-    "createdBy": {
-      "type": "object"
-    },
     "locale": {
       "type": "string"
     },

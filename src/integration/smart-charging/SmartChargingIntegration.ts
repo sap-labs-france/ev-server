@@ -31,7 +31,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea, this.excludedChargingStations);
     if (!chargingProfiles) {
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
@@ -53,7 +53,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         }
         actionsResponse.inError++;
         // Log failed
-        Logging.logError({
+        await Logging.logError({
           tenantID: this.tenantID,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -64,7 +64,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       }
     }
     // Log
-    Logging.logActionsResponse(this.tenantID, ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
+    await Logging.logActionsResponse(this.tenantID, ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
       MODULE_NAME, 'computeAndApplyChargingProfiles', actionsResponse,
       '{{inSuccess}} charging plan(s) were successfully pushed',
       '{{inError}} charging plan(s) failed to be pushed',
@@ -122,7 +122,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         return true;
       } catch (error) {
         // Log failed
-        Logging.logError({
+        await Logging.logError({
           tenantID: this.tenantID,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,

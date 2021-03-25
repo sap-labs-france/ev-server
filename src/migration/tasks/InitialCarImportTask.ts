@@ -14,7 +14,7 @@ export default class InitialCarImportTask extends MigrationTask {
         await carDatabaseImpl.synchronizeCarCatalogs();
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.CAR_CATALOG_SYNCHRONIZATION,
