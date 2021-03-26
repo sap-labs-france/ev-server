@@ -56,7 +56,7 @@ export default class AddSiteIDToAssetTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${modifiedCount} Assets have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Assets have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

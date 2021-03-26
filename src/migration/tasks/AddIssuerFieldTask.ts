@@ -31,7 +31,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',

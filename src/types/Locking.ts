@@ -23,8 +23,10 @@ export enum LockEntity {
   PERFORMANCE = 'performance',
   TRANSACTION = 'transaction',
   CAR = 'car',
+  CAR_CATALOG = 'car-catalog',
   INVOICE = 'invoice',
   ASSET = 'asset',
   OCPI_ENDPOINT = 'ocpi-endpoint',
+  TAG = 'tag',
   OICP_ENDPOINT = 'oicp-endpoint',
 }
