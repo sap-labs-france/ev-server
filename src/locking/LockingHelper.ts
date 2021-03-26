@@ -31,6 +31,30 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async createImportUsersLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.USER, 'import-users');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createImportTagsLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TAG, 'import-tags');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createSyncCarCatalogsLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.CAR_CATALOG, 'synchronize-car-catalogs');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createBillingSyncInvoicesLock(tenantID: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'synchronize-billing-invoices');
     if (!(await LockingManager.acquire(lock))) {

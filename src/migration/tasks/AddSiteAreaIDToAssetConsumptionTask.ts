@@ -42,7 +42,7 @@ export default class AddSiteAreaIDToAssetConsumptionTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Consumptions have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

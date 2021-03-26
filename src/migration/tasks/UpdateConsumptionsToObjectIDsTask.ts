@@ -71,11 +71,11 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
     } while (consumptionsMDB.length > 0);
     // Log
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
-        message: `Tenant ${tenant.name} (${tenant.id}): ${updated} consumptions have been updated`
+        message: `Tenant ${Utils.buildTenantName(tenant)} (${tenant.id}): ${updated} consumptions have been updated`
       });
     }
   }

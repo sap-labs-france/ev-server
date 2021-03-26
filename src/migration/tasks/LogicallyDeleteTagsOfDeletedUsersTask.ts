@@ -43,11 +43,11 @@ export default class LogicallyDeleteTagsOfDeletedUsersTask extends MigrationTask
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Tag(s) have been marked logically deleted in Tenant '${tenant.name}'`
+        message: `${updated} Tag(s) have been marked logically deleted in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

@@ -87,6 +87,11 @@
       },
       "required": ["startPeriod", "limit"]
     },
+    "connectorIDs": {
+      "type": "string",
+      "pattern": "^(\\d\\|?)*$",
+      "sanitize": "mongo"
+    },
     "chargingProfilePurpose": {
       "type": "string",
       "sanitize": "mongo"
