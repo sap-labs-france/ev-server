@@ -3,7 +3,6 @@ import { Action, AuthorizationDefinition, Entity } from '../types/Authorization'
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
-import TenantComponents from '../types/TenantComponents';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -212,8 +211,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE], attributes: ['*'] },
       {
@@ -261,11 +258,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             }
           ]
         }
-      },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.SETTING, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'identifier': TenantComponents.ANALYTICS } }
       },
     ]
   },

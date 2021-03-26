@@ -1107,11 +1107,22 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   public async createUser(user: User): Promise<BillingUser> {
+    return await this._createUser(user, false);
+  }
+
+  public async repairUser(user: User): Promise<BillingUser> {
+    return await this._createUser(user, true);
+  }
+
+  private async _createUser(user: User, forceUserCreation: boolean): Promise<BillingUser> {
     // Check connection
     await this.checkConnection();
     await this.checkIfUserCanBeCreated(user);
     if (user.billingData?.customerID) {
-      throw new Error('Unexpected situation - the customerID is already set');
+      // The customerID should be preserved - unless the creation is forced
+      if (!forceUserCreation) {
+        throw new Error('Unexpected situation - the customerID is already set');
+      }
     }
     // Checks create a new STRIPE customer
     const customer: Stripe.Customer = await this.stripe.customers.create({
