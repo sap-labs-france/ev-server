@@ -12,6 +12,7 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
+import CSVError from 'csvtojson/v2/CSVError';
 import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
@@ -946,8 +947,8 @@ export default class UserService {
           if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
             await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
           }
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async (error: CSVError) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
@@ -960,8 +961,16 @@ export default class UserService {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        // Completed
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async () => {
+          // Insert batched
+          if (usersToBeImported.length > 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+          // Log
           const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
           await Logging.logActionsResponse(
             req.user.tenantID, action,
@@ -971,21 +980,17 @@ export default class UserService {
             `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
             `No User have been uploaded in ${executionDurationSecs}s`, req.user
           );
-          // Insert batched
-          if (usersToBeImported.length > 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-          // Release the lock
-          await LockingManager.release(importUsersLock);
           // Trigger manually and asynchronously the job
           void new ImportUsersTask().processTenant(req.tenant);
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();
         });
+        // Start processing the file
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
+        // TODO: Handle the end of the process to send the data like the CSV
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         parser.on('data', async (user: ImportedUser) => {
           // Set default value

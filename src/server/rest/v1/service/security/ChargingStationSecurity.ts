@@ -194,7 +194,6 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-
   public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
     const filteredRequest: ChargingProfile = {} as ChargingProfile;
     if (Utils.objectHasProperty(request, 'id')) {
