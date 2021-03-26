@@ -31,9 +31,9 @@ export default class ImportTagsTask extends SchedulerTask {
         // Get total number of Tags to import
         const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant.id);
         if (totalTagsToImport > 0) {
-          await Logging.logDebug({
+          await Logging.logInfo({
             tenantID: tenant.id,
-            action: ServerAction.IMPORT_TAGS,
+            action: ServerAction.TAGS_IMPORT,
             module: MODULE_NAME, method: 'processTenant',
             message: `${totalTagsToImport} Tag(s) are going to be imported...`
           });
@@ -46,6 +46,19 @@ export default class ImportTagsTask extends SchedulerTask {
               // Existing tags
               const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
               if (foundTag) {
+                // Check tag is already in use
+                if (!foundTag.issuer) {
+                  throw new Error('Tag is not local to the organization');
+                }
+                if (foundTag.deleted) {
+                  throw new Error('Tag is deleted');
+                }
+                if (foundTag.userID) {
+                  throw new Error('Tag is already assigned to an user');
+                }
+                if (foundTag.active) {
+                  throw new Error('Tag is already active');
+                }
                 // Update it
                 await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
                 // Remove the imported Tag
@@ -78,10 +91,10 @@ export default class ImportTagsTask extends SchedulerTask {
               // Log
               await Logging.logError({
                 tenantID: tenant.id,
-                action: ServerAction.IMPORT_TAGS,
+                action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `An error occurred while importing the Tag ID '${importedTag.id}'`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
+                detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
               });
             }
           }
@@ -90,7 +103,7 @@ export default class ImportTagsTask extends SchedulerTask {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,
-              action: ServerAction.IMPORT_TAGS,
+              action: ServerAction.TAGS_IMPORT,
               module: MODULE_NAME, method: 'processTenant',
               message: `${result.inError + result.inSuccess}/${totalTagsToImport} Tag(s) have been processed in ${intermediateDurationSecs}s...`
             });
@@ -98,7 +111,7 @@ export default class ImportTagsTask extends SchedulerTask {
         } while (!Utils.isEmptyArray(importedTags?.result));
         // Log final results
         const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-        await Logging.logActionsResponse(tenant.id, ServerAction.IMPORT_TAGS, MODULE_NAME, 'processTenant', result,
+        await Logging.logActionsResponse(tenant.id, ServerAction.TAGS_IMPORT, MODULE_NAME, 'processTenant', result,
           `{{inSuccess}} Tag(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} Tag(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} Tag(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
@@ -106,7 +119,7 @@ export default class ImportTagsTask extends SchedulerTask {
         );
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.IMPORT_TAGS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.TAGS_IMPORT, error);
       } finally {
         // Release the lock
         await LockingManager.release(importTagsLock);

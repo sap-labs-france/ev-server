@@ -31,9 +31,9 @@ export default class ImportUsersTask extends SchedulerTask {
         // Get total number of Users to import
         const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant.id);
         if (totalUsersToImport > 0) {
-          await Logging.logDebug({
+          await Logging.logInfo({
             tenantID: tenant.id,
-            action: ServerAction.IMPORT_USERS,
+            action: ServerAction.USERS_IMPORT,
             module: MODULE_NAME, method: 'processTenant',
             message: `${totalUsersToImport} User(s) are going to be imported...`
           });
@@ -46,6 +46,16 @@ export default class ImportUsersTask extends SchedulerTask {
             // Existing Users
               const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
               if (foundUser) {
+                // Check tag is already in use
+                if (!foundUser.issuer) {
+                  throw new Error('User is not local to the organization');
+                }
+                if (foundUser.deleted) {
+                  throw new Error('User is deleted');
+                }
+                if (foundUser.status !== UserStatus.PENDING) {
+                  throw new Error('User account is no longer pending');
+                }
                 // Update it
                 foundUser.name = importedUser.name;
                 foundUser.firstName = importedUser.firstName;
@@ -87,10 +97,10 @@ export default class ImportUsersTask extends SchedulerTask {
               // Log
               await Logging.logError({
                 tenantID: tenant.id,
-                action: ServerAction.IMPORT_USERS,
+                action: ServerAction.USERS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `An error occurred when importing user with email '${importedUser.email}'`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                message: `Error when importing User with email '${importedUser.email}': ${error.message}`,
+                detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
               });
             }
           }
@@ -99,7 +109,7 @@ export default class ImportUsersTask extends SchedulerTask {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,
-              action: ServerAction.IMPORT_USERS,
+              action: ServerAction.USERS_IMPORT,
               module: MODULE_NAME, method: 'processTenant',
               message: `${result.inError + result.inSuccess}/${totalUsersToImport} User(s) have been processed in ${intermediateDurationSecs}s...`
             });
@@ -107,7 +117,7 @@ export default class ImportUsersTask extends SchedulerTask {
         } while (!Utils.isEmptyArray(importedUsers?.result));
         // Log final results
         const executionDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
-        await Logging.logActionsResponse(tenant.id, ServerAction.IMPORT_USERS, MODULE_NAME, 'processTenant', result,
+        await Logging.logActionsResponse(tenant.id, ServerAction.USERS_IMPORT, MODULE_NAME, 'processTenant', result,
           `{{inSuccess}} User(s) have been imported successfully in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inError}} User(s) failed to be imported in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
           `{{inSuccess}} User(s) have been imported successfully but {{inError}} failed in ${executionDurationSecs}s in Tenant ${Utils.buildTenantName(tenant)}`,
@@ -115,7 +125,7 @@ export default class ImportUsersTask extends SchedulerTask {
         );
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.IMPORT_USERS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.USERS_IMPORT, error);
       } finally {
         // Release the lock
         await LockingManager.release(importUsersLock);

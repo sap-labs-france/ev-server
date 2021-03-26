@@ -650,7 +650,7 @@ export default class TagService {
         module: MODULE_NAME, method: 'insertTags',
         action: action,
         user: user.id,
-        message: `Cannot import '${error.writeErrors.length as number}' tags!`,
+        message: `Cannot import ${error.writeErrors.length as number} tags!`,
         detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
       });
     }
