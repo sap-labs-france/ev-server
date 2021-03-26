@@ -734,12 +734,7 @@
             "$ref": "#/components/parameters/TransactionStatistics"
           },
           {
-            "in": "query",
-            "name": "RefundStatus",
-            "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/RefundStatus"
           },
           {
             "in": "query",
@@ -2873,22 +2868,10 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "in": "query",
-            "name": "InactivityStatus",
-            "required": false,
-            "description": "Pipe separated Inactivity Statuses",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/InactivityStatuses"
           },
           {
-            "in": "query",
-            "name": "RefundStatus",
-            "required": false,
-            "description": "Pipe separated Refund Statuses",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/RefundStatus"
           },
           {
             "in": "query",
@@ -5230,6 +5213,14 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "RefundStatus": {
+        "in": "query",
+        "name": "RefundStatus",
+        "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
+        "schema": {
+          "type": "string"
         }
       },
       "tagID": {

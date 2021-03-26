@@ -1,4 +1,4 @@
-import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationOcppRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';

@@ -30,6 +30,7 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -1050,7 +1051,7 @@ export default class TransactionService {
       }
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'withTag')) {
