@@ -896,7 +896,7 @@ export default class UserService {
       inSuccess: 0,
       inError: 0
     };
-    // Delete all previously imported tags
+    // Delete all previously imported users
     await UserStorage.deleteImportedUsers(req.user.tenantID);
     // Get the stream
     const busboy = new Busboy({ headers: req.headers });
@@ -939,7 +939,7 @@ export default class UserService {
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.processUser(action, req, user);
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
           if (!importSuccess) {
             result.inError++;
           }
@@ -997,7 +997,7 @@ export default class UserService {
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.processUser(action, req, user);
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
           if (!importSuccess) {
             result.inError++;
           }
@@ -1299,8 +1299,8 @@ export default class UserService {
 
   private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
-      const nbrInsertedTags = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
-      result.inSuccess += nbrInsertedTags;
+      const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
+      result.inSuccess += nbrInsertedUsers;
     } catch (error) {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
@@ -1404,7 +1404,7 @@ export default class UserService {
     return users;
   }
 
-  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser): Promise<boolean> {
+  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
         name: importedUser.name.toUpperCase(),
@@ -1417,8 +1417,8 @@ export default class UserService {
       newImportedUser.importedBy = importedUser.importedBy;
       newImportedUser.importedOn = importedUser.importedOn;
       newImportedUser.status = ImportStatus.READY;
-      // Save it for import
-      await UserStorage.saveImportedUser(req.user.tenantID, newImportedUser);
+      // Save it later on
+      usersToBeImported.push(newImportedUser);
       return true;
     } catch (error) {
       await Logging.logError({
