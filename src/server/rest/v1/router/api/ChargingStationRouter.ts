@@ -21,6 +21,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationDownloadFirmware();
     this.buildRouteChargingStationDeleteChargingProfile();
     this.buildRouteChargingStationUpdateChargingProfile();
+    this.buildRouteChargingStationCreateChargingProfile();
     this.buildRouteChargingStationChangeAvailability();
     this.buildRouteChargingStationTransactions();
     this.buildRouteChargingStations();
@@ -259,6 +260,12 @@ export default class ChargingStationRouter {
   protected buildRouteChargingStationGetChargingProfiles(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingProfiles.bind(this), ServerAction.CHARGING_PROFILES, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationCreateChargingProfile(): void {
+    this.router.post(`/${ServerRoute.REST_CHARGING_PROFILES}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleCreateChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_CREATE, req, res, next);
     });
   }
 

@@ -219,7 +219,7 @@ export default class ChargingStationService {
             if (chargingStation.chargePoints) {
               chargingStation.chargePoints.push(filteredChargePoint);
             } else {
-              chargingStation.chargePoints = [ filteredChargePoint ];
+              chargingStation.chargePoints = [filteredChargePoint];
             }
             UtilsService.checkIfChargePointValid(chargingStation, filteredChargePoint, req);
           }
@@ -604,6 +604,63 @@ export default class ChargingStationService {
     // Generate
     const generatedQR = await Utils.generateQrCode(Buffer.from(JSON.stringify(chargingStationQRCode)).toString('base64'));
     res.json({ image: generatedQR });
+    next();
+  }
+
+  public static async handleCreateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileCreateReq(req.body);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargingStationID}' does not exist.`,
+      MODULE_NAME, 'handleCreateChargingProfile', req.user);
+    // OCPI Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Station '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleCreateChargingProfile',
+        user: req.user,
+        action: action
+      });
+    }
+    const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
+    UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
+      MODULE_NAME, 'handleCreateChargingProfile', req.user);
+    // Check Mandatory fields
+    UtilsService.checkIfChargingProfileIsValid(chargingStation, chargePoint, filteredRequest, req);
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleCreateChargingProfile',
+        value: chargingStation.id
+      });
+    }
+    // Check if Charging Profile is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: action,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleCreateChargingProfile',
+        message: `Charging Station '${chargingStation.id}' does not support Charging Profiles`,
+      });
+    }
+    // Apply & Save charging plan
+    const chargingProfileID = await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
+    // Ok
+    res.status(StatusCodes.CREATED).json(Object.assign({ id: chargingProfileID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
