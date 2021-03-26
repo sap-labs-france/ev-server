@@ -12,6 +12,7 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
+import CSVError from 'csvtojson/v2/CSVError';
 import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
@@ -895,7 +896,7 @@ export default class UserService {
       inSuccess: 0,
       inError: 0
     };
-    // Delete all previously imported tags
+    // Delete all previously imported users
     await UserStorage.deleteImportedUsers(req.user.tenantID);
     // Get the stream
     const busboy = new Busboy({ headers: req.headers });
@@ -938,7 +939,7 @@ export default class UserService {
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.processUser(action, req, user);
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
           if (!importSuccess) {
             result.inError++;
           }
@@ -947,30 +948,56 @@ export default class UserService {
             await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
           }
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error) => {
+        }, async (error: CSVError) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: `Invalid Csv file '${filename}'`,
+            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (!res.headersSent) {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
+        // Completed
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async () => {
+          // Insert batched
+          if (usersToBeImported.length > 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+          // Log
+          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+          await Logging.logActionsResponse(
+            req.user.tenantID, action,
+            MODULE_NAME, 'handleImportUsers', result,
+            `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+            `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+            `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+            `No User have been uploaded in ${executionDurationSecs}s`, req.user
+          );
+          // Trigger manually and asynchronously the job
+          void new ImportUsersTask().processTenant(req.tenant);
+          // Respond
+          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+          next();
         });
+        // Start processing the file
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
+        // TODO: Handle the end of the process to send the data like the CSV
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         parser.on('data', async (user: ImportedUser) => {
           // Set default value
           user.importedBy = importedBy;
           user.importedOn = importedOn;
           // Import
-          const importSuccess = await UserService.processUser(action, req, user);
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
           if (!importSuccess) {
             result.inError++;
           }
@@ -1008,29 +1035,6 @@ export default class UserService {
           res.end();
         }
       }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('finish', async () => {
-      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-      await Logging.logActionsResponse(
-        req.user.tenantID, action,
-        MODULE_NAME, 'handleImportUsers', result,
-        `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-        `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
-        `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-        `No User have been uploaded in ${executionDurationSecs}s`, req.user
-      );
-      // Insert batched
-      if (usersToBeImported.length > 0) {
-        await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-      }
-      // Release the lock
-      await LockingManager.release(importUsersLock);
-      // Trigger manually and asynchronously the job
-      void new ImportUsersTask().processTenant(req.tenant);
-      // Respond
-      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-      next();
     });
   }
 
@@ -1295,8 +1299,8 @@ export default class UserService {
 
   private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
-      const nbrInsertedTags = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
-      result.inSuccess += nbrInsertedTags;
+      const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
+      result.inSuccess += nbrInsertedUsers;
     } catch (error) {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
@@ -1400,7 +1404,7 @@ export default class UserService {
     return users;
   }
 
-  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser): Promise<boolean> {
+  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
         name: importedUser.name.toUpperCase(),
@@ -1413,8 +1417,8 @@ export default class UserService {
       newImportedUser.importedBy = importedUser.importedBy;
       newImportedUser.importedOn = importedUser.importedOn;
       newImportedUser.status = ImportStatus.READY;
-      // Save it for import
-      await UserStorage.saveImportedUser(req.user.tenantID, newImportedUser);
+      // Save it later on
+      usersToBeImported.push(newImportedUser);
       return true;
     } catch (error) {
       await Logging.logError({
