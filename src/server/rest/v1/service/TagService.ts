@@ -548,7 +548,7 @@ export default class TagService {
           if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
             await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
           }
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async (error) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -562,6 +562,28 @@ export default class TagService {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async () => {
+          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+          await Logging.logActionsResponse(
+            req.user.tenantID, action,
+            MODULE_NAME, 'handleImportTags', result,
+            `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+            `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
+            `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+            `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
+          );
+          // Insert batched
+          if (tagsToBeImported.length > 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+          }
+          // Release the lock
+          await LockingManager.release(importTagsLock);
+          // Trigger manually and asynchronously the job
+          void new ImportTagsTask().processTenant(req.tenant);
+          // Respond
+          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+          next();
         });
         // Start processing the file
         void file.pipe(converter);
@@ -611,29 +633,6 @@ export default class TagService {
           res.end();
         }
       }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('finish', async () => {
-      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-      await Logging.logActionsResponse(
-        req.user.tenantID, action,
-        MODULE_NAME, 'handleImportTags', result,
-        `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-        `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
-        `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-        `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
-      );
-      // Insert batched
-      if (tagsToBeImported.length > 0) {
-        await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
-      }
-      // Release the lock
-      await LockingManager.release(importTagsLock);
-      // Trigger manually and asynchronously the job
-      void new ImportTagsTask().processTenant(req.tenant);
-      // Respond
-      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-      next();
     });
   }
 
