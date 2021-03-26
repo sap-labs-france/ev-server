@@ -19,23 +19,24 @@ export default abstract class CarIntegration {
     for (const externalCar of externalCars) {
       try {
         const internalCar = await CarStorage.getCarCatalog(externalCar.id);
-        let image = '', imagesCount = 0;
+        const externalCarHash = Cypher.hash(JSON.stringify(externalCar));
+        const externalCarImagesHash = Cypher.hash(externalCar.imageURLs.toString());
+        // New Car: Create it
         if (!internalCar) {
-          // New Car: Create it
-          externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
+          externalCar.hash = externalCarHash;
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = new Date();
-          // Get image
+          // Get thumbnail image
           externalCar.image = await this.getCarCatalogThumb(externalCar);
+          // Delete old car catalogs images
+          await CarStorage.deleteCarImages(externalCar.id);
+          // Get images
           for (const imageURL of externalCar.imageURLs) {
-            // Get images
-            image = await this.getCarCatalogImage(externalCar, imageURL);
+            const image = await this.getCarCatalogImage(externalCar, imageURL);
             await CarStorage.saveCarImage(externalCar.id, image);
-            imagesCount++;
           }
-          // Create the Hash
-          externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === imagesCount && externalCar.image) ?
-            Cypher.hash(externalCar.imageURLs.toString()) : null;
+          // Create the images hash
+          externalCar.imagesHash = externalCarImagesHash;
           // Save
           externalCar.id = await CarStorage.saveCarCatalog(externalCar);
           actionsDone.inSuccess++;
@@ -47,28 +48,26 @@ export default abstract class CarIntegration {
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
-        } else if (!internalCar.imagesHash || (internalCar.imagesHash && !internalCar.image) || Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
+        // Car has changed?
+        } else if (internalCar.hash !== externalCarHash) {
           // Car has changed: Update it
-          externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
+          externalCar.hash = externalCarHash;
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = internalCar.createdOn;
           // Images have changed?
-          if (!internalCar.imagesHash || (Cypher.hash(externalCar.imageURLs.toString()) !== internalCar.imagesHash)) {
-            // Get image
+          if (internalCar.imagesHash !== externalCarImagesHash) {
+            // Get thumbnail image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
             // Delete old car catalogs images
             await CarStorage.deleteCarImages(externalCar.id);
             // Get images
             for (const imageURL of externalCar.imageURLs) {
               // Get images
-              image = await this.getCarCatalogImage(externalCar, imageURL);
+              const image = await this.getCarCatalogImage(externalCar, imageURL);
               await CarStorage.saveCarImage(externalCar.id, image);
-              imagesCount++;
             }
             // Create the Hash
-            externalCar.imagesHash = (externalCar.imageURLs.length > 0 && externalCar.imageURLs.length === imagesCount
-              && externalCar.image) ?
-              Cypher.hash(externalCar.imageURLs.toString()) : null;
+            externalCar.imagesHash = externalCarImagesHash;
           } else {
             externalCar.image = internalCar.image;
             externalCar.imagesHash = internalCar.imagesHash;
