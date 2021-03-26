@@ -197,6 +197,10 @@ export default class StripeIntegrationTestData {
     expect(draftInvoices.length).to.be.eql(1);
     // Let's pay that particular DRAFT invoice
     await this.payDraftInvoice(draftInvoices[0], paymentShouldFail);
+    if (!paymentShouldFail) {
+      // Let's down load the corresponding PDF document
+      await this.checkDownloadInvoiceAsPdf(this.dynamicUser.id);
+    }
     // Next step should not be necessary
     // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
     // Let's check that the user do not have any DRAFT invoice anymore
@@ -303,11 +307,9 @@ export default class StripeIntegrationTestData {
     return response?.data?.result;
   }
 
-  public async checkDownloadInvoiceAsPdf() : Promise<void> {
-    const paidInvoices = await await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
+  public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
+    const paidInvoices = await await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
-    // const response = await this.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-    // expect(response.data.result.length).to.be.gt(0);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
   }
