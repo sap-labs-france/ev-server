@@ -212,8 +212,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE], attributes: ['*'] },
       {
@@ -261,11 +259,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
             }
           ]
         }
-      },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.SETTING, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'identifier': TenantComponents.ANALYTICS } }
       },
     ]
   },
