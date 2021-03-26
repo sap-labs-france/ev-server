@@ -24,6 +24,8 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
   }
 
   public async computeAndApplyChargingProfiles(siteArea: SiteArea, retry = false): Promise<ActionsResponse> {
+    // Helper to keep original site area limit
+    const originalSiteAreaMaximumPower = siteArea.maximumPower;
     const actionsResponse: ActionsResponse = {
       inSuccess: 0,
       inError: 0
@@ -72,6 +74,8 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       'No charging plans have been pushed'
     );
     if (actionsResponse.inError > 0 && retry === false) {
+      // Reset Site Area Limit from last run
+      siteArea.maximumPower = originalSiteAreaMaximumPower;
       await this.computeAndApplyChargingProfiles(siteArea, retry = true);
     }
     return actionsResponse;

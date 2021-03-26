@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 export enum HTTPError {
   GENERAL_ERROR = StatusCodes.INTERNAL_SERVER_ERROR,
   NOT_IMPLEMENTED_ERROR = StatusCodes.NOT_IMPLEMENTED,
+  MISSING_SETTINGS = 505,
   OBJECT_DOES_NOT_EXIST_ERROR = 550,
   FEATURE_NOT_SUPPORTED_ERROR = 585,
 
@@ -65,6 +66,7 @@ export enum HTTPError {
 
   CANNOT_ACQUIRE_LOCK = 510, // FIXME: override an already defined HTTP status code: Not extended (RFC 2774)
   INVALID_FILE_FORMAT = 583,
+  INVALID_FILE_CSV_HEADER_FORMAT = 584,
 
   CHARGE_POINT_NOT_VALID = 584,
 }

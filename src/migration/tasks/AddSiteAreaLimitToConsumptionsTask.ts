@@ -66,11 +66,11 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
     }
     // Log in the default tenant
     if (modifiedCount > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Consumptions have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

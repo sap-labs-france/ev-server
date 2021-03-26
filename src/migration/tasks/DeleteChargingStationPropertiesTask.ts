@@ -5,6 +5,7 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'DeleteChargingStationPropertiesTask';
@@ -25,11 +26,11 @@ export default class DeleteChargingStationPropertiesTask extends MigrationTask {
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.modifiedCount} Charging Stations' properties have been deleted in Tenant '${tenant.name}' ('${tenant.subdomain}')`
+        message: `${result.modifiedCount} Charging Stations' properties have been deleted in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

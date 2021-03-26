@@ -1,6 +1,6 @@
 import CarFactory from '../../integration/car/CarFactory';
 import Constants from '../../utils/Constants';
-import { LockEntity } from '../../types/Locking';
+import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
@@ -12,8 +12,8 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeCarsTask extends SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     // Get the lock
-    const carLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.CAR, 'synchronize-cars');
-    if (await LockingManager.acquire(carLock)) {
+    const syncCarCatalogLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    if (syncCarCatalogLock) {
       try {
         const carDatabaseImpl = await CarFactory.getCarImpl();
         if (carDatabaseImpl) {
@@ -27,10 +27,10 @@ export default class SynchronizeCarsTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
+        await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
       } finally {
         // Release the lock
-        await LockingManager.release(carLock);
+        await LockingManager.release(syncCarCatalogLock);
       }
     }
   }
