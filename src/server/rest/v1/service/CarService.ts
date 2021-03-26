@@ -11,6 +11,8 @@ import CarFactory from '../../../../integration/car/CarFactory';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -163,15 +165,33 @@ export default class CarService {
     }
     const carDatabaseImpl = await CarFactory.getCarImpl();
     if (!carDatabaseImpl) {
-      throw new BackendError({
+      throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.MISSING_SETTINGS,
         message: 'Car service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const result = await carDatabaseImpl.synchronizeCarCatalogs();
-    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-    next();
+    // Get the lock
+    const carLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    if (!carLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs',
+        message: 'Error in synchronizing the Car Catalogs: cannot acquire the lock',
+        user: req.user
+      });
+    }
+    try {
+      const result = await carDatabaseImpl.synchronizeCarCatalogs();
+      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+      next();
+    } finally {
+      // Release the lock
+      await LockingManager.release(carLock);
+    }
   }
 
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

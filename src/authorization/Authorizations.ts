@@ -342,6 +342,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
+  public static canImportTags(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
+  }
+
   public static canReadUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
       { user: userID, owner: loggedUser.id });
@@ -351,7 +355,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
-  public static canImportUser(loggedUser: UserToken): boolean {
+  public static canImportUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
   }
 
