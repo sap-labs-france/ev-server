@@ -1,5 +1,6 @@
 import { AppEnv, getAppEnv } from 'cfenv';
 import { CloudCredentials, CloudCredentialsKey } from '../types/Cloud';
+import ContractCertificatePoolConfiguration, { ContractCertificatePoolType } from '../types/configuration/ContractsCertificatePoolConfiguration';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
@@ -414,6 +415,18 @@ export default class Configuration {
       Configuration.getConfig().Axios.retries = 3;
     }
     return Configuration.getConfig().Axios;
+  }
+
+  static getContractCertificatePool(): ContractCertificatePoolConfiguration {
+    return Configuration.getConfig().ContractCertificatePool;
+  }
+
+  static getContractCertificatePoolEndPoint(contractCertificatePoolType: ContractCertificatePoolType): string {
+    for (const contractCertificatePool of Configuration.getContractCertificatePool().pools) {
+      if (contractCertificatePoolType === contractCertificatePool.type) {
+        return contractCertificatePool.endpoint;
+      }
+    }
   }
 
   private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {

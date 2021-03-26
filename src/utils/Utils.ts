@@ -158,7 +158,7 @@ export default class Utils {
   }
 
   public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
-    let timeoutHandle;
+    let timeoutHandle: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
     });
@@ -171,7 +171,7 @@ export default class Utils {
     });
   }
 
-  public static async sleep(ms): Promise<void> {
+  public static async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 

@@ -6,7 +6,9 @@ import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocati
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { ContractCertificatePoolType } from '../../types/configuration/ContractsCertificatePoolConfiguration';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
@@ -806,9 +808,9 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   public async pull15118EVCertificate(request: OCPI15118EVCertificateRequest): Promise<OCPI15118EVCertificateResponse> {
-    const cpsSCCBEndpoint = this.ocpiEndpoint.baseUrl ? this.ocpiEndpoint.baseUrl : 'https://15118-demo.gireve.com/15118/ContractCertificate/get_SCCB';
+    const ccpSCCBEndpoint = Configuration.getContractCertificatePoolEndPoint(ContractCertificatePoolType.GIREVE);
     // Call IOP
-    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(cpsSCCBEndpoint, request);
+    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(ccpSCCBEndpoint, request);
     return result.data;
   }
 
