@@ -8,6 +8,8 @@ import DefaultChargingStationVendorIntegration from './default/DefaultChargingSt
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
+import EnPlusChargingStationVendorIntegration from './enplus/EnPlusChargingStationVendorIntegration';
+import ExadysChargingStationVendorIntegration from './exadys/ExadysChargingStationVendorIntegration';
 import IESChargingStationVendorIntegration from './ies/IESChargingStationVendorIntegration';
 import IngeteamChargingStationVendorIntegration from './ingeteam/IngeteamChargingStationVendorIntegration';
 import InnogyChargingStationVendorIntegration from './innogy/InnogyChargingStationVendorIntegration';
@@ -42,6 +44,12 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.WALLBOX_CHARGERS:
         chargingStationVendorImpl = new WallboxChargersChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.ENPLUS:
+        chargingStationVendorImpl = new EnPlusChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.EXADYS:
+        chargingStationVendorImpl = new ExadysChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.EBEE:
       case ChargerVendor.BENDER:
