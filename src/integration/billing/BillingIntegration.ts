@@ -178,7 +178,12 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     // Create or Update the user and its billing data
     let billingUser: BillingUser;
     if (!exists) {
-      billingUser = await this.createUser(user);
+      if (forceMode) {
+        // Specific situation where we want to repair inconsistencies
+        billingUser = await this.repairUser(user);
+      } else {
+        billingUser = await this.createUser(user);
+      }
     } else {
       billingUser = await this.updateUser(user);
     }
@@ -475,6 +480,8 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   abstract createUser(user: User): Promise<BillingUser>;
 
   abstract updateUser(user: User): Promise<BillingUser>;
+
+  abstract repairUser(user: User): Promise<BillingUser>;
 
   abstract deleteUser(user: User): Promise<void>;
 
