@@ -560,7 +560,10 @@ export default class CarStorage {
         carUsersMDB.push(carUserMDB);
       }
       // Execute
-      await global.database.getCollection<any>(tenantID, 'carusers').insertMany(carUsersMDB);
+      await global.database.getCollection<any>(tenantID, 'carusers').insertMany(
+        carUsersMDB,
+        { ordered: false }
+      );
     }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'insertCarUsers', uniqueTimerID, carUsersMDB);
