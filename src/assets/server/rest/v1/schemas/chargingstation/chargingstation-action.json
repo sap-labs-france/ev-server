@@ -43,7 +43,7 @@
           "$ref": "chargingstation.json#/definitions/chargingProfilePurpose"
         },
         "stackLevel": {
-          "$ref": "chargingstation.json#/definitions/stackLevel"
+          "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/stackLevel"
         },
         "tagID": {
           "$ref": "tag.json#/definitions/id"
