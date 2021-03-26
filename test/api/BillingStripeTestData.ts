@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
@@ -197,6 +197,10 @@ export default class StripeIntegrationTestData {
     expect(draftInvoices.length).to.be.eql(1);
     // Let's pay that particular DRAFT invoice
     await this.payDraftInvoice(draftInvoices[0], paymentShouldFail);
+    if (!paymentShouldFail) {
+      // Let's down load the corresponding PDF document
+      await this.checkDownloadInvoiceAsPdf(this.dynamicUser.id);
+    }
     // Next step should not be necessary
     // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
     // Let's check that the user do not have any DRAFT invoice anymore
@@ -303,13 +307,38 @@ export default class StripeIntegrationTestData {
     return response?.data?.result;
   }
 
-  public async checkDownloadInvoiceAsPdf() : Promise<void> {
-    const paidInvoices = await await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
+  public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
+    const paidInvoices = await await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
-    // const response = await this.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-    // expect(response.data.result.length).to.be.gt(0);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
   }
 
+  public async checkRepairInconsistencies() : Promise<void> {
+    // Create a new user for testing stripe scenarios - BILLING-TEST
+    const user = {
+      ...Factory.user.build(),
+      name: 'RECOVERY-TEST',
+      firstName: 'Billing Recovery Tests',
+      issuer: true
+    } as User;
+    // Let's create a new user
+    const userData = await this.adminUserService.createEntity(
+      this.adminUserService.userApi,
+      user
+    );
+    assert(userData && userData.id, 'response should not be null');
+    // Let's get the newly created user
+    const testUser = await UserStorage.getUser(this.getTenantID(), userData.id);
+    expect(testUser.billingData).not.to.be.null;
+    const corruptedBillingData: BillingUserData = {
+      ...testUser.billingData,
+      customerID: 'cus_corrupted_data'
+    };
+    // Let's update the billing data with an inconsistent customer ID
+    await UserStorage.saveUserBillingData(this.getTenantID(), testUser.id, corruptedBillingData);
+    // Let's now try to repair the user data.
+    const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
+    expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
+  }
 }
