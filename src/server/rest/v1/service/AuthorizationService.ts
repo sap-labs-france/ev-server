@@ -92,7 +92,6 @@ export default class AuthorizationService {
     for (const site of sites) {
       site.canRead = Authorizations.canReadSite(userToken);
       site.canDelete = Authorizations.canDeleteSite(userToken);
-
       // update can be performed by admin or site admin
       if (userToken.role === UserRole.ADMIN) {
         site.canUpdate = true;
@@ -548,7 +547,7 @@ export default class AuthorizationService {
     return users.result.map((user) => user.id);
   }
 
-  public static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
+  private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
     const siteAdminIDs: string[] = [];
     const siteOwnerIDs: string[] = [];
     const userSites = await UserStorage.getUserSites(tenant.id, { userID: userToken.id }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -572,9 +571,9 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs: Array<string> = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        const siteOwnerSiteIDs: Array<string> = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
-        const allSites: Array<string> = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
+        const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filterß
           authorizationFilters.filters.siteIDs = allSites;
