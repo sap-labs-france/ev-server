@@ -293,6 +293,8 @@ export type OCPPParams = {
 export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
   EBEE = 'Ebee',
+  ENPLUS = 'EN+',
+  EXADYS = 'EXADYS',
   EVBOX = 'EV-BOX',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
