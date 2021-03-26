@@ -25,7 +25,7 @@ export default class SchemaValidator {
       useDefaults: boolean; coerceTypes: boolean;
     } = {
       allErrors: true,
-      removeAdditional: 'all',
+      removeAdditional: 'failing',
       useDefaults: true,
       coerceTypes: true
     }) {
