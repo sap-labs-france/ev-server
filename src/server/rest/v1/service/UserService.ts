@@ -1306,7 +1306,7 @@ export default class UserService {
         module: MODULE_NAME, method: 'insertUsers',
         action: action,
         user: user.id,
-        message: `Cannot import '${error.writeErrors.length as number}' users!`,
+        message: `Cannot import ${error.writeErrors.length as number} users!`,
         detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
       });
     }

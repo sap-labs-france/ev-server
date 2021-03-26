@@ -389,8 +389,6 @@ export enum ServerAction {
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
-  IMPORT_USERS = 'ImportUsers',
-  IMPORT_TAGS = 'ImportTags',
 
   NOTIFICATIONS = 'Notifications',
 
