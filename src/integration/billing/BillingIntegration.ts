@@ -157,35 +157,38 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
     // Check if we need to create or update a STRIPE customer
-    let exists;
+    let billingUser: BillingUser;
     if (!forceMode) {
-      // -------------------------------------------------------------------------------------------
-      // Regular Situation - CustomerID is set and we trust it!
-      // -------------------------------------------------------------------------------------------
-      exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
+      // ------------------
+      // Regular Situation
+      // ------------------
+      const exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
+      if (!exists) {
+        // Create the billing user and update the billing data
+        billingUser = await this.createUser(user);
+      } else {
+        // Update the billing user and the billing data
+        billingUser = await this.updateUser(user);
+      }
     } else {
-      // -------------------------------------------------------------------------------------------
+      // ----------------------------------------------------------------------------------------------
       // Specific use-case - Trying to REPAIR inconsistencies
-      // CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
-      // -------------------------------------------------------------------------------------------
+      // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
+      // ----------------------------------------------------------------------------------------------
+      let exists;
       try {
         exists = await this.getUser(user);
       } catch (error) {
         // Let's create a new customer and get rid of the previous customerID
         exists = false;
       }
-    }
-    // Create or Update the user and its billing data
-    let billingUser: BillingUser;
-    if (!exists) {
-      if (forceMode) {
-        // Specific situation where we want to repair inconsistencies
+      if (!exists) {
+        // Repair by creating a new billing user and update the billing data
         billingUser = await this.repairUser(user);
       } else {
-        billingUser = await this.createUser(user);
+        // Update the billing user and the billing data
+        billingUser = await this.updateUser(user);
       }
-    } else {
-      billingUser = await this.updateUser(user);
     }
     return billingUser;
   }
