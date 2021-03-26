@@ -38,12 +38,12 @@ export default class ChangeCryptoKeyTask extends MigrationTask {
           keyProperties: Utils.getDefaultKeyProperties(),
           migrationToBeDone: true
         }
-      } as CryptoSettings;
+      };
       await SettingStorage.saveCryptoSettings(tenant.id, keySettingToSave);
       // Migrate sensitive data to the new key
       await Cypher.handleCryptoSettingsChange(tenant.id);
       // Log in the default tenant
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME,
