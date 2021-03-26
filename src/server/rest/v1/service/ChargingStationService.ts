@@ -609,7 +609,7 @@ export default class ChargingStationService {
 
   public static async handleCreateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingProfileCreateRequest(req.body);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileCreateReq(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargingStationID}' does not exist.`,
