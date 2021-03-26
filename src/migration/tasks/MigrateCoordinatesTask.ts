@@ -45,11 +45,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
+        message: `updated Companies(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
@@ -78,11 +78,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Sites(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
@@ -111,11 +111,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} SiteArea(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
@@ -144,11 +144,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} User(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
@@ -177,11 +177,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Charging Station(s) have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

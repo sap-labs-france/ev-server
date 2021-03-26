@@ -5,6 +5,7 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'CleanupOrphanBadgeTask';
@@ -32,11 +33,11 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
     }
     // Log in the default tenant
     if (counter > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${counter} Tags(s) have been deleted in Tenant '${tenant.name}'`
+        message: `${counter} Tags(s) have been deleted in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

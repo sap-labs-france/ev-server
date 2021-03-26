@@ -1337,6 +1337,10 @@ export default class Utils {
     }
   }
 
+  public static buildTenantName(tenant: Tenant): string {
+    return `'${tenant.name}' ('${tenant.subdomain}')`;
+  }
+
   public static isChargingStationIDValid(name: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /^[A-Za-z0-9_\.\-~]*$/.test(name);

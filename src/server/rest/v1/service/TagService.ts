@@ -1,29 +1,36 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
 
-import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import Busboy from 'busboy';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
+import ImportTagsTask from '../../../../scheduler/tasks/ImportTagsTask';
+import JSONStream from 'JSONStream';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../../../types/Tag';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import TagValidator from '../validator/TagValidation';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import csvToJson from 'csvtojson/v2';
 
 const MODULE_NAME = 'TagService';
 
@@ -458,11 +465,204 @@ export default class TagService {
     next();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canImportTags(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.IMPORT, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleImportTags'
+      });
+    }
+    // Acquire the lock
+    const importTagsLock = await LockingHelper.createImportTagsLock(req.tenant.id);
+    if (!importTagsLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleImportTags',
+        message: 'Error in importing the Tags: cannot acquire the lock',
+        user: req.user
+      });
+    }
+    // Default values for Tag import
+    const importedBy = req.user.id;
+    const importedOn = new Date();
+    const tagsToBeImported: ImportedTag[] = [];
+    const startTime = new Date().getTime();
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    // Delete all previously imported tags
+    await TagStorage.deleteImportedTags(req.user.tenantID);
+    // Get the stream
+    const busboy = new Busboy({ headers: req.headers });
+    req.pipe(busboy);
+    // Handle closed socket
+    let connectionClosed = false;
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    req.socket.on('close', async () => {
+      connectionClosed = true;
+      // Release the lock
+      await LockingManager.release(importTagsLock);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
+      if (mimetype === 'text/csv') {
+        const converter = csvToJson({
+          trim: true,
+          delimiter: Constants.CSV_SEPARATOR,
+          output: 'json',
+          quote: 'on',
+        });
+        void converter.subscribe(async (tag: ImportedTag) => {
+          // Check connection
+          if (connectionClosed) {
+            throw new Error('HTTP connection has been closed');
+          }
+          // Check the format of the first entry
+          if (!result.inSuccess && !result.inError) {
+            // Check header
+            const tagKeys = Object.keys(tag);
+            if (!TagRequiredImportProperties.every((property) => tagKeys.includes(property))) {
+              if (!res.headersSent) {
+                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                res.end();
+              }
+              throw new Error(`Missing one of required properties: '${TagRequiredImportProperties.join(', ')}'`);
+            }
+          }
+          // Set default value
+          tag.importedBy = importedBy;
+          tag.importedOn = importedOn;
+          // Import
+          const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
+          if (!importSuccess) {
+            result.inError++;
+          }
+          // Insert batched
+          if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+          }
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async (error) => {
+          await Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleImportTags',
+            action: action,
+            user: req.user.id,
+            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
+        });
+        // Start processing the file
+        void file.pipe(converter);
+      } else if (mimetype === 'application/json') {
+        const parser = JSONStream.parse('tags.*');
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('data', async (tag: ImportedTag) => {
+          // Set default value
+          tag.importedBy = importedBy;
+          tag.importedOn = importedOn;
+          // Import
+          const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
+          if (!importSuccess) {
+            result.inError++;
+          }
+          // Insert batched
+          if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+          }
+        });
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('error', async (error) => {
+          await Logging.logError({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'handleImportTags',
+            action: action,
+            user: req.user.id,
+            message: `Invalid Json file '${filename}'`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
+        });
+        file.pipe(parser);
+      } else {
+        await Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'handleImportTags',
+          action: action,
+          user: req.user.id,
+          message: `Invalid file format '${mimetype}'`
+        });
+        if (!res.headersSent) {
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        }
+      }
+    });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('finish', async () => {
+      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+      await Logging.logActionsResponse(
+        req.user.tenantID, action,
+        MODULE_NAME, 'handleImportTags', result,
+        `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+        `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
+        `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+        `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
+      );
+      // Insert batched
+      if (tagsToBeImported.length > 0) {
+        await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+      }
+      // Release the lock
+      await LockingManager.release(importTagsLock);
+      // Trigger manually and asynchronously the job
+      void new ImportTagsTask().processTenant(req.tenant);
+      // Respond
+      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+      next();
+    });
+  }
+
+  private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
+    try {
+      const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);
+      result.inSuccess += nbrInsertedTags;
+    } catch (error) {
+      // Handle dup keys
+      result.inSuccess += error.result.nInserted;
+      result.inError += error.writeErrors.length;
+      await Logging.logError({
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'insertTags',
+        action: action,
+        user: user.id,
+        message: `Cannot import '${error.writeErrors.length as number}' tags!`,
+        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+      });
+    }
+    tagsToBeImported.length = 0;
+  }
+
   private static async deleteTags(action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
+    // Delete Tags
     for (const tagID of tagsIDs) {
       // Get Tag
       const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withNbrTransactions: true, withUser: true });
@@ -551,8 +751,35 @@ export default class TagService {
       '{{inSuccess}} tag(s) were successfully deleted',
       '{{inError}} tag(s) failed to be deleted',
       '{{inSuccess}} tag(s) were successfully deleted and {{inError}} failed to be deleted',
-      'No tags have been deleted'
+      'No tags have been deleted', loggedUser
     );
     return result;
+  }
+
+  private static async processTag(action: ServerAction, req: Request, importedTag: ImportedTag, tagsToBeImported: ImportedTag[]): Promise<boolean> {
+    try {
+      const newImportedTag: ImportedTag = {
+        id: importedTag.id.toUpperCase(),
+        description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
+      };
+      // Validate Tag data
+      TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
+      // Set properties
+      newImportedTag.importedBy = importedTag.importedBy;
+      newImportedTag.importedOn = importedTag.importedOn;
+      newImportedTag.status = ImportStatus.READY;
+      // Save it later on
+      tagsToBeImported.push(newImportedTag);
+      return true;
+    } catch (error) {
+      await Logging.logError({
+        tenantID: req.user.tenantID,
+        module: MODULE_NAME, method: 'importTag',
+        action: action,
+        message: `Tag ID '${importedTag.id}' cannot be imported`,
+        detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
+      });
+      return false;
+    }
   }
 }

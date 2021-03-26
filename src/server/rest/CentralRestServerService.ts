@@ -105,6 +105,7 @@ class RequestMapper {
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
           [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
+          [ServerAction.TAGS_IMPORT]: TagService.handleImportTags.bind(this),
         });
         break;
 
@@ -348,7 +349,7 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.BILLING_WEB_HOOK:
-              await BillingService.handleBillingWebHook(action, req, res);
+              await BillingService.handleBillingWebHook(action, req, res, next);
               // Res.sendStatus(StatusCodes.OK);
               break;
             default:

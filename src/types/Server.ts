@@ -390,10 +390,12 @@ export enum ServerAction {
   TAG_UPDATE = 'TagUpdate',
   TAG_DELETE = 'TagDelete',
   TAGS_DELETE = 'TagsDelete',
+  TAGS_IMPORT = 'TagsImport',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
-  SYNCHRONIZE_USERS = 'SynchronizeUsers',
+  IMPORT_USERS = 'ImportUsers',
+  IMPORT_TAGS = 'ImportTags',
 
   NOTIFICATIONS = 'Notifications',
 

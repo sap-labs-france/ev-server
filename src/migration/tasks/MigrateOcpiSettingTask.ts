@@ -4,6 +4,7 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'MigrateOcpiSettingTask';
@@ -39,12 +40,11 @@ export default class MigrateOcpiSettingTask extends MigrationTask {
         { '_id': setting._id },
         setting
       );
-
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `OCPI setting has been updated in Tenant '${tenant.name}'`
+        message: `OCPI setting has been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

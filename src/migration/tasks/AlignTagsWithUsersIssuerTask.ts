@@ -40,11 +40,11 @@ export default class AlignTagsWithUsersIssuerTask extends MigrationTask {
         );
         updated += result.modifiedCount;
       }
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${updated} Tag's issuer properties have been updated in Tenant '${tenant.name}'`,
+        message: `${updated} Tag's issuer properties have been updated in Tenant ${Utils.buildTenantName(tenant)}`,
       });
     }
   }
