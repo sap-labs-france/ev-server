@@ -80,6 +80,11 @@ describe('Billing Stripe Service', function() {
         const newSource = await testData.assignPaymentMethod('tok_fr');
         await testData.checkDetachPaymentMethod(newSource.id);
       });
+
+      it('should be able to repair a user', async () => {
+        await testData.checkRepairInconsistencies();
+      });
+
     });
   });
 
