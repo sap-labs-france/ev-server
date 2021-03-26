@@ -31,7 +31,7 @@
       "type": "string",
       "sanitize": "mongo"
     },
-    "ChargeBoxID": {
+    "ChargingStationID": {
       "$ref": "chargingstation.json#/definitions/id"
     },
     "IncludeDeleted": {

@@ -129,7 +129,7 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         // Init the Scheduler
         // -------------------------------------------------------------------------
-        SchedulerManager.init();
+        await SchedulerManager.init();
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());

@@ -1,4 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { ImportStatus } from './GlobalType';
 import { OCPIToken } from './ocpi/OCPIToken';
 import User from './User';
 
@@ -14,3 +15,17 @@ export default interface Tag extends CreatedUpdatedProps {
   default?: boolean
   deleted?: boolean
 }
+
+export interface ImportedTag {
+  id: string;
+  description: string;
+  importedBy?: string;
+  importedOn?: Date;
+  status?: ImportStatus;
+  errorDescription?: string;
+}
+
+export const TagRequiredImportProperties = [
+  'id'
+];
+

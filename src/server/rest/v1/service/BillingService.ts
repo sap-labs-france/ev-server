@@ -472,7 +472,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSetupPaymentMethodRequest(req);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(filteredRequest.user, TenantComponents.BILLING,
@@ -510,9 +510,10 @@ export default class BillingService {
       console.log(operationResult);
     }
     res.json(operationResult);
+    next();
   }
 
-  public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingGetPaymentMethods(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = BillingSecurity.filterPaymentMethodsRequest(req);
     // Check if component is active
@@ -548,6 +549,7 @@ export default class BillingService {
       console.log(paymentMethodResult);
     }
     res.json(paymentMethodResult);
+    next();
   }
 
   public static async handleBillingDeletePaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -586,6 +588,7 @@ export default class BillingService {
       console.log(paymentMethodResult);
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
@@ -595,11 +598,11 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
     // Get the Invoice
-    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
+    const billingInvoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID);
+    UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth
-    if (!Authorizations.canDownloadInvoiceBilling(req.user, invoice.userID)) {
+    if (!Authorizations.canDownloadInvoiceBilling(req.user, billingInvoice.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -619,14 +622,12 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get the Invoice Document
-    const invoiceDocument = await BillingStorage.getInvoiceDocument(req.user.tenantID, invoice.id);
-    UtilsService.assertObjectExists(action, invoiceDocument, `Invoice Document ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDownloadInvoice', req.user);
+    // Get the PDF document directly from the Invoice
+    const invoiceDocument = await billingImpl.downloadInvoiceDocument(billingInvoice);
     // Send the Document
     if (invoiceDocument && invoiceDocument.content) {
       const base64RawData = invoiceDocument.content.split(`;${invoiceDocument.encoding},`).pop();
-      const filename = 'invoice_' + invoice.id + '.' + invoiceDocument.type;
+      const filename = 'invoice_' + billingInvoice.id + '.' + invoiceDocument.type;
       fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
         if (err) {
           console.error(err);
@@ -648,7 +649,7 @@ export default class BillingService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
   public static async handleBillingChargeInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
 
     // TODO - no use-case for this endpoint so far! - only used for troubleshooting!
@@ -692,7 +693,7 @@ export default class BillingService {
     // });
   }
 
-  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     // ?? How to do it in this context
     // Filter
@@ -726,5 +727,6 @@ export default class BillingService {
     const done = await billingImpl.consumeBillingEvent(req);
     // Return a response to acknowledge receipt of the event
     res.json({ received: done });
+    next();
   }
 }
