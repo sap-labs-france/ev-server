@@ -62,11 +62,12 @@ export default class WSClient {
    *
    * @param {*} data The message to send
    * @param {Object} options Options object
-   * @param {Boolean} options.compress Specifies whether or not to compress `data`
-   * @param {Boolean} options.binary Specifies whether `data` is binary or text
-   * @param {Boolean} options.fin Specifies whether the fragment is the last one
-   * @param {Boolean} options.mask Specifies whether or not to mask `data`
+   * @param {boolean} options.compress Specifies whether or not to compress `data`
+   * @param {boolean} options.binary Specifies whether `data` is binary or text
+   * @param {boolean} options.fin Specifies whether the fragment is the last one
+   * @param {boolean} options.mask Specifies whether or not to mask `data`
    * @param {Function} cb Callback which is executed when data is written out
+   * @param callback
    * @public
    */
   public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
@@ -88,8 +89,9 @@ export default class WSClient {
    *     - - - - -|fin|<---------------------+
    *              +---+
    *
-   * @param {Number} code Status code explaining why the connection is closing
-   * @param {String} data A string explaining why the connection is closing
+   * @param {number} code Status code explaining why the connection is closing
+   * @param {string} data A string explaining why the connection is closing
+   * @param reason
    * @public
    */
   public close(code?: number, reason?: string): void {
@@ -100,8 +102,9 @@ export default class WSClient {
    * Send a ping.
    *
    * @param {*} data The data to send
-   * @param {Boolean} mask Indicates whether or not to mask `data`
+   * @param {boolean} mask Indicates whether or not to mask `data`
    * @param {Function} cb Callback which is executed when the ping is sent
+   * @param callback
    * @public
    */
   public ping(data?, mask?: boolean, callback?: (err: Error) => void): void {
@@ -112,8 +115,9 @@ export default class WSClient {
    * Send a pong.
    *
    * @param {*} data The data to send
-   * @param {Boolean} mask Indicates whether or not to mask `data`
+   * @param {boolean} mask Indicates whether or not to mask `data`
    * @param {Function} cb Callback which is executed when the pong is sent
+   * @param callback
    * @public
    */
   public pong(data?, mask?, callback?: (err: Error) => void): void {

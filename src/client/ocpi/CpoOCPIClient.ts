@@ -698,6 +698,8 @@ export default class CpoOCPIClient extends OCPIClient {
 
   /**
    * Send all EVSEs
+   *
+   * @param processAllEVSEs
    */
   public async sendEVSEStatuses(processAllEVSEs = true): Promise<OCPIResult> {
     // Result

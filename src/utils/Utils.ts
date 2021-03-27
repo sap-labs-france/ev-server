@@ -307,6 +307,7 @@ export default class Utils {
 
   /**
    * Map user locale (en_US, fr_FR...) to language (en, fr...)
+   *
    * @param locale
    */
   public static getLanguageFromLocale(locale: string): string {
@@ -320,6 +321,7 @@ export default class Utils {
 
   /**
    * Map language (en, fr...) to user locale (en_US, fr_FR...)
+   *
    * @param language
    */
   static getLocaleFromLanguage(language: string): string {

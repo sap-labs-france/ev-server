@@ -37,7 +37,9 @@ const testData = new TestData();
 
 let initialTenant: Tenant;
 
-// Update pricing setting to have sensitive data to test on it
+/**
+ * Update pricing setting to have sensitive data to test on it
+ */
 async function updatePricingWithSensitiveDataAndCheckResultSuccessful():Promise<any> {
   const crtPricingData = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
     limit: TestConstants.UNLIMITED,
@@ -69,6 +71,10 @@ async function updatePricingWithSensitiveDataAndCheckResultSuccessful():Promise<
   expect(update.status).to.equal(200);
 }
 
+/**
+ * @param originalCryptoObject
+ * @param newKeyProperties
+ */
 function getCryptoTestSettings(originalCryptoObject, newKeyProperties:CryptoKeyProperties) {
   return JSON.parse(`{
     "id":"${originalCryptoObject.id}",
@@ -95,6 +101,9 @@ function getCryptoTestSettings(originalCryptoObject, newKeyProperties:CryptoKeyP
 }`);
 }
 
+/**
+ *
+ */
 async function getCurrentCryptoDataAndCheckResultSuccessful() {
   const crtCryptoData = await testData.centralService.settingApi.readAll({ 'Identifier': 'crypto' }, {
     limit: TestConstants.UNLIMITED,
@@ -105,11 +114,20 @@ async function getCurrentCryptoDataAndCheckResultSuccessful() {
   return crtCryptoData;
 }
 
+/**
+ *
+ */
 async function resetCryptoSettingToDefault() { // Aes-256-gcm
   const crtCryptoData = await getCurrentCryptoDataAndCheckResultSuccessful();
   await updateCryptoSettingsAndCheckResultSuccessful(crtCryptoData.data.result[0], 'aes', 256, 'gcm');
 }
 
+/**
+ * @param crtData
+ * @param blockCypher
+ * @param blockSize
+ * @param operationMode
+ */
 async function updateCryptoSettingsAndCheckResultSuccessful(crtData, blockCypher, blockSize, operationMode) {
   const newKeyProperties:CryptoKeyProperties = {
     blockCypher : blockCypher,

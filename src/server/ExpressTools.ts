@@ -130,6 +130,9 @@ export default class ExpressTools {
 
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
+    /**
+     *
+     */
     function defaultListenCb(): void {
       // Log
       const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;

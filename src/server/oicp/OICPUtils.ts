@@ -26,6 +26,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP Success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -42,6 +43,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP no success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -59,6 +61,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP Error Body Response
+   *
    * @param {*} error
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {

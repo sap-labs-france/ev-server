@@ -42,6 +42,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -69,6 +75,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   /**
    * Remote Start Transaction requested by IOP
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async remoteStartSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const startSession = req.body as OCPIStartSession;
@@ -191,6 +203,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   /**
    * Remote stop Transaction requested by IOP
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async remoteStopSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const stopSession = req.body as OCPIStopSession;
