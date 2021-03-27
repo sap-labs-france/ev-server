@@ -209,6 +209,7 @@ export default class TenantContext {
   /**
    * Add default context user
    * Do not user for newly created users
+   *
    * @param {*} users
    * @memberof TenantContext
    */

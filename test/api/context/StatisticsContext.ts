@@ -89,6 +89,7 @@ export default class StatisticsContext {
 
   /**
    * Add a fake refund data to a given transaction
+   *
    * @param transactionId The id of the transaction
    */
   public async generateStaticRefundData(transactionId: number) {

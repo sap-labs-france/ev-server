@@ -34,6 +34,12 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -49,6 +55,10 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/?date_from=xxx&date_to=yyy&offset=zzz&limit=www
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get query parameters
@@ -75,6 +85,11 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    * Do a ‘real-time’ authorization request to the eMSP system, validating if a Token might be used (at the optionally given Location).
    *
    * /tokens/{token_uid}/authorize?{type=token_type}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async authorizeRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

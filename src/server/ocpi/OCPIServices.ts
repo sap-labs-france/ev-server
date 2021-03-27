@@ -25,6 +25,10 @@ export default class OCPIServices {
 
   /**
    * Get all implemented versions of OCPI
+   *
+   * @param req
+   * @param res
+   * @param next
    */
   public getCPOVersions(req: Request, res: Response, next: NextFunction): void {
     try {

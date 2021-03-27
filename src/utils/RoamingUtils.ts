@@ -10,6 +10,7 @@ export default class RoamingUtils {
 
   /**
    * Build evse_id from charging station
+   *
    * @param {*} countryCode the code of the CPO
    * @param {*} partyId the partyId of the CPO
    * @param {*} chargingStation the charging station used to build the evse ID

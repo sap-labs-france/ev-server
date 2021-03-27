@@ -31,6 +31,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -48,6 +54,10 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -66,6 +76,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    * Push new/updated Token object to the CPO.
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async putToken(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -130,6 +146,11 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    * Push new/updated Token object to the CPO.
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async patchToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

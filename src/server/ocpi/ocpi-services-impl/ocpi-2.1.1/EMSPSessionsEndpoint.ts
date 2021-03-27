@@ -30,6 +30,12 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -47,6 +53,10 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -83,6 +93,11 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    * Send a new/updated Session object.
    *
    * /sessions/{country_code}/{party_id}/{session_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -121,6 +136,11 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    * Update the Session object of id {session_id}.
    *
    * /sessions/{country_code}/{party_id}/{session_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

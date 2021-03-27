@@ -38,6 +38,7 @@ export default abstract class AbstractOCPIService {
 
   /**
    * Register Endpoint to this service
+   *
    * @param {*} endpoint AbstractEndpoint
    */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
@@ -108,6 +109,10 @@ export default abstract class AbstractOCPIService {
 
   /**
    * Send Supported Endpoints
+   *
+   * @param req
+   * @param res
+   * @param next
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: NextFunction): void {
@@ -124,6 +129,11 @@ export default abstract class AbstractOCPIService {
 
   /**
    * Process Endpoint action
+   *
+   * @param action
+   * @param req
+   * @param res
+   * @param next
    */
   public async processEndpointAction(action: ServerAction, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     try {
