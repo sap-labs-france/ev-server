@@ -283,7 +283,7 @@ export default class OCPIMapping {
   /**
    * Convert OCPI Connector type to connector type
    *
-   * @param ocpiConnectorType {OCPIConnectorType} ocpi connector type
+   * @param {OCPIConnectorType} ocpiConnectorType ocpi connector type
    */
   static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
     switch (ocpiConnectorType) {
