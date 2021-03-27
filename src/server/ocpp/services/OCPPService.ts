@@ -981,7 +981,11 @@ export default class OCPPService {
       // Check and get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       const ccpClient = new ContractCertificatePoolClient(await TenantStorage.getTenant(headers.tenantID));
-      return await ccpClient.getContractCertificateResponse(ev15118Certificate);
+      const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate);
+      return {
+        status: OCPP15118EVCertificateStatus.ACCEPTED,
+        exiResponse: exiResponse
+      };
     } catch (error) {
       if (error.params) {
         error.params.source = headers.chargeBoxIdentity;
