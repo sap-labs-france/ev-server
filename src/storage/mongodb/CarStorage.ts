@@ -602,7 +602,8 @@ export default class CarStorage {
     const carsMDB = await CarStorage.getCars(tenantID, {
       licensePlate: licensePlate,
       vin: vin,
-      ...params
+      withUsers: params.withUsers,
+      userIDs: params.userIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
