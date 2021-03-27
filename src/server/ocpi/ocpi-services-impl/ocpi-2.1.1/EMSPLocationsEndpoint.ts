@@ -38,6 +38,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -54,6 +60,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -110,6 +122,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

@@ -34,6 +34,12 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -47,6 +53,10 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
    *
    * /tariffs/{country_code}/{party_id}/{tariff_id}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getTariffRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

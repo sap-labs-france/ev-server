@@ -34,6 +34,11 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     switch (req.method) {
@@ -52,6 +57,11 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   /**
    * Remote Start Transaction requested by Hubject
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async authorizeRemoteStart(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStart = req.body as OICPAuthorizeRemoteStartCpoReceive;
@@ -152,6 +162,11 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   /**
    * Remote stop Transaction requested by Hubject
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async authorizeRemoteStop(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStop = req.body as OICPAuthorizeRemoteStopCpoReceive;

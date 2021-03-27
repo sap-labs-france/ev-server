@@ -26,9 +26,16 @@ const MODULE_NAME = 'OICPMapping';
 export default class OICPMapping {
   /**
    * Get EVSE by connectorID
+   *
    * @param {Tenant} tenant
+   * @param siteArea
    * @param {*} chargingStation
-   * @return OICP EVSE
+   * @param connectorId
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns OICP EVSE
    */
   public static getEvseByConnectorId(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connectorId: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     // Loop through connectors and send one evse per connector
@@ -41,9 +48,15 @@ export default class OICPMapping {
 
   /**
    * Convert Connector to EVSE Status
+   *
    * @param {Tenant} tenant
+   * @param chargingStation
    * @param {*} connector
-   * @return Array of OICP EVSE Statuses
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OICP EVSE Statuses
    */
   public static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
@@ -55,7 +68,10 @@ export default class OICPMapping {
 
   /**
    * Get All Charging Stations from given Tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
    */
   // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, remove this method
   public static async getAllChargingStations(tenant: Tenant, limit: number, skip: number): Promise<ChargingStation[]> {
@@ -97,9 +113,15 @@ export default class OICPMapping {
 
   /**
    * Convert ChargingStation to Multiple EVSEs
+   *
    * @param {Tenant} tenant
+   * @param siteArea
    * @param {*} chargingStation
-   * @return Array of OICP EVSEs
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OICP EVSEs
    */
   public static convertChargingStation2MultipleEvses(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord[] {
     let connectors: Connector[] = [];
@@ -119,10 +141,11 @@ export default class OICPMapping {
 
   /**
    * Get evses from SiteArea
+   *
    * @param {Tenant} tenant
    * @param {SiteArea} siteArea
    * @param options
-   * @return Array of charging stations
+   * @returns Array of charging stations
    */
   // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, remove this method
   private static async getAllChargingStationsFromSiteArea(tenant: Tenant, siteArea: SiteArea): Promise<ChargingStation[]> {
@@ -135,6 +158,7 @@ export default class OICPMapping {
 
   /**
    * Converter Connector to OICP Charging Facility
+   *
    * @param {ChargingStation} chargingStation
    * @param connector
    * @param {*} connector
@@ -164,6 +188,7 @@ export default class OICPMapping {
 
   /**
    * Converter Connector to OICP Plug
+   *
    * @param connector
    * @param {*} connector
    */
@@ -190,7 +215,9 @@ export default class OICPMapping {
 
   /**
    * Convert internal Power (1/3 Phase) to PowerType
+   *
    * @param {*} power
+   * @param numberOfConnectedPhase
    */
   private static convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase: number): OICPPower {
     switch (numberOfConnectedPhase) {
@@ -273,7 +300,11 @@ export default class OICPMapping {
 
   /**
    * Build ChargingPoolID from charging station
+   *
    * @param {*} chargingStation
+   * @param countryCode
+   * @param partyId
+   * @param siteAreaID
    */
   private static buildEChargingPoolID(countryCode: string, partyId: string, siteAreaID: string): OICPChargingPoolID {
     const chargingPoolID = `${countryCode}*${partyId}*P${siteAreaID}`;
@@ -282,6 +313,7 @@ export default class OICPMapping {
 
   /**
    * Convert internal status to OICP EVSE Status
+   *
    * @param {*} status
    */
   private static convertStatus2OICPEvseStatus(status: ChargePointStatus): OICPEvseStatus {
@@ -308,10 +340,11 @@ export default class OICPMapping {
 
   /**
    * Get charging stations from Site
+   *
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of charging stations
+   * @returns Array of charging stations
    */
   private static async getAllChargingStationsFromSite(tenant: Tenant, site: Site): Promise<ChargingStation[]> {
     // Build charging station array
@@ -335,9 +368,14 @@ export default class OICPMapping {
 
   /**
    * Convert ChargingStation to Multiple EVSE Statuses
+   *
    * @param {Tenant} tenant
    * @param {*} chargingStation
-   * @return Array of OICP EVSE Statuses
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OICP EVSE Statuses
    */
   private static convertChargingStation2MultipleEvseStatuses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord[] {
     let connectors: Connector[] = [];
@@ -357,9 +395,16 @@ export default class OICPMapping {
 
   /**
    * Convert Connector to OICP EVSE
+   *
    * @param {Tenant} tenant
+   * @param siteArea
+   * @param chargingStation
    * @param {*} connector
-   * @return EVSE
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns EVSE
    */
   private static convertConnector2Evse(tenant: Tenant, siteArea: SiteArea, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseDataRecord {
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;

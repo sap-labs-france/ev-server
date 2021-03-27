@@ -73,6 +73,8 @@ export default class OCPIService {
 
   /**
    * POST Credentials for 2.1.1
+   *
+   * @param credential
    */
   async postCredentials2_1_1(credential) {
     return this.baseApi.send({
@@ -87,6 +89,7 @@ export default class OCPIService {
 
   /**
    * Access path with specific method
+   *
    * @param {*} method
    * @param {*} path
    */
@@ -102,6 +105,7 @@ export default class OCPIService {
 
   /**
    * Check basic structure for OCPI Response
+   *
    * @param {*} ocpiResponse
    */
   checkOCPIResponseStructure(ocpiResponse) {
@@ -114,6 +118,7 @@ export default class OCPIService {
 
   /**
    * Check basic structure for OCPI Error Response
+   *
    * @param {*} ocpiErrorResponse
    */
   checkOCPIErrorResponseStructure(ocpiErrorResponse) {
@@ -125,6 +130,7 @@ export default class OCPIService {
 
   /**
    * Validate Credential Entity
+   *
    * @param {*} credential
    */
   validateCredentialEntity(credential) {
@@ -137,6 +143,7 @@ export default class OCPIService {
 
   /**
    * Validate Location Entity
+   *
    * @param {*} location
    */
   validateLocationEntity(location) {
@@ -146,6 +153,7 @@ export default class OCPIService {
 
   /**
    * Validate EVSE Entity
+   *
    * @param {*} evse
    */
   validateEvseEntity(evse) {
@@ -157,6 +165,7 @@ export default class OCPIService {
 
   /**
    * Validate Connector Entity
+   *
    * @param {*} connector
    */
   validateConnectorEntity(connector) {

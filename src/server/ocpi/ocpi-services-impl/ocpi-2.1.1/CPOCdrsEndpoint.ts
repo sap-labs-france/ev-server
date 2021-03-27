@@ -24,6 +24,12 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -34,6 +40,11 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
 
   /**
    * Get Cdrs according to the requested url Segment
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   async getCdrsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Split URL Segments

@@ -284,12 +284,20 @@ export default abstract class WSConnection {
     // Create a promise
     return await new Promise((resolve, reject) => {
       let messageToSend: string;
-      // Function that will receive the request's response
+      /**
+       * Function that will receive the request's response
+       *
+       * @param payload
+       */
       function responseCallback(payload: Record<string, unknown> | string): void {
         // Send the response
         resolve(payload);
       }
-      // Function that will receive the request's rejection
+      /**
+       * Function that will receive the request's rejection
+       *
+       * @param reason
+       */
       function rejectCallback(reason: string | OCPPError): void {
         // Build Exception
         self.requests[messageId] = [() => { }, () => { }];

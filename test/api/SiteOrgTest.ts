@@ -26,6 +26,9 @@ class TestData {
 
 const testData: TestData = new TestData();
 
+/**
+ * @param userRole
+ */
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -39,6 +42,9 @@ function login(userRole) {
   }
 }
 
+/**
+ *
+ */
 async function createSite() {
   // Create a site
   testData.newSite = await testData.userService.createEntity(
@@ -48,12 +54,20 @@ async function createSite() {
   testData.createdSites.push(testData.newSite);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignUserToSite(userRole, site): Promise<any> {
   // Assign the user to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
   return testData.userService.siteApi.addUsersToSite(site.id, [userContext.id]);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignSiteAdmin(userRole, site) {
   // Assign the user as admin to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -61,6 +75,10 @@ async function assignSiteAdmin(userRole, site) {
   await testData.userService.siteApi.assignSiteAdmin(site.id, userContext.id);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignSiteOwner(userRole, site) {
   // Assign the user as owner to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
