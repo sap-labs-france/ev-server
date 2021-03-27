@@ -129,9 +129,8 @@ export default class ExpressTools {
   }
 
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
-    // Default listen callback
     /**
-     *
+     * Default listen callback
      */
     function defaultListenCb(): void {
       // Log
