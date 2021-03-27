@@ -1,14 +1,11 @@
 import ChargingStation, { Connector } from '../../types/ChargingStation';
-import { OCPI15118EVCertificateRequest, OCPI15118EVCertificateResponse } from '../../types/ocpi/OCPICertificate';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { ContractCertificatePoolType } from '../../types/configuration/ContractsCertificatePoolConfiguration';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
@@ -805,13 +802,6 @@ export default class CpoOCPIClient extends OCPIClient {
     );
     // Return result
     return result;
-  }
-
-  public async pull15118EVCertificate(request: OCPI15118EVCertificateRequest): Promise<OCPI15118EVCertificateResponse> {
-    const ccpSCCBEndpoint = Configuration.getContractCertificatePoolEndPoint(ContractCertificatePoolType.GIREVE);
-    // Call IOP
-    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(ccpSCCBEndpoint, request);
-    return result.data;
   }
 
   // Get ChargeBoxIds with new status notifications

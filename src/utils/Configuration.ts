@@ -392,7 +392,7 @@ export default class Configuration {
     return Configuration.getConfig().Migration;
   }
 
-  static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
+  public static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
     // Read conf and set defaults values
     if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
       Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
@@ -403,7 +403,7 @@ export default class Configuration {
     return Configuration.getConfig().ChargingStationTemplates;
   }
 
-  static getAxiosConfig(): AxiosConfiguration {
+  public static getAxiosConfig(): AxiosConfiguration {
     // Read conf and set defaults values
     if (Configuration.isUndefined(Configuration.getConfig().Axios)) {
       Configuration.getConfig().Axios = {} as AxiosConfiguration;
@@ -417,11 +417,11 @@ export default class Configuration {
     return Configuration.getConfig().Axios;
   }
 
-  static getContractCertificatePool(): ContractCertificatePoolConfiguration {
+  public static getContractCertificatePool(): ContractCertificatePoolConfiguration {
     return Configuration.getConfig().ContractCertificatePool;
   }
 
-  static getContractCertificatePoolEndPoint(contractCertificatePoolType: ContractCertificatePoolType): string {
+  public static getContractCertificatePoolEndPoint(contractCertificatePoolType: ContractCertificatePoolType): string {
     for (const contractCertificatePool of Configuration.getContractCertificatePool().pools) {
       if (contractCertificatePoolType === contractCertificatePool.type) {
         return contractCertificatePool.endpoint;

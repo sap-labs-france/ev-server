@@ -13,7 +13,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import { ContractCertificatePoolType } from '../../../types/configuration/ContractsCertificatePoolConfiguration';
+import ContractCertificatePoolClient from '../../../client/contractcertificatepool/ContractCertificatePoolClient';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import I18nManager from '../../../utils/I18nManager';
@@ -23,7 +23,6 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPIStatusCode } from '../../../types/ocpi/OCPIStatusCode';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -981,20 +980,8 @@ export default class OCPPService {
     try {
       // Check and get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      let response: OCPPGet15118EVCertificateResponse;
-      for (const contractCertificatePool of Configuration.getContractCertificatePool().pools) {
-        switch (contractCertificatePool.type) {
-          case ContractCertificatePoolType.GIREVE:
-            response = await this.getOcpiContractCertificate(ev15118Certificate, headers.tenantID);
-            break;
-          default:
-            throw Error(`${contractCertificatePool.type} contract certificate pool type not found`);
-        }
-        if (response) {
-          break;
-        }
-      }
-      return response;
+      const ccpClient = new ContractCertificatePoolClient(await TenantStorage.getTenant(headers.tenantID));
+      return await ccpClient.getContractCertificateResponse(ev15118Certificate);
     } catch (error) {
       if (error.params) {
         error.params.source = headers.chargeBoxIdentity;
@@ -1006,31 +993,6 @@ export default class OCPPService {
         exiResponse: ''
       };
     }
-  }
-
-  private async getOcpiContractCertificate(ev15118Certificate: OCPPGet15118EVCertificateRequest, tenantID: string): Promise<OCPPGet15118EVCertificateResponse> {
-    // Get OCPI CPO client
-    const cpoOcpiClient = await OCPIClientFactory.getCpoOcpiClient(await TenantStorage.getTenant(tenantID),
-      {
-        id: '',
-        role: OCPIRole.CPO,
-        name: '',
-        baseUrl: '',
-        localToken: '',
-        token: '',
-        countryCode: '',
-        partyId: '',
-        backgroundPatchJob: false
-      });
-    // Get 15118 EV Certificate
-    const ocpi15118EVCertificateResponse = await cpoOcpiClient.pull15118EVCertificate(ev15118Certificate);
-    if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
-      return {
-        status: OCPP15118EVCertificateStatus.ACCEPTED,
-        exiResponse: ocpi15118EVCertificateResponse.data.exiResponse
-      };
-    }
-    throw Error(ContractCertificatePoolType.GIREVE + ': Failed to get EV 15118 certificate');
   }
 
   private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
