@@ -9,7 +9,6 @@ export default interface AsyncTask extends CreatedUpdatedProps {
   tenantID: string;
   status?: AsyncTaskStatus;
   parent?: string;
-  execTimeSecs?: number;
   execHost?: string;
   execTimestamp?: Date;
   module: string;
@@ -24,10 +23,9 @@ export enum AsyncTaskType {
 }
 
 export enum AsyncTaskStatus {
-  NEW = 'N',
+  PENDING = 'P',
   RUNNING = 'R',
   ERROR = 'E',
-  SUCCESS = 'S',
 }
 
 export enum AsyncTasks {

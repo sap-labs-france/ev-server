@@ -32,7 +32,6 @@ export default class AsyncTaskStorage {
       tenantID: Utils.convertToObjectID(asyncTaskToSave.tenantID),
       status: asyncTaskToSave.status,
       parent: asyncTaskToSave.parent,
-      execTimeSecs: Utils.convertToInt(asyncTaskToSave.execTimeSecs),
       execHost: asyncTaskToSave.execHost,
       execTimestamp: Utils.convertToDate(asyncTaskToSave.execTimestamp),
       module: asyncTaskToSave.module,
@@ -99,7 +98,7 @@ export default class AsyncTaskStorage {
     aggregation.pop();
     // Sort
     if (!dbParams.sort) {
-      dbParams.sort = { name: 1 };
+      dbParams.sort = { createdOn: -1 };
     }
     aggregation.push({
       $sort: dbParams.sort

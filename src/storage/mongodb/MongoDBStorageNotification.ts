@@ -9,6 +9,7 @@ import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import { TransactionNotificationData } from '../../types/SingleChangeNotification';
 import Utils from '../../utils/Utils';
+import chalk from 'chalk';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'MongoDBStorageNotification';
@@ -85,25 +86,23 @@ export default class MongoDBStorageNotification {
       dbChangeStream.on('error', (error: Error) => {
         MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
+      const message = `The monitoring on database '${this.dbConfig.implementation}' is enabled`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `The monitoring on database '${this.dbConfig.implementation}' is enabled`
+        message: message
       });
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'start',
-        action: ServerAction.STARTUP,
-        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
-      });
+      Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     } else {
-      Logging.logInfo({
+      const message = `The monitoring on database '${this.dbConfig.implementation}' is disabled`;
+      Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
+        message: message
       });
+      Utils.isDevelopmentEnv() && console.warn(chalk.yellow(message));
     }
   }
 
@@ -171,7 +170,9 @@ export default class MongoDBStorageNotification {
         break;
       case 'asynctasks':
         this.centralRestServer?.notifyAsyncTaskEndpoint(tenantID, action, { id: documentID });
-        void AsyncTaskManager.handleAsyncTasks();
+        if (action === Action.CREATE) {
+          void AsyncTaskManager.handleAsyncTasks();
+        }
         break;
     }
   }

@@ -26,7 +26,7 @@ export default class AsyncTaskManager {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.ASYNC_TASK,
         module: MODULE_NAME, method: 'handleAsyncTasks',
-        message: 'Checking if there is async task to process...'
+        message: 'Checking Async Task to process...'
       });
       const processedTask: ActionsResponse = {
         inError: 0,
@@ -39,10 +39,16 @@ export default class AsyncTaskManager {
         nbrTasksInParallel = this.asyncTaskConfig.nbrTasksInParallel;
       }
       // Get the tasks
-      const asyncTasks = await AsyncTaskStorage.getAsyncTasks( { status: AsyncTaskStatus.NEW }, Constants.DB_PARAMS_MAX_LIMIT);
+      const asyncTasks = await AsyncTaskStorage.getAsyncTasks( { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
       // Process them
       let abstractAsyncTask: AbstractAsyncTask;
       if (!Utils.isEmptyArray(asyncTasks.result)) {
+        await Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.ASYNC_TASK,
+          module: MODULE_NAME, method: 'handleAsyncTasks',
+          message: `${asyncTasks.result.length} Async Task(s) are going to be processed...`
+        });
         await Promise.map(asyncTasks.result,
           async (asyncTask: AsyncTask) => {
             // Tasks
@@ -55,7 +61,7 @@ export default class AsyncTaskManager {
                   tenantID: Constants.DEFAULT_TENANT,
                   action: ServerAction.ASYNC_TASK,
                   module: MODULE_NAME, method: 'handleAsyncTasks',
-                  message: `The async task '${asyncTask.name}' is unknown`
+                  message: `The Async Task '${asyncTask.name}' is unknown`
                 });
             }
             if (abstractAsyncTask) {
@@ -64,8 +70,11 @@ export default class AsyncTaskManager {
               if (asyncTaskLock) {
                 try {
                   const startAsyncTaskTime = new Date().getTime();
+                  // Update the task
                   asyncTask.execTimestamp = new Date();
                   asyncTask.execHost = Utils.getHostname();
+                  asyncTask.status = AsyncTaskStatus.RUNNING;
+                  await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log
                   await Logging.logInfo({
                     tenantID: Constants.DEFAULT_TENANT,
@@ -73,18 +82,13 @@ export default class AsyncTaskManager {
                     module: MODULE_NAME, method: 'handleAsyncTasks',
                     message: `The task '${asyncTask.name}' is running...`
                   });
-                  // Update the task
-                  asyncTask.status = AsyncTaskStatus.RUNNING;
-                  await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Run
                   await abstractAsyncTask.run();
-                  // Update the task
-                  const asyncTaskTotalDurationSecs = Math.trunc((new Date().getTime() - startAsyncTaskTime) / 1000);
-                  asyncTask.status = AsyncTaskStatus.SUCCESS;
-                  asyncTask.execTimeSecs = asyncTaskTotalDurationSecs;
-                  await AsyncTaskStorage.saveAsyncTask(asyncTask);
+                  // Delete the task
+                  await AsyncTaskStorage.deleteAsyncTask(asyncTask.id);
                   processedTask.inSuccess++;
                   // Log
+                  const asyncTaskTotalDurationSecs = Math.trunc((new Date().getTime() - startAsyncTaskTime) / 1000);
                   await Logging.logInfo({
                     tenantID: Constants.DEFAULT_TENANT,
                     action: ServerAction.ASYNC_TASK,
@@ -102,7 +106,7 @@ export default class AsyncTaskManager {
                     tenantID: Constants.DEFAULT_TENANT,
                     module: MODULE_NAME, method: 'handleAsyncTasks',
                     action: ServerAction.ASYNC_TASK,
-                    message: `Error while running the async task '${asyncTask.name}': ${error.message}`,
+                    message: `Error while running the Async Task '${asyncTask.name}': ${error.message}`,
                     detailedMessages: { error: error.message, stack: error.stack, asyncTask }
                   });
                 } finally {
@@ -117,12 +121,19 @@ export default class AsyncTaskManager {
             const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
             void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
               MODULE_NAME, 'handleAsyncTasks', processedTask,
-              `{{inSuccess}} async task(s) were successfully processed in ${totalDurationSecs} secs`,
-              `{{inError}} async task(s) failed to be processed in ${totalDurationSecs} secs`,
-              `{{inSuccess}} async task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
-              `No async task to process`
+              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
+              `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
+              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
+              `No Async Task to process`
             );
           });
+      } else {
+        await Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.ASYNC_TASK,
+          module: MODULE_NAME, method: 'handleAsyncTasks',
+          message: `No Async Task to process`
+        });
       }
     }
   }
@@ -130,20 +141,20 @@ export default class AsyncTaskManager {
   public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>, user?: UserToken|User|string): Promise<void> {
     // Check
     if (Utils.isNullOrUndefined(asyncTask)) {
-      throw new Error("The async task must not be null");
+      throw new Error("The Async Task must not be null");
     }
     // Check
     if (Utils.isNullOrUndefined(asyncTask.name)) {
-      throw new Error("The Name of the async task is mandatory");
+      throw new Error("The Name of the Async Task is mandatory");
     }
     if (Utils.isNullOrUndefined(asyncTask.tenantID)) {
-      throw new Error("The Tenant ID of the async task is mandatory");
+      throw new Error("The Tenant ID of the Async Task is mandatory");
     }
     if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
-      throw new Error("The Parameters of the async task must be a Json document");
+      throw new Error("The Parameters of the Async Task must be a Json document");
     }
     // Set
-    asyncTask.status = AsyncTaskStatus.NEW;
+    asyncTask.status = AsyncTaskStatus.PENDING;
     asyncTask.createdBy = user as User ?? null;
     asyncTask.createdOn = new Date();
     // Save
