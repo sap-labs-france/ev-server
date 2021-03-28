@@ -20,7 +20,8 @@ export default class SiteStorage {
     params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       siteIDs: [id],
-      ...params,
+      withCompany: params.withCompany,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }

@@ -108,11 +108,11 @@ export default class UserStorage {
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
-    const userMDB = await UserStorage.getUsers(tenantID,
-      {
-        userIDs: [id],
-        ...params
-      }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    const userMDB = await UserStorage.getUsers(tenantID, {
+      userIDs: [id],
+      withImage: params.withImage,
+      siteIDs: params.siteIDs,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 

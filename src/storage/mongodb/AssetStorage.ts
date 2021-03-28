@@ -14,7 +14,7 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSiteArea?: boolean} = {}, projectFields?: string[]): Promise<Asset> {
+    params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenantID, {
       assetIDs: [id],
       withSiteArea: params.withSiteArea
@@ -140,7 +140,6 @@ export default class AssetStorage {
     }
     // Limit on Asset for Basic Users
     if (!Utils.isEmptyArray(params.assetIDs)) {
-      // Build filter
       filters._id = {
         $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID))
       };
