@@ -39,7 +39,8 @@ export default class Configuration {
   private static config: ConfigurationData;
   private static appEnv: AppEnv;
 
-  private constructor() { }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
 
   // Crypto config
   public static getCryptoConfig(): CryptoConfiguration {

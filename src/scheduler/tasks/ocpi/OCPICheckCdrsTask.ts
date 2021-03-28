@@ -45,7 +45,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_CDRS,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
         }

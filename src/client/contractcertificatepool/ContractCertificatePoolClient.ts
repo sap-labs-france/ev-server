@@ -24,7 +24,7 @@ export default class ContractCertificatePoolClient {
           exiResponse = await this.getGireveContractCertificateExiResponse(ev15118Certificate);
           break;
         default:
-          throw Error(`Defined ${contractCertificatePool.type} contract certificate pool type not found`);
+          throw Error(`Configured ${contractCertificatePool.type} contract certificate pool type not found`);
       }
       if (exiResponse) {
         break;
