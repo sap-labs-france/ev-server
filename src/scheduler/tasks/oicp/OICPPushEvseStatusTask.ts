@@ -46,7 +46,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the oicpendpoint.`
+            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the OICP endpoint.`
           });
           return;
         }
