@@ -17,7 +17,21 @@ import Utils from '../utils/Utils';
 const MODULE_NAME = 'AsyncTaskManager';
 
 export default class AsyncTaskManager {
-  private static asyncTaskConfig = Configuration.getAsyncTaskConfig();
+  private static asyncTaskConfig;
+
+  public static async init(): Promise<void> {
+    // Get the conf
+    AsyncTaskManager.asyncTaskConfig = Configuration.getAsyncTaskConfig();
+    // Active?
+    if (AsyncTaskManager.asyncTaskConfig.active) {
+      // Turn all Running task to Pending
+      const updatedAsyncTasks = await AsyncTaskStorage.updateRunningAsyncTaskToPending();
+      // Run it
+      if (updatedAsyncTasks > 0) {
+        void AsyncTaskManager.handleAsyncTasks();
+      }
+    }
+  }
 
   public static async handleAsyncTasks(): Promise<void> {
     // Active?

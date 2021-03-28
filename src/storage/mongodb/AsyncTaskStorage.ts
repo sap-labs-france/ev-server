@@ -132,6 +132,19 @@ export default class AsyncTaskStorage {
     };
   }
 
+  public static async updateRunningAsyncTaskToPending(): Promise<number> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending');
+    // Delete the AsyncTask
+    const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
+      { 'status': AsyncTaskStatus.RUNNING },
+      { '$set': { 'status': AsyncTaskStatus.PENDING }}
+    );
+    // Debug
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending', uniqueTimerID);
+    return result.modifiedCount;
+  }
+
   public static async deleteAsyncTask(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteAsyncTask');
