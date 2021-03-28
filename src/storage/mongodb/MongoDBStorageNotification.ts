@@ -1,12 +1,12 @@
 import { Action, Entity } from '../../types/Authorization';
 
+import AsyncTaskManager from '../../async-task/AsyncTaskManager';
 import CentralRestServer from '../../server/rest/CentralRestServer';
 import { ChangeStreamOptions } from 'mongodb';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
-import TenantStorage from './TenantStorage';
 import { TransactionNotificationData } from '../../types/SingleChangeNotification';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
@@ -168,6 +168,10 @@ export default class MongoDBStorageNotification {
         break;
       case 'ocpiendpoints':
         this.centralRestServer?.notifyOcpiEndpoint(tenantID, action, { id: documentID });
+        break;
+      case 'asynctasks':
+        this.centralRestServer?.notifyAsyncTaskEndpoint(tenantID, action, { id: documentID });
+        void AsyncTaskManager.handleAsyncTasks();
         break;
     }
   }
