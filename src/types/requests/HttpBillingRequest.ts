@@ -19,17 +19,15 @@ export interface HttpBillingWebHookRequest {
 }
 
 export interface HttpSetupPaymentMethod {
-  user: UserToken;
-  currentUserID: string;
+  userID: string;
   paymentMethodId?: string;
 }
 
 export interface HttpPaymentMethods {
-  loggedUser: UserToken;
-  selectedUserID: string;
+  userID: string;
 }
 
 export interface HttpDeletePaymentMethod {
-  loggedUser: UserToken;
+  userID: string;
   paymentMethodId: string;
 }
