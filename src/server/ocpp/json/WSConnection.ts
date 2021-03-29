@@ -140,7 +140,7 @@ export default abstract class WSConnection {
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError({
         source: this.getChargingStationID(),
         action: ServerAction.WS_CONNECTION,
@@ -197,7 +197,7 @@ export default abstract class WSConnection {
         // Error Message
         case OCPPMessageType.CALL_ERROR_MESSAGE:
           // Log
-          Logging.logError({
+          await Logging.logError({
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: 'onMessage',
@@ -249,7 +249,7 @@ export default abstract class WSConnection {
       }
     } catch (error) {
       // Log
-      Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
+      await Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
@@ -370,7 +370,7 @@ export default abstract class WSConnection {
   }
 
   public isWSConnectionOpen(): boolean {
-    return this.wsConnection?.readyState === OPEN;
+    return this.getConnectionStatus() === OPEN;
   }
 
   public getConnectionStatusString(): string {

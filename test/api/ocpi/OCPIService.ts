@@ -172,6 +172,4 @@ export default class OCPIService {
     return expect(connector).to.have.property('id') &&
       expect(connector).to.have.property('last_updated').that.is.not.empty;
   }
-
-
 }
