@@ -158,7 +158,7 @@ export default class Utils {
   }
 
   public static async executePromiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
-    let timeoutHandle;
+    let timeoutHandle: NodeJS.Timeout;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
     });
@@ -171,7 +171,7 @@ export default class Utils {
     });
   }
 
-  public static async sleep(ms): Promise<void> {
+  public static async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
@@ -307,6 +307,7 @@ export default class Utils {
 
   /**
    * Map user locale (en_US, fr_FR...) to language (en, fr...)
+   *
    * @param locale
    */
   public static getLanguageFromLocale(locale: string): string {
@@ -320,6 +321,7 @@ export default class Utils {
 
   /**
    * Map language (en, fr...) to user locale (en_US, fr_FR...)
+   *
    * @param language
    */
   static getLocaleFromLanguage(language: string): string {
@@ -1335,6 +1337,10 @@ export default class Utils {
         }
         break;
     }
+  }
+
+  public static buildTenantName(tenant: Tenant): string {
+    return `'${tenant.name}' ('${tenant.subdomain}')`;
   }
 
   public static isChargingStationIDValid(name: string): boolean {

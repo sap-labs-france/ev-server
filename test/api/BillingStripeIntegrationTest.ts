@@ -1,6 +1,9 @@
+import chai, { expect } from 'chai';
+
+import { BillingInvoiceStatus } from '../../src/types/Billing';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import StripeIntegrationTestData from './BillingStripeTestData';
-import chai from 'chai';
+import TestConstants from './client/utils/TestConstants';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
@@ -34,14 +37,17 @@ describe('Billing Stripe Service', function() {
         // Anyway, there is no way to cleanup the utbilling stripe account!
       });
 
+      it('should create a DRAFT invoice and fail to pay', async () => {
+        await testData.checkBusinessProcessBillToPay(true);
+      });
+
       it('Should add a payment method to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_visa');
       });
 
-      it('should create and pay a first invoice for BILLING-TEST user', async () => {
-        await testData.checkBusinessProcessBillToPay();
+      it('should create a DRAFT invoice and pay it for BILLING-TEST user', async () => {
+        await testData.checkBusinessProcessBillToPay(false, true);
       });
-
     });
 
     describe('immediate billing ON', () => {
@@ -54,7 +60,7 @@ describe('Billing Stripe Service', function() {
         await testData.forceBillingSettings(immediateBilling);
       });
 
-      it('Should add a different payment method to BILLING-TEST user', async () => {
+      it('Should add a different source to BILLING-TEST user', async () => {
         await testData.assignPaymentMethod('tok_fr');
       });
 
@@ -62,8 +68,17 @@ describe('Billing Stripe Service', function() {
         await testData.checkImmediateBillingWithTaxes();
       });
 
-    });
+      // TODO : change this as soon as we can test pm - now it's sources, not pm
+      it('Should detach newly added source to BILLING-TEST user', async () => {
+        const newSource = await testData.assignPaymentMethod('tok_fr');
+        await testData.checkDetachPaymentMethod(newSource.id);
+      });
 
+      it('should be able to repair a user', async () => {
+        await testData.checkRepairInconsistencies();
+      });
+
+    });
   });
 
 });

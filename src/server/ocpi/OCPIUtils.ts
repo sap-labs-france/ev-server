@@ -15,6 +15,7 @@ export default class OCPIUtils {
 
   /**
    * Return OCPI Success Body Response
+   *
    * @param {*} data
    */
   public static success(data?: any): OCPIResponse {
@@ -28,6 +29,7 @@ export default class OCPIUtils {
 
   /**
    * Return OCPI Error Body Response
+   *
    * @param {*} error
    */
   public static toErrorResponse(error: Error): OCPIResponse {
@@ -41,6 +43,7 @@ export default class OCPIUtils {
 
   /**
    * Build Next Url
+   *
    * @param {*} req request in order to get url
    * @param {*} baseUrl the baseUrl of the service to get url
    * @param {*} offset  offset
@@ -64,6 +67,7 @@ export default class OCPIUtils {
 
   /**
    * Retrieve the next url from the link response header
+   *
    * @param {*} link the link header of the response
    */
   public static getNextUrl(link: string): string | undefined {
@@ -77,6 +81,7 @@ export default class OCPIUtils {
 
   /**
    * Build Location Url
+   *
    * @param {*} req request in order to get url
    * @param {*} baseUrl the baseUrl of the service to get url
    * @param {*} id the object id to build the location url
@@ -88,6 +93,7 @@ export default class OCPIUtils {
 
   /**
    * Build Charging Station Id from OCPI location
+   *
    * @param {*} locationId id of the location
    * @param {*} evseId id of the evse
    */
@@ -97,6 +103,7 @@ export default class OCPIUtils {
 
   /**
    * Build Operator name from OCPI identifiers (country code and party Id)
+   *
    * @param {*} countryCode the code of the operator
    * @param {*} partyId the partyId of the operator
    */
@@ -106,6 +113,7 @@ export default class OCPIUtils {
 
   /**
    * Build Site Area name from OCPI location
+   *
    * @param {*} countryCode the code of the CPO
    * @param {*} partyId the partyId of the CPO
    * @param {*} locationId id of the location
@@ -116,6 +124,7 @@ export default class OCPIUtils {
 
   /**
    * Build evse UID from charging station
+   *
    * @param {*} chargingStation the charging station used to build the evse UID
    * @param {*} connector the connector used to build the evse UID
    */
@@ -125,6 +134,7 @@ export default class OCPIUtils {
 
   /**
    * Build evse UIDs from charging station
+   *
    * @param {*} chargingStation the charging station used to build the evse UIDs
    */
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
@@ -139,6 +149,7 @@ export default class OCPIUtils {
 
   /**
    * Build User email from OCPI token, eMSP country code and eMSP partyId
+   *
    * @param {*} token the OCPI token of the user
    * @param {*} countryCode the country code of the eMSP
    * @param {*} partyId the party identifier of the eMSP
@@ -151,7 +162,8 @@ export default class OCPIUtils {
 
   /**
    * Convert from base64 back to String.
-   * @param {*} string encoded base64
+   *
+   * @param {*} base64 base64 encoded string
    */
   public static atob(base64: string): string {
     return Buffer.from(base64, 'base64').toString('binary');
@@ -159,7 +171,8 @@ export default class OCPIUtils {
 
   /**
    * Convert to base64 from String.
-   * @param {*} string encoded base64
+   *
+   * @param {*} string string to base64 encode
    */
   public static btoa(string: string): string {
     return Buffer.from(string).toString('base64');
@@ -167,6 +180,7 @@ export default class OCPIUtils {
 
   /**
    * Generate a local token for a tenant subdomain
+   *
    * @param tenantSubdomain
    */
   public static generateLocalToken(tenantSubdomain: string): string {

@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
@@ -62,8 +62,8 @@ export default class StripeIntegrationTestData {
   public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    // Let's get access to the STRIPE implementation - StripeBillingIntegration instance
-    this.billingUser = await this.billingImpl.getBillingUserByInternalID(this.getCustomerID());
+    expect(this.billingImpl, 'Billing implementation should not ber null');
+    this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
     expect(this.billingUser, 'Billing user should not ber null');
   }
 
@@ -126,7 +126,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
-    // Assign a payment method using test tokens (instead of test card numbers)
+    // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
@@ -135,6 +135,26 @@ export default class StripeIntegrationTestData {
     });
     expect(source).to.not.be.null;
     return source;
+  }
+
+  // Detach the latest assigned source
+  public async checkDetachPaymentMethod(newSourceId: string) : Promise<void> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    // TODO: check this is not the default pm as here we are dealing with source and not pm
+    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
+    expect(deletedSource).to.not.be.null;
+    await this.retrievePaymentMethod(deletedSource.result[0].id);
+  }
+
+  // TODO : modify this test with concrete implementation when we have implemented getPaymentMethod(pmID)
+  public async retrievePaymentMethod(deletedSourceId: string) : Promise<void> {
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    try {
+      await stripeInstance.paymentMethods.retrieve(deletedSourceId);
+    } catch (error) {
+      expect(error.code).to.equal('resource_missing');
+    }
   }
 
   public async assignTaxRate(rate: number) : Promise<Stripe.TaxRate> {
@@ -156,7 +176,7 @@ export default class StripeIntegrationTestData {
     return taxRate;
   }
 
-  public async checkBusinessProcessBillToPay(withTax?:boolean) : Promise<number> {
+  public async checkBusinessProcessBillToPay(paymentShouldFail: boolean, withTax?:boolean) : Promise<number> {
 
     let taxId: string = null;
     if (withTax) {
@@ -176,7 +196,11 @@ export default class StripeIntegrationTestData {
     assert(draftInvoices, 'User should have at least a draft invoice');
     expect(draftInvoices.length).to.be.eql(1);
     // Let's pay that particular DRAFT invoice
-    await this.payDraftInvoice(draftInvoices[0]);
+    await this.payDraftInvoice(draftInvoices[0], paymentShouldFail);
+    if (!paymentShouldFail) {
+      // Let's down load the corresponding PDF document
+      await this.checkDownloadInvoiceAsPdf(this.dynamicUser.id);
+    }
     // Next step should not be necessary
     // await testData.billingImpl.synchronizeInvoices(testData.dynamicUser);
     // Let's check that the user do not have any DRAFT invoice anymore
@@ -236,12 +260,19 @@ export default class StripeIntegrationTestData {
     return billingInvoice;
   }
 
-  public async payDraftInvoice(draftInvoice: { id: string }): Promise<void> {
+  public async payDraftInvoice(draftInvoice: { id: string }, paymentShouldFail: boolean): Promise<void> {
     const draftInvoiceId = draftInvoice.id;
     let billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.getTenantID(), draftInvoiceId);
     // Let's attempt a payment using the default payment method
     billingInvoice = await this.billingImpl.chargeInvoice(billingInvoice);
-    assert(billingInvoice.status === BillingInvoiceStatus.PAID, 'Invoice should have been paid');
+    if (paymentShouldFail) {
+      assert(billingInvoice.status === BillingInvoiceStatus.OPEN, 'Invoice should have been be finalized but not yet paid');
+      // TODO - retrieve and check the last payment error and the corresponding error code
+      // billingInvoice = await BillingStorage.getInvoice(draftInvoiceId);
+      // assert(billingInvoice.lastPaymentFailure.error.error_code === "missing"!!!!
+    } else {
+      assert(billingInvoice.status === BillingInvoiceStatus.PAID, 'Invoice should have been paid');
+    }
   }
 
   public getTenantID(): string {
@@ -276,13 +307,38 @@ export default class StripeIntegrationTestData {
     return response?.data?.result;
   }
 
-  public async checkDownloadInvoiceAsPdf() : Promise<void> {
-    const paidInvoices = await await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
+  public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
+    const paidInvoices = await await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
-    // const response = await this.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-    // expect(response.data.result.length).to.be.gt(0);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
   }
 
+  public async checkRepairInconsistencies() : Promise<void> {
+    // Create a new user for testing stripe scenarios - BILLING-TEST
+    const user = {
+      ...Factory.user.build(),
+      name: 'RECOVERY-TEST',
+      firstName: 'Billing Recovery Tests',
+      issuer: true
+    } as User;
+    // Let's create a new user
+    const userData = await this.adminUserService.createEntity(
+      this.adminUserService.userApi,
+      user
+    );
+    assert(userData && userData.id, 'response should not be null');
+    // Let's get the newly created user
+    const testUser = await UserStorage.getUser(this.getTenantID(), userData.id);
+    expect(testUser.billingData).not.to.be.null;
+    const corruptedBillingData: BillingUserData = {
+      ...testUser.billingData,
+      customerID: 'cus_corrupted_data'
+    };
+    // Let's update the billing data with an inconsistent customer ID
+    await UserStorage.saveUserBillingData(this.getTenantID(), testUser.id, corruptedBillingData);
+    // Let's now try to repair the user data.
+    const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
+    expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
+  }
 }

@@ -189,17 +189,9 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
             images: [],
             videos: car.Videos,
           };
-          for (const imageURL of carCatalog.imageURLs) {
-            const imageURLPath = `${global.appRoot}/assets/cars/img/${imageURL}`;
-            const image = fs.readFileSync(imageURLPath);
-            const contentType = await FileType.fromFile(imageURLPath);
-            const base64Image = Buffer.from(image).toString('base64');
-            const encodedImage = 'data:' + contentType.mime + ';base64,' + base64Image;
-            carCatalog.images.push(encodedImage);
-          }
-          const imageURLPath = `${global.appRoot}/assets/cars/img/${carCatalog.imageURLs[0]}`;
+          let imageURLPath = `${global.appRoot}/assets/cars/img/${carCatalog.imageURLs[0]}`;
           const base64ThumbImage = (await sharp(imageURLPath).resize(200, 150).toBuffer()).toString('base64');
-          const contentType = await FileType.fromFile(imageURLPath);
+          let contentType = await FileType.fromFile(imageURLPath);
           carCatalog.image = 'data:' + contentType.mime + ';base64,' + base64ThumbImage;
           await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs').deleteOne({
             _id: carCatalog.id
@@ -209,14 +201,23 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
           });
           carCatalog.createdOn = new Date();
           carCatalog.lastChangedOn = carCatalog.createdOn;
+          for (const imageURL of carCatalog.imageURLs) {
+            imageURLPath = `${global.appRoot}/assets/cars/img/${imageURL}`;
+            const image = fs.readFileSync(imageURLPath);
+            contentType = await FileType.fromFile(imageURLPath);
+            const base64Image = Buffer.from(image).toString('base64');
+            const encodedImage = 'data:' + contentType.mime + ';base64,' + base64Image;
+            // Save car catalog images
+            await CarStorage.saveCarImage(carCatalog.id, encodedImage);
+          }
           // Save
-          await CarStorage.saveCarCatalog(carCatalog, true);
+          await CarStorage.saveCarCatalog(carCatalog);
           created++;
         }
 
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.CAR_CATALOG_SYNCHRONIZATION,
@@ -225,7 +226,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
       });
     } // Log in the default tenant
     if (created > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',

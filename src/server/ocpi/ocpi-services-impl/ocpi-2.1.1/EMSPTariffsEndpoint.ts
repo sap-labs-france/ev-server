@@ -16,6 +16,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tariffs';
 const MODULE_NAME = 'EMSPTariffsEndpoint';
@@ -33,6 +34,12 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -46,6 +53,10 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
    *
    * /tariffs/{country_code}/{party_id}/{tariff_id}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getTariffRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -76,7 +87,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME, method: 'getTariffRequest',
           action: ServerAction.OCPI_GET_TARIFF,
           errorCode: StatusCodes.BAD_REQUEST,
-          message: `Simple Pricing setting not found on tenant ${tenant.name}`,
+          message: `Simple Pricing setting not found in Tenant ${Utils.buildTenantName(tenant)}`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }

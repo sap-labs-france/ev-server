@@ -3,7 +3,6 @@ import { Action, AuthorizationDefinition, Entity } from '../types/Authorization'
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
-import TenantComponents from '../types/TenantComponents';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -25,14 +24,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USERS, action: [Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.IMPORT, Action.EXPORT, Action.IN_ERROR], attributes: ['*'] },
+      { resource: Entity.USERS, action: [Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
@@ -102,8 +101,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
+        // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
+        // condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
   },
@@ -129,6 +129,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       // {
       //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
+      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      // },
+      // {
+      //   resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
+      // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
       //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       // },
       // -----------------------------------------------------------------------------------------------
@@ -206,8 +211,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE], attributes: ['*'] },
       {
@@ -215,10 +218,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
-      {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
     ]
   },
   demo: {
@@ -260,11 +259,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.SETTING, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'identifier': TenantComponents.ANALYTICS } }
-      },
     ]
   },
   siteAdmin: {
@@ -275,11 +269,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USERS_SITES, action: Action.UNASSIGN, attributes: ['*'] },
-      {
-        resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
-      },
+      { resource: Entity.USERS_SITES, action: [Action.UNASSIGN], attributes: ['*'] },
+      { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
@@ -323,10 +314,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
-      {
-        resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
-      },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }

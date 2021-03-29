@@ -342,6 +342,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
+  public static canImportTags(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
+  }
+
   public static canReadUser(loggedUser: UserToken, userID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
       { user: userID, owner: loggedUser.id });
@@ -351,7 +355,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
-  public static canImportUser(loggedUser: UserToken): boolean {
+  public static canImportUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
   }
 
@@ -377,14 +381,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.CREATE);
   }
 
-  public static canUpdateSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE,
-      { site: siteID, sitesAdmin: loggedUser.sitesAdmin, sitesOwner: loggedUser.sitesOwner });
+  public static canUpdateSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canDeleteSite(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE);
   }
 
   public static canListSettings(loggedUser: UserToken): boolean {

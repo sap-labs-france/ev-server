@@ -57,7 +57,7 @@ export default class AddSiteIDToChargingStationTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${modifiedCount} Charging stations have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Charging stations have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

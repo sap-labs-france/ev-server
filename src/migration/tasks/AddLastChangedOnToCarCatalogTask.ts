@@ -16,7 +16,7 @@ export default class AddLastChangedOnToCarCatalogTask extends MigrationTask {
         { '$set': { 'lastChangedOn': '$createdOn' } }
       ]);
       if (result.modifiedCount > 0) {
-        Logging.logDebug({
+        await Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
@@ -24,7 +24,7 @@ export default class AddLastChangedOnToCarCatalogTask extends MigrationTask {
         });
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
         action: ServerAction.MIGRATION,

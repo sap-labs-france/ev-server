@@ -1,8 +1,9 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { ImportedUser, UserImportStatus, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '../../../../types/User';
 
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -11,6 +12,7 @@ import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
+import CSVError from 'csvtojson/v2/CSVError';
 import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
@@ -19,7 +21,10 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
+import ImportUsersTask from '../../../../scheduler/tasks/ImportUsersTask';
 import JSONStream from 'JSONStream';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
@@ -36,6 +41,8 @@ import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import UserToken from '../../../../types/UserToken';
+import UserValidator from '../validator/UserValidation';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
@@ -242,9 +249,6 @@ export default class UserService {
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Get tags
-    const tags = (await TagStorage.getTags(req.user.tenantID,
-      { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -258,14 +262,22 @@ export default class UserService {
     }
     // OCPI User
     if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleDeleteUser',
+      // Delete all tags
+      const numberOfDeletedTags = await TagStorage.deleteTagsByUser(req.user.tenantID, user.id);
+      // Delete User
+      await UserStorage.deleteUser(req.user.tenantID, user.id);
+      // Log
+      await Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
+        module: MODULE_NAME, method: 'handleDeleteUser',
+        message: `User with ID '${user.id}' has been deleted successfully along '${numberOfDeletedTags}' Tag(s)`,
         action: action
       });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+      return;
     }
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
@@ -340,6 +352,8 @@ export default class UserService {
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
       // Disable/Delete Tags
+      const tags = (await TagStorage.getTags(req.user.tenantID,
+        { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
       for (const tag of tags) {
         if (tag.transactionsCount > 0) {
           tag.active = false;
@@ -362,6 +376,9 @@ export default class UserService {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
+          // Get tags
+          const tags = (await TagStorage.getTags(req.user.tenantID,
+            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
           for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,
@@ -503,8 +520,7 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          const billingUser = await billingImpl.updateUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
+          await billingImpl.updateUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -851,7 +867,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportUser(req.user)) {
+    if (!Authorizations.canImportUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -859,70 +875,166 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleImportUser'
       });
     }
+    // Acquire the lock
+    const importUsersLock = await LockingHelper.createImportUsersLock(req.tenant.id);
+    if (!importUsersLock) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleImportUsers',
+        message: 'Error in importing the Users: cannot acquire the lock',
+        user: req.user
+      });
+    }
+    // Default values for User import
+    const importedBy = req.user.id;
+    const importedOn = new Date();
+    const usersToBeImported: ImportedUser[] = [];
+    const startTime = new Date().getTime();
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    // Delete all previously imported users
+    await UserStorage.deleteImportedUsers(req.user.tenantID);
+    // Get the stream
     const busboy = new Busboy({ headers: req.headers });
     req.pipe(busboy);
-    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+    // Handle closed socket
+    let connectionClosed = false;
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    req.socket.on('close', async () => {
+      connectionClosed = true;
+      // Release the lock
+      await LockingManager.release(importUsersLock);
+    });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
       if (mimetype === 'text/csv') {
         const converter = csvToJson({
           trim: true,
-          delimiter: ['\t'],
-          quote: 'off'
+          delimiter: Constants.CSV_SEPARATOR,
+          output: 'json',
+          quote: 'on',
         });
-        void converter.subscribe(async (user) => {
-          await UserService.importUser(action, req, user);
-        }, (error) => {
-          void Logging.logError({
+        void converter.subscribe(async (user: ImportedUser) => {
+          // Check connection
+          if (connectionClosed) {
+            throw new Error('HTTP connection has been closed');
+          }
+          // Check the format of the first entry
+          if (!result.inSuccess && !result.inError) {
+            // Check header
+            const userKeys = Object.keys(user);
+            if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
+              if (!res.headersSent) {
+                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                res.end();
+              }
+              throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
+            }
+          }
+          // Set default value
+          user.importedBy = importedBy;
+          user.importedOn = importedOn;
+          // Import
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+          if (!importSuccess) {
+            result.inError++;
+          }
+          // Insert batched
+          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+          }
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async (error: CSVError) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: 'Invalid csv file',
+            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
+        // Completed
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async () => {
+          // Insert batched
+          if (usersToBeImported.length > 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+          // Log
+          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+          await Logging.logActionsResponse(
+            req.user.tenantID, action,
+            MODULE_NAME, 'handleImportUsers', result,
+            `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+            `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+            `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+            `No User have been uploaded in ${executionDurationSecs}s`, req.user
+          );
+          // Trigger manually and asynchronously the job
+          void new ImportUsersTask().processTenant(req.tenant);
+          // Respond
+          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+          next();
         });
+        // Start processing the file
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('users.*');
-        parser.on('data', async (user) => {
-          await UserService.importUser(action, req, user);
+        // TODO: Handle the end of the process to send the data like the CSV
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('data', async (user: ImportedUser) => {
+          // Set default value
+          user.importedBy = importedBy;
+          user.importedOn = importedOn;
+          // Import
+          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+          if (!importSuccess) {
+            result.inError++;
+          }
+          // Insert batched
+          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+          }
         });
-        parser.on('error', function(error) {
-          void Logging.logError({
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        parser.on('error', async (error) => {
+          await Logging.logError({
             tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleUploadUsersFile',
+            module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: 'Invalid json file',
+            message: `Invalid Json file '${filename}'`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
+          if (!res.headersSent) {
+            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+            res.end();
+          }
         });
         file.pipe(parser);
       } else {
-        void Logging.logError({
+        await Logging.logError({
           tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleUploadUsersFile',
+          module: MODULE_NAME, method: 'handleImportUsers',
           action: action,
           user: req.user.id,
-          message: 'Invalid file format'
+          message: `Invalid file format '${mimetype}'`
         });
-        res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-        res.end();
+        if (!res.headersSent) {
+          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+          res.end();
+        }
       }
-    });
-    busboy.on('finish', function() {
-      void Logging.logInfo({
-        tenantID: req.user.tenantID,
-        action: action,
-        module: MODULE_NAME, method: 'handleUploadUsersFile',
-        user: req.user,
-        message: 'File successfully uploaded',
-      });
-      res.end();
-      next();
     });
   }
 
@@ -983,8 +1095,7 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          const billingUser = await billingImpl.createUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
+          await billingImpl.createUser(user);
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -1186,6 +1297,26 @@ export default class UserService {
     }
   }
 
+  private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
+    try {
+      const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
+      result.inSuccess += nbrInsertedUsers;
+    } catch (error) {
+      // Handle dup keys
+      result.inSuccess += error.result.nInserted;
+      result.inError += error.writeErrors.length;
+      await Logging.logError({
+        tenantID: tenantID,
+        module: MODULE_NAME, method: 'insertUsers',
+        action: action,
+        user: user.id,
+        message: `Cannot import ${error.writeErrors.length as number} users!`,
+        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+      });
+    }
+    usersToBeImported.length = 0;
+  }
+
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
@@ -1251,6 +1382,7 @@ export default class UserService {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
@@ -1273,24 +1405,31 @@ export default class UserService {
     return users;
   }
 
-  private static async importUser(action: ServerAction, req: Request, user: any): Promise<void> {
+  private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
-      const newUploadedUser: ImportedUser = {
-        name: user.Name,
-        firstName: user.First_Name,
-        email: user.Email,
-        importedBy: req.user.id,
-        status: UserImportStatus.UNKNOWN
+      const newImportedUser: ImportedUser = {
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
-      await UserStorage.saveImportedUser(req.user.tenantID, newUploadedUser);
+      // Validate User data
+      UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+      // Set properties
+      newImportedUser.importedBy = importedUser.importedBy;
+      newImportedUser.importedOn = importedUser.importedOn;
+      newImportedUser.status = ImportStatus.READY;
+      // Save it later on
+      usersToBeImported.push(newImportedUser);
+      return true;
     } catch (error) {
       await Logging.logError({
         tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'handleUpdloadUsersFile',
+        module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
+      return false;
     }
   }
 }

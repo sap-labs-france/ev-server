@@ -282,7 +282,7 @@ export default class UtilsService {
     }
     // Handle closed socket
     let connectionClosed = false;
-    req.connection.on('close', () => {
+    req.socket.on('close', () => {
       connectionClosed = true;
     });
     do {
@@ -348,6 +348,15 @@ export default class UtilsService {
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
     filteredRequest: ChargingProfile, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Charging Profile ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfOICPEndpointValid'
+      });
+    }
     if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

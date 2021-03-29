@@ -129,7 +129,7 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         // Init the Scheduler
         // -------------------------------------------------------------------------
-        SchedulerManager.init();
+        await SchedulerManager.init();
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
@@ -150,6 +150,9 @@ export default class Bootstrap {
 
   private static startServerWorkers(serverName: string): void {
     Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
+    /**
+     * @param worker
+     */
     function onlineCb(worker: cluster.Worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
@@ -162,6 +165,11 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
+    /**
+     * @param worker
+     * @param code
+     * @param signal
+     */
     function exitCb(worker: cluster.Worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +

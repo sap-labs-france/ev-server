@@ -29,6 +29,12 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -44,6 +50,10 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    *
    * /cdrs/{cdr_id}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -77,6 +87,11 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    * Post a new cdr object.
    *
    * /cdrs/
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const cdr: OCPICdr = req.body as OCPICdr;

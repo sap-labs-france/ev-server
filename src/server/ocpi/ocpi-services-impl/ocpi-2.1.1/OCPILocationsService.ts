@@ -10,8 +10,13 @@ const MODULE_NAME = 'OCPILocationsService';
 export default class OCPILocationsService {
   /**
    * Get OCPI Location from its id (Site ID)
+   *
    * @param {*} tenant
    * @param {*} locationId
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
    */
   static async getLocation(tenant: Tenant, locationId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
     // Get site
@@ -25,9 +30,14 @@ export default class OCPILocationsService {
 
   /**
    * Get OCPI EVSE from its location id/evse_id
+   *
    * @param {*} tenant
    * @param {*} locationId
-   * @param {*} evseId
+   * @param {*} evseUid
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
    */
   static async getEvse(tenant: Tenant, locationId: string, evseUid: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse> {
     // Get site
@@ -49,10 +59,15 @@ export default class OCPILocationsService {
 
   /**
    * Get OCPI Connector from its location_id/evse_uid/connector id
+   *
    * @param {*} tenant
    * @param {*} locationId
    * @param {*} evseUid
    * @param {*} connectorId
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
    */
   static async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIConnector> {
     // Get site

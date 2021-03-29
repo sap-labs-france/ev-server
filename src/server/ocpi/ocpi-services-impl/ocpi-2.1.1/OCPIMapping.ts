@@ -42,10 +42,14 @@ import moment from 'moment';
 export default class OCPIMapping {
   /**
    * Convert Site to OCPI Location
+   *
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return OCPI Location
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns OCPI Location
    */
   static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
     // Build object
@@ -114,7 +118,14 @@ export default class OCPIMapping {
 
   /**
    * Get All OCPI Locations from given tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
    */
   static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<DataResult<OCPILocation>> {
     // Result
@@ -133,7 +144,12 @@ export default class OCPIMapping {
 
   /**
    * Get All OCPI Tokens from given tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
+   * @param dateFrom
+   * @param dateTo
    */
   static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
@@ -163,7 +179,12 @@ export default class OCPIMapping {
 
   /**
    * Get All OCPI Session from given tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
+   * @param dateFrom
+   * @param dateTo
    */
   static async getAllSessions(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPISession>> {
     // Result
@@ -184,7 +205,12 @@ export default class OCPIMapping {
 
   /**
    * Get All OCPI Cdrs from given tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
+   * @param dateFrom
+   * @param dateTo
    */
   static async getAllCdrs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPICdr>> {
     // Result
@@ -207,7 +233,12 @@ export default class OCPIMapping {
 
   /**
    * Get All OCPI Tariffs from given tenant
+   *
    * @param {Tenant} tenant
+   * @param limit
+   * @param skip
+   * @param dateFrom
+   * @param dateTo
    */
   static async getAllTariffs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPITariff>> {
     // Result
@@ -234,7 +265,11 @@ export default class OCPIMapping {
 
   /**
    * Get OCPI Token from given tenant and token id
+   *
    * @param {Tenant} tenant
+   * @param countryId
+   * @param partyId
+   * @param tokenId
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
     const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
@@ -247,7 +282,8 @@ export default class OCPIMapping {
 
   /**
    * Convert OCPI Connector type to connector type
-   * @param {OCPIConnectorType} ocpi connector type
+   *
+   * @param {OCPIConnectorType} ocpiConnectorType ocpi connector type
    */
   static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
     switch (ocpiConnectorType) {
@@ -284,6 +320,7 @@ export default class OCPIMapping {
 
   /**
    * Convert internal status to OCPI Status
+   *
    * @param {*} status
    */
   static convertOCPIStatus2Status(status: OCPIEvseStatus): ChargePointStatus {
@@ -307,6 +344,7 @@ export default class OCPIMapping {
 
   /**
    * Convert internal status to OCPI Status
+   *
    * @param {*} status
    */
   static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
@@ -426,6 +464,7 @@ export default class OCPIMapping {
 
   /**
    * Check if OCPI credential object contains mandatory fields
+   *
    * @param {*} credential
    */
   static isValidOCPICredential(credential: OCPICredential): boolean {
@@ -438,8 +477,11 @@ export default class OCPIMapping {
 
   /**
    * Build OCPI Credential Object
-   * @param {*} tenant
-   * @param {*} token
+   *
+   * @param {string} tenantID
+   * @param {string} token
+   * @param role
+   * @param versionUrl
    */
   static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
     // Credential
@@ -466,6 +508,8 @@ export default class OCPIMapping {
 
   /**
    * Convert OCPI Endpoints
+   *
+   * @param endpointsEntity
    */
   static convertEndpoints(endpointsEntity: any): OCPIEndpoint[] {
     const endpoints: OCPIEndpoint[] = [];
@@ -479,9 +523,14 @@ export default class OCPIMapping {
 
   /**
    * Get evses from SiteArea
+   *
    * @param {Tenant} tenant
    * @param {SiteArea} siteArea
-   * @return Array of OCPI EVSES
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OCPI EVSES
    */
   private static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Build evses array
@@ -508,10 +557,14 @@ export default class OCPIMapping {
 
   /**
    * Get evses from Site
+   *
    * @param {Tenant} tenant
    * @param {Site} site
    * @param options
-   * @return Array of OCPI EVSEs
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OCPI EVSEs
    */
   private static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
@@ -534,9 +587,15 @@ export default class OCPIMapping {
 
   /**
    * Convert ChargingStation to Multiple EVSEs
+   *
    * @param {Tenant} tenant
    * @param {*} chargingStation
-   * @return Array of OCPI EVSEs
+   * @param chargePoint
+   * @param options
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns Array of OCPI EVSEs
    */
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
@@ -571,10 +630,15 @@ export default class OCPIMapping {
 
   /**
    * Convert ChargingStation to Unique EVSE
+   *
    * @param {Tenant} tenant
    * @param {ChargingStation} chargingStation
    * @param options
-   * @return OCPI EVSE
+   * @param chargePoint
+   * @param options.countryID
+   * @param options.partyID
+   * @param options.addChargeBoxID
+   * @returns OCPI EVSE
    */
   private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, chargePoint: ChargePoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     let connectors: Connector[];
@@ -613,6 +677,7 @@ export default class OCPIMapping {
    * As the status is located at EVSE object, it is necessary to aggregate status from the list
    * of connectors
    * The logic may need to be reviewed based on the list of handled status per connector
+   *
    * @param {*} connectors
    */
   private static aggregateConnectorsStatus(connectors: Connector[]): ChargePointStatus {
@@ -721,7 +786,9 @@ export default class OCPIMapping {
 
   /**
    * Convert internal Power (1/3 Phase) to PowerType
+   *
    * @param {*} power
+   * @param ocpiNumberOfConnectedPhases
    */
   private static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {
     switch (ocpiNumberOfConnectedPhases) {

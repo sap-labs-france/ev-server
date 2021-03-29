@@ -15,6 +15,9 @@ export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
   private commonSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/common.json`, 'utf8'));
   private tenantComponentSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-components.json`, 'utf8'));
+  private chargingStationSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation.json`, 'utf8'));
+  private tagSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag.json`, 'utf8'));
+  private transactionSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
     config: {
@@ -22,13 +25,16 @@ export default class SchemaValidator {
       useDefaults: boolean; coerceTypes: boolean;
     } = {
       allErrors: true,
-      removeAdditional: 'all',
+      removeAdditional: 'failing',
       useDefaults: true,
       coerceTypes: true
     }) {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
     this.ajv.addSchema(this.commonSchema);
     this.ajv.addSchema(this.tenantComponentSchema);
+    this.ajv.addSchema(this.chargingStationSchema);
+    this.ajv.addSchema(this.tagSchema);
+    this.ajv.addSchema(this.transactionSchema);
   }
 
   public validate(schema: boolean | Record<string, unknown>, content: any): void {
