@@ -23,7 +23,7 @@ export default class AsyncTaskManager {
     // Get the conf
     AsyncTaskManager.asyncTaskConfig = Configuration.getAsyncTaskConfig();
     // Active?
-    if (AsyncTaskManager.asyncTaskConfig.active) {
+    if (AsyncTaskManager.asyncTaskConfig?.active) {
       // Turn all Running task to Pending
       const updatedAsyncTasks = await AsyncTaskStorage.updateRunningAsyncTaskToPending();
       // Run it
@@ -35,7 +35,7 @@ export default class AsyncTaskManager {
 
   public static async handleAsyncTasks(): Promise<void> {
     // Active?
-    if (AsyncTaskManager.asyncTaskConfig.active) {
+    if (AsyncTaskManager.asyncTaskConfig?.active) {
       await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.ASYNC_TASK,
