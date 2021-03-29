@@ -5,8 +5,8 @@ import CPOLocationsEndpoint from './cpo/CPOLocationsEndpoint';
 import CPOSessionsEndpoint from './cpo/CPOSessionsEndpoint';
 import CPOTariffsEndpoint from './cpo/CPOTariffsEndpoint';
 import CPOTokensEndpoint from './cpo/CPOTokensEndpoint';
-import { Configuration } from '../../../../types/configuration/Configuration';
 import CredentialsEndpoint from './credentials/CredentialsEndpoint';
+import OCPIServiceConfiguration from '../../../../types/configuration/OCPIServiceConfiguration';
 
 /**
  * OCPI Service 2.1.1  - Implementation
@@ -16,7 +16,7 @@ export default class CPOService extends AbstractOCPIService {
   public static readonly PATH = '/ocpi/cpo';
 
   // Create OCPI Service
-  constructor(ocpiRestConfig: Configuration['OCPIService']) {
+  constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, CPOService.PATH, CPOService.VERSION);
 
     // Register Endpoints

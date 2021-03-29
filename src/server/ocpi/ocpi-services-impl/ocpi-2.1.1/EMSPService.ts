@@ -1,5 +1,4 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
-import { Configuration } from '../../../../types/configuration/Configuration';
 import CredentialsEndpoint from './credentials/CredentialsEndpoint';
 import EMSPCdrsEndpoint from './emsp/EMSPCdrsEndpoint';
 import EMSPCommandsEndpoint from './emsp/EMSPCommandsEndpoint';
@@ -7,6 +6,7 @@ import EMSPLocationsEndpoint from './emsp/EMSPLocationsEndpoint';
 import EMSPSessionsEndpoint from './emsp/EMSPSessionsEndpoint';
 import EMSPTariffsEndpoint from './emsp/EMSPTariffsEndpoint';
 import EMSPTokensEndpoint from './emsp/EMSPTokensEndpoint';
+import OCPIServiceConfiguration from '../../../../types/configuration/OCPIServiceConfiguration';
 
 /**
  * OCPI Service 2.1.1  - Implementation
@@ -15,7 +15,7 @@ export default class EMSPService extends AbstractOCPIService {
   public static readonly VERSION = '2.1.1';
   public static readonly PATH = '/ocpi/emsp';
   // Create OCPI Service
-  constructor(ocpiRestConfig: Configuration['OCPIService']) {
+  constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, EMSPService.PATH, EMSPService.VERSION);
 
     // Register Endpoints
