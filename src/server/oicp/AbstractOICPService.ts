@@ -35,6 +35,7 @@ export default abstract class AbstractOICPService {
 
   /**
    * Register Endpoint to this service
+   *
    * @param {*} endpoint AbstractEndpoint
    */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
@@ -88,6 +89,11 @@ export default abstract class AbstractOICPService {
 
   /**
    * Process Endpoint action
+   *
+   * @param params
+   * @param req
+   * @param res
+   * @param next
    */
   public async processEndpointAction(params: any, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Get tenant subdomain and endpoint from url parameters

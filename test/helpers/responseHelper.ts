@@ -10,6 +10,10 @@ declare global {
   }
 }
 
+/**
+ * @param chai
+ * @param utils
+ */
 export default function(chai, utils) {
   const Assertion = chai.Assertion;
 

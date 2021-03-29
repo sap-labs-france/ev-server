@@ -9,10 +9,10 @@ import Logging from '../../utils/Logging';
 import OCPICredential from '../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
@@ -128,7 +128,7 @@ export default abstract class OCPIClient {
       // Try to read services
       const services = await this.getServices();
       // Set available endpoints
-      this.ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(services.data.data);
+      this.ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertEndpoints(services.data.data);
       this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
@@ -214,7 +214,7 @@ export default abstract class OCPIClient {
   public async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
-    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtilsService.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,

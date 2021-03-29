@@ -1,27 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPITariff } from '../../../../types/ocpi/OCPITariff';
-import OCPIUtils from '../../OCPIUtils';
-import { PricingSettingsType } from '../../../../types/Setting';
-import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import { OCPITariff } from '../../../../../types/ocpi/OCPITariff';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { PricingSettingsType } from '../../../../../types/Setting';
+import { ServerAction } from '../../../../../types/Server';
+import SettingStorage from '../../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
+import Tenant from '../../../../../types/Tenant';
+import Utils from '../../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tariffs';
 const MODULE_NAME = 'EMSPTariffsEndpoint';
-
-const RECORDS_LIMIT = 25;
 
 /**
  * EMSP Tariffs Endpoint
@@ -34,6 +32,12 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -47,6 +51,10 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
    *
    * /tariffs/{country_code}/{party_id}/{tariff_id}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getTariffRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -70,7 +78,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
       // Get simple pricing settings
       const pricingSettings = await SettingStorage.getPricingSettings(tenant.id);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
-        tariff = OCPIMapping.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,

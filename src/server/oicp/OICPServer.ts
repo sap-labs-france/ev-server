@@ -34,7 +34,7 @@ export default class OICPServer {
   }
 
   // Start the server
-  async start(): Promise<void> {
+  start(): void {
     ExpressTools.startServer(this.oicpRestConfig, ExpressTools.createHttpServer(this.oicpRestConfig, this.expressApplication), 'OICP', MODULE_NAME);
   }
 }

@@ -199,8 +199,8 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
 
 
   /**
-  * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
-  */
+   * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
+   */
   describe('Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint', () => {
     let response;
 
@@ -255,14 +255,14 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
   });
 
   /**
-  * Test /ocpi/cpo/2.1.1/locations
-  */
+   * Test /ocpi/cpo/2.1.1/locations
+   */
   describe('Test /ocpi/cpo/2.1.1/locations', () => {
     let response;
 
     /**
-      * Access without paging
-      */
+     * Access without paging
+     */
     describe('Access without paging', () => {
 
       // Check call
@@ -462,11 +462,11 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
   });
 
   /**
- * Test single access to location/evse/connector:
- *    - /ocpi/cpo/2.1.1/locations/{locationId}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
- */
+   * Test single access to location/evse/connector:
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
+   */
   describe('Test registration process /ocpi/cpo/2.1.1/credentials/...', () => {
     let response;
     /**
