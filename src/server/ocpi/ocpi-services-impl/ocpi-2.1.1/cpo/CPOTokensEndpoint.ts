@@ -1,21 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import OCPITokensService from './OCPITokensService';
-import OCPIUtils from '../../OCPIUtils';
-import { ServerAction } from '../../../../types/Server';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import Logging from '../../../../../utils/Logging';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../../../../types/ocpi/OCPIToken';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
+import TagStorage from '../../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
@@ -31,6 +30,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -48,6 +53,10 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -58,7 +67,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
     // Retrieve token
-    const token = await OCPIMapping.getToken(tenant, countryCode, partyId, tokenId);
+    const token = await OCPIUtilsService.getToken(tenant, countryCode, partyId, tokenId);
     return OCPIUtils.success(token);
   }
 
@@ -66,6 +75,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    * Push new/updated Token object to the CPO.
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async putToken(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -122,7 +137,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         });
       }
     }
-    await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken, tag, tag.user);
+    await OCPIUtilsService.updateToken(tenant.id, ocpiEndpoint, updatedToken, tag, tag.user);
     return OCPIUtils.success();
   }
 
@@ -130,6 +145,11 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    * Push new/updated Token object to the CPO.
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async patchToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

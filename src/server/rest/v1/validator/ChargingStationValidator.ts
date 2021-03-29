@@ -1,5 +1,6 @@
 import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationOcppRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
+import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from './Schema';
 import SchemaValidator from './SchemaValidator';
@@ -15,6 +16,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationQRCodeGenerate: Schema;
   private chargingStationQRCodeDownload: Schema;
   private chargingStationOcppParametersGet: Schema;
+  private chargingProfileCreate: Schema;
 
 
   private constructor() {
@@ -26,6 +28,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
     this.chargingStationQRCodeDownload = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-download.json`, 'utf8'));
     this.chargingStationOcppParametersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-ocpp-parameters-get.json`, 'utf8'));
+    this.chargingProfileCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingprofile-create.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -74,6 +77,13 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationOcppParametersGetReq(data: any): HttpChargingStationOcppRequest {
     // Validate schema
     this.validate(this.chargingStationOcppParametersGet, data);
+    return data;
+  }
+
+
+  public validateChargingProfileCreateReq(data: any): ChargingProfile {
+    // Validate schema
+    this.validate(this.chargingProfileCreate, data);
     return data;
   }
 }

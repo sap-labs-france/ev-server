@@ -48,13 +48,6 @@ describe('Billing Stripe Service', function() {
       it('should create a DRAFT invoice and pay it for BILLING-TEST user', async () => {
         await testData.checkBusinessProcessBillToPay(false, true);
       });
-
-      it('Should download invoice as PDF', async () => {
-        const response = await testData.adminUserService.billingApi.readAll({ Status: BillingInvoiceStatus.PAID }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.data.result.length).to.be.gt(0);
-        const downloadResponse = await testData.adminUserService.billingApi.downloadInvoiceDocument({ ID: response.data.result[0].id });
-        expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
-      });
     });
 
     describe('immediate billing ON', () => {
@@ -80,6 +73,11 @@ describe('Billing Stripe Service', function() {
         const newSource = await testData.assignPaymentMethod('tok_fr');
         await testData.checkDetachPaymentMethod(newSource.id);
       });
+
+      it('should be able to repair a user', async () => {
+        await testData.checkRepairInconsistencies();
+      });
+
     });
   });
 

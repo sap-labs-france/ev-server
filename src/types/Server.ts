@@ -73,6 +73,7 @@ export enum ServerAction {
   CHARGING_PROFILES = 'ChargingProfiles',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  CHARGING_PROFILE_CREATE = 'ChargingProfileCreate',
   GENERATE_QR_CODE_FOR_CONNECTOR = 'GenerateQrCodeForConnector',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',

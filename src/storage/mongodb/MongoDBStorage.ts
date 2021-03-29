@@ -70,7 +70,7 @@ export default class MongoDBStorage {
       { fields: { 'address.coordinates': '2dsphere' } },
     ]);
     // Users Import
-    await this.handleIndexesInCollection(tenantID, 'usersImport', [
+    await this.handleIndexesInCollection(tenantID, 'importedusers', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
     await this.handleIndexesInCollection(tenantID, 'eulas');
@@ -159,7 +159,7 @@ export default class MongoDBStorage {
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
     ]);
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database done',

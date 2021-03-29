@@ -1,27 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
-import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPIEvse, OCPIEvseStatus } from '../../../../../types/ocpi/OCPIEvse';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStation from '../../../../types/ChargingStation';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
-import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import { ChargePointStatus } from '../../../../../types/ocpp/OCPPServer';
+import ChargingStation from '../../../../../types/ChargingStation';
+import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import Logging from '../../../../../utils/Logging';
+import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
+import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
+import SiteStorage from '../../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
+import Tenant from '../../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -38,6 +38,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -54,6 +60,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -110,6 +122,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
@@ -151,7 +169,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         return;
       }
       chargingStation.ocpiData.evse.status = evse.status;
-      const status = OCPIMapping.convertOCPIStatus2Status(evse.status);
+      const status = OCPIUtilsService.convertOCPIStatus2Status(evse.status);
       for (const connector of chargingStation.connectors) {
         connector.status = status;
       }
@@ -160,7 +178,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       chargingStation.lastChangedOn = evse.last_updated;
       chargingStation.ocpiData.evse.last_updated = evse.last_updated;
     }
-    const patchedChargingStation = OCPIMapping.convertEvseToChargingStation(chargingStation.id, evse);
+    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStation.id, evse);
     if (patchedChargingStation.coordinates) {
       chargingStation.coordinates = patchedChargingStation.coordinates;
     }
@@ -187,7 +205,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           }
           connector.power = connector.amperage * connector.voltage;
           if (ocpiConnector.standard) {
-            connector.type = OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
+            connector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
           }
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
           found = true;
@@ -228,7 +246,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: location
       });
-      const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
+      const chargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStationId, evse, location);
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     }
   }
@@ -253,7 +271,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           connector.amperage = ocpiConnector.amperage;
           connector.voltage = ocpiConnector.voltage;
           connector.power = ocpiConnector.amperage * ocpiConnector.voltage;
-          connector.type = OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
+          connector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
           found = true;
           break;
         }
@@ -267,7 +285,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           connectorId: chargingStation.connectors.length,
           currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
-          type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
+          type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         });
       }
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);

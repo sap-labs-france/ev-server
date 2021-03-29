@@ -10,6 +10,7 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
+import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import ImportTagsTask from '../../../../scheduler/tasks/ImportTagsTask';
@@ -549,7 +550,7 @@ export default class TagService {
             await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
           }
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error) => {
+        }, async (error: CSVError) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportTags',
@@ -562,11 +563,36 @@ export default class TagService {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
+        // Completed
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        }, async () => {
+          // Insert batched
+          if (tagsToBeImported.length > 0) {
+            await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+          }
+          // Release the lock
+          await LockingManager.release(importTagsLock);
+          // Log
+          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+          await Logging.logActionsResponse(
+            req.user.tenantID, action,
+            MODULE_NAME, 'handleImportTags', result,
+            `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+            `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
+            `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+            `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
+          );
+          // Trigger manually and asynchronously the job
+          void new ImportTagsTask().processTenant(req.tenant);
+          // Respond
+          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+          next();
         });
         // Start processing the file
         void file.pipe(converter);
       } else if (mimetype === 'application/json') {
         const parser = JSONStream.parse('tags.*');
+        // TODO: Handle the end of the process to send the data like the CSV
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         parser.on('data', async (tag: ImportedTag) => {
           // Set default value
@@ -611,29 +637,6 @@ export default class TagService {
           res.end();
         }
       }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('finish', async () => {
-      const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-      await Logging.logActionsResponse(
-        req.user.tenantID, action,
-        MODULE_NAME, 'handleImportTags', result,
-        `{{inSuccess}} Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-        `{{inError}} Tag(s) failed to be uploaded in ${executionDurationSecs}s`,
-        `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-        `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
-      );
-      // Insert batched
-      if (tagsToBeImported.length > 0) {
-        await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
-      }
-      // Release the lock
-      await LockingManager.release(importTagsLock);
-      // Trigger manually and asynchronously the job
-      void new ImportTagsTask().processTenant(req.tenant);
-      // Respond
-      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-      next();
     });
   }
 
