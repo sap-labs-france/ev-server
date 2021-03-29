@@ -17,7 +17,7 @@ const MODULE_NAME = 'IothinkAssetIntegration';
 
 export default class IothinkAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
-  private timestampReference = moment('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
+  private timestampReference = moment.utc('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
