@@ -24,6 +24,9 @@ class TestData {
 
 const testData = new TestData();
 
+/**
+ * @param userRole
+ */
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -36,6 +39,9 @@ function login(userRole) {
   }
 }
 
+/**
+ *
+ */
 async function loginAsAdminAndCreateCompanyWithASite() {
   login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
   // Create a company
@@ -61,6 +67,9 @@ async function loginAsAdminAndCreateCompanyWithASite() {
   testData.createdCompanies.push(testData.newCompany);
 }
 
+/**
+ *
+ */
 async function loginAsAdminAndRemoveUsersFromSite() {
   login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, []);

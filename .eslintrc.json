@@ -5,12 +5,18 @@
     "project": "./tsconfig.json"
   },
   "plugins": [
+    "eslint-plugin-import",
+    "eslint-plugin-jsdoc",
     "@typescript-eslint"
   ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:jsdoc/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
   ],
   "rules": {
     "indent": "off",
