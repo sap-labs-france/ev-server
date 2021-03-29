@@ -1,17 +1,15 @@
 import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
-import { AssetConnectionSetting, AssetSetting, AssetSettingsType } from '../../../types/Setting';
+import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import Connection from '../../../types/Connection';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -94,7 +92,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   private getPropertyValue(data: any[], propertyName: string, index: number): number {
     for (const measure of data) {
       if (measure.tagReference === propertyName) {
-        return Utils.convertToFloat(Utils.createDecimal(measure.logs[index].value)) * 1000;
+        return Utils.convertToFloat(Utils.createDecimal(measure.logs[index]?.value ? measure.logs[index].value : 0)) * 1000;
       }
     }
     return 0;
