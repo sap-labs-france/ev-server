@@ -1,10 +1,8 @@
 import { BillingInvoiceStatus } from '../Billing';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import UserToken from '../UserToken';
 
 export interface HttpBillingRequest {
 }
-
 
 export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   UserID?: string;
@@ -28,6 +26,6 @@ export interface HttpPaymentMethods {
 }
 
 export interface HttpDeletePaymentMethod {
-  userID: string;
+  // userID: string;
   paymentMethodId: string;
 }

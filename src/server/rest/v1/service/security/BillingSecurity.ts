@@ -81,7 +81,8 @@ export default class BillingSecurity {
 
   static filterDeletePaymentMethodRequest(requestBody: any): HttpDeletePaymentMethod {
     return {
-      userID: sanitize(requestBody.userID),
+      // TODO - The UI cannot pass the userID so far - so we can only delete payment method for the user being logged in!
+      // userID: sanitize(requestBody.userID),
       paymentMethodId: sanitize(requestBody.paymentMethodId),
     };
   }

@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethodResult, BillingUserSynchronizeAction } from '../../../../types/Billing';
+import { BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingUserSynchronizeAction } from '../../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -10,6 +10,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Constants from '../../../../utils/Constants';
+import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -543,11 +544,12 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
-    const paymentMethodResult: BillingPaymentMethodResult = await billingImpl.getPaymentMethods(user);
-    if (paymentMethodResult) {
-      console.log(paymentMethodResult);
+    const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
+    const dataResult: DataResult<BillingPaymentMethod> = {
+      count: paymentMethods.length,
+      result: paymentMethods
     }
-    res.json(paymentMethodResult);
+    res.json(dataResult);
     next();
   }
 
@@ -578,14 +580,12 @@ export default class BillingService {
       });
     }
     // Get user - ACHTUNG user !== req.user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    const userID = req.user.id;
+    const user: User = await UserStorage.getUser(req.user.tenantID, userID);
+    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
-    const paymentMethodResult: BillingPaymentMethodResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
-    if (paymentMethodResult) {
-      console.log(paymentMethodResult);
-    }
+    await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
