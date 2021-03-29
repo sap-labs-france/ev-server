@@ -170,6 +170,7 @@ export default class CompanyService {
     );
     // Add Auth flags
     await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies.result);
+    // companies.canCreate = Authorizations.canCreateCompany(req.user);
     // Return
     res.json(companies);
     next();
