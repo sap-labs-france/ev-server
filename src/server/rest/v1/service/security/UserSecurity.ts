@@ -51,6 +51,9 @@ export default class UserSecurity {
     if (Utils.objectHasProperty(request, 'SiteID')) {
       filteredRequest.SiteID = sanitize(request.SiteID);
     }
+    if (Utils.objectHasProperty(request, 'UserID')) {
+      filteredRequest.UserID = sanitize(request.UserID);
+    }
     if (Utils.objectHasProperty(request, 'Role')) {
       filteredRequest.Role = sanitize(request.Role);
     }
