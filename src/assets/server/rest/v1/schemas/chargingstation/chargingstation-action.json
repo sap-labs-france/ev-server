@@ -40,7 +40,7 @@
           "enum": ["A", "W"]
         },
         "chargingProfilePurpose": {
-          "$ref": "chargingstation.json#/definitions/chargingProfilePurpose"
+          "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/chargingProfilePurpose"
         },
         "stackLevel": {
           "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/stackLevel"
@@ -85,9 +85,6 @@
     },
     "chargePointID": {
       "$ref": "common.json#/definitions/id"
-    },
-    "profile": {
-      "$ref": "chargingstation.json#/definitions/chargingProfile"
     }
   },
   "required": [
