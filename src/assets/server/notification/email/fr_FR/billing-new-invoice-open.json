@@ -1,0 +1,38 @@
+{
+  "subject": "Billing - New invoice",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Billing - New invoice",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- tenantLogoURL %>"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Une nouvelle facture est disponible : <%- invoice.number %>.",
+      "",
+      "Cliquez sur le lien ci-dessous pour finaliser le paiement."
+    ],
+    "actions": [{
+      "title": "Payer",
+      "url": "<%- evseDashboardPayURL %>"
+    }
+  ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

@@ -261,12 +261,14 @@ export interface BillingInvoiceSynchronizationFailedNotification extends BaseNot
   evseDashboardBillingURL: string;
 }
 
+// TODO: delete unused Utils.build urls
 export interface BillingNewInvoiceNotification extends BaseNotification {
   evseDashboardURL: string;
   evseDashboardInvoiceURL: string;
   user: User;
   invoice: BillingInvoice;
   invoiceDownloadUrl: string;
+  evseDashboardPayURL: string;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {

@@ -1,6 +1,7 @@
 import User, { UserRole } from '../types/User';
 import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
+import { BillingInvoiceStatus } from '../types/Billing';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -1072,12 +1073,26 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
-                // Save
-                await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
-                // Send
-                await notificationSource.notificationTask.sendBillingNewInvoice(
-                  sourceData, user, tenant, NotificationSeverity.INFO);
+                if (sourceData.invoice?.status) {
+                  switch (sourceData.invoice.status) {
+                    case BillingInvoiceStatus.PAID:
+                      // Save
+                      await NotificationHandler.saveNotification(
+                        tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE_PAID, { user });
+                      // Send
+                      await notificationSource.notificationTask.sendBillingNewInvoicePaid(
+                        sourceData, user, tenant, NotificationSeverity.INFO);
+                    break;
+                    case BillingInvoiceStatus.OPEN:
+                      // Save
+                      await NotificationHandler.saveNotification(
+                        tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE_OPEN, { user });
+                      // Send
+                      await notificationSource.notificationTask.sendBillingNewInvoiceOpen(
+                        sourceData, user, tenant, NotificationSeverity.INFO);
+                    break;
+                  }
+                }
               }
             }
           } catch (error) {

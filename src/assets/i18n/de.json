@@ -138,6 +138,14 @@
       "title": "Neue Rechnung",
       "body": "Eine neue Rechnung ({{invoiceNumber}}) ist jetzt verfügbar"
     },
+    "billingNewInvoicePaid": {
+      "title": "New invoice",
+      "body": "Your invoice ({{invoiceNumber}}) has been paid and is now available"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available. Please check your email to finalize the payment"
+    },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
       "body": "'{{userName}}' hat foglenden Fehler: '{{errorTitle}}' - '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"

@@ -138,6 +138,14 @@
       "title": "Nuova fattura",
       "body": "Una nuova fattura ({{invoiceNumber}}) è ora disponibile"
     },
+    "billingNewInvoicePaid": {
+      "title": "New invoice",
+      "body": "Your invoice ({{invoiceNumber}}) has been paid and is now available"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available. Please check your email to finalize the payment"
+    },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",
       "body": "'{{userName}}' ha riportato: '{{errorTitle}}' - '{{errorDescription}}' nell'organizzazione '{{tenantName}}'"

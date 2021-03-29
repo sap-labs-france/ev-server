@@ -138,6 +138,14 @@
       "title": "New invoice",
       "body": "A new invoice ({{invoiceNumber}}) is now available"
     },
+    "billingNewInvoicePaid": {
+      "title": "New invoice",
+      "body": "Your invoice ({{invoiceNumber}}) has been paid and is now available"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "New invoice",
+      "body": "A new invoice ({{invoiceNumber}}) is now available. Please check your email to finalize the payment"
+    },
     "endUserErrorNotification": {
       "title": "Um utilizador reportou um erro",
       "body": "'{{userName}}' reportou: '{{errorTitle}}' - '{{errorDescription}}' do '{{tenantName}}'"
