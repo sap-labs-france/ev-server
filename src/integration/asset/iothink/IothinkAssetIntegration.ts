@@ -1,21 +1,25 @@
-import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+import Asset, { AssetType, IothinkProperty } from '../../../types/Asset';
+import { AssetConnectionSetting, AssetSetting, AssetSettingsType } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
-import Asset from '../../../types/Asset';
 import AssetIntegration from '../AssetIntegration';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
+import Connection from '../../../types/Connection';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Utils from '../../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'IothinkAssetIntegration';
 
 export default class IothinkAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
+  private initialDate = moment('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
@@ -27,9 +31,11 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
   public async retrieveConsumptions(asset: Asset): Promise<AbstractCurrentConsumption[]> {
+    // To be discussed. How do we get local time of the asset? The requests needs local time
+    const timestampStart = -this.initialDate.diff(moment(asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().subtract(15, 'minutes')), 'seconds');
     // Set new Token
     const token = await this.connect();
-    const request = `${this.connection.url}/${asset.meterID}`;
+    const request = `${this.connection.url}/${asset.meterID}&startTime=${timestampStart}`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -60,9 +66,38 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
 
-  private filterConsumptionRequest(asset: Asset, data: any[]): AbstractCurrentConsumption[] {
-    const consumption = {} as AbstractCurrentConsumption;
-    return [consumption];
+  private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption[] {
+    const consumptions: AbstractCurrentConsumption[] = [];
+    const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
+    for (let i = 0; i < data.historics[0].logs.length; i++) {
+      const consumption = {} as AbstractCurrentConsumption;
+      consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.Power_ACTIVE, i) * energyDirection;
+      consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
+      consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
+      consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
+
+      if (asset.siteArea?.voltage) {
+        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+        consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
+        consumption.currentInstantAmpsL2 = consumption.currentInstantWattsL2 / asset.siteArea.voltage;
+        consumption.currentInstantAmpsL3 = consumption.currentInstantWattsL3 / asset.siteArea.voltage;
+      }
+      consumption.lastConsumption = {
+        timestamp: moment(this.initialDate).add(data.historics[0].logs[i].timestamp, 'seconds').toDate(),
+        value: consumption.currentInstantWatts / 60
+      };
+      consumptions.push(consumption);
+    }
+    return consumptions;
+  }
+
+  private getPropertyValue(data: any[], propertyName: string, index: number): number {
+    for (const measure of data) {
+      if (measure.tagReference === propertyName) {
+        return Utils.convertToFloat(Utils.createDecimal(measure.logs[index].value)) * 1000;
+      }
+    }
+    return 0;
   }
 
 
