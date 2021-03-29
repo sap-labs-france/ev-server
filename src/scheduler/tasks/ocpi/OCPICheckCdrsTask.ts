@@ -30,7 +30,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_CDRS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_CDRS, error);
     }
   }
 
@@ -41,7 +41,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_CDRS,
@@ -50,7 +50,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_CDRS,
@@ -58,7 +58,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
@@ -67,7 +67,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         const result = await ocpiClient.checkCdrs();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
@@ -76,7 +76,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_CDRS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_CDRS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

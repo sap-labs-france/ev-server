@@ -1149,7 +1149,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({

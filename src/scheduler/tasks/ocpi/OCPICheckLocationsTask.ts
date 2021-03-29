@@ -30,7 +30,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
     }
   }
 
@@ -41,7 +41,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -50,7 +50,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -58,7 +58,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -67,7 +67,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         const result = await ocpiClient.checkLocations();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -76,7 +76,7 @@ export default class OCPICheckLocationsTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_LOCATIONS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_LOCATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import OCPISessionsService from './OCPISessionsService';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import Tenant from '../../../../types/Tenant';
-import Transaction from '../../../../types/Transaction';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import { OCPICdr } from '../../../../../types/ocpi/OCPICdr';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import Tenant from '../../../../../types/Tenant';
+import Transaction from '../../../../../types/Transaction';
+import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -96,7 +96,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const cdr: OCPICdr = req.body as OCPICdr;
 
-    await OCPISessionsService.processCdr(tenant.id, cdr);
+    await OCPIUtilsService.processCdr(tenant.id, cdr);
 
     res.setHeader('Location', OCPIUtils.buildLocationUrl(req, this.getBaseUrl(req), cdr.id));
     return OCPIUtils.success({});

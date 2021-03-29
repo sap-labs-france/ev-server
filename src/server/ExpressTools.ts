@@ -132,10 +132,10 @@ export default class ExpressTools {
     /**
      * Default listen callback
      */
-    function defaultListenCb(): void {
+    async function defaultListenCb(): Promise<void> {
       // Log
       const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
         action: ServerAction.STARTUP,

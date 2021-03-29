@@ -1,12 +1,12 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import { Configuration } from '../../../../types/configuration/Configuration';
-import CredentialsEndpoint from './CredentialsEndpoint';
-import EMSPCdrsEndpoint from './EMSPCdrsEndpoint';
-import EMSPCommandsEndpoint from './EMSPCommandsEndpoint';
-import EMSPLocationsEndpoint from './EMSPLocationsEndpoint';
-import EMSPSessionsEndpoint from './EMSPSessionsEndpoint';
-import EMSPTariffsEndpoint from './EMSPTariffsEndpoint';
-import EMSPTokensEndpoint from './EMSPTokensEndpoint';
+import CredentialsEndpoint from './credentials/CredentialsEndpoint';
+import EMSPCdrsEndpoint from './emsp/EMSPCdrsEndpoint';
+import EMSPCommandsEndpoint from './emsp/EMSPCommandsEndpoint';
+import EMSPLocationsEndpoint from './emsp/EMSPLocationsEndpoint';
+import EMSPSessionsEndpoint from './emsp/EMSPSessionsEndpoint';
+import EMSPTariffsEndpoint from './emsp/EMSPTariffsEndpoint';
+import EMSPTokensEndpoint from './emsp/EMSPTokensEndpoint';
 
 /**
  * OCPI Service 2.1.1  - Implementation

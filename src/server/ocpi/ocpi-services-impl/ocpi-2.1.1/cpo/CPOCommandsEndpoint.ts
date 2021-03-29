@@ -1,30 +1,30 @@
-import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
+import ChargingStation, { Connector, RemoteAuthorization } from '../../../../../types/ChargingStation';
 import { NextFunction, Request, Response } from 'express';
-import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
+import { OCPICommandResponse, OCPICommandResponseType } from '../../../../../types/ocpi/OCPICommandResponse';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import AxiosFactory from '../../../../utils/AxiosFactory';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStartSession } from '../../../../types/ocpi/OCPIStartSession';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPIStopSession } from '../../../../types/ocpi/OCPIStopSession';
-import OCPITokensService from './OCPITokensService';
-import OCPIUtils from '../../OCPIUtils';
-import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../../../types/Server';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import AxiosFactory from '../../../../../utils/AxiosFactory';
+import { ChargePointStatus } from '../../../../../types/ocpp/OCPPServer';
+import ChargingStationClientFactory from '../../../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../../../utils/Constants';
+import Logging from '../../../../../utils/Logging';
+import { OCPICommandType } from '../../../../../types/ocpi/OCPICommandType';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStartSession } from '../../../../../types/ocpi/OCPIStartSession';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import { OCPIStopSession } from '../../../../../types/ocpi/OCPIStopSession';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { OCPPRemoteStartStopStatus } from '../../../../../types/ocpp/OCPPClient';
+import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import TagStorage from '../../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../../types/Tenant';
+import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
@@ -283,7 +283,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     ) {
       return false;
     }
-    return OCPITokensService.validateToken(startSession.token);
+    return OCPIUtilsService.validateToken(startSession.token);
   }
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {

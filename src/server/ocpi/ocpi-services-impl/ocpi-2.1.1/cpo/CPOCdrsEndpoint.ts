@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import OCPIUtils from '../../OCPIUtils';
-import Tenant from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import Tenant from '../../../../../types/Tenant';
+import Utils from '../../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'CPOCdrsEndpoint';
@@ -57,7 +57,7 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
     // Get all cdrs
-    const cdrs = await OCPIMapping.getAllCdrs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const cdrs = await OCPIUtilsService.getAllCdrs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': cdrs.count,

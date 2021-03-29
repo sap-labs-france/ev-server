@@ -31,7 +31,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
     }
   }
 
@@ -42,7 +42,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
@@ -51,7 +51,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
@@ -59,7 +59,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
@@ -69,7 +69,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
         const sendResult = await ocpiClient.sendEVSEStatuses(!Utils.isUndefined(config.processAllEVSEs) ? config.processAllEVSEs : false);
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_PUSH_EVSE_STATUSES,
@@ -77,7 +77,7 @@ export default class OCPIPushEVSEStatusesTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PUSH_EVSE_STATUSES, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);
