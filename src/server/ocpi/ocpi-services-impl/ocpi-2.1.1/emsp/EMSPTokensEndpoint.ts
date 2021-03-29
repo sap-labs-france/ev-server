@@ -1,22 +1,22 @@
 import { NextFunction, Request, Response } from 'express';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../../types/ocpi/OCPIAuthorizationInfo';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import { UserStatus } from '../../../../types/User';
-import Utils from '../../../../utils/Utils';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import ChargingStationStorage from '../../../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocationReference } from '../../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import TagStorage from '../../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../../types/Tenant';
+import { UserStatus } from '../../../../../types/User';
+import Utils from '../../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -34,6 +34,12 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -49,13 +55,17 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/?date_from=xxx&date_to=yyy&offset=zzz&limit=www
    *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
     // Get all tokens
-    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const tokens = await OCPIUtilsService.getAllTokens(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': tokens.count,
@@ -75,6 +85,11 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    * Do a ‘real-time’ authorization request to the eMSP system, validating if a Token might be used (at the optionally given Location).
    *
    * /tokens/{token_uid}/authorize?{type=token_type}
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   private async authorizeRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');

@@ -1,20 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPILocationsService from './OCPILocationsService';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import { ServerAction } from '../../../../types/Server';
-import Tenant from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
+import Tenant from '../../../../../types/Tenant';
+import Utils from '../../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -32,18 +31,30 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
+        return await this.getLocations(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
   /**
    * Get Locations according to the requested url Segment
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
-  async getLocationsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  async getLocations(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -65,7 +76,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     };
     // Process request
     if (locationId && evseUid && connectorId) {
-      payload = await OCPILocationsService.getConnector(tenant, locationId, evseUid, connectorId, options);
+      payload = await OCPIUtilsService.getConnector(tenant, locationId, evseUid, connectorId, options);
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
@@ -78,7 +89,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
         });
       }
     } else if (locationId && evseUid) {
-      payload = await OCPILocationsService.getEvse(tenant, locationId, evseUid, options);
+      payload = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options);
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
@@ -92,7 +103,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       }
     } else if (locationId) {
       // Get single location
-      payload = await OCPILocationsService.getLocation(tenant, locationId, options);
+      payload = await OCPIUtilsService.getLocation(tenant, locationId, options);
 
       // Check if at least of site found
       if (!payload) {
@@ -110,7 +121,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
       // Get all locations
-      const locations = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
+      const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options);
       payload = locations.result;
       // Set header
       res.set({

@@ -3441,6 +3441,9 @@
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
             "in": "query",
             "name": "Role",
             "required": false,

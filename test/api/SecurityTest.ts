@@ -18,6 +18,9 @@ import global from '../../src/types/GlobalType';
 const testData: TestData = new TestData();
 let initialTenant: Tenant;
 
+/**
+ * @param message
+ */
 function checkSensitiveDataIsObfuscated(message:any): void {
   if (typeof message === 'string') { // If the message is a string
     const dataParts: string[] = message.split('&');

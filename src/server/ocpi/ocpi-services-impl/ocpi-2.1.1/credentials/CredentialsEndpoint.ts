@@ -1,24 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import AxiosFactory from '../../../../utils/AxiosFactory';
-import BackendError from '../../../../exception/BackendError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import Logging from '../../../../utils/Logging';
-import OCPICredential from '../../../../types/ocpi/OCPICredential';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
-import OCPIMapping from './OCPIMapping';
-import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import { ServerAction } from '../../../../types/Server';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import AxiosFactory from '../../../../../utils/AxiosFactory';
+import BackendError from '../../../../../exception/BackendError';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import Logging from '../../../../../utils/Logging';
+import OCPICredential from '../../../../../types/ocpi/OCPICredential';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIRegistrationStatus } from '../../../../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
+import Tenant from '../../../../../types/Tenant';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -33,6 +33,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
   /**
    * Main Process Method for the endpoint
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
+   * @param ocpiEndpoint
    */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
@@ -45,6 +51,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
   /**
    * Registration process initiated by IOP
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
@@ -84,6 +95,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
   /**
    * Registration process initiated by IOP
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param tenant
    */
   async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
@@ -98,7 +114,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       detailedMessages: { credential }
     });
     // Check if valid
-    if (!OCPIMapping.isValidOCPICredential(credential)) {
+    if (!OCPIUtilsService.isValidOCPICredential(credential)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
@@ -230,7 +246,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Set available endpoints
-      ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(response.data.data);
+      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -250,7 +266,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Get base url
     const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
     // Build credential object
-    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
+    const respCredential = await OCPIUtilsService.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
     Logging.logDebug({
       tenantID: tenant.id,

@@ -206,6 +206,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send all EVSEs
+   *
+   * @param processAllEVSEs
+   * @param actionType
    */
   public async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
@@ -338,6 +341,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send all EVSE Statuses
+   *
+   * @param processAllEVSEs
+   * @param actionType
    */
   public async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
@@ -457,6 +463,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Update EVSE Status
+   *
+   * @param chargingStation
+   * @param connector
    */
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
@@ -496,6 +505,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Push EVSE
+   *
+   * @param evses
+   * @param actionType
    */
   public async pushEvseData(evses: OICPEvseDataRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -553,6 +565,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Push EVSE Status
+   *
+   * @param evseStatuses
+   * @param actionType
    */
   public async pushEvseStatus(evseStatuses: OICPEvseStatusRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -611,6 +626,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Authorize Start
+   *
+   * @param tagID
+   * @param transactionId
    */
   public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -692,6 +710,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Authorize Stop
+   *
+   * @param transaction
    */
   public async authorizeStop(transaction: Transaction): Promise<OICPAuthorizeStopCpoReceive> {
     const user = transaction.user;
@@ -777,6 +797,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Push Charge Detail Record
+   *
+   * @param transaction
    */
   public async pushCdr(transaction: Transaction): Promise<OICPAcknowledgment> {
     let pushCdrResponse: OICPAcknowledgment;
@@ -883,6 +905,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Start
+   *
+   * @param transaction
    */
   public async sendChargingNotificationStart(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationStartResponse: OICPAcknowledgment;
@@ -960,6 +984,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Progress
+   *
+   * @param transaction
    */
   public async sendChargingNotificationProgress(transaction: Transaction): Promise<OICPAcknowledgment> {
     if (this.checkProgressUpdateInterval(transaction)) {
@@ -1043,6 +1069,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification End
+   *
+   * @param transaction
    */
   public async sendChargingNotificationEnd(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationEndResponse: OICPAcknowledgment;
@@ -1137,6 +1165,10 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Error
+   *
+   * @param transaction
+   * @param error
+   * @param errorAdditionalInfo
    */
   public async sendChargingNotificationError(transaction: Transaction, error: OICPErrorClass, errorAdditionalInfo?: string): Promise<OICPAcknowledgment> {
     let notificationErrorResponse: OICPAcknowledgment;
