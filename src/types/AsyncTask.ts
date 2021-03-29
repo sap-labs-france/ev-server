@@ -28,7 +28,9 @@ export enum AsyncTaskStatus {
   ERROR = 'E',
 }
 
+
 export enum AsyncTasks {
   TAGS_IMPORT = 'TagsImportAsyncTask',
+  USERS_IMPORT = 'UsersImportAsyncTask',
 }
 
