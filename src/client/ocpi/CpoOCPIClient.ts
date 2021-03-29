@@ -13,12 +13,11 @@ import OCPIClient from './OCPIClient';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
-import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
@@ -122,7 +121,7 @@ export default class CpoOCPIClient extends OCPIClient {
           }
           // Get the Tag
           const emspTag = tags.find((tag) => tag.id === token.uid);
-          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
+          await OCPIUtilsService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
           result.success++;
         } catch (error) {
           result.failure++;
@@ -253,7 +252,7 @@ export default class CpoOCPIClient extends OCPIClient {
       siteID = chargingStation.siteArea.siteID;
     }
     const site: Site = await SiteStorage.getSite(this.tenant.id, siteID);
-    const ocpiLocation: OCPILocation = OCPIMapping.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
+    const ocpiLocation: OCPILocation = OCPIUtilsService.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession =
@@ -318,7 +317,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
-    transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction);
     // Send OCPI information
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiData.session.kwh,
@@ -386,7 +385,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
-    transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction);
     // Log
     await Logging.logDebug({
       tenantID: this.tenant.id,
@@ -454,7 +453,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
-      charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
+      charging_periods: await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction),
       last_updated: transaction.stop.timestamp
     };
     // Log
@@ -555,7 +554,7 @@ export default class CpoOCPIClient extends OCPIClient {
     } else {
       siteID = chargingStation.siteArea.siteID;
     }
-    await this.patchEVSEStatus(chargingStation.id, siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIMapping.convertStatus2OCPIStatus(connector.status));
+    await this.patchEVSEStatus(chargingStation.id, siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {
@@ -621,7 +620,7 @@ export default class CpoOCPIClient extends OCPIClient {
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
     };
     // Get all EVSEs from all locations
-    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
     for (const location of locations.result) {
       if (location) {
@@ -733,7 +732,7 @@ export default class CpoOCPIClient extends OCPIClient {
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
     // Get all EVSEs from all locations
-    const locations = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
+    const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
     for (const location of locations.result) {
       if (location && location.evses) {

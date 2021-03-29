@@ -15,14 +15,13 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
-import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
@@ -63,7 +62,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
     // Get all tokens
-    const tokensResult = await OCPIMapping.getAllTokens(this.tenant, 0, 0);
+    const tokensResult = await OCPIUtilsService.getAllTokens(this.tenant, 0, 0);
     for (const token of tokensResult.result) {
       result.total++;
       try {
@@ -220,7 +219,7 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       for (const session of response.data.data as OCPISession[]) {
         try {
-          await OCPISessionsService.updateTransaction(this.tenant.id, session);
+          await OCPIUtilsService.updateTransaction(this.tenant.id, session);
           result.success++;
         } catch (error) {
           result.failure++;
@@ -280,7 +279,7 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       for (const cdr of response.data.data as OCPICdr[]) {
         try {
-          await OCPISessionsService.processCdr(this.tenant.id, cdr);
+          await OCPIUtilsService.processCdr(this.tenant.id, cdr);
           result.success++;
         } catch (error) {
           result.failure++;
@@ -400,7 +399,7 @@ export default class EmspOCPIClient extends OCPIClient {
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
-          const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
+          const chargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStationId, evse, location);
           chargingStation.siteAreaID = siteArea.id;
           await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
         }
