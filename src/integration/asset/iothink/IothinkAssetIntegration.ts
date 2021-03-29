@@ -17,7 +17,7 @@ const MODULE_NAME = 'IothinkAssetIntegration';
 
 export default class IothinkAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
-  private initialDate = moment('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
+  private timestampReference = moment('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
     super(tenantID, settings, connection);
@@ -28,11 +28,11 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset): Promise<AbstractCurrentConsumption[]> {
-    // To be discussed. How do we get local time of the asset? The requests needs local time
-    const timestampStart = -this.initialDate.diff(moment(asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().subtract(15, 'minutes')), 'seconds');
+  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
     // Set new Token
     const token = await this.connect();
+    // Calculate timestamp of the last consumption in seconds from 1.1.2000, if not available get start of day
+    const timestampStart = moment(asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().startOf('day')).diff(this.timestampReference, 'seconds');
     const request = `${this.connection.url}/${asset.meterID}&startTime=${timestampStart}`;
     try {
       // Get consumption
@@ -50,7 +50,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         module: MODULE_NAME, method: 'retrieveConsumption',
         detailedMessages: { response: response.data }
       });
-      return this.filterConsumptionRequest(asset, response.data);
+      return this.filterConsumptionRequest(asset, response.data, manualCall);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -64,27 +64,32 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
 
-  private filterConsumptionRequest(asset: Asset, data: any): AbstractCurrentConsumption[] {
+  private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
-    for (let i = 0; i < data.historics[0].logs.length; i++) {
-      const consumption = {} as AbstractCurrentConsumption;
-      consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.Power_ACTIVE, i) * energyDirection;
-      consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
-      consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
-      consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
+    if(data.historics) {
+      for (let i = 0; i < data.historics[0].logs.length; i++) {
+        const consumption = {} as AbstractCurrentConsumption;
+        consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.Power_ACTIVE, i) * energyDirection;
+        consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
+        consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
+        consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
 
-      if (asset.siteArea?.voltage) {
-        consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-        consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
-        consumption.currentInstantAmpsL2 = consumption.currentInstantWattsL2 / asset.siteArea.voltage;
-        consumption.currentInstantAmpsL3 = consumption.currentInstantWattsL3 / asset.siteArea.voltage;
+        if (asset.siteArea?.voltage) {
+          consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+          consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
+          consumption.currentInstantAmpsL2 = consumption.currentInstantWattsL2 / asset.siteArea.voltage;
+          consumption.currentInstantAmpsL3 = consumption.currentInstantWattsL3 / asset.siteArea.voltage;
+        }
+        consumption.lastConsumption = {
+          timestamp: moment(this.timestampReference).add(data.historics[0].logs[i].timestamp, 'seconds').toDate(),
+          value: consumption.currentInstantWatts / 60
+        };
+        consumptions.push(consumption);
       }
-      consumption.lastConsumption = {
-        timestamp: moment(this.initialDate).add(data.historics[0].logs[i].timestamp, 'seconds').toDate(),
-        value: consumption.currentInstantWatts / 60
-      };
-      consumptions.push(consumption);
+    }
+    if (manualCall) {
+      return [consumptions[consumptions.length - 1]];
     }
     return consumptions;
   }
