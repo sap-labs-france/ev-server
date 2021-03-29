@@ -695,11 +695,6 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  /**
-   * Send all EVSEs
-   *
-   * @param processAllEVSEs
-   */
   public async sendEVSEStatuses(processAllEVSEs = true): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
@@ -732,10 +727,12 @@ export default class CpoOCPIClient extends OCPIClient {
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
     // Get all EVSEs from all locations
+    // TODO: [Perf Issue] Get Locations with paginated values and only Locations
     const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options);
     // Loop through locations
     for (const location of locations.result) {
       if (location && location.evses) {
+        // TODO: [Perf Issue] Get Charging Stations with paginated values from the current location
         // Loop through EVSE
         for (const evse of location.evses) {
           // Total amount of EVSEs
@@ -805,7 +802,6 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  // Get ChargeBoxIds with new status notifications
   private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
     // Get last job
     const lastPatchJobOn = this.ocpiEndpoint.lastPatchJobOn ? this.ocpiEndpoint.lastPatchJobOn : new Date();
@@ -820,7 +816,6 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  // Get ChargeBoxIDs in failure from previous job
   private getChargeBoxIDsInFailure(): string[] {
     if (this.ocpiEndpoint.lastPatchJobResult?.chargeBoxIDsInFailure) {
       return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;

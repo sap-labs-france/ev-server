@@ -16,28 +16,14 @@ import Tenant from '../../../../../types/Tenant';
 import Transaction from '../../../../../types/Transaction';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 
-const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
-/**
- * EMSP Tokens Endpoint
- */
 export default class EMSPSessionsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'sessions');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getSessionRequest(req, res, next, tenant);
@@ -48,16 +34,6 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Get the Session object from the eMSP system by its id {session_id}.
-   *
-   * /sessions/{country_code}/{party_id}/{session_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -89,16 +65,6 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success(transaction.ocpiData.session);
   }
 
-  /**
-   * Send a new/updated Session object.
-   *
-   * /sessions/{country_code}/{party_id}/{session_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -132,16 +98,6 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success({});
   }
 
-  /**
-   * Update the Session object of id {session_id}.
-   *
-   * /sessions/{country_code}/{party_id}/{session_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action

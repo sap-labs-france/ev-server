@@ -10,28 +10,14 @@ import OCPIUtils from '../../../OCPIUtils';
 import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 
-const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'EMSPCommandsEndpoint';
 
-/**
- * EMSP Tokens Endpoint
- */
 export default class CPOCommandsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'commands');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         // Split URL Segments

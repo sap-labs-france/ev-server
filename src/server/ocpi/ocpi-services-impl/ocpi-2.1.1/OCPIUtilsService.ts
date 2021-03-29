@@ -31,8 +31,6 @@ import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
@@ -72,6 +70,7 @@ export default class OCPIUtilsService {
         latitude: site.address.coordinates[1].toString(),
         longitude: site.address.coordinates[0].toString()
       },
+      // TODO: [Perf Issue] Get EVSEs outside Locations when necessary
       evses: await OCPIUtilsService.getEvsesFromSite(tenant, site, options),
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
@@ -80,15 +79,14 @@ export default class OCPIUtilsService {
     };
   }
 
-  static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation = {
       id: evse.evse_id,
       maximumPower: 0,
       issuer: false,
       connectors: [],
-      chargeBoxSerialNumber: evseId,
       ocpiData: {
-        evse: evse
+        evses: [evse]
       }
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
@@ -529,40 +527,6 @@ export default class OCPIUtilsService {
   }
 
   /**
-   * Get evses from SiteArea
-   *
-   * @param {Tenant} tenant
-   * @param {SiteArea} siteArea
-   * @param options
-   * @param options.countryID
-   * @param options.partyID
-   * @param options.addChargeBoxID
-   * @returns Array of OCPI EVSES
-   */
-  private static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
-    // Build evses array
-    const evses: OCPIEvse[] = [];
-    // Convert charging stations to evse(s)
-    for (const chargingStation of siteArea.chargingStations) {
-      if (Utils.isBoolean(chargingStation.issuer) && chargingStation.issuer && chargingStation.public) {
-        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            if (chargePoint.cannotChargeInParallel) {
-              evses.push(...OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
-            } else {
-              evses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
-            }
-          }
-        } else {
-          evses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
-        }
-      }
-    }
-    // Return evses
-    return evses;
-  }
-
-  /**
    * Get evses from Site
    *
    * @param {Tenant} tenant
@@ -575,20 +539,29 @@ export default class OCPIUtilsService {
    */
   private static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
-    const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
-      {
-        withOnlyChargingStations: true,
-        withChargingStations: true,
-        siteIDs: [site.id],
-        issuer: true
-      },
-      Constants.DB_PARAMS_MAX_LIMIT);
-    for (const siteArea of siteAreas.result) {
-      // Get charging stations from SiteArea
-      evses.push(...OCPIUtilsService.getEvsesFromSiteaArea(tenant, siteArea, options));
+    const evses: OCPIEvse[] = [];
+    // Convert charging stations to evse(s)
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+      { siteIDs: [site.id], public: true}, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const chargingStation of chargingStations.result) {
+      if (Utils.isBoolean(chargingStation.issuer) && chargingStation.issuer && chargingStation.public) {
+        const chargingStationEvses: OCPIEvse[] = [];
+        if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
+          for (const chargePoint of chargingStation.chargePoints) {
+            if (chargePoint.cannotChargeInParallel) {
+              chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2UniqueEvse(tenant, chargingStation, chargePoint, options));
+            } else {
+              chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, chargePoint, options));
+            }
+          }
+        } else {
+          chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
+        }
+        // Always update OCPI data
+        await ChargingStationStorage.saveChargingStationOcpiData(tenant.id, chargingStation.id, { evses: chargingStationEvses });
+        evses.push(...chargingStationEvses);
+      }
     }
-    // Return evses
     return evses;
   }
 

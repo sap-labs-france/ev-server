@@ -1,6 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectID } from 'mongodb';
 import global, { FilterParams } from '../../types/GlobalType';
@@ -597,6 +597,35 @@ export default class ChargingStationStorage {
       { upsert: true });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationLastSeen', uniqueTimerID, params);
+  }
+
+  public static async saveChargingStationOcpiData(tenantID: string, id: string,
+    ocpiData: ChargingStationOcpiData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationOcpiData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    const ocpiDataMDB = {
+      evses: ocpiData.evses.map((evse) => ({
+        uid: evse.uid,
+        evse_id: evse.evse_id,
+        status: evse.status,
+        capabilities: evse.capabilities,
+        connectors: evse.connectors,
+        coordinates: evse.coordinates,
+        last_updated: Utils.convertToDate(evse.last_updated),
+      }))
+    }
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      { $set: {
+          ocpiData : ocpiDataMDB
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationOcpiData', uniqueTimerID, ocpiData);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {

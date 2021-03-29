@@ -18,44 +18,20 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 
-const EP_IDENTIFIER = 'tariffs';
 const MODULE_NAME = 'EMSPTariffsEndpoint';
 
-/**
- * EMSP Tariffs Endpoint
- */
 export default class EMSPTariffsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'tariffs');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getTariffRequest(req, res, next, tenant);
     }
   }
 
-  /**
-   * Get the Tariff object from the eMSP system by its id {tariff_id}.
-   *
-   * /tariffs/{country_code}/{party_id}/{tariff_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async getTariffRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action

@@ -14,51 +14,24 @@ import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 
-const EP_IDENTIFIER = 'tariffs';
 const MODULE_NAME = 'CPOTariffsEndpoint';
 
-const RECORDS_LIMIT = 25;
-
-/**
- * CPO Tariffs Endpoint
- */
 export default class CPOTariffsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'tariffs');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getTariffsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
-  /**
-   * Get Tariffs
-   *
-   * /tariffs/?date_from=xxx&date_to=yyy&offset=zzz&limit=www
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
   private async getTariffsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-    const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+    const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
     // Get all tariffs
     const tariffs = await OCPIUtilsService.getAllTariffs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     if (tariffs.count === 0) {
@@ -74,7 +47,7 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
     // Set header
     res.set({
       'X-Total-Count': tariffs.count,
-      'X-Limit': RECORDS_LIMIT
+      'X-Limit': Constants.OCPI_RECORDS_LIMIT
     });
     // Return next link
     const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tariffs.count);

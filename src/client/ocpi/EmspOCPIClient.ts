@@ -48,7 +48,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async sendTokens(): Promise<OCPIResult> {
+  public async sendTokens(): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -107,7 +107,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  async getCompany(): Promise<Company> {
+  public async getAndCheckCompany(): Promise<Company> {
     let company = await CompanyStorage.getCompany(this.tenant.id, this.ocpiEndpoint.id);
     if (!company) {
       company = {
@@ -121,7 +121,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return company;
   }
 
-  async pullLocations(partial = true): Promise<OCPIResult> {
+  public async pullLocations(partial = true): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -139,7 +139,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } else {
       locationsUrl = `${locationsUrl}?limit=5`;
     }
-    const company = await this.getCompany();
+    const company = await this.getAndCheckCompany();
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
@@ -187,7 +187,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  async pullSessions(): Promise<OCPIResult> {
+  public async pullSessions(): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -247,7 +247,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  async pullCdrs(): Promise<OCPIResult> {
+  public async pullCdrs(): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,
@@ -307,7 +307,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
+  public async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -399,15 +399,16 @@ export default class EmspOCPIClient extends OCPIClient {
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
-          const chargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStationId, evse, location);
+          const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
           chargingStation.siteAreaID = siteArea.id;
+          chargingStation.siteID = siteArea.siteID;
           await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
         }
       }
     }
   }
 
-  async checkToken(tokenUid: string): Promise<boolean> {
+  private async checkToken(tokenUid: string): Promise<boolean> {
     // Get tokens endpoint url
     const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
     // Read configuration to retrieve
@@ -452,7 +453,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async pushToken(token: OCPIToken): Promise<boolean> {
+  public async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url
     const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PUSH_TOKENS);
     // Read configuration to retrieve
@@ -479,7 +480,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return this.checkToken(token.uid);
   }
 
-  async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
+  public async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
@@ -548,7 +549,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return response.data.data as OCPICommandResponse;
   }
 
-  async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
+  public async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;

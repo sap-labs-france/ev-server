@@ -27,29 +27,14 @@ import Tenant from '../../../../../types/Tenant';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 import moment from 'moment';
 
-const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'CPOCommandsEndpoint';
 
-/**
- * EMSP Tokens Endpoint
- */
 export default class CPOCommandsEndpoint extends AbstractEndpoint {
-
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'commands');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         // Split URL Segments
@@ -73,16 +58,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Remote Start Transaction requested by IOP
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async remoteStartSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async remoteStartSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const startSession = req.body as OCPIStartSession;
     if (!this.validateStartSession(startSession)) {
       throw new AppError({
@@ -201,16 +177,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
-  /**
-   * Remote stop Transaction requested by IOP
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async remoteStopSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async remoteStopSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const stopSession = req.body as OCPIStopSession;
     if (!this.validateStopSession(stopSession)) {
       throw new AppError({

@@ -81,19 +81,19 @@ export default interface Transaction extends AbstractCurrentConsumption {
   billingData?: BillingTransactionData;
   ocpi?: boolean;
   ocpiWithCdr?: boolean;
-  ocpiData?: OcpiData;
-  oicpData?: OicpData;
+  ocpiData?: TransactionOcpiData;
+  oicpData?: TransactionOicpData;
   migrationTag?: string;
 }
 
-export interface OcpiData {
+export interface TransactionOcpiData {
   session?: OCPISession;
   cdr?: OCPICdr;
   sessionCheckedOn?: Date;
   cdrCheckedOn?: Date;
 }
 
-export interface OicpData {
+export interface TransactionOicpData {
   session?: OICPSession;
   cdr?: OICPChargeDetailRecord;
   sessionCheckedOn?: Date;

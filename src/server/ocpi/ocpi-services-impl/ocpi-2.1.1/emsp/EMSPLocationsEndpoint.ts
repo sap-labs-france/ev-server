@@ -23,29 +23,14 @@ import SiteStorage from '../../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
 
-const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
 
-/**
- * EMSP Locations Endpoint
- */
 export default class EMSPLocationsEndpoint extends AbstractEndpoint {
-
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'locations');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PATCH':
         return await this.patchLocationRequest(req, res, next, tenant, ocpiEndpoint);
@@ -54,19 +39,6 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Notify the eMSP of partial updates to a Location, EVSEs or Connector (such as the status).
-   *
-   * /locations/{country_code}/{party_id}/{location_id}
-   * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
-   * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
   private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -116,19 +88,6 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success();
   }
 
-  /**
-   * Push/Patch new/updated Location, EVSE and/or Connectors to the eMSP.
-   *
-   * /locations/{country_code}/{party_id}/{location_id}
-   * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
-   * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
   private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -150,7 +109,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const company = await ocpiClient.getCompany();
+    const company = await ocpiClient.getAndCheckCompany();
     const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], search: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (evseUid && connectorId) {
       await this.updateConnector(tenant, locationId, evseUid, connectorId, req.body);
@@ -163,12 +122,13 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   }
 
   private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: Partial<OCPIEvse>) {
+    const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid = evse.uid);
     if (evse.status) {
       if (evse.status === OCPIEvseStatus.REMOVED) {
         await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
         return;
       }
-      chargingStation.ocpiData.evse.status = evse.status;
+      chargingStationEvse.status = evse.status;
       const status = OCPIUtilsService.convertOCPIStatus2Status(evse.status);
       for (const connector of chargingStation.connectors) {
         connector.status = status;
@@ -176,9 +136,9 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     if (evse.last_updated) {
       chargingStation.lastChangedOn = evse.last_updated;
-      chargingStation.ocpiData.evse.last_updated = evse.last_updated;
+      chargingStationEvse.last_updated = evse.last_updated;
     }
-    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStation.id, evse);
+    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(evse);
     if (patchedChargingStation.coordinates) {
       chargingStation.coordinates = patchedChargingStation.coordinates;
     }
@@ -246,7 +206,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME, method: 'updateLocation',
         detailedMessages: location
       });
-      const chargingStation = OCPIUtilsService.convertEvseToChargingStation(chargingStationId, evse, location);
+      const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     }
   }

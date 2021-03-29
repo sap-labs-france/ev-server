@@ -15,50 +15,25 @@ import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 
-const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
 
-const RECORDS_LIMIT = 25;
-
-/**
- * Locations Endpoint
- */
 export default class CPOLocationsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'locations');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getLocations(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
-  /**
-   * Get Locations according to the requested url Segment
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async getLocations(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async getLocations(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     // Split URL Segments
-    //    /ocpi/cpo/2.0/locations/{location_id}
-    //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
-    //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}/{connector_id}
+    //   /ocpi/cpo/2.0/locations/{location_id}
+    //   /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
+    //   /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}/{connector_id}
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -119,14 +94,14 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     } else {
       // Get query parameters
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-      const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+      const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
       const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options);
       payload = locations.result;
       // Set header
       res.set({
         'X-Total-Count': locations.count,
-        'X-Limit': RECORDS_LIMIT
+        'X-Limit': Constants.OCPI_RECORDS_LIMIT
       });
       // Return next link
       const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, locations.count);
