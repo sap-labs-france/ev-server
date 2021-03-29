@@ -7,7 +7,6 @@ import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotSta
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import ImportTagsTask from './tasks/ImportTagsTask';
 import ImportUsersTask from './tasks/ImportUsersTask';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
@@ -135,9 +134,6 @@ export default class SchedulerManager {
             break;
           case 'ImportUsersTask':
             schedulerTask = new ImportUsersTask();
-            break;
-          case 'ImportTagsTask':
-            schedulerTask = new ImportTagsTask();
             break;
           case 'MigrateSensitiveDataTask':
             schedulerTask = new MigrateSensitiveDataTask();
