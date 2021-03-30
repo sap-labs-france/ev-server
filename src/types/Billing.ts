@@ -127,11 +127,6 @@ export interface BillingPaymentMethod {
   isDefault: boolean;
 }
 
-export interface BillingPaymentMethodResult {
-  result: BillingPaymentMethod[];
-  count: number;
-}
-
 export interface BillingError {
   // TODO - Billing Error should expose at least the information which is common to all payment platforms
   message: string

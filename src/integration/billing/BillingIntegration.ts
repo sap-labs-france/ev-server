@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethodResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 /* eslint-disable @typescript-eslint/member-ordering */
 import User, { UserStatus } from '../../types/User';
 
@@ -504,7 +504,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
-  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethodResult>;
+  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
-  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult>;
+  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 }

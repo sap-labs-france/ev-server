@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingPaymentMethodResult, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -9,7 +9,6 @@ import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { DataResult } from '../../../types/DataResult';
 import { Decimal } from 'decimal.js';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
@@ -193,7 +192,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return this.convertToBillingUser(customer, user);
   }
 
-  // TODO : is it ok we retrieve only the active ones ??
   public async getTaxes(): Promise<BillingTax[]> {
     await this.checkConnection();
     const taxes : BillingTax[] = [];
@@ -511,7 +509,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return billingOperationResult;
   }
 
-  public async getPaymentMethods(user: User): Promise<DataResult<BillingPaymentMethod>> {
+  public async getPaymentMethods(user: User): Promise<BillingPaymentMethod[]> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -526,11 +524,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Let's do it!
-    const paymentMethodResult: BillingPaymentMethodResult = await this._getPaymentMethods(user, customerID);
-    return paymentMethodResult;
+    const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
+    return paymentMethods;
   }
 
-  public async deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult> {
+  public async deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -545,8 +543,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Let's do it!
-    const paymentMethodResult: BillingPaymentMethodResult = await this._detachPaymentMethod(paymentMethodId, customerID);
-    return paymentMethodResult;
+    const billingOperationResult: BillingOperationResult = await this._detachPaymentMethod(paymentMethodId, customerID);
+    return billingOperationResult;
   }
 
   private async _createSetupIntent(user: User, customerID: string): Promise<BillingOperationResult> {
@@ -628,7 +626,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
   }
 
-  private async _getPaymentMethods(user: User, customerID: string): Promise<DataResult<BillingPaymentMethod>> {
+  private async _getPaymentMethods(user: User, customerID: string): Promise<BillingPaymentMethod[]> {
     const paymentMethods: BillingPaymentMethod[] = [];
     try {
       let request;
@@ -655,13 +653,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
         }
       } while (request.has_more);
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_PAYMENT_METHODS,
-        module: MODULE_NAME, method: '_getPaymentMethods',
-        message: `Payment method has been listed for customer '${customerID}' - (${user.email})`
-      });
     } catch (e) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
@@ -672,14 +663,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: `Stripe operation failed - ${e?.message as string}`
       });
     }
-    return {
-      count: paymentMethods.length,
-      result: paymentMethods
-    };
+    return paymentMethods;
   }
 
-  private async _detachPaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingPaymentMethodResult> {
-    const detachedPaymentMethod: BillingPaymentMethod[] = [];
+  private async _detachPaymentMethod(paymentMethodId: string, customerID: string): Promise<BillingOperationResult> {
     try {
       // Verify payment method to be deleted is not the default one
       const customer = await this.getStripeCustomer(customerID);
@@ -694,15 +681,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       }
       // Detach payment method from the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.detach(paymentMethodId);
-      detachedPaymentMethod.push({
-        id: paymentMethod.id,
-        brand: paymentMethod.card.brand,
-        expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
-        last4: paymentMethod.card.last4,
-        type: paymentMethod.type,
-        createdOn: moment.unix(paymentMethod.created).toDate(),
-        isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
-      });
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -710,6 +688,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         module: MODULE_NAME, method: '_detachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been detached - customer '${customerID}'`
       });
+      // Send some feedback
+      return {
+        succeeded: true,
+        internalData: paymentMethod
+      };
     } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
@@ -719,11 +702,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: `Failed to detach payment method - customer '${customerID}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
+      // Send some feedback
+      return {
+        succeeded: false,
+        error
+      };
     }
-    return {
-      count: detachedPaymentMethod.length,
-      result: detachedPaymentMethod
-    };
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
