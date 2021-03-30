@@ -127,10 +127,6 @@ export interface BillingPaymentMethod {
   isDefault: boolean;
 }
 
-export interface BillingPaymentMethodResult {
-  result: BillingPaymentMethod[];
-  count: number;
-}
 export interface BillingError {
   message: string
   context?: unknown; // e.g.: payment ==> last_payment_error

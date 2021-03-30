@@ -7,60 +7,54 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
-  static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {
+  static filterSynchronizeUserRequest(requestBody: any): HttpSynchronizeUserRequest {
     const filteredUser: HttpSynchronizeUserRequest = {} as HttpSynchronizeUserRequest;
-    if (Utils.objectHasProperty(request, 'id')) {
-      filteredUser.id = sanitize(request.id);
+    if (Utils.objectHasProperty(requestBody, 'id')) {
+      filteredUser.id = sanitize(requestBody.id);
     }
-    if (Utils.objectHasProperty(request, 'email')) {
-      filteredUser.email = sanitize(request.email);
+    if (Utils.objectHasProperty(requestBody, 'email')) {
+      filteredUser.email = sanitize(requestBody.email);
     }
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
+  static filterGetUserInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
-    if (Utils.objectHasProperty(request, 'UserID')) {
-      filteredRequest.UserID = sanitize(request.UserID);
+    if (Utils.objectHasProperty(requestQuery, 'UserID')) {
+      filteredRequest.UserID = sanitize(requestQuery.UserID);
     }
-    if (Utils.objectHasProperty(request, 'Status')) {
-      filteredRequest.Status = sanitize(request.Status);
+    if (Utils.objectHasProperty(requestQuery, 'Status')) {
+      filteredRequest.Status = sanitize(requestQuery.Status);
     }
-    if (Utils.objectHasProperty(request, 'StartDateTime')) {
-      filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    if (Utils.objectHasProperty(requestQuery, 'StartDateTime')) {
+      filteredRequest.StartDateTime = sanitize(requestQuery.StartDateTime);
     }
-    if (Utils.objectHasProperty(request, 'EndDateTime')) {
-      filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    if (Utils.objectHasProperty(requestQuery, 'EndDateTime')) {
+      filteredRequest.EndDateTime = sanitize(requestQuery.EndDateTime);
     }
-    if (Utils.objectHasProperty(request, 'Search')) {
-      filteredRequest.Search = sanitize(request.Search);
+    if (Utils.objectHasProperty(requestQuery, 'Search')) {
+      filteredRequest.Search = sanitize(requestQuery.Search);
     }
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
+    UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
+    UtilsSecurity.filterSort(requestQuery, filteredRequest);
     return filteredRequest;
   }
 
-  static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
+  static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {
     return {
-      userID: sanitize(request.userID)
+      userID: sanitize(requestBody.userID)
     };
   }
 
-  static filterLinkTransactionToInvoiceRequest(request: any): HttpCreateTransactionInvoiceRequest {
+  static filterLinkTransactionToInvoiceRequest(requestBody: any): HttpCreateTransactionInvoiceRequest {
     return {
-      transactionID: sanitize(request.transactionID)
+      transactionID: sanitize(requestBody.transactionID)
     };
   }
 
-  static filterDownloadInvoiceRequest(request: any): HttpByIDRequest {
+  static filterDownloadInvoiceRequest(requestQuery: any): HttpByIDRequest {
     return {
-      ID: sanitize(request.ID)
-    };
-  }
-
-  static filterChargeInvoiceRequest(request: any): HttpByIDRequest {
-    return {
-      ID: sanitize(request.ID)
+      ID: sanitize(requestQuery.ID)
     };
   }
 
@@ -70,28 +64,26 @@ export default class BillingSecurity {
     };
   }
 
-  static filterSetupPaymentMethodRequest(request: any): HttpSetupPaymentMethod {
+  static filterSetupPaymentMethodRequest(requestBody: any): HttpSetupPaymentMethod {
     return {
-      user: sanitize(request.user),
-      currentUserID: sanitize(request.body.userID),
-      paymentMethodId: sanitize(request.body.paymentMethodId),
+      userID: sanitize(requestBody.userID),
+      paymentMethodId: sanitize(requestBody.paymentMethodId),
     };
   }
 
-  static filterPaymentMethodsRequest(request: any): HttpPaymentMethods {
+  static filterPaymentMethodsRequest(requestQuery: any): HttpPaymentMethods {
     const filteredRequest: HttpPaymentMethods = {
-      loggedUser: sanitize(request.user),
-      selectedUserID: sanitize(request.query.userID)
+      userID: sanitize(requestQuery.userID)
     };
-    UtilsSecurity.filterSkipAndLimit(request.query, filteredRequest);
+    UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
     return filteredRequest;
   }
 
-  // should add currentuserid to check canDeletePm() ??
-  static filterDeletePaymentMethodRequest(request: any): HttpDeletePaymentMethod {
+  static filterDeletePaymentMethodRequest(requestBody: any): HttpDeletePaymentMethod {
     return {
-      loggedUser: sanitize(request.user),
-      paymentMethodId: sanitize(request.body.paymentMethodId),
+      // TODO - The UI cannot pass the userID so far - so we can only delete payment method for the user being logged in!
+      // userID: sanitize(requestBody.userID),
+      paymentMethodId: sanitize(requestBody.paymentMethodId),
     };
   }
 }
