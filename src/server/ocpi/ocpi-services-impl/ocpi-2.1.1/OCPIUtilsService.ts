@@ -47,7 +47,7 @@ const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
    public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withChargingStation = true): Promise<OCPILocation> {
+      options: OCPILocationOptions, withAllChargingStations): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -61,8 +61,8 @@ export default class OCPIUtilsService {
         longitude: site.address.coordinates[0].toString(),
         latitude: site.address.coordinates[1].toString()
       },
-      // TODO: [Perf Issue] Get EVSEs outside Locations when necessary
-      evses: withChargingStation ? await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
+      evses: withAllChargingStations ?
+        await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
         twentyfourseven: true,
@@ -113,7 +113,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,
-      options: OCPILocationOptions, withChargingStation = true): Promise<DataResult<OCPILocation>> {
+      options: OCPILocationOptions, withAllChargingStations: boolean): Promise<DataResult<OCPILocation>> {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
@@ -124,7 +124,7 @@ export default class OCPIUtilsService {
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(
-        await OCPIUtilsService.convertSite2Location(tenant, site, options, withChargingStation));
+        await OCPIUtilsService.convertSite2Location(tenant, site, options, withAllChargingStations));
     }
     // Set count
     ocpiLocationsResult.count = sites.count;
@@ -688,42 +688,26 @@ export default class OCPIUtilsService {
   public static async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions): Promise<OCPILocation> {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
-    if (!site) {
-      return null;
+    if (site) {
+      return await OCPIUtilsService.convertSite2Location(tenant, site, options, true);
     }
-    // Convert
-    return await OCPIUtilsService.convertSite2Location(tenant, site, options);
   }
 
   public static async getEvse(tenant: Tenant, locationId: string, evseUid: string, options: OCPILocationOptions): Promise<OCPIEvse> {
     // Get site
-    const site = await SiteStorage.getSite(tenant.id, locationId);
-    if (!site) {
-      return null;
-    }
-    // Convert to location
-    const location = await OCPIUtilsService.convertSite2Location(tenant, site, options);
-    // Loop through EVSE
-    if (location) {
-      for (const evse of location.evses) {
-        if (evse.uid === evseUid) {
-          return evse;
-        }
-      }
+    const evses = await OCPIUtilsService.getEvsesFromSite(
+      tenant, locationId, options, Constants.DB_PARAMS_SINGLE_RECORD,
+      { 'ocpiData.evses.uid' : evseUid })
+    if (!Utils.isEmptyArray(evses)) {
+      return evses.find((evse) => evse.uid === evseUid);
     }
   }
 
   public static async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: OCPILocationOptions): Promise<OCPIConnector> {
     // Get site
     const evse = await this.getEvse(tenant, locationId, evseUid, options);
-    // Loop through Connector
-    if (evse) {
-      for (const connector of evse.connectors) {
-        if (connector.id === connectorId) {
-          return connector;
-        }
-      }
-    }
+    // Find the Connector
+    return evse?.connectors.find((connector) => connector.id === connectorId);
   }
 
   public static async updateTransaction(tenantId: string, session: OCPISession): Promise<void> {
