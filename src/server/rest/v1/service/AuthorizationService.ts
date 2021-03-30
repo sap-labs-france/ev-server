@@ -75,7 +75,7 @@ export default class AuthorizationService {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: userToken,
-          action: Action.READ, entity: Entity.SITE,
+          action: Action.UPDATE, entity: Entity.SITE,
           module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
         });
       } else {
@@ -485,7 +485,15 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
+  public static async checkCreateSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteID: string): Promise<boolean> {
+    const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(siteID)) {
+      return false;
+    }
+    return true;
+  }
+
+  private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
       {
@@ -595,3 +603,4 @@ export default class AuthorizationService {
     }
   }
 }
+

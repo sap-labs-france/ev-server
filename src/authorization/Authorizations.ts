@@ -529,9 +529,8 @@ export default class Authorizations {
       { site: siteID, sites: loggedUser.sites });
   }
 
-  public static canCreateSiteArea(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canCreateSiteArea(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE);
   }
 
   public static canUpdateSiteArea(loggedUser: UserToken, siteID: string): boolean {

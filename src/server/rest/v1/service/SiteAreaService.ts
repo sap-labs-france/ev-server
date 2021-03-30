@@ -6,6 +6,7 @@ import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
@@ -216,16 +217,12 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
-    // Filter
+    // Filter request
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
-    // Get
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, 'handleDeleteSiteArea', req.user);
-    // Check auth
-    if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
+    // Check statuc auth
+    if (!Authorizations.canDeleteSiteArea(req.user, siteAreaID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -234,6 +231,11 @@ export default class SiteAreaService {
         value: siteAreaID
       });
     }
+    // Get
+    // todo: check and get... (can read); check it exists
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
+      MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // OCPI Site Area
     if (!siteArea.issuer) {
       throw new AppError({
@@ -423,12 +425,13 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
-    // Filter
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
-    // Check
+    // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
+    const createSiteAreaAuthorization = await AuthorizationService.checkCreateSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteID);
+    if (!Authorizations.canCreateSiteArea(req.user) || !createSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -436,8 +439,20 @@ export default class SiteAreaService {
         module: MODULE_NAME, method: 'handleCreateSiteArea'
       });
     }
-    // Check Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    // Check static auth for reading site
+    if (!Authorizations.canReadSite(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleCreateSiteArea',
+      });
+    }
+    // Check dynamic auth for reading site
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteID });
+    // Get Site & check it exists
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleCreateSiteArea', req.user);
     // OCPI Site
