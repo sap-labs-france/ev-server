@@ -548,7 +548,7 @@ export default class BillingService {
     const dataResult: DataResult<BillingPaymentMethod> = {
       count: paymentMethods.length,
       result: paymentMethods
-    }
+    };
     res.json(dataResult);
     next();
   }
