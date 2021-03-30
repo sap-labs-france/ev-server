@@ -84,6 +84,7 @@ export default class CompanyService {
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check dynamic auth
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);

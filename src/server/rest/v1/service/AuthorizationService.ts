@@ -10,8 +10,10 @@ import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSiteAreaRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -19,6 +21,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
+import { filter } from 'bluebird';
 
 const MODULE_NAME = 'AuthorizationService';
 
@@ -76,7 +79,7 @@ export default class AuthorizationService {
           errorCode: HTTPAuthError.FORBIDDEN,
           user: userToken,
           action: Action.UPDATE, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+          module: MODULE_NAME, method: 'checkAndGetUpdateSiteAuthorizationFilters',
         });
       } else {
         authorizationFilters.authorized = true;
@@ -459,29 +462,21 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(companyIDs)) {
-          if (!companyIDs.includes(filteredRequest.ID)) {
-            throw new AppAuthError({
-              errorCode: HTTPAuthError.FORBIDDEN,
-              user: userToken,
-              action: Action.READ, entity: Entity.SITE,
-              module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-            });
-          } else {
-            authorizationFilters.authorized = true;
-          }
-        } else {
+        if (Utils.isEmptyArray(companyIDs) || !companyIDs.includes(filteredRequest.ID)) {
           throw new AppAuthError({
             errorCode: HTTPAuthError.FORBIDDEN,
             user: userToken,
-            action: Action.READ, entity: Entity.SITE,
+            action: Action.READ, entity: Entity.COMPANY,
             module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
           });
+        } else {
+          authorizationFilters.authorized = true;
         }
       } else {
         authorizationFilters.authorized = true;
       }
     }
+
     return authorizationFilters;
   }
 
@@ -491,6 +486,38 @@ export default class AuthorizationService {
       return false;
     }
     return true;
+  }
+
+  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
+
+      if (Utils.isEmptyArray(siteAreaIDs) || !siteAreaIDs.includes(filteredRequest.ID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.READ, entity: Entity.SITE_AREA,
+          module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorizationFilters',
+        });
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+
+    return authorizationFilters;
   }
 
   private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
@@ -601,6 +628,18 @@ export default class AuthorizationService {
         authorizationFilters.authorized = true;
       }
     }
+  }
+
+  private static async getAssignedSiteAreaIDs(tenantID: string, userToken: UserToken, siteID?: string) {
+    // Get the SiteArea IDs from sites assigned to the user
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID,
+      {
+        siteIDs: Authorizations.getAuthorizedSiteIDs(userToken, siteID ? [siteID] : null),
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return _.uniq(_.map(siteAreas.result, 'id'));
   }
 }
 

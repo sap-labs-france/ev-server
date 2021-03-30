@@ -267,26 +267,12 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteArea');
-    // Filter
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
-    // ID is mandatory
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      {
-        withSite: filteredRequest.WithSite,
-        withChargingStations: filteredRequest.WithChargingStations,
-        withImage: true,
-      },
-      [
-        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
-      ]
-    );
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteArea', req.user);
-    // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    // Check static auth
+    if (!Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -295,6 +281,21 @@ export default class SiteAreaService {
         value: filteredRequest.ID
       });
     }
+    // Check dynamic auth
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    // Get SiteArea
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+      {
+        withSite: filteredRequest.WithSite,
+        withChargingStations: filteredRequest.WithChargingStations,
+        withImage: true,
+        ...readSiteAreaAuthorizationFilters.filters
+      },
+      readSiteAreaAuthorizationFilters.projectFields
+    );
+    // Check SiteArea exists
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Return
     res.json(siteArea);
     next();
@@ -349,7 +350,7 @@ export default class SiteAreaService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         locCoordinates: filteredRequest.LocCoordinates,
-        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [
@@ -376,7 +377,7 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
