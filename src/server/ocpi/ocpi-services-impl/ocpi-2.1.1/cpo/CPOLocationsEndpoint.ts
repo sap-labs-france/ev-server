@@ -79,7 +79,6 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     } else if (locationId) {
       // Get single location
       payload = await OCPIUtilsService.getLocation(tenant, locationId, options);
-
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
