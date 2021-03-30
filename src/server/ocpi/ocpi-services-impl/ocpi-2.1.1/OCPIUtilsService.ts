@@ -48,7 +48,7 @@ const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
    public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withAllChargingStations): Promise<OCPILocation> {
+      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -62,7 +62,7 @@ export default class OCPIUtilsService {
         longitude: site.address.coordinates[0].toString(),
         latitude: site.address.coordinates[1].toString()
       },
-      evses: withAllChargingStations ?
+      evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: {
@@ -114,7 +114,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,
-      options: OCPILocationOptions, withAllChargingStations: boolean): Promise<DataResult<OCPILocation>> {
+      options: OCPILocationOptions, withChargingStations: boolean): Promise<DataResult<OCPILocation>> {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
@@ -125,10 +125,16 @@ export default class OCPIUtilsService {
     // Convert Sites to Locations
     for (const site of sites.result) {
       ocpiLocationsResult.result.push(
-        await OCPIUtilsService.convertSite2Location(tenant, site, options, withAllChargingStations));
+        await OCPIUtilsService.convertSite2Location(tenant, site, options, withChargingStations));
+    }
+    let nbrOfSites = sites.count;
+    if (nbrOfSites === -1) {
+      const sitesCount = await SiteStorage.getSites(tenant.id,
+        { issuer: true, onlyPublicSite: true }, Constants.DB_PARAMS_COUNT_ONLY);
+      nbrOfSites = sitesCount.count;
     }
     // Set count
-    ocpiLocationsResult.count = sites.count;
+    ocpiLocationsResult.count = nbrOfSites;
     // Return locations
     return ocpiLocationsResult;
   }
@@ -370,7 +376,7 @@ export default class OCPIUtilsService {
       // Build based on consumptions
       for (const consumption of consumptions.result) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
-        if (chargingPeriod && chargingPeriod.dimensions && chargingPeriod.dimensions.length > 0) {
+        if (!Utils.isEmptyArray(chargingPeriod?.dimensions)) {
           chargingPeriods.push(chargingPeriod);
         }
       }

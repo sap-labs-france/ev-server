@@ -24,6 +24,7 @@ import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
+import { OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
@@ -90,33 +91,38 @@ export default class ChargingStationService {
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (filteredRequest.public !== chargingStation.public) {
-        if (!filteredRequest.public) {
+        // OCPI handling
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
           // Remove charging station from ocpi
-          if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-            try {
-              const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
-              if (ocpiClient) {
-                await ocpiClient.removeChargingStation(chargingStation);
-              }
-            } catch (error) {
-              await Logging.logError({
-                tenantID: req.user.tenantID,
-                module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-                action: action,
-                user: req.user,
-                message: `Unable to remove charging station ${chargingStation.id} from IOP`,
-                detailedMessages: { error: error.message, stack: error.stack }
-              });
+          try {
+            const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
+            let status: OCPIEvseStatus;
+            if (!filteredRequest.public) {
+              // Force remove
+              status = OCPIEvseStatus.REMOVED;
             }
+            if (ocpiClient) {
+              await ocpiClient.udpateChargingStationStatus(chargingStation, status);
+            }
+          } catch (error) {
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              action: action,
+              user: req.user,
+              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
           }
         }
+        // OICP handling
         if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
           let actionType = OICPActionType.INSERT;
-          if (filteredRequest.public === false) {
+          if (!filteredRequest.public) {
             actionType = OICPActionType.DELETE;
           }
           try {
-            const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
+            const oicpClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
             if (oicpClient) {
               // Define get option
               const options = {
