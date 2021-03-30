@@ -15,7 +15,7 @@
           "$ref": "chargingstation.json#/definitions/id"
         },
         "connectorID": {
-          "$ref": "chargingstation.json#/definitions/connectorID"
+          "$ref": "#/definitions/connector/properties/connectorId"
         },
         "chargePointID": {
           "type": "number",
@@ -126,15 +126,6 @@
       "type": "string",
       "pattern": "^(\\d\\|?)*$",
       "sanitize": "mongo"
-<<<<<<< HEAD
-    },
-    "chargingProfilePurpose": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
-    "stackLevel": {
-      "type": "number",
-      "sanitize": "mongo"
     },
     "connector": {
       "type": "object",
@@ -240,8 +231,6 @@
           }
         }
       }
-=======
->>>>>>> 2c87779354bb267ae6d904482080691636195fba
     }
   }
 }
