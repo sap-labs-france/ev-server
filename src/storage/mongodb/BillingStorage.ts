@@ -1,7 +1,6 @@
-import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingError, BillingInvoice, BillingInvoiceStatus } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
-import { BillingError } from '../../integration/billing/stripe/StripeHelpers';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';

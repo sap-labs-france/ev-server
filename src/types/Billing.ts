@@ -131,3 +131,10 @@ export interface BillingPaymentMethodResult {
   result: BillingPaymentMethod[];
   count: number;
 }
+
+export interface BillingError {
+  // TODO - Billing Error should expose at least the information which is common to all payment platforms
+  message: string
+  statusCode: number,
+  context?: unknown; // The context may provide additional information that are platform-specific
+}

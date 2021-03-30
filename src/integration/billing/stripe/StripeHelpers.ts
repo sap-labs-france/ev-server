@@ -1,13 +1,7 @@
-import { BillingInvoice, BillingOperationResult } from '../../../types/Billing';
+import { BillingError, BillingInvoice, BillingOperationResult } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Stripe from 'stripe';
-
-export interface BillingError {
-  message: string
-  statusCode: number,
-  context?: unknown; // e.g.: payment ==> last_payment_error
-}
 
 export default class StripeHelpers {
 

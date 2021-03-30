@@ -479,7 +479,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       };
     } catch (error) {
       return {
-        succeeded: true,
+        succeeded: false,
         error,
       };
     }
