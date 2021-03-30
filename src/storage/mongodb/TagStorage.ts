@@ -285,7 +285,7 @@ export default class TagStorage {
   public static async getTags(tenantID: string,
     params: {
       issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-      withUser?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
+      withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTags');
@@ -323,6 +323,10 @@ export default class TagStorage {
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
+    }
+    // With Users only
+    if (params.withUsersOnly) {
+      filters.userID = { $exists: true, $ne: null };
     }
     // Active
     if (Utils.objectHasProperty(params, 'active') && Utils.isBoolean(params.active)) {

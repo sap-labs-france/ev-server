@@ -299,13 +299,6 @@ export default class EmspOCPIClient extends OCPIClient {
   }
 
   public async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_PULL_LOCATIONS,
-      message: `Processing Location '${location.name}' with ID '${location.id}'`,
-      module: MODULE_NAME, method: 'processLocation',
-      detailedMessages: location
-    });
     // Handle Site
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name

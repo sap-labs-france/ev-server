@@ -99,7 +99,8 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const token of response.data.data as OCPIToken[]) {
         tagIDs.push(token.uid);
       }
-      const tags = (await TagStorage.getTags(this.tenant.id, { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+      const tags = await TagStorage.getTags(this.tenant.id,
+        { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
       for (const token of response.data.data as OCPIToken[]) {
         try {
           // Get eMSP user
@@ -114,7 +115,7 @@ export default class CpoOCPIClient extends OCPIClient {
             }
           }
           // Get the Tag
-          const emspTag = tags.find((tag) => tag.id === token.uid);
+          const emspTag = tags.result.find((tag) => tag.id === token.uid);
           await OCPIUtilsService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
           result.success++;
         } catch (error) {

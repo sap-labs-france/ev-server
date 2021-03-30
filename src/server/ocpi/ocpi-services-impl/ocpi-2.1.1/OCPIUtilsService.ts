@@ -143,25 +143,28 @@ export default class OCPIUtilsService {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
-    const tags = await TagStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
+    const tags = await TagStorage.getTags(tenant.id,
+      { issuer: true, dateFrom, dateTo, withUsersOnly: true, withUser: true },
+      { limit, skip },
+      [ 'id', 'userID', 'user.deleted', 'lastChangedOn' ]);
     // Convert Sites to Locations
     for (const tag of tags.result) {
-      const user = await UserStorage.getUser(tenant.id, tag.userID);
-      const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
-        type: OCPITokenType.RFID,
+        type: (tag.id.length % 8 === 0) ? OCPITokenType.RFID : OCPITokenType.OTHER, // Virtual badges handling
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
-        valid: valid,
+        valid: !tag.user?.deleted,
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
     let nbrOfTags = tags.count;
     if (nbrOfTags === -1) {
-      const tagsCount = await TagStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, Constants.DB_PARAMS_COUNT_ONLY);
+      const tagsCount = await TagStorage.getTags(tenant.id, 
+        { issuer: true, dateFrom, dateTo, withUsersOnly: true },
+        Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfTags = tagsCount.count;
     }
     return {
@@ -1038,7 +1041,7 @@ export default class OCPIUtilsService {
       });
     }
     if (emspUser) {
-      // Existing User: Check local organization
+      // External organization
       if (emspUser.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
