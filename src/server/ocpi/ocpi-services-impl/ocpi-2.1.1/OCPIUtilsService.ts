@@ -152,8 +152,13 @@ export default class OCPIUtilsService {
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
+    let nbrOfTags = tags.count;
+    if (nbrOfTags === -1) {
+      const tagsCount = await TagStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, Constants.DB_PARAMS_COUNT_ONLY);
+      nbrOfTags = tagsCount.count;
+    }
     return {
-      count: tags.count,
+      count: nbrOfTags,
       result: tokens
     };
   }

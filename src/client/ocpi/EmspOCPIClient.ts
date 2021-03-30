@@ -38,7 +38,7 @@ import moment from 'moment';
 const MODULE_NAME = 'EmspOCPIClient';
 
 export default class EmspOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
+  public constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
     if (ocpiEndpoint.role !== OCPIRole.EMSP) {
       throw new BackendError({
@@ -60,7 +60,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Get timestamp before starting process - to be saved in DB at the end of the process
-    const startDate = new Date();
+    const lastPatchJobOn = new Date();
     // Get all tokens
     const tokensResult = await OCPIUtilsService.getAllTokens(this.tenant, 0, 0);
     for (const token of tokensResult.result) {
@@ -77,7 +77,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     }
     // Save result in ocpi endpoint
-    this.ocpiEndpoint.lastPatchJobOn = startDate;
+    this.ocpiEndpoint.lastPatchJobOn = lastPatchJobOn;
     // Set result
     if (result) {
       this.ocpiEndpoint.lastPatchJobResult = {
