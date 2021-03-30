@@ -304,6 +304,7 @@ export default class SiteAreaService {
   public static async handleGetSiteAreaImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteImageRequest(req.query);
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(filteredRequest.TenantID, filteredRequest.ID);
@@ -329,7 +330,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreas');
-    // Check auth
+    // Check static auth
     if (!Authorizations.canListSiteAreas(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -340,6 +341,8 @@ export default class SiteAreaService {
     }
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
+    // Check dynamic auth
+    const readSiteAreasAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(req.tenant, req.user, filteredRequest);
     // Get the sites
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
@@ -348,15 +351,18 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargeBoxes,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         locCoordinates: filteredRequest.LocCoordinates,
-        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters
+        locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        ...readSiteAreasAuthorizationFilters.filters
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
-      ]
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      readSiteAreasAuthorizationFilters.projectFields
     );
     // Return
     res.json(siteAreas);

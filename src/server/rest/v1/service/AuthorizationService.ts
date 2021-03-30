@@ -1,5 +1,6 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
@@ -10,7 +11,6 @@ import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSiteAreaRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -513,6 +513,43 @@ export default class AuthorizationService {
           module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorizationFilters',
         });
       } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetSiteAreasAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreasRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get assigned SiteArea IDs
+      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(siteAreaIDs)) {
+        // Force the filter
+        authorizationFilters.filters.siteAreaIDs = siteAreaIDs;
+        // Check if filter is provided
+        if (Utils.objectHasProperty(filteredRequest, 'SiteAreaID') &&
+              !Utils.isNullOrUndefined(filteredRequest['SiteAreaID'])) {
+          const filteredSiteAreaIDs: string[] = filteredRequest['SiteAreaID'].split('|');
+          // Override
+          authorizationFilters.filters.siteAreaIDs = filteredSiteAreaIDs.filter(
+            (siteAreaID) => authorizationFilters.filters.siteAreaIDs.includes(siteAreaID));
+        }
+      }
+      if (!Utils.isEmptyArray(authorizationFilters.filters.siteAreaIDs)) {
         authorizationFilters.authorized = true;
       }
     }
