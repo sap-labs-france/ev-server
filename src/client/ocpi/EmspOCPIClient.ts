@@ -6,6 +6,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
@@ -61,21 +62,27 @@ export default class EmspOCPIClient extends OCPIClient {
     const startTime = new Date().getTime();
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const lastPatchJobOn = new Date();
-    // Get all tokens
-    const tokensResult = await OCPIUtilsService.getAllTokens(this.tenant, 0, 0);
-    for (const token of tokensResult.result) {
-      result.total++;
-      try {
-        await this.pushToken(token);
-        result.success++;
-      } catch (error) {
-        result.failure++;
-        result.objectIDsInFailure.push(token.uid);
-        result.logs.push(
-          `Failed to update Token ID '${token.uid}': ${error.message}`
-        );
+    let currentSkip = 0;
+    let tokens: DataResult<OCPIToken>;
+    do {
+      // Get all tokens
+      tokens = await OCPIUtilsService.getAllTokens(
+        this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip);
+      for (const token of tokens.result) {
+        result.total++;
+        try {
+          await this.pushToken(token);
+          result.success++;
+        } catch (error) {
+          result.failure++;
+          result.objectIDsInFailure.push(token.uid);
+          result.logs.push(
+            `Failed to update Token ID '${token.uid}': ${error.message}`
+          );
+        }
       }
-    }
+      currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+    } while (!Utils.isEmptyArray(tokens.result));
     // Save result in ocpi endpoint
     this.ocpiEndpoint.lastPatchJobOn = lastPatchJobOn;
     // Set result
