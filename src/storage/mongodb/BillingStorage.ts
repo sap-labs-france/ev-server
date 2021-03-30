@@ -1,6 +1,7 @@
 import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
+import { BillingError } from '../../integration/billing/stripe/StripeHelpers';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
@@ -188,7 +189,7 @@ export default class BillingStorage {
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveLastPaymentFailure(tenantID: string, invoiceID: string, error: unknown): Promise<void> {
+  public static async saveLastPaymentFailure(tenantID: string, invoiceID: string, error: BillingError): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'savePaymentData');
     // Check Tenant

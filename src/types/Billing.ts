@@ -113,8 +113,8 @@ export interface BillingInvoiceDocument {
 
 export interface BillingOperationResult {
   succeeded: boolean
-  error?: BillingError
-  internalData?: unknown; // Object returned by the concrete implementation - e.g.: STRIPE
+  error?: Error
+  internalData?: unknown // an object returned by the concrete implementation - e.g.: STRIPE
 }
 
 export interface BillingPaymentMethod {
@@ -130,8 +130,4 @@ export interface BillingPaymentMethod {
 export interface BillingPaymentMethodResult {
   result: BillingPaymentMethod[];
   count: number;
-}
-export interface BillingError {
-  message: string
-  context?: unknown; // e.g.: payment ==> last_payment_error
 }
