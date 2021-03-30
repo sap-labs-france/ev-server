@@ -563,7 +563,7 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.CREATE, entity: Entity.PAYMENT_METHOD,
+        action: Action.DELETE, entity: Entity.PAYMENT_METHOD,
         module: MODULE_NAME, method: 'handleBillingDeletePaymentMethod'
       });
     }
@@ -579,13 +579,21 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get user - ACHTUNG user !== req.user
+    // Get user - TODO - userID should come from the filteredRequest not from the userToken
     const userID = req.user.id;
     const user: User = await UserStorage.getUser(req.user.tenantID, userID);
     UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
     await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
+    // Log
+    await Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
+      message: `Payment Method '${filteredRequest.paymentMethodId}' has been deleted successfully`,
+      action: action
+    });
+    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
