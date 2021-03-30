@@ -28,6 +28,7 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -746,24 +747,14 @@ export default class OCPIUtilsService {
         });
       }
       const evse = session.location.evses[0];
-      const chargingStationId = OCPIUtils.buildChargingStationId(session.location.id, evse.uid);
-      const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantId, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+        tenantId, session.location.id, evse.uid);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateTransaction',
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `No Charging Station found for ID '${evse.uid}'`,
-          detailedMessages: { session },
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
-        });
-      }
-      if (chargingStation.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateTransaction',
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `OCPI Transaction is not authorized on charging station ${evse.uid} issued locally`,
+          message: `No Charging Station found with ID '${evse.uid}' in Location '${session.location.id}'`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
         });
@@ -789,7 +780,7 @@ export default class OCPIUtilsService {
         stateOfCharge: 0,
         currentStateOfCharge: 0,
         currentTotalInactivitySecs: 0,
-        pricingSource: 'ocpi',
+        pricingSource: PricingSource.OCPI,
         currentInactivityStatus: InactivityStatus.INFO,
         currentInstantWatts: 0,
         currentConsumptionWh: 0,
@@ -818,7 +809,7 @@ export default class OCPIUtilsService {
       return;
     }
     if (session.kwh > 0) {
-      await OCPIUtilsService.computeConsumption(tenantId, transaction, session);
+      await OCPIUtilsService.computeAndSaveConsumption(tenantId, transaction, session);
     }
     if (!transaction.ocpiData) {
       transaction.ocpiData = {};
@@ -951,7 +942,7 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
+  private static async computeAndSaveConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
     const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
     const duration = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
     if (consumptionWh > 0 || duration > 0) {

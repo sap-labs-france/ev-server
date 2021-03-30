@@ -114,7 +114,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async getAndCheckCompany(): Promise<Company> {
+  public async checkAndGetCompany(): Promise<Company> {
     let company = await CompanyStorage.getCompany(this.tenant.id, this.ocpiEndpoint.id);
     if (!company) {
       company = {
@@ -141,25 +141,21 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get locations endpoint url
     let locationsUrl = this.getEndpointUrl('locations', ServerAction.OCPI_PULL_LOCATIONS);
     if (partial) {
+      // Take the last day
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
       locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
     } else {
+      // Take them all
       locationsUrl = `${locationsUrl}?limit=5`;
     }
-    const company = await this.getAndCheckCompany();
-    const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
-      Constants.DB_PARAMS_MAX_LIMIT);
+    const company = await this.checkAndGetCompany();
+    const sites = await SiteStorage.getSites(this.tenant.id,
+      { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
     do {
-      // Log
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PULL_LOCATIONS,
-        message: `Retrieve locations from ${locationsUrl}`,
-        module: MODULE_NAME, method: 'pullLocations'
-      });
       // Call IOP
-      const response = await this.axiosInstance.get(locationsUrl,
+      const response = await this.axiosInstance.get(
+        locationsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -210,15 +206,9 @@ export default class EmspOCPIClient extends OCPIClient {
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
-      // Log
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PULL_SESSIONS,
-        message: `Retrieve OCPI Sessions from ${sessionsUrl}`,
-        module: MODULE_NAME, method: 'pullSessions'
-      });
       // Call IOP
-      const response = await this.axiosInstance.get(sessionsUrl,
+      const response = await this.axiosInstance.get(
+        sessionsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -270,15 +260,9 @@ export default class EmspOCPIClient extends OCPIClient {
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=10`;
     let nextResult = true;
     do {
-      // Log
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: ServerAction.OCPI_PULL_CDRS,
-        message: `Retrieve CDRs from ${cdrsUrl}`,
-        module: MODULE_NAME, method: 'pullCdrs'
-      });
       // Call IOP
-      const response = await this.axiosInstance.get(cdrsUrl,
+      const response = await this.axiosInstance.get(
+        cdrsUrl,
         {
           headers: {
             Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -322,11 +306,13 @@ export default class EmspOCPIClient extends OCPIClient {
       module: MODULE_NAME, method: 'processLocation',
       detailedMessages: location
     });
+    // Handle Site
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name
       : OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
     site = sites.find((value) => value.name === siteName);
     if (!site) {
+      // Create Site
       site = {
         name: siteName,
         createdOn: new Date(),
@@ -347,15 +333,18 @@ export default class EmspOCPIClient extends OCPIClient {
         ];
       }
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
+      // Push the Site then it can be retrieve in the next round
       sites.push(site);
     }
     const locationName = site.name + '-' + location.id;
+    // Handle Site Area
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id, {
       siteIDs: [site.id],
       search: locationName
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     let siteArea = siteAreas && siteAreas.result.length === 1 ? siteAreas.result[0] : null;
     if (!siteArea) {
+      // Create Site Area
       siteArea = {
         name: locationName,
         createdOn: new Date(),
@@ -378,10 +367,9 @@ export default class EmspOCPIClient extends OCPIClient {
       }
       siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
     }
-    if (location.evses && location.evses.length > 0) {
+    if (!Utils.isEmptyArray(location.evses)) {
       for (const evse of location.evses) {
-        const chargingStationId = OCPIUtils.buildChargingStationId(location.id, evse.uid);
-        if (!evse.uid) {
+        if (!evse.evse_id) {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -389,76 +377,73 @@ export default class EmspOCPIClient extends OCPIClient {
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages: location
           });
-        } else if (evse.status === OCPIEvseStatus.REMOVED) {
-          Logging.logDebug({
-            tenantID: this.tenant.id,
-            action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Removed Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
-            module: MODULE_NAME, method: 'processLocation',
-            detailedMessages: location
-          });
-          await ChargingStationStorage.deleteChargingStation(this.tenant.id, chargingStationId);
-        } else {
-          Logging.logDebug({
-            tenantID: this.tenant.id,
-            action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Updated Charging Station ID '${chargingStationId}' in Location '${location.name}'`,
-            module: MODULE_NAME, method: 'processLocation',
-            detailedMessages: location
-          });
-          const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
-          chargingStation.siteAreaID = siteArea.id;
-          chargingStation.siteID = siteArea.siteID;
-          await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+          continue;
         }
+        if (evse.status === OCPIEvseStatus.REMOVED) {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: ServerAction.OCPI_PULL_LOCATIONS,
+            message: `Removed Charging Station ID '${evse.evse_id}' in Location '${location.name}'`,
+            module: MODULE_NAME, method: 'processLocation',
+            detailedMessages: location
+          });
+          await ChargingStationStorage.deleteChargingStation(this.tenant.id, evse.evse_id);
+          continue;
+        }
+        // Update Charging Station
+        const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
+        chargingStation.siteAreaID = siteArea.id;
+        chargingStation.siteID = siteArea.siteID;
+        await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+        Logging.logDebug({
+          tenantID: this.tenant.id,
+          action: ServerAction.OCPI_PULL_LOCATIONS,
+          message: `Updated Charging Station ID '${evse.evse_id}' in Location '${location.name}'`,
+          module: MODULE_NAME, method: 'processLocation',
+          detailedMessages: location
+        });
       }
     }
   }
 
-  private async checkToken(tokenUid: string): Promise<boolean> {
-    // Get tokens endpoint url
-    const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
-    // Read configuration to retrieve
-    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_TOKENS);
-    const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_TOKENS);
-    // Build url to IOP
-    const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${tokenUid}`;
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CHECK_TOKENS,
-      message: `Get Token ID '${tokenUid}' from ${fullUrl}`,
-      module: MODULE_NAME, method: 'getToken',
-      detailedMessages: { tokenUid }
-    });
-    // Call IOP
-    const response = await this.axiosInstance.get(fullUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`
-        },
-      });
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_CHECK_LOCATIONS,
-      message: `Token ID '${tokenUid}' checked successfully`,
-      module: MODULE_NAME, method: 'checkToken',
-      detailedMessages: { response : response.data }
-    });
-    const checkedToken = response.data.data as OCPILocation;
-    if (checkedToken) {
-      return true;
-    }
-    // Check response
-    if (!response.data) {
-      throw new BackendError({
-        action: ServerAction.OCPI_CHECK_TOKENS,
-        message: `Get Token ID '${tokenUid}' failed with status ${JSON.stringify(response)}`,
-        module: MODULE_NAME, method: 'getToken',
-        detailedMessages: { response: response.data }
-      });
-    }
-  }
+  // Use by pushToken() for each Token, not scaling if thousand of them
+  // private async checkToken(tokenUid: string): Promise<boolean> {
+  //   // Get tokens endpoint url
+  //   const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
+  //   // Read configuration to retrieve
+  //   const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_TOKENS);
+  //   const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_TOKENS);
+  //   // Build url to IOP
+  //   const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${tokenUid}`;
+  //   // Call IOP
+  //   const response = await this.axiosInstance.get(
+  //     fullUrl,
+  //     {
+  //       headers: {
+  //         Authorization: `Token ${this.ocpiEndpoint.token}`
+  //       },
+  //     });
+  //   Logging.logDebug({
+  //     tenantID: this.tenant.id,
+  //     action: ServerAction.OCPI_CHECK_LOCATIONS,
+  //     message: `Token ID '${tokenUid}' checked successfully`,
+  //     module: MODULE_NAME, method: 'checkToken',
+  //     detailedMessages: { response : response.data }
+  //   });
+  //   const checkedToken = response.data.data as OCPILocation;
+  //   if (checkedToken) {
+  //     return true;
+  //   }
+  //   // Check response
+  //   if (!response.data) {
+  //     throw new BackendError({
+  //       action: ServerAction.OCPI_CHECK_TOKENS,
+  //       message: `Get Token ID '${tokenUid}' failed with status ${JSON.stringify(response)}`,
+  //       module: MODULE_NAME, method: 'getToken',
+  //       detailedMessages: { response: response.data }
+  //     });
+  //   }
+  // }
 
   public async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url
@@ -468,23 +453,17 @@ export default class EmspOCPIClient extends OCPIClient {
     const partyID = this.getLocalPartyID(ServerAction.OCPI_PUSH_TOKENS);
     // Build url to IOP
     const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${token.uid}`;
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_PUSH_TOKENS,
-      message: `Push Token ID '${token.uid}' to ${fullUrl}`,
-      module: MODULE_NAME, method: 'pushToken',
-      detailedMessages: { token }
-    });
     // Call IOP
-    await this.axiosInstance.put(fullUrl, token,
+    await this.axiosInstance.put(
+      fullUrl,
+      token,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
       });
-    return this.checkToken(token.uid);
+    return true;
   }
 
   public async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
@@ -528,17 +507,10 @@ export default class EmspOCPIClient extends OCPIClient {
       location_id: chargingStation.iccid,
       authorization_id: authorizationId
     };
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_START_SESSION,
-      source: chargingStation.id,
-      message: `Connector ID '${connectorId}' > OCPI Remote Start Session with Tad ID '${tagId}' at ${commandUrl}`,
-      module: MODULE_NAME, method: 'remoteStartSession',
-      detailedMessages: { payload }
-    });
     // Call IOP
-    const response = await this.axiosInstance.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(
+      commandUrl,
+      payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -560,6 +532,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
+    // Get transaction
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
@@ -574,17 +547,10 @@ export default class EmspOCPIClient extends OCPIClient {
       response_url: callbackUrl + '/' + transaction.ocpiData.session.id,
       session_id: transaction.ocpiData.session.id
     };
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OCPI_STOP_SESSION,
-      source: transaction.chargeBoxID,
-      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' at ${commandUrl}`,
-      module: MODULE_NAME, method: 'remoteStopSession',
-      detailedMessages: { payload }
-    });
     // Call IOP
-    const response = await this.axiosInstance.post(commandUrl, payload,
+    const response = await this.axiosInstance.post(
+      commandUrl,
+      payload,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,

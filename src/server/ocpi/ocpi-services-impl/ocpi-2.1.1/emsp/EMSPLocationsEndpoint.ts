@@ -59,8 +59,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       });
     }
     if (evseUid) {
-      const chargingStationId = OCPIUtils.buildChargingStationId(locationId, evseUid);
-      const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenant.id, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+        tenant.id, locationId, evseUid);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -109,7 +109,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const company = await ocpiClient.getAndCheckCompany();
+    const company = await ocpiClient.checkAndGetCompany();
     const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], search: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (evseUid && connectorId) {
       await this.updateConnector(tenant, locationId, evseUid, connectorId, req.body);
@@ -186,34 +186,48 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   }
 
   private async updateEvse(tenant: Tenant, locationId: string, evseUid: string, evse: OCPIEvse, location?: OCPILocation) {
-    const chargingStationId = OCPIUtils.buildChargingStationId(locationId, evseUid);
     if (evse.status === OCPIEvseStatus.REMOVED) {
-      Logging.logDebug({
-        tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Delete removed Charging Station '${evseUid}' of Location ID '${locationId}'`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateLocation',
-        detailedMessages: location
-      });
-      await ChargingStationStorage.deleteChargingStationBySerialNumber(tenant.id, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+        tenant.id, location.id, evseUid);
+      if (chargingStation) {
+        // Delete
+        await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
+        Logging.logInfo({
+          tenantID: tenant.id,
+          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been deleted`,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateEvse',
+          detailedMessages: location
+        });
+      } else {
+        Logging.logError({
+          tenantID: tenant.id,
+          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          message: `Charging Station '${evseUid}' of Location ID '${locationId}' does not exist and cannot be deleted`,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateEvse',
+          detailedMessages: location
+        });
+      }
     } else {
-      Logging.logDebug({
-        tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
-        message: `Update Charging Station '${evseUid}' of Location ID '${locationId}'`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateLocation',
-        detailedMessages: location
-      });
+      // Create/Update
       const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been updated`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateEvse',
+        detailedMessages: location
+      });
     }
   }
 
   private async updateConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, ocpiConnector: OCPIConnector) {
-    const chargingStationId = OCPIUtils.buildChargingStationId(locationId, evseUid);
-    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenant.id, chargingStationId);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+      tenant.id, locationId, evseUid);
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,

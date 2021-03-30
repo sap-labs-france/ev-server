@@ -154,10 +154,20 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingStationByOcpiLocationUid(tenantID: string, ocpiLocation: string = Constants.UNKNOWN_STRING_ID,
+    ocpiUid: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      siteIDs: [ocpiLocation],
+      ocpiUid: ocpiUid,
+      issuer: false,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+  }
+
   public static async getChargingStations(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
+      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; ocpiUid?: string;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
     },
@@ -217,6 +227,10 @@ export default class ChargingStationStorage {
       filters.chargeBoxSerialNumber = {
         $in: params.chargingStationSerialNumbers
       };
+    }
+    // OCPI Uids
+    if (params.ocpiUid) {
+      filters['ocpiData.evses.uid'] = params.ocpiUid;
     }
     // Filter on lastSeen
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
@@ -659,13 +673,6 @@ export default class ChargingStationStorage {
     // Keep the rest (boot notification, authorize...)
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteChargingStation', uniqueTimerID, { id });
-  }
-
-  public static async deleteChargingStationBySerialNumber(tenantID: string, chargingStationSerialNumber?: string): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStationBySerialNumber(tenantID, chargingStationSerialNumber);
-    if (chargingStation) {
-      await ChargingStationStorage.deleteChargingStation(tenantID, chargingStation.id);
-    }
   }
 
   public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string): Promise<string> {
