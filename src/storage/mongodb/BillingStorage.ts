@@ -188,15 +188,15 @@ export default class BillingStorage {
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveLastPaymentFailure(tenantID: string, invoiceID: string, error: BillingError): Promise<void> {
+  public static async saveLastBillingError(tenantID: string, invoiceID: string, error: BillingError): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'savePaymentData');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveLastBillingError');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Set data
-    const updatedInvoiceMDB: any = {
-      lastPaymentFailure: {
-        eventReceivedOn: new Date(),
+    const updatedInvoiceMDB = {
+      lastBillingError: {
+        when: new Date(),
         error
       }
     };
@@ -205,7 +205,7 @@ export default class BillingStorage {
       { '_id': Utils.convertToObjectID(invoiceID) },
       { $set: updatedInvoiceMDB });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'savePaymentData', uniqueTimerID, updatedInvoiceMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveLastBillingError', uniqueTimerID, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenantID: string, id: string): Promise<void> {

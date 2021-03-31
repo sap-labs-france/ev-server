@@ -128,8 +128,23 @@ export interface BillingPaymentMethod {
 }
 
 export interface BillingError {
-  // TODO - Billing Error should expose at least the information which is common to all payment platforms
+  // Billing Error should expose the information which is common to all payment platforms
   message: string
-  statusCode: number,
-  context?: unknown; // The context may provide additional information that are platform-specific
+  errorType: BillingErrorType, // SERVER or APPLICATION errors
+  errorCode: BillingErrorCode, // More information about the root cause
+  rootCause?: unknown; // The original error from the payment platform
+}
+
+export enum BillingErrorType {
+  APPLICATION_ERROR = 'application_error', // This is not a STRIPE error
+  PLATFORM_SERVER_ERROR = 'platform_server_error', // Errors 500, server is down or network issues
+  PLATFORM_APPLICATION_ERROR = 'platform_error', // This is a STRIPE error
+  PLATFORM_PAYMENT_ERROR = 'payment_error',
+}
+
+export enum BillingErrorCode {
+  UNKNOWN_ERROR = 'unknown',
+  UNEXPECTED_ERROR = 'unexpected',
+  NO_PAYMENT_METHOD = 'no_payment_method',
+  CARD_ERROR = 'card_error',
 }
