@@ -4,11 +4,11 @@ import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
-import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerAction } from '../../types/Server';
@@ -31,7 +31,7 @@ export default abstract class AbstractOCPIService {
 
   // Create OCPI Service
   protected constructor(
-    private readonly ocpiRestConfig: Configuration['OCPIService'],
+    private readonly ocpiRestConfig: OCPIServiceConfiguration,
     private readonly role: string,
     private readonly version: string) {
   }
@@ -207,7 +207,7 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
-        Logging.logDebug({
+        await Logging.logDebug({
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: action,
@@ -217,7 +217,7 @@ export default abstract class AbstractOCPIService {
         });
         const response = await endpoint.process(req, res, next, tenant, ocpiEndpoint);
         if (response) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
@@ -227,7 +227,7 @@ export default abstract class AbstractOCPIService {
           });
           res.json(response);
         } else {
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: tenant.id,
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: action,
@@ -247,7 +247,7 @@ export default abstract class AbstractOCPIService {
         });
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: action,
@@ -255,7 +255,7 @@ export default abstract class AbstractOCPIService {
         action: ServerAction.OCPI_ENDPOINT,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OCPI_ENDPOINT, error);
+      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OCPI_ENDPOINT, error);
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;
