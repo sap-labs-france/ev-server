@@ -100,8 +100,8 @@ describe('Locking Tests', function() {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Acquire lock
-      testData.siteExclusiveLock = await LockingHelper.createSiteAreaSmartChargingLock(
-        testData.tenantContext.getTenant().id, siteArea);
+      testData.siteExclusiveLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(
+        testData.tenantContext.getTenant().id, siteArea, 30 * 1000);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;
       expect(testData.siteExclusiveLock.hostname).not.null;
