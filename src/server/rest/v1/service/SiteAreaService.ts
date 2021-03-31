@@ -376,6 +376,9 @@ export default class SiteAreaService {
       },
       readSiteAreasAuthorizationFilters.projectFields
     );
+
+    // todo: add for each! can Read/Update/Delete + global canCreate
+
     // Return
     res.json(siteAreas);
     next();
@@ -385,24 +388,29 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
-    // Filter
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME,
       'handleGetSiteAreaConsumption', req.user);
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID, {},
-      [ 'id', 'name', 'siteID' ]);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.SiteAreaID}' does not exist`,
-      MODULE_NAME, 'handleGetSiteArea', req.user);
-    // Check auth
+    // Check static auth
     if (!Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption'
+        module: MODULE_NAME, method: 'handleGetSiteArea',
+        value: filteredRequest.SiteAreaID
       });
     }
+    // Check dynamic auth
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.SiteAreaID });
+    // Get SiteArea and check it exits
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID, readSiteAreaAuthorizationFilters.filters,
+      [ 'id', 'name', 'siteID' ]);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.SiteAreaID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
