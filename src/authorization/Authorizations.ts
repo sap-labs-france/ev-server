@@ -538,9 +538,8 @@ export default class Authorizations {
     });
   }
 
-  public static canDeleteSiteArea(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canDeleteSiteArea(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
   }
 
   public static canListCompanies(loggedUser: UserToken): boolean {

@@ -481,11 +481,39 @@ export default class AuthorizationService {
   }
 
   public static async checkCreateSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteID: string): Promise<boolean> {
-    const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
-    if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(siteID)) {
-      return false;
+    const authorized = true;
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(siteID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.CREATE, entity: Entity.SITE_AREA,
+          module: MODULE_NAME, method: 'checkCreateSiteAreaAuthorization',
+        });
+      }
     }
-    return true;
+    return authorized;
+  }
+
+  public static async checkDeleteSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string): Promise<boolean> {
+    const authorized = true;
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken),
+        siteID = await AuthorizationService.getSiteAreaSiteID(tenant.id, siteAreaID),
+        sitesAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      if (Utils.isEmptyArray(siteAreaIDs) || !siteAreaIDs.includes(siteAreaID) || !sitesAdminIDs.includes(siteID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.DELETE, entity: Entity.SITE_AREA,
+          module: MODULE_NAME, method: 'checkDeleteSiteAreaAuthorization',
+        });
+      }
+    }
+    return authorized;
   }
 
   public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest): Promise<AuthorizationFilter> {
@@ -678,5 +706,10 @@ export default class AuthorizationService {
     );
     return _.uniq(_.map(siteAreas.result, 'id'));
   }
-}
 
+  private static async getSiteAreaSiteID(tenantID: string, siteAreaID: string) {
+    // Get the Site IDs of SiteArea
+    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, siteAreaID);
+    return siteArea.siteID;
+  }
+}

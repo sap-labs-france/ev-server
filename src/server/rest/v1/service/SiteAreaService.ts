@@ -221,8 +221,9 @@ export default class SiteAreaService {
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
-    // Check statuc auth
-    if (!Authorizations.canDeleteSiteArea(req.user, siteAreaID)) {
+    // Check static auth
+    const deleteSiteAreaAuthorization = await AuthorizationService.checkDeleteSiteAreaAuthorization(req.tenant,req.user, siteAreaID);
+    if (!Authorizations.canDeleteSiteArea(req.user) || !deleteSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -231,9 +232,20 @@ export default class SiteAreaService {
         value: siteAreaID
       });
     }
+    // Check static auth for reading SiteArea
+    if (!Authorizations.canReadSiteArea(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleDeleteSiteArea'
+      });
+    }
+    // Check dynamic auth for reading SiteArea
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(req.tenant, req.user, { ID: siteAreaID });
     // Get
-    // todo: check and get... (can read); check it exists
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID, readSiteAreaAuthorizationFilters.filters);
+    // Check SiteArea exists
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
       MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // OCPI Site Area
