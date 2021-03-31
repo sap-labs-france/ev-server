@@ -484,6 +484,7 @@ export default class AuthorizationService {
     const authorized = true;
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
+      // check if user is siteAdmin for the Site of the SiteArea
       const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
       if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(siteID)) {
         throw new AppAuthError({
@@ -497,19 +498,19 @@ export default class AuthorizationService {
     return authorized;
   }
 
-  public static async checkDeleteSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string): Promise<boolean> {
+  public static async checkUpdateDeleteSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string): Promise<boolean> {
     const authorized = true;
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken),
-        siteID = await AuthorizationService.getSiteAreaSiteID(tenant.id, siteAreaID),
+      // check if user is siteAdmin for the Site of the SiteArea
+      const siteID = await AuthorizationService.getSiteAreaSiteID(tenant.id, siteAreaID),
         sitesAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      if (Utils.isEmptyArray(siteAreaIDs) || !siteAreaIDs.includes(siteAreaID) || !sitesAdminIDs.includes(siteID)) {
+      if (Utils.isEmptyArray(sitesAdminIDs) || !sitesAdminIDs.includes(siteID)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: userToken,
           action: Action.DELETE, entity: Entity.SITE_AREA,
-          module: MODULE_NAME, method: 'checkDeleteSiteAreaAuthorization',
+          module: MODULE_NAME, method: 'checkUpdateDeleteSiteAreaAuthorization',
         });
       }
     }

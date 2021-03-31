@@ -532,7 +532,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: UserToken, siteID: string): boolean {
+  public static canUpdateSiteArea(loggedUser: UserToken, siteID?: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.UPDATE, {
       site: siteID, sites: loggedUser.sitesAdmin
     });

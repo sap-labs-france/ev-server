@@ -51,7 +51,7 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -143,7 +143,7 @@ export default class SiteAreaService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+    if (!Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -221,8 +221,8 @@ export default class SiteAreaService {
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
-    // Check static auth
-    const deleteSiteAreaAuthorization = await AuthorizationService.checkDeleteSiteAreaAuthorization(req.tenant,req.user, siteAreaID);
+    // Check auth
+    const deleteSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, siteAreaID);
     if (!Authorizations.canDeleteSiteArea(req.user) || !deleteSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -510,10 +510,34 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
-    // Filter
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
-    // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargingStations: true });
+    // Check Mandatory fields
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
+    // Check auth
+    const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.id);
+    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
+        value: filteredRequest.id
+      });
+    }
+    // Check auth for reading SiteArea
+    if (!Authorizations.canReadSiteArea(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleUpdateSiteArea'
+      });
+    }
+    // Check dynamic auth for reading SiteArea
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(req.tenant, req.user, { ID: filteredRequest.id });
+    // Get SiteArea & check it exists
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargingStations: true, ...readSiteAreaAuthorizationFilters });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);
     // OCPI Site Area
@@ -527,20 +551,20 @@ export default class SiteAreaService {
         action: action
       });
     }
-    // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+    // Check static auth for reading site
+    if (!Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleUpdateSiteArea',
-        value: filteredRequest.id
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
       });
     }
-    // Check Mandatory fields
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    // Check dynamic auth for reading site
+    const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteID });
+    // Get Site & check it exists
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);
     // OCPI Site
