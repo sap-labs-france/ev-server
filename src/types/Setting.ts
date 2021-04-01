@@ -277,11 +277,13 @@ export interface AssetConnectionSetting {
   type: AssetConnectionType;
   schneiderConnection?: AssetSchneiderConnectionType;
   greencomConnection?: AssetGreencomConnectionType;
+  iothinkConnection?: AssetIothinkConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
-  GREENCOM = 'greencom'
+  GREENCOM = 'greencom',
+  IOTHINK = 'iothink'
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -296,6 +298,10 @@ export interface AssetGreencomConnectionType {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AssetIothinkConnectionType extends AssetUserPasswordConnectionType {
 }
 
 export enum CarConnectorSettingsType {

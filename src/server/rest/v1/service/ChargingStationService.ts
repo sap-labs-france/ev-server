@@ -543,7 +543,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
+    const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
     if (siteAreaLock) {
       try {
         // Call
@@ -1129,7 +1129,7 @@ export default class ChargingStationService {
     res.json(chargingStations);
   }
 
-  public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -1149,7 +1149,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -1375,7 +1375,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');

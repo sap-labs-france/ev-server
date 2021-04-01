@@ -33,6 +33,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   WithTag?: boolean;
   Search: string;
   SiteID: string;
+  UserID: string;
   Role: string;
   Status: string;
   ErrorType?: string;
