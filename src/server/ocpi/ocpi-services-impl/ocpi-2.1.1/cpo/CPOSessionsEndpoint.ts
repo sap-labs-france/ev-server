@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPIMapping from './OCPIMapping';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
-import { ServerAction } from '../../../../types/Server';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
-import Utils from '../../../../utils/Utils';
+import Tenant from '../../../../../types/Tenant';
+import Utils from '../../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'CPOSessionsEndpoint';
@@ -75,7 +75,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
     }
 
     // Get all sessions
-    const sessions = await OCPIMapping.getAllSessions(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const sessions = await OCPIUtilsService.getAllSessions(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': sessions.count,

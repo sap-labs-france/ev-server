@@ -1,20 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPISession } from '../../../../types/ocpi/OCPISession';
-import OCPISessionsService from './OCPISessionsService';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../../AbstractEndpoint';
+import AbstractOCPIService from '../../../AbstractOCPIService';
+import AppError from '../../../../../exception/AppError';
+import Constants from '../../../../../utils/Constants';
+import { HTTPError } from '../../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPISession } from '../../../../../types/ocpi/OCPISession';
+import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../../OCPIUtils';
+import OCPIUtilsService from '../OCPIUtilsService';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../../../../types/Tenant';
-import Transaction from '../../../../types/Transaction';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import Tenant from '../../../../../types/Tenant';
+import Transaction from '../../../../../types/Transaction';
+import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -128,7 +128,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    await OCPISessionsService.updateTransaction(tenant.id, session);
+    await OCPIUtilsService.updateTransaction(tenant.id, session);
     return OCPIUtils.success({});
   }
 
@@ -203,7 +203,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
-    await OCPISessionsService.updateTransaction(tenant.id, transaction.ocpiData.session);
+    await OCPIUtilsService.updateTransaction(tenant.id, transaction.ocpiData.session);
     return OCPIUtils.success({});
   }
 }

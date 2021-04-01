@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPaymentMethodResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
@@ -141,9 +141,10 @@ export default class StripeIntegrationTestData {
   public async checkDetachPaymentMethod(newSourceId: string) : Promise<void> {
     const concreteImplementation : StripeBillingIntegration = this.billingImpl;
     // TODO: check this is not the default pm as here we are dealing with source and not pm
-    const deletedSource = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
-    expect(deletedSource).to.not.be.null;
-    await this.retrievePaymentMethod(deletedSource.result[0].id);
+    const operationResult: BillingOperationResult = await concreteImplementation.deletePaymentMethod(this.dynamicUser, newSourceId);
+    expect(operationResult.internalData).to.not.be.null;
+    const paymentMethod = operationResult.internalData as any;
+    await this.retrievePaymentMethod(paymentMethod.id);
   }
 
   // TODO : modify this test with concrete implementation when we have implemented getPaymentMethod(pmID)
