@@ -51,6 +51,7 @@ export interface Configuration {
   ChargingStation: ChargingStationConfiguration;
   Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
+  AsyncTask: AsyncTaskConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;

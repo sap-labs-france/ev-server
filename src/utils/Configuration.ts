@@ -2,6 +2,7 @@ import { AppEnv, getAppEnv } from 'cfenv';
 import { CloudCredentials, CloudCredentialsKey } from '../types/Cloud';
 import ContractCertificatePoolConfiguration, { ContractCertificatePoolType } from '../types/configuration/ContractsCertificatePoolConfiguration';
 
+import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
@@ -56,6 +57,12 @@ export default class Configuration {
   public static getSchedulerConfig(): SchedulerConfiguration {
     // Read conf
     return Configuration.getConfig().Scheduler;
+  }
+
+  // Async task config
+  public static getAsyncTaskConfig(): AsyncTaskConfiguration {
+    // Read conf
+    return Configuration.getConfig().AsyncTask;
   }
 
   // Firebase config

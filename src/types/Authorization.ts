@@ -65,6 +65,8 @@ export enum Entity {
   SETTINGS = 'Settings',
   TOKENS = 'Tokens',
   TOKEN = 'Token',
+  ASYNC_TASK = 'AsyncTask',
+  ASYNC_TASKS = 'AsyncTasks',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   OICP_ENDPOINT = 'OicpEndpoint',
