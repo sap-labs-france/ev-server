@@ -906,9 +906,11 @@ export default class UserService {
     let connectionClosed = false;
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     req.socket.on('close', async () => {
-      connectionClosed = true;
-      // Release the lock
-      await LockingManager.release(importUsersLock);
+      if (!connectionClosed) {
+        connectionClosed = true;
+        // Release the lock
+        await LockingManager.release(importUsersLock);
+      }
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
@@ -965,6 +967,8 @@ export default class UserService {
         // Completed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async () => {
+          // Consider the connection closed
+          connectionClosed = true;
           // Insert batched
           if (usersToBeImported.length > 0) {
             await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);

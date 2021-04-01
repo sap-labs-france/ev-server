@@ -5,13 +5,14 @@ import { ActionsResponse } from '../types/GlobalType';
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import ImportTagsAsyncTask from './tasks/TagsImportAsyncTask';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
+import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
+import UsersImportAsyncTask from './tasks/UsersImportAsyncTask';
 import Utils from '../utils/Utils';
 
 const MODULE_NAME = 'AsyncTaskManager';
@@ -68,7 +69,10 @@ export default class AsyncTaskManager {
             // Tasks
             switch (asyncTask.name) {
               case AsyncTasks.TAGS_IMPORT:
-                abstractAsyncTask = new ImportTagsAsyncTask(asyncTask);
+                abstractAsyncTask = new TagsImportAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.USERS_IMPORT:
+                abstractAsyncTask = new UsersImportAsyncTask(asyncTask);
                 break;
               default:
                 await Logging.logError({

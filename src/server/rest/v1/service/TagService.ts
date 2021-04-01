@@ -508,9 +508,11 @@ export default class TagService {
     let connectionClosed = false;
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     req.socket.on('close', async () => {
-      connectionClosed = true;
-      // Release the lock
-      await LockingManager.release(importTagsLock);
+      if (!connectionClosed) {
+        connectionClosed = true;
+        // Release the lock
+        await LockingManager.release(importTagsLock);
+      }
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
@@ -567,6 +569,8 @@ export default class TagService {
         // Completed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async () => {
+          // Consider the connection closed
+          connectionClosed = true;
           // Insert batched
           if (tagsToBeImported.length > 0) {
             await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
