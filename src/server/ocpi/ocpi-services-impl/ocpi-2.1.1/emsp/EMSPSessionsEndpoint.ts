@@ -51,7 +51,6 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
@@ -102,12 +101,10 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const sessionId = urlSegment.shift();
-
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -117,7 +114,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
+    const transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

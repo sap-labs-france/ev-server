@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { OCPIEvse, OCPIEvseStatus } from '../../../../../types/ocpi/OCPIEvse';
+import { OCPILocation, OCPILocationOptions } from '../../../../../types/ocpi/OCPILocation';
 
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
@@ -13,7 +14,6 @@ import Logging from '../../../../../utils/Logging';
 import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
-import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
@@ -58,6 +58,10 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+    const options: OCPILocationOptions = {
+      countryID: countryCode,
+      partyID: partyId
+    };
     if (evseUid) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
         tenant.id, locationId, evseUid);
@@ -73,7 +77,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       if (connectorId) {
         await this.patchConnector(tenant, chargingStation, connectorId, req.body);
       } else {
-        await this.patchEvse(tenant, chargingStation, req.body);
+        await this.patchEvse(tenant, chargingStation, req.body, options);
       }
     } else {
       Logging.logDebug({
@@ -90,9 +94,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
 
   private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
-    // Remove action
     urlSegment.shift();
-    // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const locationId = urlSegment.shift();
@@ -121,7 +123,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success();
   }
 
-  private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: Partial<OCPIEvse>) {
+  private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: Partial<OCPIEvse>, options: OCPILocationOptions) {
     const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid = evse.uid);
     if (evse.status) {
       if (evse.status === OCPIEvseStatus.REMOVED) {

@@ -11,6 +11,7 @@ import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
+import BackendError from '../../../../exception/BackendError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
@@ -73,7 +74,6 @@ export default class OCPIUtilsService {
 
   public static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation = {
-      id: evse.evse_id,
       maximumPower: 0,
       issuer: false,
       connectors: [],
@@ -109,6 +109,15 @@ export default class OCPIUtilsService {
         chargingStation.connectors.push(connector);
         connectorId++;
       }
+    }
+    // Build ID
+    chargingStation.id = evse.evse_id;
+    if (!chargingStation.id) {
+      throw new BackendError({
+        message: `Cannot find Charging Station EVSE ID`,
+        module: MODULE_NAME, method: 'convertEvseToChargingStation',
+        detailedMessages:  { evse, location }
+      });
     }
     return chargingStation;
   }
@@ -326,7 +335,8 @@ export default class OCPIUtilsService {
     return tariff;
   }
 
-  public static convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation, connectorId: number, countryId: string, partyId: string): OCPILocation {
+  public static convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
+      connectorId: number, countryId: string, partyId: string): OCPILocation {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     for (const chargingStationConnector of chargingStation.connectors) {
@@ -350,7 +360,8 @@ export default class OCPIUtilsService {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
-        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
+        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id,
+          Utils.getConnectorFromID(chargingStation, connectorId).connectorId),
         status: OCPIUtilsService.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
@@ -490,7 +501,8 @@ export default class OCPIUtilsService {
     const evses = connectors.map((connector) => {
       const evse: OCPIEvse = {
         uid: OCPIUtils.buildEvseUID(chargingStation, connector),
-        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector),
+        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
+          chargingStation.id, connector.connectorId),
         status: OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: [OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
@@ -527,7 +539,7 @@ export default class OCPIUtilsService {
     const evse: OCPIEvse = {
       // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
       uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1, status: connectorOneStatus }),
-      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, { connectorId: 1, status: connectorOneStatus }),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, 1),
       status: OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       connectors: ocpiConnectors,
@@ -613,7 +625,7 @@ export default class OCPIUtilsService {
     const amperage = OCPIUtilsService.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
     const ocpiNumberOfConnectedPhases = OCPIUtilsService.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
-      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation, connector),
+      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
       standard: type,
       format: format,
       voltage: voltage,
@@ -756,8 +768,8 @@ export default class OCPIUtilsService {
         });
       }
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-        tenantId, session.location.id, evse.uid);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
+        tenantId, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,

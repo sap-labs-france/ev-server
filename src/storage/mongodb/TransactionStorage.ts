@@ -937,12 +937,14 @@ export default class TransactionStorage {
   }
 
   public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
+      { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getOICPTransaction(tenantID: string, sessionID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
+      { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 

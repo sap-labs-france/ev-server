@@ -17,7 +17,6 @@ export default class EMSPService extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, EMSPService.PATH, EMSPService.VERSION);
-
     // Register Endpoints
     this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new EMSPLocationsEndpoint(this));

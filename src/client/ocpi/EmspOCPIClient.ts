@@ -1,3 +1,4 @@
+import { OCPILocation, OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 
 import BackendError from '../../exception/BackendError';
@@ -15,7 +16,6 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
@@ -24,6 +24,7 @@ import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
+import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
@@ -301,8 +302,7 @@ export default class EmspOCPIClient extends OCPIClient {
   public async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
     // Handle Site
     let site: Site;
-    const siteName = location.operator && location.operator.name ? location.operator.name
-      : OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+    const siteName = location.operator?.name ?? OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
     site = sites.find((value) => value.name === siteName);
     if (!site) {
       // Create Site
@@ -362,25 +362,29 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     if (!Utils.isEmptyArray(location.evses)) {
       for (const evse of location.evses) {
-        if (!evse.evse_id) {
-          Logging.logDebug({
-            tenantID: this.tenant.id,
+        if (!evse.uid) {
+          throw new BackendError({
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing Charging Station ID in Location '${location.name}'`,
+            message: `Missing Charging Station EVSE UID in Location ID '${location.id}'`,
             module: MODULE_NAME, method: 'processLocation',
-            detailedMessages: location
+            detailedMessages:  { evse, location }
           });
-          continue;
         }
         if (evse.status === OCPIEvseStatus.REMOVED) {
-          Logging.logDebug({
-            tenantID: this.tenant.id,
-            action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Removed Charging Station ID '${evse.evse_id}' in Location '${location.name}'`,
-            module: MODULE_NAME, method: 'processLocation',
-            detailedMessages: location
-          });
-          await ChargingStationStorage.deleteChargingStation(this.tenant.id, evse.evse_id);
+          // Get existing charging station
+          const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+            this.tenant.id, location.id, evse.uid, ['id']
+          );
+          if (currentChargingStation) {
+            await ChargingStationStorage.deleteChargingStation(this.tenant.id, currentChargingStation.id);
+            Logging.logDebug({
+              tenantID: this.tenant.id,
+              action: ServerAction.OCPI_PULL_LOCATIONS,
+              message: `Removed Charging Station EVSE UID '${evse.uid}' in Location ID '${location.id}'`,
+              module: MODULE_NAME, method: 'processLocation',
+              detailedMessages: { evse, location }
+            });
+          }
           continue;
         }
         // Update Charging Station

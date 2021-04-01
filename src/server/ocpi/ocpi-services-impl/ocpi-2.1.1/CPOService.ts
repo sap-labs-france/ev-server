@@ -18,7 +18,6 @@ export default class CPOService extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig: OCPIServiceConfiguration) {
     super(ocpiRestConfig, CPOService.PATH, CPOService.VERSION);
-
     // Register Endpoints
     this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new CPOLocationsEndpoint(this));

@@ -7,6 +7,7 @@ import Constants from '../../../../../utils/Constants';
 import { HTTPError } from '../../../../../types/HTTPError';
 import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocationOptions } from '../../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
@@ -44,7 +45,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     let payload = {};
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_GET_LOCATIONS),
       partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)

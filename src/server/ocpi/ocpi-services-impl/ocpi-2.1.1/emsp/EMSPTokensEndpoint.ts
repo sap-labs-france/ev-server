@@ -98,8 +98,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-      tenant.id, locationReference.location_id, locationReference.evse_uids[0]);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
+      tenant.id, locationReference.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

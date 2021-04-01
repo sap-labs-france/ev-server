@@ -2,7 +2,7 @@ import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
 import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPILocation, OCPILocationOptions, OCPILocationReference } from '../../types/ocpi/OCPILocation';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
@@ -547,7 +547,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_CHECK_LOCATIONS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_CHECK_LOCATIONS)
@@ -640,7 +640,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OCPI_PATCH_STATUS),
       partyID: this.getLocalPartyID(ServerAction.OCPI_PATCH_STATUS)
