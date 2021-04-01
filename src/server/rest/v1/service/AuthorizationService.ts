@@ -6,7 +6,7 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
-import Company from '../../../../types/Company';
+import { CompanyDataResult } from '../../../../types/DataResult';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -380,15 +380,17 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: Company[]): Promise<void> {
-    // Get Site Admins - needed?
+  public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: CompanyDataResult): Promise<void> {
+    // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
+    // Add canCreate flag to root
+    companies.canCreate = Authorizations.canCreateCompany(userToken);
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
-    for (const company of companies) {
+    for (const company of companies.result) {
       if (userToken.role === UserRole.ADMIN) {
         company.canRead = true;
         company.canUpdate = true;
