@@ -1,3 +1,4 @@
+import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
@@ -130,6 +131,10 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         await SchedulerManager.init();
+        // -------------------------------------------------------------------------
+        // Init the Asyn Task
+        // -------------------------------------------------------------------------
+        await AsyncTaskManager.init();
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());

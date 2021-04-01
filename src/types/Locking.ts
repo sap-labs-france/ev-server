@@ -29,4 +29,5 @@ export enum LockEntity {
   OCPI_ENDPOINT = 'ocpi-endpoint',
   TAG = 'tag',
   OICP_ENDPOINT = 'oicp-endpoint',
+  ASYNC_TASK = 'async-task',
 }
