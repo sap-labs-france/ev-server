@@ -906,9 +906,11 @@ export default class UserService {
     let connectionClosed = false;
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     req.socket.on('close', async () => {
-      connectionClosed = true;
-      // Release the lock
-      await LockingManager.release(importUsersLock);
+      if (!connectionClosed) {
+        connectionClosed = true;
+        // Release the lock
+        await LockingManager.release(importUsersLock);
+      }
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
@@ -965,6 +967,8 @@ export default class UserService {
         // Completed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async () => {
+          // Consider the connection closed
+          connectionClosed = true;
           // Insert batched
           if (usersToBeImported.length > 0) {
             await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
@@ -1327,32 +1331,33 @@ export default class UserService {
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.firstName') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.role') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.status') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.email') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.eulaAcceptedOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.changedOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.changedBy') + '\r\n';
+      csv = 'id' + Constants.CSV_SEPARATOR;
+      csv += 'name' + Constants.CSV_SEPARATOR;
+      csv += 'firstName' + Constants.CSV_SEPARATOR;
+      csv += 'locale' + Constants.CSV_SEPARATOR;
+      csv += 'role' + Constants.CSV_SEPARATOR;
+      csv += 'status' + Constants.CSV_SEPARATOR;
+      csv += 'email' + Constants.CSV_SEPARATOR;
+      csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
+      csv += 'createdOn' + Constants.CSV_SEPARATOR;
+      csv += 'changedOn' + Constants.CSV_SEPARATOR;
+      csv += 'changedBy' + Constants.CR_LF;
     }
     // Content
     for (const user of users) {
       csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
       csv += user.name + Constants.CSV_SEPARATOR;
       csv += user.firstName + Constants.CSV_SEPARATOR;
+      csv += user.locale + Constants.CSV_SEPARATOR;
       csv += user.role + Constants.CSV_SEPARATOR;
       csv += user.status + Constants.CSV_SEPARATOR;
       csv += user.email + Constants.CSV_SEPARATOR;
       csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + '\r\n';
+      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + Constants.CR_LF;
     }
     return csv;
   }

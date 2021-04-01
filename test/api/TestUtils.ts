@@ -4,7 +4,7 @@ export default class TestUtils {
   }
 
   public static convertExportFileToRawArray(fileData: string): Array<string> {
-    let fileArray = fileData.split('\r\n');
+    let fileArray = fileData.split(Constants.CR_LF);
     fileArray = fileArray.filter((record: string) => record.length > 0);
     return fileArray;
   }

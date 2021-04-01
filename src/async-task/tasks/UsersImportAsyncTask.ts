@@ -54,7 +54,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                   throw new Error('User is deleted');
                 }
                 if (foundUser.status !== UserStatus.PENDING) {
-                  throw new Error('User account is no longer pending');
+                  throw new Error('User account is already in use');
                 }
                 // Update it
                 foundUser.name = importedUser.name;
@@ -66,25 +66,19 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 continue;
               }
               // New User
-              const user: Partial<User> = {
-                firstName: importedUser.firstName,
-                name: importedUser.name,
-                email: importedUser.email,
-                locale: null, // Defaults to the browser locale
-                issuer: true,
-                deleted: false,
-                role: UserRole.BASIC,
-                status: UserStatus.ACTIVE,
-                createdBy: { id: importedUser.importedBy },
-                createdOn: importedUser.importedOn,
-                notificationsActive: true
-              };
+              const newUser = UserStorage.createNewUser();
+              // Set
+              newUser.firstName = importedUser.firstName;
+              newUser.name = importedUser.name;
+              newUser.email = importedUser.email;
+              newUser.createdBy = { id: importedUser.importedBy };
+              newUser.createdOn = importedUser.importedOn;
               // Save the new User
-              user.id = await UserStorage.saveUser(tenant.id, user);
+              newUser.id = await UserStorage.saveUser(tenant.id, newUser);
               // Role need to be set separately
-              await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
+              await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
+              await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
               // Remove the imported User
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               result.inSuccess++;
