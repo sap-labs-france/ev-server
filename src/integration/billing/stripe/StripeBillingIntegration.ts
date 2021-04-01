@@ -9,14 +9,14 @@ import BillingIntegration from '../BillingIntegration';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { DataResult } from '../../../types/DataResult';
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import Stripe from 'stripe';
 import { StripeBillingSetting } from '../../../types/Setting';
+import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -437,62 +437,50 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async chargeInvoice(billingInvoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
-    const billingOperationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
-    billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
-    if (!billingOperationResult.succeeded) {
-      // TODO - how to determine the root cause of the error
-      // c.f.: https://stripe.com/docs/error-codes#missing
-      await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, billingOperationResult);
+    const operationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
+    if (!operationResult?.succeeded && operationResult?.error) {
+      await Logging.logError({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'billInvoiceItem',
+        message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
+        detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+      });
     }
+
+    billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
+    await StripeHelpers.handleStripeOperationResult(this.tenantID, billingInvoice, operationResult);
     return billingInvoice;
   }
 
   private async _chargeStripeInvoice(invoiceID: string): Promise<BillingOperationResult> {
-    // Fetch the invoice from stripe (do NOT TRUST the local copy)
-    let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
-    // Check the current invoice status
-    if (stripeInvoice.status !== 'paid') {
-      // Finalize the invoice (if necessary)
-      if (stripeInvoice.status === 'draft') {
-        stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoiceID);
-      }
-      // Once finalized, the invoice is in the "open" state!
-      if (stripeInvoice.status === 'open') {
-        // Set the payment options
-        const paymentOptions: Stripe.InvoicePayParams = {};
-        try {
+    try {
+      // Fetch the invoice from stripe (do NOT TRUST the local copy)
+      let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
+      // Check the current invoice status
+      if (stripeInvoice.status !== 'paid') {
+        // Finalize the invoice (if necessary)
+        if (stripeInvoice.status === 'draft') {
+          stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoiceID);
+        }
+        // Once finalized, the invoice is in the "open" state!
+        if (stripeInvoice.status === 'open') {
+          // Set the payment options
+          const paymentOptions: Stripe.InvoicePayParams = {};
           stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
-        } catch (error) {
-          return this.shrinkStripeFailure(error);
         }
       }
+      return {
+        succeeded: true,
+        internalData: stripeInvoice
+      };
+    } catch (error) {
+      return {
+        succeeded: false,
+        error,
+      };
     }
-    return {
-      succeeded: true,
-      internalData: stripeInvoice
-    };
-  }
-
-  private shrinkStripeFailure(error): BillingOperationResult {
-    // Let's extract the data that we might be interested in
-    const { type, rawType, message, code, decline_code, payment_intent, payment_method, payment_method_type } = error;
-    // Wrap it in a format that we can consume!
-    const billingOperationResult: BillingOperationResult = {
-      succeeded: false,
-      error: {
-        message,
-        context: {
-          type,
-          rawType,
-          code,
-          declineCode: decline_code,
-          paymentIntentID: payment_intent?.id,
-          paymentMethodID: payment_method?.id,
-          paymentMethodType: payment_method_type
-        }
-      }
-    };
-    return billingOperationResult;
   }
 
   public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
@@ -586,13 +574,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         module: MODULE_NAME, method: '_createSetupIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
-      const billingOperationResult: BillingOperationResult = {
+      return {
         succeeded: false,
-        error: {
-          message: error?.message
-        }
+        error
       };
-      return billingOperationResult;
     }
   }
 
@@ -634,13 +619,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Stripe operation failed - ${error?.message as string}`
       });
-      const billingOperationResult: BillingOperationResult = {
+      return {
         succeeded: false,
-        error: {
-          message: error?.message
-        }
+        error
       };
-      return billingOperationResult;
     }
   }
 
@@ -723,9 +705,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Send some feedback
       return {
         succeeded: false,
-        error: {
-          message: error?.message
-        }
+        error
       };
     }
   }
@@ -951,29 +931,26 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Let's create a new draft invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
-    let paymentOperationResult: BillingOperationResult;
+    let operationResult: BillingOperationResult;
     if (this.settings.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
-      try {
-        paymentOperationResult = await this._chargeStripeInvoice(stripeInvoice.id);
-      } catch (error) {
+      operationResult = await this._chargeStripeInvoice(stripeInvoice.id);
+      if (!operationResult?.succeeded && operationResult?.error) {
         await Logging.logError({
           tenantID: this.tenantID,
           user: user.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
-          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id }'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
+          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
         });
       }
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id, false);
-    // We have now a Billing Invoice - Let's update it with details about the last payment failure (if any)
-    if (!paymentOperationResult?.succeeded && paymentOperationResult?.error) {
-      await BillingStorage.saveLastPaymentFailure(this.tenantID, billingInvoice.id, paymentOperationResult.error);
-    }
+    // We have now a Billing Invoice - Let's update it with details about the last operation result
+    await StripeHelpers.handleStripeOperationResult(this.tenantID, billingInvoice, operationResult);
     // Return the billing invoice
     return billingInvoice;
   }
