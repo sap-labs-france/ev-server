@@ -87,7 +87,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       }
     }
     if (manualCall) {
-      return [consumptions[consumptions.length - 1]];
+      return !Utils.isEmptyArray(consumptions) ? [consumptions[consumptions.length - 1]] : [];
     }
     return consumptions;
   }
