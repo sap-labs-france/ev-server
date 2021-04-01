@@ -1343,7 +1343,7 @@ export default class UserService {
       csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
       csv += 'createdOn' + Constants.CSV_SEPARATOR;
       csv += 'changedOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedBy' + '\r\n';
+      csv += 'changedBy' + Constants.CR_LF;
     }
     // Content
     for (const user of users) {
@@ -1357,7 +1357,7 @@ export default class UserService {
       csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
       csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + '\r\n';
+      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + Constants.CR_LF;
     }
     return csv;
   }

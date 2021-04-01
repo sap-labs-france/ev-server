@@ -68,7 +68,7 @@ export default class LoggingService {
       csv += 'module' + Constants.CSV_SEPARATOR;
       csv += 'source' + Constants.CSV_SEPARATOR;
       csv += 'host' + Constants.CSV_SEPARATOR;
-      csv += 'process' + '\r\n';
+      csv += 'process' + Constants.CR_LF;
     }
     // Content
     for (const log of loggings) {
@@ -82,7 +82,7 @@ export default class LoggingService {
       csv += log.module + Constants.CSV_SEPARATOR;
       csv += log.source + Constants.CSV_SEPARATOR;
       csv += log.host + Constants.CSV_SEPARATOR;
-      csv += log.process + '\r\n';
+      csv += log.process + Constants.CR_LF;
     }
     return csv;
   }

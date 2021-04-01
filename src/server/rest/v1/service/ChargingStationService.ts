@@ -1540,14 +1540,13 @@ export default class ChargingStationService {
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(userLocale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.value') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.site') + '\r\n';
+      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
+      csv += 'name' + Constants.CSV_SEPARATOR;
+      csv += 'value' + Constants.CSV_SEPARATOR;
+      csv += 'siteArea' + Constants.CSV_SEPARATOR;
+      csv += 'site' + Constants.CR_LF;
     }
     // Content
     for (const param of ocppParams.params) {
@@ -1555,7 +1554,7 @@ export default class ChargingStationService {
       csv += param.key + Constants.CSV_SEPARATOR;
       csv += Utils.replaceSpecialCharsInCSVValueParam(param.value) + Constants.CSV_SEPARATOR;
       csv += ocppParams.siteAreaName + Constants.CSV_SEPARATOR;
-      csv += ocppParams.siteName + '\r\n';
+      csv += ocppParams.siteName + Constants.CR_LF;
     }
     return csv;
   }
@@ -1581,7 +1580,7 @@ export default class ChargingStationService {
       csv += 'lastSeen' + Constants.CSV_SEPARATOR;
       csv += 'lastReboot' + Constants.CSV_SEPARATOR;
       csv += 'maxPower' + Constants.CSV_SEPARATOR;
-      csv += 'powerLimitUnit' + '\r\n';
+      csv += 'powerLimitUnit' + Constants.CR_LF;
     }
     // Content
     for (const chargingStation of chargingStations) {
@@ -1610,7 +1609,7 @@ export default class ChargingStationService {
       csv += i18nManager.formatDateTime(chargingStation.lastSeen, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastSeen, 'LT') + Constants.CSV_SEPARATOR;
       csv += i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT') + Constants.CSV_SEPARATOR;
       csv += chargingStation.maximumPower + Constants.CSV_SEPARATOR;
-      csv += chargingStation.powerLimitUnit + '\r\n';
+      csv += chargingStation.powerLimitUnit + Constants.CR_LF;
     }
     return csv;
   }

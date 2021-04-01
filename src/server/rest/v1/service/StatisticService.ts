@@ -491,20 +491,20 @@ export default class StatisticService {
     }
     switch (dataType) {
       case 'Consumption':
-        csv += 'consumption' + '\r\n';
+        csv += 'consumption' + Constants.CR_LF;
         break;
       case 'Usage':
-        csv += 'usage' + '\r\n';
+        csv += 'usage' + Constants.CR_LF;
         break;
       case 'Inactivity':
-        csv += 'inactivity' + '\r\n';
+        csv += 'inactivity' + Constants.CR_LF;
         break;
       case 'Transactions':
-        csv += 'numberOfSessions' + '\r\n';
+        csv += 'numberOfSessions' + Constants.CR_LF;
         break;
       case 'Pricing':
         csv += 'price' + Constants.CSV_SEPARATOR;
-        csv += 'priceUnit' + '\r\n';
+        csv += 'priceUnit' + Constants.CR_LF;
         break;
       default:
         return csv;
@@ -651,12 +651,12 @@ export default class StatisticService {
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + Constants.CR_LF;
           } else {
-            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + Constants.CR_LF;
           }
         } else {
-          csv += number.toString() + '\r\n';
+          csv += number.toString() + Constants.CR_LF;
         }
       }
     }
