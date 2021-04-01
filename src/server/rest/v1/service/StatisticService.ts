@@ -474,38 +474,37 @@ export default class StatisticService {
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false);
-    const i18nManager = I18nManager.getInstanceForLocale(loggedUser.locale);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
     let csv: string;
     if (dataCategory === 'C') {
-      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
     } else {
-      csv = i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv = 'user' + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += i18nManager.translate('general.year') + Constants.CSV_SEPARATOR;
+      csv += 'year' + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += i18nManager.translate('general.month') + Constants.CSV_SEPARATOR;
+        csv += 'month' + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += i18nManager.translate('statistics.consumption') + '\r\n';
+        csv += 'consumption' + '\r\n';
         break;
       case 'Usage':
-        csv += i18nManager.translate('statistics.usage') + '\r\n';
+        csv += 'usage' + '\r\n';
         break;
       case 'Inactivity':
-        csv += i18nManager.translate('statistics.inactivity') + '\r\n';
+        csv += 'inactivity' + '\r\n';
         break;
       case 'Transactions':
-        csv += i18nManager.translate('statistics.numberOfSessions') + '\r\n';
+        csv += 'numberOfSessions' + '\r\n';
         break;
       case 'Pricing':
-        csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
-        csv += i18nManager.translate('general.priceUnit') + '\r\n';
+        csv += 'price' + Constants.CSV_SEPARATOR;
+        csv += 'priceUnit' + '\r\n';
         break;
       default:
         return csv;

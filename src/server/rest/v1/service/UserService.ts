@@ -1331,25 +1331,26 @@ export default class UserService {
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.firstName') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.role') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.status') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.email') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.eulaAcceptedOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.changedOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.changedBy') + '\r\n';
+      csv = 'id' + Constants.CSV_SEPARATOR;
+      csv += 'name' + Constants.CSV_SEPARATOR;
+      csv += 'firstName' + Constants.CSV_SEPARATOR;
+      csv += 'locale' + Constants.CSV_SEPARATOR;
+      csv += 'role' + Constants.CSV_SEPARATOR;
+      csv += 'status' + Constants.CSV_SEPARATOR;
+      csv += 'email' + Constants.CSV_SEPARATOR;
+      csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
+      csv += 'createdOn' + Constants.CSV_SEPARATOR;
+      csv += 'changedOn' + Constants.CSV_SEPARATOR;
+      csv += 'changedBy' + '\r\n';
     }
     // Content
     for (const user of users) {
       csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
       csv += user.name + Constants.CSV_SEPARATOR;
       csv += user.firstName + Constants.CSV_SEPARATOR;
+      csv += user.locale + Constants.CSV_SEPARATOR;
       csv += user.role + Constants.CSV_SEPARATOR;
       csv += user.status + Constants.CSV_SEPARATOR;
       csv += user.email + Constants.CSV_SEPARATOR;

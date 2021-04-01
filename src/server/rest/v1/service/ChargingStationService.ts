@@ -1562,27 +1562,26 @@ export default class ChargingStationService {
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
     let csv = '';
-
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.numberOfConnectors') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.latitude') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.longitude') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargePointSN') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.model') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargeBoxSN') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.vendor') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.firmwareVersion') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.ocppVersion') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.ocppProtocol') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.lastSeen') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.lastReboot') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.maxPower') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.powerLimitUnit') + '\r\n';
+      csv = 'name' + Constants.CSV_SEPARATOR;
+      csv += 'createdOn' + Constants.CSV_SEPARATOR;
+      csv += 'numberOfConnectors' + Constants.CSV_SEPARATOR;
+      csv += 'siteArea' + Constants.CSV_SEPARATOR;
+      csv += 'latitude' + Constants.CSV_SEPARATOR;
+      csv += 'longitude' + Constants.CSV_SEPARATOR;
+      csv += 'chargePointSerialNumber' + Constants.CSV_SEPARATOR;
+      csv += 'model' + Constants.CSV_SEPARATOR;
+      csv += 'chargeBoxSerialNumber' + Constants.CSV_SEPARATOR;
+      csv += 'vendor' + Constants.CSV_SEPARATOR;
+      csv += 'firmwareVersion' + Constants.CSV_SEPARATOR;
+      csv += 'ocppVersion' + Constants.CSV_SEPARATOR;
+      csv += 'ocppProtocol' + Constants.CSV_SEPARATOR;
+      csv += 'lastSeen' + Constants.CSV_SEPARATOR;
+      csv += 'lastReboot' + Constants.CSV_SEPARATOR;
+      csv += 'maxPower' + Constants.CSV_SEPARATOR;
+      csv += 'powerLimitUnit' + '\r\n';
     }
     // Content
     for (const chargingStation of chargingStations) {
