@@ -63,7 +63,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     }
   }
 
-
   private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
@@ -74,7 +73,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
         consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
         consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
-
         if (asset.siteArea?.voltage) {
           consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
           consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
@@ -102,7 +100,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     }
     return 0;
   }
-
 
   private async connect(): Promise<string> {
     // Check if connection is initialized
