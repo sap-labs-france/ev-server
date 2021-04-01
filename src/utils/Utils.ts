@@ -1324,7 +1324,7 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-        // Car Connector
+      // Car Connector
       case TenantComponents.CAR_CONNECTOR:
         if (!currentSettingContent) {
           // Only Car Connector

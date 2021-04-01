@@ -106,8 +106,8 @@ export default class DatabaseUtils {
   }
 
   public static pushArrayLookupInAggregation(arrayName: string,
-    lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
-    lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
+      lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
+      lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
