@@ -54,7 +54,7 @@ export default class AsyncTaskManager {
         nbrTasksInParallel = this.asyncTaskConfig.nbrTasksInParallel;
       }
       // Get the tasks
-      const asyncTasks = await AsyncTaskStorage.getAsyncTasks( { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
+      const asyncTasks = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
       // Process them
       let abstractAsyncTask: AbstractAsyncTask;
       if (!Utils.isEmptyArray(asyncTasks.result)) {
@@ -135,22 +135,22 @@ export default class AsyncTaskManager {
             }
           },
           { concurrency: nbrTasksInParallel }).then(() => {
-            // Log result
-            const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
-            void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
-              MODULE_NAME, 'handleAsyncTasks', processedTask,
-              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
-              `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
-              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
-              `No Async Task to process`
-            );
-          });
+          // Log result
+          const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
+          void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
+            MODULE_NAME, 'handleAsyncTasks', processedTask,
+            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
+            `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
+            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
+            'No Async Task to process'
+          );
+        });
       } else {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.ASYNC_TASK,
           module: MODULE_NAME, method: 'handleAsyncTasks',
-          message: `No Async Task to process`
+          message: 'No Async Task to process'
         });
       }
     }
@@ -159,17 +159,17 @@ export default class AsyncTaskManager {
   public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>, user?: UserToken|User|string): Promise<void> {
     // Check
     if (Utils.isNullOrUndefined(asyncTask)) {
-      throw new Error("The Async Task must not be null");
+      throw new Error('The Async Task must not be null');
     }
     // Check
     if (Utils.isNullOrUndefined(asyncTask.name)) {
-      throw new Error("The Name of the Async Task is mandatory");
+      throw new Error('The Name of the Async Task is mandatory');
     }
     if (Utils.isNullOrUndefined(asyncTask.tenantID)) {
-      throw new Error("The Tenant ID of the Async Task is mandatory");
+      throw new Error('The Tenant ID of the Async Task is mandatory');
     }
     if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
-      throw new Error("The Parameters of the Async Task must be a Json document");
+      throw new Error('The Parameters of the Async Task must be a Json document');
     }
     // Set
     asyncTask.status = AsyncTaskStatus.PENDING;

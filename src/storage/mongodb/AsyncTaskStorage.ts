@@ -13,7 +13,7 @@ const MODULE_NAME = 'AsyncTaskStorage';
 
 export default class AsyncTaskStorage {
   public static async getAsyncTask(id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: {} = {}, projectFields?: string[]): Promise<AsyncTask> {
+    params: {} = {}, projectFields?: string[]): Promise<AsyncTask> {
     const asyncTasksMDB = await AsyncTaskStorage.getAsyncTasks({
       asyncTaskIDs: [id],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -53,7 +53,7 @@ export default class AsyncTaskStorage {
   }
 
   public static async getAsyncTasks(params: { status?: AsyncTaskStatus, asyncTaskIDs?: string[] } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<AsyncTask>> {
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<AsyncTask>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getAsyncTasks');
     // Clone before updating the values
@@ -138,7 +138,7 @@ export default class AsyncTaskStorage {
     // Delete the AsyncTask
     const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
       { 'status': AsyncTaskStatus.RUNNING },
-      { '$set': { 'status': AsyncTaskStatus.PENDING }}
+      { '$set': { 'status': AsyncTaskStatus.PENDING } }
     );
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending', uniqueTimerID);
