@@ -44,7 +44,7 @@ export enum SchneiderProperty {
 }
 
 export enum IothinkProperty {
-  Power_ACTIVE = 'Puissance_active_totale',
+  POWER_ACTIVE = 'Puissance_active_totale',
   POWER_L1 = 'Puissance_active_de_phase_1',
   POWER_L2 = 'Puissance_active_de_phase_2',
   POWER_L3 = 'Puissance_active_de_phase_3',

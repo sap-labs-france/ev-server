@@ -69,7 +69,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     if(data.historics) {
       for (let i = 0; i < data.historics[0].logs.length; i++) {
         const consumption = {} as AbstractCurrentConsumption;
-        consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.Power_ACTIVE, i) * energyDirection;
+        consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.POWER_ACTIVE, i) * energyDirection;
         consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
         consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
         consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
