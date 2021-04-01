@@ -499,19 +499,14 @@ export default class AuthorizationService {
   }
 
   public static async checkUpdateDeleteSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string): Promise<boolean> {
-    const authorized = true;
+    let authorized = true;
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // check if user is siteAdmin for the Site of the SiteArea
       const siteID = await AuthorizationService.getSiteAreaSiteID(tenant.id, siteAreaID),
         sitesAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
       if (Utils.isEmptyArray(sitesAdminIDs) || !sitesAdminIDs.includes(siteID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.DELETE, entity: Entity.SITE_AREA,
-          module: MODULE_NAME, method: 'checkUpdateDeleteSiteAreaAuthorization',
-        });
+        authorized = false;
       }
     }
     return authorized;

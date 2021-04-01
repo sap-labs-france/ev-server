@@ -34,6 +34,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
@@ -46,12 +47,26 @@ export default class SiteAreaService {
         user: req.user
       });
     }
-    // Get the Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    // Check static auth for getting site area
+    if (!Authorizations.canReadSiteArea(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleGetSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Check dynamic auth for getting SiteArea
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteAreaID });
+    // Get the SiteArea & check it exists
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, readSiteAreaAuthorizationFilters.filters);
     UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteAreaID);
+    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -73,10 +88,6 @@ export default class SiteAreaService {
     }
     // Get Assets
     for (const assetID of filteredRequest.assetIDs) {
-      // Check the asset
-      const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist`,
-        MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canReadAsset(req.user)) {
         throw new AppAuthError({
@@ -87,6 +98,10 @@ export default class SiteAreaService {
           value: assetID
         });
       }
+      // Get & check the asset
+      const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
+      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist`,
+        MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     }
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
@@ -113,7 +128,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
-    // Filter
+    // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
@@ -127,8 +142,21 @@ export default class SiteAreaService {
         user: req.user
       });
     }
-    // Get the Site Area (before auth to get siteID)
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    // Check static auth for getting site area
+    if (!Authorizations.canReadSiteArea(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'handleGetSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Check dynamic auth for getting SiteArea
+    const readSiteAreaAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.siteAreaID });
+    // Get the Site Area (before auth to get siteID) & check it exists
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, readSiteAreaAuthorizationFilters.filters);
     UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
       MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     // OCPI Site Area
@@ -143,21 +171,18 @@ export default class SiteAreaService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteAreaID);
+    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+        module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
         value: filteredRequest.siteAreaID
       });
     }
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
-      // Check the charging station
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-      UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' does not exist`,
-        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canReadChargingStation(req.user)) {
         throw new AppAuthError({
@@ -168,6 +193,10 @@ export default class SiteAreaService {
           value: chargingStationID
         });
       }
+      // Get & check the charging station
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+      UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' does not exist`,
+        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
       // OCPI Charging Station
       if (!chargingStation.issuer) {
         throw new AppError({
