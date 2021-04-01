@@ -1,9 +1,13 @@
+import Company from './Company';
 import { Transaction } from '@google-cloud/firestore';
 
 export interface DataResult<T> {
   count: number;
-  canCreate?: boolean;
   result: T[];
+}
+
+export interface CompanyDataResult extends DataResult<Company>{
+  canCreate: boolean;
 }
 
 export interface TransactionDataResult {
