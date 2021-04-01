@@ -1,4 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { CompanyDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -6,7 +7,6 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
-import { CompanyDataResult } from '../../../../types/DataResult';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -85,11 +85,13 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
+  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult): Promise<void> {
     // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    // Add canCreate flag to root
+    sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
-    for (const site of sites) {
+    for (const site of sites.result) {
       site.canRead = Authorizations.canReadSite(userToken);
       site.canDelete = Authorizations.canDeleteSite(userToken);
       // update can be performed by admin or site admin

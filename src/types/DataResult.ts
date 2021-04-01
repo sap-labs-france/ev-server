@@ -1,4 +1,5 @@
 import Company from './Company';
+import Site from './Site';
 import { Transaction } from '@google-cloud/firestore';
 
 export interface DataResult<T> {
@@ -7,6 +8,9 @@ export interface DataResult<T> {
 }
 
 export interface CompanyDataResult extends DataResult<Company>{
+  canCreate: boolean;
+}
+export interface SiteDataResult extends DataResult<Site>{
   canCreate: boolean;
 }
 
