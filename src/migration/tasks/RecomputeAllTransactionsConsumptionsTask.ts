@@ -28,7 +28,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
       inError: 0,
       inSuccess: 0,
     };
-    const timeTotalFrom = new Date().getTime();
+    const startTime = new Date().getTime();
     // Get transactions
     const transactionsMDB = await global.database.getCollection<any>(tenant.id, 'transactions')
       .aggregate([
@@ -88,7 +88,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           });
         }
       }, { concurrency: 5 }).then(() => {
-        const totalDurationSecs = Math.trunc((new Date().getTime() - timeTotalFrom) / 1000);
+        const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
         // Log in the default tenant
         void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.MIGRATION,
           MODULE_NAME, 'migrateTenant', consumptionsUpdated,

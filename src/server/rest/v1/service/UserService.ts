@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
@@ -8,6 +9,7 @@ import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '..
 import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
@@ -21,7 +23,6 @@ import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import I18nManager from '../../../../utils/I18nManager';
-import ImportUsersTask from '../../../../scheduler/tasks/ImportUsersTask';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -980,8 +981,15 @@ export default class UserService {
             `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
             `No User have been uploaded in ${executionDurationSecs}s`, req.user
           );
-          // Trigger manually and asynchronously the job
-          void new ImportUsersTask().processTenant(req.tenant);
+          // Create and Save async task
+          AsyncTaskManager.createAndSaveAsyncTasks({
+            name: AsyncTasks.USERS_IMPORT,
+            action: ServerAction.USERS_IMPORT,
+            type: AsyncTaskType.TASK,
+            tenantID: req.tenant.id,
+            module: MODULE_NAME,
+            method: 'handleImportUsers',
+          }, req.user);
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();

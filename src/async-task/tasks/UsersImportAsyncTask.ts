@@ -1,25 +1,25 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
+import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
-import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'SynchronizeUsersImportTask';
+const MODULE_NAME = 'UsersImportAsyncTask';
 
-export default class ImportUsersTask extends SchedulerTask {
-  public async processTenant(tenant: Tenant, config?: TaskConfig): Promise<void> {
-    const importUsersLock = await LockingHelper.createImportUsersLock(tenant.id);
+export default class UsersImportAsyncTask extends AbstractAsyncTask {
+  protected async executeAsyncTask(): Promise<void> {
+    const importUsersLock = await LockingHelper.createImportUsersLock(this.asyncTask.tenantID);
     if (importUsersLock) {
+      const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedUsers: DataResult<ImportedUser>;
