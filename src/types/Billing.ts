@@ -81,6 +81,8 @@ export interface BillingInvoice {
   nbrOfItems?: number;
   downloadable?: boolean
   downloadUrl?: string;
+  items?: BillingInvoiceItem[];
+  lastError?: BillingError;
 }
 
 export interface BillingInvoiceItem {
@@ -130,6 +132,7 @@ export interface BillingPaymentMethod {
 export interface BillingError {
   // Billing Error should expose the information which is common to all payment platforms
   message: string
+  when: Date
   errorType: BillingErrorType, // SERVER or APPLICATION errors
   errorCode: BillingErrorCode, // More information about the root cause
   rootCause?: unknown; // The original error from the payment platform
@@ -147,4 +150,9 @@ export enum BillingErrorCode {
   UNEXPECTED_ERROR = 'unexpected',
   NO_PAYMENT_METHOD = 'no_payment_method',
   CARD_ERROR = 'card_error',
+}
+
+export interface BillingAdditionalData {
+  item?: BillingInvoiceItem,
+  lastError?: BillingError,
 }

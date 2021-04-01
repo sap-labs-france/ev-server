@@ -237,11 +237,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  private getNumberOfItems(stripeInvoice: Stripe.Invoice): number {
-    // STRIPE version 8.137.0 - total_count property is deprecated - TODO - find another way to get it!
-    const nbrOfItems: number = stripeInvoice.lines['total_count'];
-    return nbrOfItems;
-  }
+  // private getNumberOfItems(stripeInvoice: Stripe.Invoice): number {
+  //   // STRIPE version 8.137.0 - total_count property is deprecated - TODO - find another way to get it!
+  //   const nbrOfItems: number = stripeInvoice.lines['total_count'];
+  //   return nbrOfItems;
+  // }
 
   // ----------------------------------------------------------
   // TODO - get rid of this logic and use webhooks instead!
@@ -344,10 +344,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
     // Get the corresponding BillingInvoice (if any)
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenantID, stripeInvoice.id);
-    const nbrOfItems: number = this.getNumberOfItems(stripeInvoice);
     const invoiceToSave: BillingInvoice = {
       id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
-      userID, invoiceID, customerID, number, amount, amountPaid, currency, createdOn, nbrOfItems, downloadUrl, downloadable: !!downloadUrl,
+      userID, invoiceID, customerID, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
       status: status as BillingInvoiceStatus,
     };
     // Let's persist the up-to-date data
@@ -450,7 +449,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     }
 
     billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
-    await StripeHelpers.handleStripeOperationResult(this.tenantID, billingInvoice, operationResult);
+    await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
     return billingInvoice;
   }
 
@@ -868,8 +867,19 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       status: BillingStatus.BILLED,
       invoiceID: billingInvoice.id,
       invoiceStatus: billingInvoice.status,
-      invoiceItem
+      invoiceItem: this.shrinkInvoiceItem(invoiceItem),
     };
+  }
+
+  private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
+    // The initial invoice item includes redundant transaction data
+    const { description, pricingData } = fatInvoiceItem;
+    // Let's return only essential information
+    const lightInvoiceItem: BillingInvoiceItem = {
+      description,
+      pricingData
+    };
+    return lightInvoiceItem;
   }
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -896,6 +906,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenantID,
+        transactionID: transaction.id,
         userID: transaction.userID,
         price,
         roundedPrice,
@@ -914,6 +925,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
     let stripeInvoice = await this._getLatestDraftInvoice(customerID);
+    // Let's create an invoice item (could be a pending one when the stripeInvoice does not yet exist)
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
     const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
     if (!stripeInvoiceItem) {
@@ -926,7 +938,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id }'`
       });
     }
-    // Stripe invoice ID is not yet known - Let's create a pending invoice item
     if (!stripeInvoice) {
       // Let's create a new draft invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
@@ -950,7 +961,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id, false);
     // We have now a Billing Invoice - Let's update it with details about the last operation result
-    await StripeHelpers.handleStripeOperationResult(this.tenantID, billingInvoice, operationResult);
+    await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult, billingInvoiceItem);
     // Return the billing invoice
     return billingInvoice;
   }
