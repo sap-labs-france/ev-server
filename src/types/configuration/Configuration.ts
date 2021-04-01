@@ -1,3 +1,4 @@
+import AsyncTaskConfiguration from './AsyncTaskConfiguration';
 import AuthorizationConfiguration from './AuthorizationConfiguration';
 import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';

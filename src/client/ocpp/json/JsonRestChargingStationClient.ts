@@ -164,7 +164,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
           module: MODULE_NAME, method: 'onError',
           message: `Connection error to '${this.serverURL}: ${error.toString()}`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
         // Terminate WS in error
         this.terminateConnection();
