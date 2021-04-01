@@ -54,7 +54,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                   throw new Error('User is deleted');
                 }
                 if (foundUser.status !== UserStatus.PENDING) {
-                  throw new Error('User account is no longer pending');
+                  throw new Error('User account is already in use');
                 }
                 // Update it
                 foundUser.name = importedUser.name;
