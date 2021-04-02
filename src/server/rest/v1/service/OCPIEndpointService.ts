@@ -429,8 +429,8 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullCdrsLock(tenant.id, ocpiEndpoint);
-    if (!ocpiLock) {
+    const pullCdrsLock = await LockingHelper.createOCPIPullCdrsLock(tenant.id, ocpiEndpoint);
+    if (!pullCdrsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
@@ -440,15 +440,25 @@ export default class OCPIEndpointService {
       });
     }
     try {
-      // Build OCPI Client
-      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-      const result = await ocpiClient.pullCdrs();
-      // Return result
-      res.json(result);
-      next();
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_PULL_CDRS,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handlePullCdrsEndpoint',
+      });
     } finally {
-      await LockingManager.release(ocpiLock);
+      // Release the lock
+      await LockingManager.release(pullCdrsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

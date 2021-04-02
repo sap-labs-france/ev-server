@@ -279,16 +279,20 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const cdr of response.data.data as OCPICdr[]) {
-        try {
-          await OCPIUtilsService.processCdr(this.tenant.id, cdr);
-          result.success++;
-        } catch (error) {
-          result.failure++;
-          result.logs.push(
-            `Failed to update CDR ID '${cdr.id}': ${error.message}`
-          );
-        }
+      const cdrs = response.data.data as OCPICdr[];
+      if (!Utils.isEmptyArray(cdrs)) {
+        await Promise.map(cdrs, async (cdr: OCPICdr) => {
+          try {
+            await OCPIUtilsService.processCdr(this.tenant.id, cdr);
+            result.success++;
+          } catch (error) {
+            result.failure++;
+            result.logs.push(
+              `Failed to update CDR ID '${cdr.id}': ${error.message}`
+            );
+          }
+        },
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== cdrsUrl) {
