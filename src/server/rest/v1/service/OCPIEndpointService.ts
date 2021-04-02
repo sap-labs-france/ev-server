@@ -54,7 +54,7 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been deleted successfully`,
-      action: action,
+      action,
       detailedMessages: { ocpiEndpoint }
     });
     // Ok
@@ -160,7 +160,7 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOcpiEndpoint',
       message: `Ocpi Endpoint '${filteredRequest.name}' has been created successfully`,
-      action: action,
+      action,
       detailedMessages: { endpoint: filteredRequest }
     });
     // Ok
@@ -200,7 +200,7 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been updated successfully`,
-      action: action,
+      action,
       detailedMessages: { endpoint: ocpiEndpoint }
     });
     // Ok
@@ -237,7 +237,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
-        action: action,
+        action,
         detailedMessages: { pingResult }
       });
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
@@ -247,7 +247,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' cannot be reached`,
-        action: action,
+        action,
         detailedMessages: { pingResult }
       });
       res.json(pingResult);
@@ -275,28 +275,37 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspLocationsLock(tenant.id, ocpiEndpoint);
-    if (!ocpiLock) {
+    const pullLocationsLock = await LockingHelper.createOCPIPullLocationsLock(req.tenant.id, ocpiEndpoint);
+    if (!pullLocationsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.OCPI_PULL_LOCATIONS,
+        action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
-        message: 'Error in pulling the OCPI Locations: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePullLocationsEndpoint',
+        message: 'Error in pulling the OCPI Locations: cannot acquire the lock',
+        user: req.user
       });
     }
     try {
-      // Build OCPI Client
-      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-      const result = await ocpiClient.pullLocations(false);
-      // Return result
-      res.json(result);
-      next();
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_PULL_LOCATIONS,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handlePullLocationsEndpoint',
+      });
     } finally {
-      await LockingManager.release(ocpiLock);
+      // Release the lock
+      await LockingManager.release(pullLocationsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
   }
 
   static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -321,7 +330,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspSessionsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPullSessionsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -365,7 +374,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint, false);
+    const ocpiLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, false);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -409,7 +418,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspCdrsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPullCdrsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -453,7 +462,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoCdrsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckCdrsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -498,7 +507,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoSessionsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckSessionsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -543,7 +552,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoLocationsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckLocationsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -588,7 +597,7 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPatchCpoLocationsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPatchLocationsLock(tenant.id, ocpiEndpoint);
     if (!ocpiLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -611,55 +620,54 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleSendTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async handlePushTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendTokensOcpiEndpoint');
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleSendTokensOcpiEndpoint'
+        module: MODULE_NAME, method: 'handlePushTokensOcpiEndpoint'
       });
     }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendTokensRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendTokensOcpiEndpoint', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleSendTokensOcpiEndpoint', req.user);
+      MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get the lock
-    const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id);
-    if (pushTokensLock) {
-      try {
-        // Create and Save async task
-        AsyncTaskManager.createAndSaveAsyncTasks({
-          name: AsyncTasks.OCPI_EMSP_PUSH_TOKENS,
-          action: ServerAction.OCPI_ENDPOINT_SEND_TOKENS,
-          type: AsyncTaskType.TASK,
-          tenantID: req.tenant.id,
-          parameters: {
-            endpointID: filteredRequest.id,
-          },
-          module: MODULE_NAME,
-          method: 'handleSendTokensOcpiEndpoint',
-        });
-      } finally {
-        // Release the lock
-        await LockingManager.release(pushTokensLock);
-      }
-    } else {
+    const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id, ocpiEndpoint);
+    if (!pushTokensLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: action,
+        action,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
-        module: MODULE_NAME, method: 'handleSendTokensOcpiEndpoint',
-        message: 'Error in pushing the Tags: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePushTokensOcpiEndpoint',
+        message: 'Error in pushing the Tokens: cannot acquire the lock',
         user: req.user
       });
+    }
+    try {
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_PUSH_TOKENS,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handlePushTokensOcpiEndpoint',
+      });
+    } finally {
+      // Release the lock
+      await LockingManager.release(pushTokensLock);
     }
     // Return result
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -698,7 +706,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
-        action: action,
+        action,
         detailedMessages: { result }
       });
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
@@ -708,7 +716,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
-        action: action,
+        action,
         detailedMessages: { result }
       });
       res.json(result);
@@ -748,7 +756,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
-        action: action,
+        action,
         detailedMessages: { result }
       });
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
@@ -758,7 +766,7 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
-        action: action,
+        action,
         detailedMessages: { result }
       });
       res.json(result);
@@ -788,7 +796,7 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
       message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generatd successfully`,
-      action: action,
+      action,
       detailedMessages: { token: filteredRequest }
     });
     // Ok

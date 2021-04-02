@@ -49,7 +49,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  public async sendTokens(): Promise<OCPIResult> {
+  public async pushTokens(): Promise<OCPIResult> {
     // Result
     const result: OCPIResult = {
       success: 0,

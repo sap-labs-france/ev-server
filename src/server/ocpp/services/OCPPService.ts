@@ -1155,7 +1155,7 @@ export default class OCPPService {
 
   private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(tenantID, transaction.id);
+    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
     if (ocpiLock) {
       try {
         // Process
@@ -1169,7 +1169,7 @@ export default class OCPPService {
 
   private async checkAndSendOICPTransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(tenantID, transaction.id);
+    const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
     if (oicpLock) {
       try {
         // Process
