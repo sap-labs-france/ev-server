@@ -15,8 +15,8 @@ const MODULE_NAME = 'CompanyStorage';
 export default class CompanyStorage {
 
   public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withLogo?: boolean; } = {},
-    projectFields?: string[]): Promise<Company> {
+      params: { withLogo?: boolean; } = {},
+      projectFields?: string[]): Promise<Company> {
     const companiesMDB = await CompanyStorage.getCompanies(tenantID, {
       companyIDs: [id],
       withLogo: params.withLogo,
@@ -82,9 +82,9 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
+      params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCompanies');
     // Check Tenant

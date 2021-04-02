@@ -1,4 +1,4 @@
-import Constants from "../../src/utils/Constants";
+import Constants from '../../src/utils/Constants';
 
 export default class TestUtils {
   static async sleep(ms) {
