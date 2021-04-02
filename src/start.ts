@@ -144,7 +144,7 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         // Populate at startup the DB with shared data
         // -------------------------------------------------------------------------
-        // 1 - Charging stations templates
+        // 1 - Charging station templates
         await ChargingStationStorage.updateChargingStationTemplatesFromFile();
       }
     } catch (error) {
