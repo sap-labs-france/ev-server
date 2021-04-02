@@ -505,24 +505,27 @@ export default class CpoOCPIClient extends OCPIClient {
       issuer: true,
       ocpiSessionChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const transaction of transactions.result) {
-      if (transaction.stop && transaction.stop.timestamp) {
-        try {
-          if (await this.checkSession(transaction)) {
-            result.success++;
-          } else {
+    if (!Utils.isEmptyArray(transactions.result)) {
+      await Promise.map(transactions.result, async (transaction) => {
+        if (transaction.stop && transaction.stop.timestamp) {
+          try {
+            if (await this.checkSession(transaction)) {
+              result.success++;
+            } else {
+              result.failure++;
+              result.objectIDsInFailure.push(String(transaction.id));
+            }
+          } catch (error) {
             result.failure++;
             result.objectIDsInFailure.push(String(transaction.id));
+            result.logs.push(
+              `Failed to check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
+            );
           }
-        } catch (error) {
-          result.failure++;
-          result.objectIDsInFailure.push(String(transaction.id));
-          result.logs.push(
-            `Failed to check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
-          );
         }
-      }
-      result.total++;
+        result.total++;
+      },
+      { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_SESSIONS,
@@ -597,7 +600,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
-      issuer: false,
+      issuer: true,
       ocpiCdrChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
     if (!Utils.isEmptyArray(transactions.result)) {
