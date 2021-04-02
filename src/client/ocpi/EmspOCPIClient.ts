@@ -486,7 +486,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     const token: OCPIToken = {
       uid: tag.id,
-      type: OCPITokenType.RFID,
+      type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
       auth_id: tag.user.id,
       visual_number: tag.user.id,
       issuer: this.tenant.name,
@@ -495,17 +495,19 @@ export default class EmspOCPIClient extends OCPIClient {
       last_updated: new Date()
     };
     const authorizationId = Utils.generateUUID();
-    const payload: OCPIStartSession = {
+    // Get the location ID from the Site Area name
+    const locationID = OCPIUtils.getOCPIEmspLocationIDFromSiteAreaName(chargingStation.siteArea.name);
+    const remoteStart: OCPIStartSession = {
       response_url: callbackUrl + '/' + authorizationId,
       token: token,
-      evse_uid: chargingStation.imsi,
-      location_id: chargingStation.iccid,
+      evse_uid: chargingStation.id,
+      location_id: locationID,
       authorization_id: authorizationId
     };
     // Call IOP
     const response = await this.axiosInstance.post(
       commandUrl,
-      payload,
+      remoteStart,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -518,7 +520,7 @@ export default class EmspOCPIClient extends OCPIClient {
       source: chargingStation.id,
       message: `Connector ID '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
       module: MODULE_NAME, method: 'remoteStartSession',
-      detailedMessages: { response: response.data }
+      detailedMessages: { remoteStart, response: response.data }
     });
     return response.data.data as OCPICommandResponse;
   }

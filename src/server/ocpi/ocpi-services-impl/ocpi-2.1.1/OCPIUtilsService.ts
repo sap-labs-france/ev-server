@@ -161,7 +161,7 @@ export default class OCPIUtilsService {
     for (const tag of tags.result) {
       tokens.push({
         uid: tag.id,
-        type: (tag.id.length % 8 === 0) ? OCPITokenType.RFID : OCPITokenType.OTHER, // Virtual badges handling
+        type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
