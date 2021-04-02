@@ -164,16 +164,20 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const location of response.data.data as OCPILocation[]) {
-        try {
-          await this.processLocation(location, company, sites.result);
-          result.success++;
-        } catch (error) {
-          result.failure++;
-          result.logs.push(
-            `Failed to update Location '${location.name}': ${error.message}`
-          );
-        }
+      const locations = response.data.data as OCPILocation[];
+      if (!Utils.isEmptyArray(locations)) {
+        await Promise.map(locations, async (location: OCPILocation) => {
+          try {
+            await this.processLocation(location, company, sites.result);
+            result.success++;
+          } catch (error) {
+            result.failure++;
+            result.logs.push(
+              `Failed to update Location '${location.name}': ${error.message}`
+            );
+          }
+        },
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== locationsUrl) {
