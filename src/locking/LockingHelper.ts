@@ -88,6 +88,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async createOCPIPushTokensLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TAG, 'push-tokens');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createOCPIPushCpoCdrLock(tenantID: string, transactionID: number): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
     if (!(await LockingManager.acquire(lock))) {

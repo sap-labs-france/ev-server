@@ -8,6 +8,7 @@ import Constants from '../utils/Constants';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import OCPIEmspPushTokensAsyncTask from './tasks/ocpi/OCPIEmspPushTokensAsyncTask';
 import { ServerAction } from '../types/Server';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
 import UsersImportAsyncTask from './tasks/UsersImportAsyncTask';
@@ -70,6 +71,9 @@ export default class AsyncTaskManager {
                 break;
               case AsyncTasks.USERS_IMPORT:
                 abstractAsyncTask = new UsersImportAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_EMSP_PUSH_TOKENS:
+                abstractAsyncTask = new OCPIEmspPushTokensAsyncTask(asyncTask);
                 break;
               default:
                 await Logging.logError({
@@ -138,17 +142,16 @@ export default class AsyncTaskManager {
               }
             }
           },
-          { concurrency: nbrTasksInParallel }).then(() => {
-            // Log result
-            const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-            void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
-              MODULE_NAME, 'handleAsyncTasks', processedTask,
-              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
-              `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
-              `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
-              `No Async Task to process`
-            );
-          });
+          { concurrency: nbrTasksInParallel });
+          // Log result
+          const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+          void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
+            MODULE_NAME, 'handleAsyncTasks', processedTask,
+            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
+            `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
+            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
+            `No Async Task to process`
+          );
       } else {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,

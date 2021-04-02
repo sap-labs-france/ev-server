@@ -1,9 +1,11 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -629,13 +631,38 @@ export default class OCPIEndpointService {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendTokensOcpiEndpoint', req.user);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    // Send EVSE statuses
-    const sendResult = await ocpiClient.sendTokens();
+    // Get the lock
+    const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id);
+    if (pushTokensLock) {
+      try {
+        // Create and Save async task
+        AsyncTaskManager.createAndSaveAsyncTasks({
+          name: AsyncTasks.OCPI_EMSP_PUSH_TOKENS,
+          action: ServerAction.OCPI_ENDPOINT_SEND_TOKENS,
+          type: AsyncTaskType.TASK,
+          tenantID: req.tenant.id,
+          parameters: {
+            endpointID: filteredRequest.id,
+          },
+          module: MODULE_NAME,
+          method: 'handleSendTokensOcpiEndpoint',
+        });
+      } finally {
+        // Release the lock
+        await LockingManager.release(pushTokensLock);
+      }
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleSendTokensOcpiEndpoint',
+        message: 'Error in pushing the Tags: cannot acquire the lock',
+        user: req.user
+      });
+    }
     // Return result
-    res.json(sendResult);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 

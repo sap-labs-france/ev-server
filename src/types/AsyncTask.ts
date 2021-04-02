@@ -34,5 +34,6 @@ export enum AsyncTaskStatus {
 export enum AsyncTasks {
   TAGS_IMPORT = 'TagsImportAsyncTask',
   USERS_IMPORT = 'UsersImportAsyncTask',
+  OCPI_EMSP_PUSH_TOKENS = 'OCPIEmspPushTokensTask',
 }
 
