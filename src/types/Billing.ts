@@ -78,25 +78,33 @@ export interface BillingInvoice {
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  nbrOfItems?: number;
   downloadable?: boolean
   downloadUrl?: string;
-  items?: BillingInvoiceItem[];
+  sessions?: BillingSessionData[];
   lastError?: BillingError;
 }
 
 export interface BillingInvoiceItem {
   description: string;
-  pricingData: {
-    quantity: number,
-    amount: number,
-    currency: string
-  }
+  transactionID: number;
+  pricingData: BillingPricingData;
   taxes?: string[];
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+}
+
+export interface BillingSessionData {
+  transactionID: number;
+  description: string;
+  pricingData: BillingPricingData;
+}
+
+export interface BillingPricingData {
+  quantity: number,
+  amount: number,
+  currency: string
 }
 
 export enum BillingInvoiceStatus {
@@ -153,6 +161,6 @@ export enum BillingErrorCode {
 }
 
 export interface BillingAdditionalData {
-  item?: BillingInvoiceItem,
+  session?: BillingSessionData,
   lastError?: BillingError,
 }

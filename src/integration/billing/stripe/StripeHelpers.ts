@@ -1,23 +1,33 @@
-import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult } from '../../../types/Billing';
+import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Stripe from 'stripe';
 
 export default class StripeHelpers {
 
-  public static async updateInvoiceAdditionalData(tenantID: string, billingInvoice: BillingInvoice,
-    operationResult: BillingOperationResult, billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
-    if (!billingInvoice) {
-      return;
-    }
-    let billingError = null;
+  public static async updateInvoiceAdditionalData(tenantID: string,
+    billingInvoice: BillingInvoice,
+    operationResult: BillingOperationResult,
+    billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
+    // Do we have an error to preserve
+    let billingError: BillingError;
     if (operationResult && !operationResult.succeeded) {
       // The operation failed
       billingError = StripeHelpers.convertToBillingError(operationResult.error);
     }
-    if (billingInvoiceItem || billingError) {
+    // Do we have a new charging session?
+    let session: BillingSessionData;
+    if (billingInvoiceItem) {
+      session = {
+        transactionID: billingInvoiceItem.transactionID,
+        description: billingInvoiceItem.description,
+        pricingData: billingInvoiceItem.pricingData,
+      };
+    }
+    // Is there anything to update?
+    if (session || billingError) {
       const additionalData: BillingAdditionalData = {
-        item: billingInvoiceItem,
+        session,
         lastError: billingError
       };
       await BillingStorage.updateInvoiceAdditionalData(tenantID, billingInvoice, additionalData);

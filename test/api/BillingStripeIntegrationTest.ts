@@ -1,9 +1,6 @@
-import chai, { expect } from 'chai';
-
-import { BillingInvoiceStatus } from '../../src/types/Billing';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import StripeIntegrationTestData from './BillingStripeTestData';
-import TestConstants from './client/utils/TestConstants';
+import chai from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';

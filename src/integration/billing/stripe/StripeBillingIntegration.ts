@@ -237,12 +237,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  // private getNumberOfItems(stripeInvoice: Stripe.Invoice): number {
-  //   // STRIPE version 8.137.0 - total_count property is deprecated - TODO - find another way to get it!
-  //   const nbrOfItems: number = stripeInvoice.lines['total_count'];
-  //   return nbrOfItems;
-  // }
-
   // ----------------------------------------------------------
   // TODO - get rid of this logic and use webhooks instead!
   // ----------------------------------------------------------
@@ -873,10 +867,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { description, pricingData } = fatInvoiceItem;
+    const { description, transactionID, pricingData } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       description,
+      transactionID,
       pricingData
     };
     return lightInvoiceItem;
@@ -884,6 +879,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     // Destructuring transaction.stop
+    const transactionID = transaction.id;
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     const description = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
@@ -897,6 +893,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
       description,
+      transactionID,
       pricingData: {
         quantity,
         amount,

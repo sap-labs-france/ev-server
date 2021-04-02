@@ -1,4 +1,4 @@
-import { BillingAdditionalData, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -173,7 +173,6 @@ export default class BillingStorage {
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
-      // nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems),
       downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
       downloadUrl: invoiceToSave.downloadUrl
     };
@@ -193,15 +192,14 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoiceAdditionalData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    // Preserve the previous list of items
-    const items: BillingInvoiceItem[] = invoiceToUpdate.items || [];
-    if (additionalData.item) {
-      items.push(additionalData.item);
+    // Preserve the previous list of sessions
+    const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
+    if (additionalData.session) {
+      sessions.push(additionalData.session);
     }
     // Set data
     const updatedInvoiceMDB: any = {
-      nbrOfItems: items.length,
-      items,
+      sessions,
       lastError: additionalData.lastError
     };
     await global.database.getCollection(tenantID, 'invoices').findOneAndUpdate(
