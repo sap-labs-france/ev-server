@@ -591,8 +591,8 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckLocationsLock(tenant.id, ocpiEndpoint);
-    if (!ocpiLock) {
+    const checkLocationsLock = await LockingHelper.createOCPICheckLocationsLock(tenant.id, ocpiEndpoint);
+    if (!checkLocationsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_CHECK_LOCATIONS,
@@ -602,16 +602,25 @@ export default class OCPIEndpointService {
       });
     }
     try {
-      // Build OCPI Client
-      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-      // Send EVSE statuses
-      const sendResult = await ocpiClient.checkLocations();
-      // Return result
-      res.json(sendResult);
-      next();
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_CHECK_LOCATIONS,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handleCheckLocationsEndpoint',
+      });
     } finally {
-      await LockingManager.release(ocpiLock);
+      // Release the lock
+      await LockingManager.release(checkLocationsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

@@ -557,25 +557,27 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Get all EVSEs from all locations
     const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, true);
-    // Loop through locations
-    for (const location of locations.result) {
-      if (location) {
-        try {
-          if (await this.checkLocation(location)) {
-            result.success++;
-          } else {
+    if (!Utils.isEmptyArray(locations.result)) {
+      await Promise.map(locations.result, async (location) => {
+        if (location) {
+          try {
+            if (await this.checkLocation(location)) {
+              result.success++;
+            } else {
+              result.failure++;
+              result.objectIDsInFailure.push(String(location.id));
+            }
+          } catch (error) {
             result.failure++;
             result.objectIDsInFailure.push(String(location.id));
+            result.logs.push(
+              `Failed to check Location ID '${location.id}': ${error.message}`
+            );
           }
-        } catch (error) {
-          result.failure++;
-          result.objectIDsInFailure.push(String(location.id));
-          result.logs.push(
-            `Failed to check Location ID '${location.id}': ${error.message}`
-          );
         }
-      }
-      result.total++;
+        result.total++;
+      },
+      { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_LOCATIONS,
