@@ -15,6 +15,7 @@ import OCPIPullCdrsAsyncTask from './tasks/ocpi/OCPIPullCdrsAsyncTask';
 import OCPIPullLocationsAsyncTask from './tasks/ocpi/OCPIPullLocationsAsyncTask';
 import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
 import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
+import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
 import { ServerAction } from '../types/Server';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
@@ -99,8 +100,12 @@ export default class AsyncTaskManager {
                 break;
               case AsyncTasks.OCPI_CHECK_LOCATIONS:
                 abstractAsyncTask = new OCPICheckLocationsAsyncTask(asyncTask);
+                break;
               case AsyncTasks.OCPI_PULL_TOKENS:
                 abstractAsyncTask = new OCPIPullTokensAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
+                abstractAsyncTask = new OCPIPushEVSEStatusesAsyncTask(asyncTask);
                 break;
               default:
                 await Logging.logError({

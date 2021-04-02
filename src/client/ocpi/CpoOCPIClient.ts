@@ -684,33 +684,36 @@ export default class CpoOCPIClient extends OCPIClient {
           { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
           { chargingStationIDs } )
         // Loop through EVSE
-        for (const evse of evses) {
-          // Total amount of EVSEs
-          result.total++;
-          // Process it if not empty
-          if (location.id && evse?.uid) {
-            try {    
-              await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
-              result.success++;
-            } catch (error) {
-              result.failure++;
-              result.objectIDsInFailure.push(evse.chargeBoxId);
-              result.logs.push(
-                `Update status failed on Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
-              );
+        if (!Utils.isEmptyArray(evses)) {
+          await Promise.map(evses, async (evse) => {
+            // Total amount of EVSEs
+            result.total++;
+            // Process it if not empty
+            if (location.id && evse?.uid) {
+              try {    
+                await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
+                result.success++;
+              } catch (error) {
+                result.failure++;
+                result.objectIDsInFailure.push(evse.chargeBoxId);
+                result.logs.push(
+                  `Update status failed on Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
+                );
+              }
+              if (result.failure > 0) {
+                // Send notification to admins
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                  this.tenant.id,
+                  {
+                    location: location.name,
+                    evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
+                  }
+                );
+              }
             }
-            if (result.failure > 0) {
-              // Send notification to admins
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                this.tenant.id,
-                {
-                  location: location.name,
-                  evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
-                }
-              );
-            }
-          }
+          },
+          { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
         }
         currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
       } while (!Utils.isEmptyArray(evses));

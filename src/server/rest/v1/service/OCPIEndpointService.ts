@@ -633,49 +633,58 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  static async handlePushEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
-      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint');
+      Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.TRIGGER_JOB, entity: Entity.OCPI_ENDPOINT,
-        module: MODULE_NAME, method: 'handleSendEVSEStatusesOcpiEndpoint'
+        module: MODULE_NAME, method: 'handlePushEVSEStatusesOcpiEndpoint'
       });
     }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
+      MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPatchLocationsLock(tenant.id, ocpiEndpoint);
-    if (!ocpiLock) {
+    const patchStatusesLock = await LockingHelper.createOCPIPatchEVSEStatusesLock(tenant.id, ocpiEndpoint);
+    if (!patchStatusesLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PATCH_LOCATIONS,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
-        message: 'Error in patching the OCPI Locations: cannot acquire the lock',
-        module: MODULE_NAME, method: 'handleSendEVSEStatusesOcpiEndpoint',
+        message: 'Error in pushing the OCPI EVSE Statuses: cannot acquire the lock',
+        module: MODULE_NAME, method: 'handlePushEVSEStatusesOcpiEndpoint',
       });
     }
     try {
-      // Build OCPI Client
-      const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
-      // Send EVSE statuses
-      const sendResult = await ocpiClient.sendEVSEStatuses();
-      // Return result
-      res.json(sendResult);
-      next();
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_PUSH_EVSE_STATUSES,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handlePushEVSEStatusesOcpiEndpoint',
+      });
     } finally {
-      await LockingManager.release(ocpiLock);
+      // Release the lock
+      await LockingManager.release(patchStatusesLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handlePushTokensOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

@@ -92,7 +92,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_PULL_LOCATIONS]: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_SESSIONS]: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_TOKENS]: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
-          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handlePushEVSEStatusesOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handlePushTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
