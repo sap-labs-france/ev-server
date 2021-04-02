@@ -269,7 +269,6 @@ export default class TenantContext {
   async createChargingStation(ocppVersion, chargingStation = Factory.chargingStation.build({
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea: SiteArea = null) {
-    console.log(chargingStation);
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
     const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
