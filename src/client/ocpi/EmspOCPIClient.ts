@@ -68,18 +68,21 @@ export default class EmspOCPIClient extends OCPIClient {
       // Get all tokens
       tokens = await OCPIUtilsService.getTokens(
         this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip);
-      for (const token of tokens.result) {
-        result.total++;
-        try {
-          await this.pushToken(token);
-          result.success++;
-        } catch (error) {
-          result.failure++;
-          result.objectIDsInFailure.push(token.uid);
-          result.logs.push(
-            `Failed to update Token ID '${token.uid}': ${error.message}`
-          );
-        }
+      if (!Utils.isEmptyArray(tokens.result)) {
+        await Promise.map(tokens.result, async (token: OCPIToken) => {
+          result.total++;
+          try {
+            await this.pushToken(token);
+            result.success++;
+          } catch (error) {
+            result.failure++;
+            result.objectIDsInFailure.push(token.uid);
+            result.logs.push(
+              `Failed to update Token ID '${token.uid}': ${error.message}`
+            );
+          }
+        },
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
     } while (!Utils.isEmptyArray(tokens.result));
