@@ -38,5 +38,6 @@ export enum AsyncTasks {
   OCPI_PULL_LOCATIONS = 'OCPIPullLocationsAsyncTask',
   OCPI_PULL_SESSIONS = 'OCPIPullSessionsAsyncTask',
   OCPI_PULL_CDRS = 'OCPIPullCdrsAsyncTask',
+  OCPI_CHECK_CDRS = 'OCPICheckCdrsAsyncTask',
 }
 

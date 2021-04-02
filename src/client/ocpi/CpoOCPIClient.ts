@@ -597,25 +597,28 @@ export default class CpoOCPIClient extends OCPIClient {
     // Perfs trace
     const startTime = new Date().getTime();
     const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
-      issuer: true,
+      issuer: false,
       ocpiCdrChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const transaction of transactions.result) {
-      try {
-        if (await this.checkCdr(transaction)) {
-          result.success++;
-        } else {
+    if (!Utils.isEmptyArray(transactions.result)) {
+      await Promise.map(transactions.result, async (transaction) => {
+        try {
+          if (await this.checkCdr(transaction)) {
+            result.success++;
+          } else {
+            result.failure++;
+            result.objectIDsInFailure.push(String(transaction.id));
+          }
+        } catch (error) {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
+          result.logs.push(
+            `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
+          );
         }
-      } catch (error) {
-        result.failure++;
-        result.objectIDsInFailure.push(String(transaction.id));
-        result.logs.push(
-          `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
-        );
-      }
-      result.total++;
+        result.total++;
+      },
+      { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
     await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_CHECK_CDRS,
@@ -828,15 +831,16 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      source: transaction.chargeBoxID,
-      action: ServerAction.OCPI_CHECK_CDRS,
-      message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
-      module: MODULE_NAME, method: 'checkCdr',
-      detailedMessages: { response: response.data }
-    });
+    // Create if it does not exit
     if (response.data.status_code === 3001) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
+        action: ServerAction.OCPI_CHECK_CDRS,
+        message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') does not exist`,
+        module: MODULE_NAME, method: 'checkCdr',
+        detailedMessages: { response: response.data }
+      });
       await this.axiosInstance.post(
         cdrsUrl,
         transaction.ocpiData.cdr,
@@ -852,6 +856,14 @@ export default class CpoOCPIClient extends OCPIClient {
     if (cdr) {
       transaction.ocpiData.cdrCheckedOn = new Date();
       await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
+        action: ServerAction.OCPI_CHECK_CDRS,
+        message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
+        module: MODULE_NAME, method: 'checkCdr',
+        detailedMessages: { cdr }
+      });
       return true;
     }
     throw new BackendError({

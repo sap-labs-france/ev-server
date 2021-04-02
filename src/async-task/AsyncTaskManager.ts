@@ -8,6 +8,7 @@ import Constants from '../utils/Constants';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import OCPICheckCdrsAsyncTask from './tasks/ocpi/OCPICheckCdrsAsyncTask';
 import OCPIPullCdrsAsyncTask from './tasks/ocpi/OCPIPullCdrsAsyncTask';
 import OCPIPullLocationsAsyncTask from './tasks/ocpi/OCPIPullLocationsAsyncTask';
 import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
@@ -86,6 +87,9 @@ export default class AsyncTaskManager {
                 break;
               case AsyncTasks.OCPI_PULL_CDRS:
                 abstractAsyncTask = new OCPIPullCdrsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_CHECK_CDRS:
+                abstractAsyncTask = new OCPICheckCdrsAsyncTask(asyncTask);
                 break;
               default:
                 await Logging.logError({
