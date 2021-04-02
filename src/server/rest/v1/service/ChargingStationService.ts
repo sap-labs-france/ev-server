@@ -1684,7 +1684,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-    action: ServerAction, command: Command, params: any): Promise<any> {
+      action: ServerAction, command: Command, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
