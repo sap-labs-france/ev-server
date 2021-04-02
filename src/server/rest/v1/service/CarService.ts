@@ -1,10 +1,12 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import CarFactory from '../../../../integration/car/CarFactory';
@@ -163,18 +165,9 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const carDatabaseImpl = await CarFactory.getCarImpl();
-    if (!carDatabaseImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.MISSING_SETTINGS,
-        message: 'Car service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
-      });
-    }
     // Get the lock
-    const carLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
-    if (!carLock) {
+    const syncCarCatalogsLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    if (!syncCarCatalogsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: action,
@@ -185,13 +178,21 @@ export default class CarService {
       });
     }
     try {
-      const result = await carDatabaseImpl.synchronizeCarCatalogs();
-      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-      next();
+      // Create and Save async task
+      await AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
+        action,
+        type: AsyncTaskType.TASK,
+        module: MODULE_NAME,
+        method: 'handleSynchronizeCarCatalogs',
+      });
     } finally {
       // Release the lock
-      await LockingManager.release(carLock);
+      await LockingManager.release(syncCarCatalogsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

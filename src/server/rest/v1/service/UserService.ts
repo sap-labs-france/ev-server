@@ -987,7 +987,7 @@ export default class UserService {
             `No User have been uploaded in ${executionDurationSecs}s`, req.user
           );
           // Create and Save async task
-          AsyncTaskManager.createAndSaveAsyncTasks({
+          await AsyncTaskManager.createAndSaveAsyncTasks({
             name: AsyncTasks.USERS_IMPORT,
             action: ServerAction.USERS_IMPORT,
             type: AsyncTaskType.TASK,

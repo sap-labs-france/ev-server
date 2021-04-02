@@ -289,7 +289,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PULL_LOCATIONS,
         action,
         type: AsyncTaskType.TASK,
@@ -343,7 +343,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PULL_SESSIONS,
         action,
         type: AsyncTaskType.TASK,
@@ -397,7 +397,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PULL_TOKENS,
         action,
         type: AsyncTaskType.TASK,
@@ -451,7 +451,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PULL_CDRS,
         action,
         type: AsyncTaskType.TASK,
@@ -505,7 +505,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_CHECK_CDRS,
         action,
         type: AsyncTaskType.TASK,
@@ -559,7 +559,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_CHECK_SESSIONS,
         action,
         type: AsyncTaskType.TASK,
@@ -613,7 +613,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_CHECK_LOCATIONS,
         action,
         type: AsyncTaskType.TASK,
@@ -667,7 +667,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PUSH_EVSE_STATUSES,
         action,
         type: AsyncTaskType.TASK,
@@ -721,7 +721,7 @@ export default class OCPIEndpointService {
     }
     try {
       // Create and Save async task
-      AsyncTaskManager.createAndSaveAsyncTasks({
+      await AsyncTaskManager.createAndSaveAsyncTasks({
         name: AsyncTasks.OCPI_PUSH_TOKENS,
         action,
         type: AsyncTaskType.TASK,

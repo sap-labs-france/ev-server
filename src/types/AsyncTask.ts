@@ -6,7 +6,7 @@ export default interface AsyncTask extends CreatedUpdatedProps {
   name: AsyncTasks;
   action: ServerAction;
   type: AsyncTaskType;
-  tenantID: string;
+  tenantID?: string;
   status?: AsyncTaskStatus;
   parent?: string;
   execHost?: string;
@@ -43,5 +43,6 @@ export enum AsyncTasks {
   OCPI_CHECK_LOCATIONS = 'OCPICheckLocationsAsyncTask',
   OCPI_PULL_TOKENS = 'OCPIPullTokensAsyncTask',
   OCPI_PUSH_EVSE_STATUSES = 'OCPIPushEVSEStatusesAsyncTask',
+  SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogsAsyncTask',
 }
 

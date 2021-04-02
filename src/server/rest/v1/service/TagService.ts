@@ -589,7 +589,7 @@ export default class TagService {
             `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
           );
           // Create and Save async task
-          AsyncTaskManager.createAndSaveAsyncTasks({
+          await AsyncTaskManager.createAndSaveAsyncTasks({
             name: AsyncTasks.TAGS_IMPORT,
             action: ServerAction.TAGS_IMPORT,
             type: AsyncTaskType.TASK,

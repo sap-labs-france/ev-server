@@ -18,6 +18,7 @@ import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
 import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
 import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
 import { ServerAction } from '../types/Server';
+import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
 import UsersImportAsyncTask from './tasks/UsersImportAsyncTask';
 import Utils from '../utils/Utils';
@@ -80,6 +81,9 @@ export default class AsyncTaskManager {
               case AsyncTasks.USERS_IMPORT:
                 abstractAsyncTask = new UsersImportAsyncTask(asyncTask);
                 break;
+              case AsyncTasks.SYNCHRONIZE_CAR_CATALOGS:
+                abstractAsyncTask = new SynchronizeCarCatalogsAsyncTask(asyncTask);
+                break;                  
               case AsyncTasks.OCPI_PUSH_TOKENS:
                 abstractAsyncTask = new OCPIPushTokensAsyncTask(asyncTask);
                 break;
@@ -203,9 +207,6 @@ export default class AsyncTaskManager {
     // Check
     if (Utils.isNullOrUndefined(asyncTask.name)) {
       throw new Error("The Name of the Async Task is mandatory");
-    }
-    if (Utils.isNullOrUndefined(asyncTask.tenantID)) {
-      throw new Error("The Tenant ID of the Async Task is mandatory");
     }
     if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
       throw new Error("The Parameters of the Async Task must be a Json document");
