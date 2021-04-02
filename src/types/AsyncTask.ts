@@ -11,6 +11,7 @@ export default interface AsyncTask extends CreatedUpdatedProps {
   parent?: string;
   execHost?: string;
   execTimestamp?: Date;
+  execDurationSecs?: number;
   module: string;
   method: string;
   message?: string;
@@ -25,6 +26,7 @@ export enum AsyncTaskType {
 export enum AsyncTaskStatus {
   PENDING = 'P',
   RUNNING = 'R',
+  SUCCESS = 'S',
   ERROR = 'E',
 }
 

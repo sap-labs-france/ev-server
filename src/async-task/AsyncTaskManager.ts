@@ -10,8 +10,6 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
-import User from '../types/User';
-import UserToken from '../types/UserToken';
 import UsersImportAsyncTask from './tasks/UsersImportAsyncTask';
 import Utils from '../utils/Utils';
 
@@ -26,11 +24,9 @@ export default class AsyncTaskManager {
     // Active?
     if (AsyncTaskManager.asyncTaskConfig?.active) {
       // Turn all Running task to Pending
-      const updatedAsyncTasks = await AsyncTaskStorage.updateRunningAsyncTaskToPending();
+      await AsyncTaskStorage.updateRunningAsyncTaskToPending();
       // Run it
-      if (updatedAsyncTasks > 0) {
-        void AsyncTaskManager.handleAsyncTasks();
-      }
+      void AsyncTaskManager.handleAsyncTasks();
     }
   }
 
@@ -54,7 +50,8 @@ export default class AsyncTaskManager {
         nbrTasksInParallel = this.asyncTaskConfig.nbrTasksInParallel;
       }
       // Get the tasks
-      const asyncTasks = await AsyncTaskStorage.getAsyncTasks( { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
+      const asyncTasks = await AsyncTaskStorage.getAsyncTasks(
+        { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
       // Process them
       let abstractAsyncTask: AbstractAsyncTask;
       if (!Utils.isEmptyArray(asyncTasks.result)) {
@@ -86,12 +83,13 @@ export default class AsyncTaskManager {
               // Get the lock
               const asyncTaskLock = await LockingHelper.createAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask);
               if (asyncTaskLock) {
+                const startAsyncTaskTime = new Date().getTime();
                 try {
-                  const startAsyncTaskTime = new Date().getTime();
                   // Update the task
                   asyncTask.execTimestamp = new Date();
                   asyncTask.execHost = Utils.getHostname();
                   asyncTask.status = AsyncTaskStatus.RUNNING;
+                  asyncTask.lastChangedOn = asyncTask.execTimestamp;
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log
                   await Logging.logInfo({
@@ -102,11 +100,15 @@ export default class AsyncTaskManager {
                   });
                   // Run
                   await abstractAsyncTask.run();
-                  // Delete the task
-                  await AsyncTaskStorage.deleteAsyncTask(asyncTask.id);
+                  // Duration
+                  const asyncTaskTotalDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                  // Mark the task
+                  asyncTask.status = AsyncTaskStatus.SUCCESS;
+                  asyncTask.execDurationSecs = asyncTaskTotalDurationSecs;
+                  asyncTask.lastChangedOn = new Date();
+                  await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   processedTask.inSuccess++;
                   // Log
-                  const asyncTaskTotalDurationSecs = Math.trunc((new Date().getTime() - startAsyncTaskTime) / 1000);
                   await Logging.logInfo({
                     tenantID: Constants.DEFAULT_TENANT,
                     action: ServerAction.ASYNC_TASK,
@@ -118,6 +120,8 @@ export default class AsyncTaskManager {
                   // Update the task
                   asyncTask.status = AsyncTaskStatus.ERROR;
                   asyncTask.message = error.message;
+                  asyncTask.execDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                  asyncTask.lastChangedOn = new Date();
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log error
                   Logging.logError({
@@ -136,7 +140,7 @@ export default class AsyncTaskManager {
           },
           { concurrency: nbrTasksInParallel }).then(() => {
             // Log result
-            const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
+            const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
             void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
               MODULE_NAME, 'handleAsyncTasks', processedTask,
               `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
@@ -156,7 +160,7 @@ export default class AsyncTaskManager {
     }
   }
 
-  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>, user?: UserToken|User|string): Promise<void> {
+  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>): Promise<void> {
     // Check
     if (Utils.isNullOrUndefined(asyncTask)) {
       throw new Error("The Async Task must not be null");
@@ -173,7 +177,6 @@ export default class AsyncTaskManager {
     }
     // Set
     asyncTask.status = AsyncTaskStatus.PENDING;
-    asyncTask.createdBy = user as User ?? null;
     asyncTask.createdOn = new Date();
     // Save
     await AsyncTaskStorage.saveAsyncTask(asyncTask as AsyncTask);

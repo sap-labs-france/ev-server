@@ -1,4 +1,3 @@
-import { OCPILocation, OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 
 import BackendError from '../../exception/BackendError';
@@ -16,6 +15,7 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../types/ocpi/OCPISession';
@@ -24,7 +24,6 @@ import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import { OcpiSetting } from '../../types/Setting';
-import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
@@ -67,7 +66,7 @@ export default class EmspOCPIClient extends OCPIClient {
     let tokens: DataResult<OCPIToken>;
     do {
       // Get all tokens
-      tokens = await OCPIUtilsService.getAllTokens(
+      tokens = await OCPIUtilsService.getTokens(
         this.tenant, Constants.DB_RECORD_COUNT_DEFAULT, currentSkip);
       for (const token of tokens.result) {
         result.total++;
@@ -299,11 +298,11 @@ export default class EmspOCPIClient extends OCPIClient {
     return result;
   }
 
-  public async processLocation(location: OCPILocation, company: Company, sites: Site[]): Promise<void> {
+  public async processLocation(location: OCPILocation, company: Company, existingSites: Site[]): Promise<void> {
     // Handle Site
     let site: Site;
     const siteName = location.operator?.name ?? OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
-    site = sites.find((value) => value.name === siteName);
+    site = existingSites.find((existingSite) => existingSite.name === siteName);
     if (!site) {
       // Create Site
       site = {
@@ -319,7 +318,7 @@ export default class EmspOCPIClient extends OCPIClient {
           coordinates: []
         }
       } as Site;
-      if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+      if (location.coordinates?.latitude && location.coordinates?.longitude) {
         site.address.coordinates = [
           Utils.convertToFloat(location.coordinates.longitude),
           Utils.convertToFloat(location.coordinates.latitude)
@@ -327,15 +326,14 @@ export default class EmspOCPIClient extends OCPIClient {
       }
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
       // Push the Site then it can be retrieve in the next round
-      sites.push(site);
+      existingSites.push(site);
     }
-    const locationName = site.name + '-' + location.id;
+    const locationName = site.name + Constants.OCPI_SEPARATOR + location.id;
     // Handle Site Area
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id, {
-      siteIDs: [site.id],
-      search: locationName
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
-    let siteArea = siteAreas && siteAreas.result.length === 1 ? siteAreas.result[0] : null;
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
+      { siteIDs: [site.id], name: locationName, issuer: false },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    let siteArea = !Utils.isEmptyArray(siteAreas.result) ? siteAreas.result[0] : null;
     if (!siteArea) {
       // Create Site Area
       siteArea = {
@@ -352,7 +350,7 @@ export default class EmspOCPIClient extends OCPIClient {
           coordinates: []
         }
       } as SiteArea;
-      if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+      if (location.coordinates?.latitude && location.coordinates?.longitude) {
         siteArea.address.coordinates = [
           Utils.convertToFloat(location.coordinates.longitude),
           Utils.convertToFloat(location.coordinates.latitude)

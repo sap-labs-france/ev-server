@@ -595,7 +595,7 @@ export default class TagService {
             tenantID: req.tenant.id,
             module: MODULE_NAME,
             method: 'handleImportTags',
-          }, req.user);
+          });
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();

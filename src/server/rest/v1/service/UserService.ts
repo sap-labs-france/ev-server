@@ -993,7 +993,7 @@ export default class UserService {
             tenantID: req.tenant.id,
             module: MODULE_NAME,
             method: 'handleImportUsers',
-          }, req.user);
+          });
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();

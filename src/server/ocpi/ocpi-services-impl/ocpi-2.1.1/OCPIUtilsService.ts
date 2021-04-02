@@ -81,12 +81,12 @@ export default class OCPIUtilsService {
         evses: [evse]
       }
     } as ChargingStation;
-    if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
+    if (evse.coordinates?.latitude && evse.coordinates?.longitude) {
       chargingStation.coordinates = [
         Utils.convertToFloat(evse.coordinates.longitude),
         Utils.convertToFloat(evse.coordinates.latitude)
       ];
-    } else if (location && location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+    } else if (location?.coordinates?.latitude && location?.coordinates?.longitude) {
       chargingStation.coordinates = [
         Utils.convertToFloat(location.coordinates.longitude),
         Utils.convertToFloat(location.coordinates.latitude)
@@ -148,7 +148,8 @@ export default class OCPIUtilsService {
     return ocpiLocationsResult;
   }
 
-  public static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
+  public static async getTokens(tenant: Tenant, limit: number, skip: number,
+    dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
@@ -768,8 +769,7 @@ export default class OCPIUtilsService {
         });
       }
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
-        tenantId, evse.evse_id);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenantId, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
