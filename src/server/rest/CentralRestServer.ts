@@ -432,6 +432,22 @@ export default class CentralRestServer {
     });
   }
 
+  public notifyAsyncTaskEndpoint(tenantID: string, action: Action, data: NotificationData): void {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.ASYNC_TASK,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.ASYNC_TASKS,
+      'action': action
+    });
+  }
+
   private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
     if (this.hasSocketIOClients(notification.tenantID)) {

@@ -116,7 +116,7 @@ export default class LockingManager {
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
         message: `Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' does not exist and cannot be released`,
-        detailedMessages: { lock }
+        detailedMessages: { lock, stack: new Error().stack }
       });
       return false;
     }

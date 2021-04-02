@@ -20,8 +20,8 @@ export default class WSServer extends WebSocket.Server {
   private httpServer: http.Server;
 
   public constructor(port: number, hostname: string, serverName: string, httpServer: http.Server,
-    verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
-    void => { }, handleProtocolsCb: (protocols: string | string[], request: http.IncomingMessage) => boolean | string = (protocols, request) => '') {
+      verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
+      void => { }, handleProtocolsCb: (protocols: string | string[], request: http.IncomingMessage) => boolean | string = (protocols, request) => '') {
     // Create the WebSocket Server
     super({
       server: httpServer,

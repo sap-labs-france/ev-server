@@ -76,8 +76,8 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSite?: boolean; withChargingStations?: boolean,withAvailableChargingStations?: boolean; withImage?: boolean } = {},
-    projectFields?: string[]): Promise<SiteArea> {
+      params: { withSite?: boolean; withChargingStations?: boolean,withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+      projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
       withSite: params.withSite,
@@ -135,12 +135,12 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {
-      siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
+      params: {
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
+        withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreas');
     // Check Tenant

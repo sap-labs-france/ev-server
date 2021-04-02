@@ -7,6 +7,7 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
+import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -170,8 +171,7 @@ export default class CompanyService {
       authorizationCompaniesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies.result);
-    companies.canCreate = Authorizations.canCreateCompany(req.user);
+    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult);
     // Return
     res.json(companies);
     next();

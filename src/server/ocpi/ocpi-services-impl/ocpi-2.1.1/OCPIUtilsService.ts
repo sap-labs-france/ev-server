@@ -58,7 +58,7 @@ export default class OCPIUtilsService {
    * @param options.addChargeBoxID
    * @returns OCPI Location
    */
-   static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
+  static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,

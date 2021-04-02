@@ -1,6 +1,7 @@
 import Lock, { LockEntity } from '../types/Locking';
 
 import Asset from '../types/Asset';
+import AsyncTask from '../types/AsyncTask';
 import LockingManager from './LockingManager';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../types/oicp/OICPEndpoint';
@@ -10,6 +11,14 @@ export default class LockingHelper {
   public static async tryCreateSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeout: number): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`);
     if (!(await LockingManager.tryAcquire(lock, timeout))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createAsyncTaskLock(tenantID: string, asyncTask: AsyncTask): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, `${asyncTask.id}`);
+    if (!(await LockingManager.acquire(lock))) {
       return null;
     }
     return lock;

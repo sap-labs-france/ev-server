@@ -66,7 +66,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
-    if(!Utils.isEmptyArray(data.historics)) {
+    if (!Utils.isEmptyArray(data.historics)) {
       for (let i = 0; i < data.historics[0].logs.length; i++) {
         const consumption = {} as AbstractCurrentConsumption;
         consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.POWER_ACTIVE, i) * energyDirection;

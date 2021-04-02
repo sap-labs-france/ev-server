@@ -14,7 +14,7 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
+      params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenantID, {
       assetIDs: [id],
       withSiteArea: params.withSiteArea
@@ -98,9 +98,9 @@ export default class AssetStorage {
   }
 
   public static async getAssets(tenantID: string,
-    params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+      params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
+        withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssets');
     // Check Tenant
@@ -216,8 +216,8 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-    params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');
     // Check Tenant
