@@ -35,7 +35,7 @@ export default class OCPPStorage {
   }
 
   static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string},
-    dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
+      dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAuthorizes');
     // Check Tenant
@@ -123,8 +123,8 @@ export default class OCPPStorage {
   }
 
   static async getStatusNotifications(tenantID: string,
-    params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
-    dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
+      params: { dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string },
+      dbParams: DbParams): Promise<DataResult<OCPPStatusNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
@@ -197,8 +197,8 @@ export default class OCPPStorage {
   }
 
   static async getLastStatusNotifications(tenantID: string,
-    params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
-    Promise<OCPPStatusNotificationRequestExtended[]> {
+      params: { dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string }):
+      Promise<OCPPStatusNotificationRequestExtended[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastStatusNotifications');
     // Check Tenant
@@ -322,7 +322,7 @@ export default class OCPPStorage {
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string},
-    dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
+      dbParams: DbParams): Promise<DataResult<OCPPBootNotificationRequestExtended>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getBootNotifications');
     // Check Tenant
@@ -459,7 +459,7 @@ export default class OCPPStorage {
   }
 
   public static async getMeterValues(tenantID: string, params: { transactionId: number },
-    dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
+      dbParams: DbParams): Promise<DataResult<OCPPNormalizedMeterValue>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getMeterValues');
     // Check Tenant

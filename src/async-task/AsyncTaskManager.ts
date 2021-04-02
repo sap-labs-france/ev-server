@@ -120,7 +120,7 @@ export default class AsyncTaskManager {
                   asyncTask.message = error.message;
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log error
-                  Logging.logError({
+                  await Logging.logError({
                     tenantID: Constants.DEFAULT_TENANT,
                     module: MODULE_NAME, method: 'handleAsyncTasks',
                     action: ServerAction.ASYNC_TASK,
