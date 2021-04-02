@@ -221,16 +221,20 @@ export default class EmspOCPIClient extends OCPIClient {
             Authorization: `Token ${this.ocpiEndpoint.token}`
           },
         });
-      for (const session of response.data.data as OCPISession[]) {
-        try {
-          await OCPIUtilsService.updateTransaction(this.tenant.id, session);
-          result.success++;
-        } catch (error) {
-          result.failure++;
-          result.logs.push(
-            `Failed to update OCPI Transaction ID '${session.id}': ${error.message}`
-          );
-        }
+      const sessions = response.data.data as OCPISession[];
+      if (!Utils.isEmptyArray(sessions)) {
+        await Promise.map(sessions, async (session: OCPISession) => {
+          try {
+            await OCPIUtilsService.updateTransaction(this.tenant.id, session);
+            result.success++;
+          } catch (error) {
+            result.failure++;
+            result.logs.push(
+              `Failed to update OCPI Session ID '${session.id}': ${error.message}`
+            );
+          }
+        },
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== sessionsUrl) {

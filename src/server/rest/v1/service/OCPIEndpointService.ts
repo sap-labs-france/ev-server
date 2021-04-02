@@ -306,6 +306,7 @@ export default class OCPIEndpointService {
     }
     // Return result
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handlePullSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -330,8 +331,8 @@ export default class OCPIEndpointService {
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullSessionsLock(tenant.id, ocpiEndpoint);
-    if (!ocpiLock) {
+    const pullSessionsLock = await LockingHelper.createOCPIPullSessionsLock(tenant.id, ocpiEndpoint);
+    if (!pullSessionsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
@@ -341,15 +342,25 @@ export default class OCPIEndpointService {
       });
     }
     try {
-      // Build OCPI Client
-      const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-      const result = await ocpiClient.pullSessions();
-      // Return result
-      res.json(result);
-      next();
+      // Create and Save async task
+      AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.OCPI_PULL_SESSIONS,
+        action,
+        type: AsyncTaskType.TASK,
+        tenantID: req.tenant.id,
+        parameters: {
+          endpointID: filteredRequest.id,
+        },
+        module: MODULE_NAME,
+        method: 'handlePullSessionsEndpoint',
+      });
     } finally {
-      await LockingManager.release(ocpiLock);
+      // Release the lock
+      await LockingManager.release(pullSessionsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handlePullTokensEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
