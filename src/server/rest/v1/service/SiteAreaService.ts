@@ -18,6 +18,7 @@ import Logging from '../../../../utils/Logging';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
+import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -405,9 +406,8 @@ export default class SiteAreaService {
       },
       readSiteAreasAuthorizationFilters.projectFields
     );
-
-    // todo: add for each! can Read/Update/Delete + global canCreate
-
+    // Add Auth flags
+    await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult);
     // Return
     res.json(siteAreas);
     next();

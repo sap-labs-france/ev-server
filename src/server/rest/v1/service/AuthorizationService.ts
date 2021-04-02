@@ -1,5 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { CompanyDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
@@ -12,7 +12,6 @@ import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { ServerAction } from '../../../../types/Server';
-import Site from '../../../../types/Site';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
@@ -21,7 +20,6 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
-import { filter } from 'bluebird';
 
 const MODULE_NAME = 'AuthorizationService';
 
@@ -583,6 +581,24 @@ export default class AuthorizationService {
     }
 
     return authorizationFilters;
+  }
+
+  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult) {
+    // Add canCreate flag to root
+    siteAreas.canCreate = Authorizations.canCreateSite(userToken);
+    // Enrich
+    for (const siteArea of siteAreas.result) {
+      siteArea.canRead = Authorizations.canReadSite(userToken);
+      // update can be performed by admin or site admin
+      if (userToken.role === UserRole.ADMIN) {
+        siteArea.canDelete = true;
+        siteArea.canUpdate = true;
+      } else {
+        const canModify = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(tenant, userToken, siteArea.id);
+        siteArea.canUpdate = Authorizations.canUpdateSiteArea(userToken) && canModify;
+        siteArea.canDelete = Authorizations.canDeleteSiteArea(userToken) && canModify;
+      }
+    }
   }
 
   private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
