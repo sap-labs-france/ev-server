@@ -20,15 +20,15 @@ export default class SchemaValidator {
   private transactionSchema: any = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction.json`, 'utf8'));
 
   constructor(readonly moduleName: string,
-    config: {
-      allErrors: boolean; removeAdditional: boolean | 'all' | 'failing' | undefined;
-      useDefaults: boolean; coerceTypes: boolean;
-    } = {
-      allErrors: true,
-      removeAdditional: 'failing',
-      useDefaults: true,
-      coerceTypes: true
-    }) {
+      config: {
+        allErrors: boolean; removeAdditional: boolean | 'all' | 'failing' | undefined;
+        useDefaults: boolean; coerceTypes: boolean;
+      } = {
+        allErrors: true,
+        removeAdditional: 'failing',
+        useDefaults: true,
+        coerceTypes: true
+      }) {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
     this.ajv.addSchema(this.commonSchema);
     this.ajv.addSchema(this.tenantComponentSchema);

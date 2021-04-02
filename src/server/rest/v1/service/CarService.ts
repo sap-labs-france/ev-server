@@ -586,7 +586,7 @@ export default class CarService {
   }
 
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
-    car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
+      car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
     if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];

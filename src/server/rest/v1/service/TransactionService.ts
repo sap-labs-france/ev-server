@@ -890,26 +890,25 @@ export default class TransactionService {
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('tags.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('tags.description') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.endDate') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.endTime') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalConsumption') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalDuration') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalInactivity') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.priceUnit') + '\r\n';
+      csv = 'id' + Constants.CSV_SEPARATOR;
+      csv += 'chargingStationID' + Constants.CSV_SEPARATOR;
+      csv += 'connector' + Constants.CSV_SEPARATOR;
+      csv += 'userID' + Constants.CSV_SEPARATOR;
+      csv += 'user' + Constants.CSV_SEPARATOR;
+      csv += 'tagID' + Constants.CSV_SEPARATOR;
+      csv += 'tagDescription' + Constants.CSV_SEPARATOR;
+      csv += 'timezone' + Constants.CSV_SEPARATOR;
+      csv += 'startDate' + Constants.CSV_SEPARATOR;
+      csv += 'startTime' + Constants.CSV_SEPARATOR;
+      csv += 'endDate' + Constants.CSV_SEPARATOR;
+      csv += 'endTime' + Constants.CSV_SEPARATOR;
+      csv += 'totalConsumption' + Constants.CSV_SEPARATOR;
+      csv += 'totalDuration' + Constants.CSV_SEPARATOR;
+      csv += 'totalInactivity' + Constants.CSV_SEPARATOR;
+      csv += 'price' + Constants.CSV_SEPARATOR;
+      csv += 'priceUnit' + Constants.CR_LF;
     }
     // Content
     for (const transaction of transactions) {
@@ -929,7 +928,7 @@ export default class TransactionService {
       csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
       csv += (transaction.stop ? transaction.stop.roundedPrice : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? transaction.stop.priceUnit : '') + '\r\n';
+      csv += (transaction.stop ? transaction.stop.priceUnit : '') + Constants.CR_LF;
     }
     return csv;
   }
@@ -1014,7 +1013,7 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, action: ServerAction,
-    params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+      params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({

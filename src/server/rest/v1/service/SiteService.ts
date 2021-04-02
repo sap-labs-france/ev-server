@@ -11,6 +11,7 @@ import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
+import { SiteDataResult } from '../../../../types/DataResult';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -476,7 +477,7 @@ export default class SiteService {
       authorizationSiteFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites.result);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult);
     // Return
     res.json(sites);
     next();
