@@ -273,7 +273,7 @@ export default class CpoOICPClient extends OICPClient {
     // Only one post request to Hubject for multiple EVSEs
     result.total = evsesToProcess.length;
     if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
-      // Incase of multiple batches:
+      // In case of multiple batches:
       // delete all EVSEs on Hubject by overwriting with empty array
       // set action type to insert to avoid overwriting each batch with a full load request
       await this.pushEvseData([], OICPActionType.FULL_LOAD);

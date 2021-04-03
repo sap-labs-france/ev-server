@@ -144,7 +144,7 @@ export default class AsyncTaskStorage {
     // Delete the AsyncTask
     const result = await global.database.getCollection<AsyncTask>(Constants.DEFAULT_TENANT, 'asynctasks').updateMany(
       { 'status': AsyncTaskStatus.RUNNING },
-      { '$set': { 'status': AsyncTaskStatus.PENDING }}
+      { '$set': { 'status': AsyncTaskStatus.PENDING } }
     );
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'updateRunningAsyncTaskToPending', uniqueTimerID);

@@ -109,7 +109,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,
-    options: OCPILocationOptions, withChargingStations: boolean): Promise<DataResult<OCPILocation>> {
+      options: OCPILocationOptions, withChargingStations: boolean): Promise<DataResult<OCPILocation>> {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
@@ -135,7 +135,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getTokens(tenant: Tenant, limit: number, skip: number,
-    dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
+      dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
@@ -170,7 +170,7 @@ export default class OCPIUtilsService {
   }
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
-    options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
+      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -312,7 +312,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getEvsesFromSite(tenant: Tenant, siteID: string,
-    options: OCPILocationOptions, dbParams: DbParams, dbFilters: Record<string, any> = {}): Promise<OCPIEvse[]> {
+      options: OCPILocationOptions, dbParams: DbParams, dbFilters: Record<string, any> = {}): Promise<OCPIEvse[]> {
     // Build evses array
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
@@ -679,7 +679,7 @@ export default class OCPIUtilsService {
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
-    chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
     let connectors: Connector[];
     if (chargePoint) {
@@ -713,7 +713,7 @@ export default class OCPIUtilsService {
   }
 
   private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
-    chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
     let connectors: Connector[];
     if (chargePoint) {
       connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);

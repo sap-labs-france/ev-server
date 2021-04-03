@@ -143,8 +143,8 @@ export default class ConsumptionStorage {
   }
 
   static async getSiteAreaConsumptions(tenantID: string,
-    params: { siteAreaID: string; startDate: Date; endDate: Date },
-    projectFields?: string[]): Promise<Consumption[]> {
+      params: { siteAreaID: string; startDate: Date; endDate: Date },
+      projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
@@ -226,7 +226,7 @@ export default class ConsumptionStorage {
   }
 
   static async getTransactionConsumptions(tenantID: string, params: { transactionId: number },
-    dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
+      dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT, projectFields?: string[]): Promise<DataResult<Consumption>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionConsumptions');
     // Check

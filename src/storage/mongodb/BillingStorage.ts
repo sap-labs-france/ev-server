@@ -34,11 +34,11 @@ export default class BillingStorage {
   }
 
   public static async getInvoices(tenantID: string,
-    params: {
-      invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
-      startDateTime?: Date; endDateTime?: Date;
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
+      params: {
+        invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
+        startDateTime?: Date; endDateTime?: Date;
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoices');
     // Check Tenant

@@ -134,7 +134,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+      params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       chargingStationIDs: [id],
       withSite: true,
@@ -145,7 +145,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationByOcpiEvseID(tenantID: string, ocpiEvseID: string = Constants.UNKNOWN_STRING_ID,
-    projectFields?: string[]): Promise<ChargingStation> {
+      projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       ocpiEvseID,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -153,8 +153,8 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationByOcpiLocationUid(tenantID: string, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
-    ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
-    projectFields?: string[]): Promise<ChargingStation> {
+      ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
+      projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       ocpiLocationID,
       ocpiEvseUid,
@@ -163,14 +163,14 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStations(tenantID: string,
-    params: {
-      search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
-      ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
-    },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
+      params: {
+        search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
+        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
+        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string;
+        siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
+      },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
@@ -399,8 +399,8 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
+      params: { search?: string; siteIDs?: string[]; siteAreaIDs: string[]; errorType?: string[] },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStationInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStations');
     // Check Tenant
@@ -606,7 +606,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationLastSeen(tenantID: string, id: string,
-    params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
+      params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationLastSeen');
     // Check Tenant
@@ -622,7 +622,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationOcpiData(tenantID: string, id: string,
-    ocpiData: ChargingStationOcpiData): Promise<void> {
+      ocpiData: ChargingStationOcpiData): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationOcpiData');
     // Check Tenant
@@ -766,12 +766,12 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenantID: string,
-    params: {
-      search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
-      withSiteArea?: boolean; siteIDs?: string[];
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+      params: {
+        search?: string; chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+        profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean;
+        withSiteArea?: boolean; siteIDs?: string[];
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingProfiles');
     // Check Tenant

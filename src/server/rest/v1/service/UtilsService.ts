@@ -248,7 +248,7 @@ export default class UtilsService {
   }
 
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
-    action: Action, entity: Entity, module: string, method: string): void {
+      action: Action, entity: Entity, module: string, method: string): void {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
@@ -264,8 +264,8 @@ export default class UtilsService {
   }
 
   public static async exportToCSV(req: Request, res: Response, attachmentName: string,
-    handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
+      handleGetData: (req: Request) => Promise<DataResult<any>>,
+      handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
@@ -305,8 +305,8 @@ export default class UtilsService {
   }
 
   public static async exportToPDF(req: Request, res: Response, attachementName: string,
-    handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
+      handleGetData: (req: Request) => Promise<DataResult<any>>,
+      handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
@@ -347,7 +347,7 @@ export default class UtilsService {
   }
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
-    filteredRequest: ChargingProfile, req: Request): void {
+      filteredRequest: ChargingProfile, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
