@@ -1,5 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
@@ -7,13 +8,13 @@ import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import ImportTagsTask from '../../../../scheduler/tasks/ImportTagsTask';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -507,9 +508,11 @@ export default class TagService {
     let connectionClosed = false;
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     req.socket.on('close', async () => {
-      connectionClosed = true;
-      // Release the lock
-      await LockingManager.release(importTagsLock);
+      if (!connectionClosed) {
+        connectionClosed = true;
+        // Release the lock
+        await LockingManager.release(importTagsLock);
+      }
     });
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
@@ -566,6 +569,8 @@ export default class TagService {
         // Completed
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         }, async () => {
+          // Consider the connection closed
+          connectionClosed = true;
           // Insert batched
           if (tagsToBeImported.length > 0) {
             await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
@@ -582,8 +587,15 @@ export default class TagService {
             `{{inSuccess}}  Tag(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
             `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
           );
-          // Trigger manually and asynchronously the job
-          void new ImportTagsTask().processTenant(req.tenant);
+          // Create and Save async task
+          AsyncTaskManager.createAndSaveAsyncTasks({
+            name: AsyncTasks.TAGS_IMPORT,
+            action: ServerAction.TAGS_IMPORT,
+            type: AsyncTaskType.TASK,
+            tenantID: req.tenant.id,
+            module: MODULE_NAME,
+            method: 'handleImportTags',
+          }, req.user);
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();

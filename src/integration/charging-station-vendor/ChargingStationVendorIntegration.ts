@@ -31,7 +31,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-    chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationCommandResult> {
+      chargePoint?: ChargePoint, maxAmps?: number, ocppParamValueMultiplier = 1): Promise<OCPPChangeConfigurationCommandResult> {
     const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint);
     const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
     if (chargePoint.excludeFromPowerLimitation) {
@@ -123,7 +123,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-    ocppParamName: string, ocppParamValue: string, ocppParamValueDivider = 1): Promise<void> {
+      ocppParamName: string, ocppParamValue: string, ocppParamValueDivider = 1): Promise<void> {
     if (chargingStation.chargePoints) {
       for (const chargePoint of chargingStation.chargePoints) {
         if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
@@ -153,7 +153,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
-    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -231,7 +231,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -316,7 +316,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
-    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
+      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -481,7 +481,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public convertToVendorChargingProfile(chargingStation: ChargingStation,
-    chargePoint: ChargePoint, chargingProfile: ChargingProfile): ChargingProfile {
+      chargePoint: ChargePoint, chargingProfile: ChargingProfile): ChargingProfile {
     // Get vendor specific charging profile
     const vendorSpecificChargingProfile: ChargingProfile = Utils.cloneObject(chargingProfile);
     // Check connector
@@ -585,7 +585,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   private getCurrentConnectorLimitFromProfiles(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
-    connectorID: number, chargingProfiles: ChargingProfile[]): ConnectorCurrentLimit {
+      connectorID: number, chargingProfiles: ChargingProfile[]): ConnectorCurrentLimit {
     // Profiles should already be sorted by connectorID and Stack Level (highest stack level has prio)
     for (const chargingProfile of chargingProfiles) {
       // Set helpers

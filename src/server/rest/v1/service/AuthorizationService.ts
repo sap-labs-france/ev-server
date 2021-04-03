@@ -1,4 +1,5 @@
 import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { CompanyDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -6,7 +7,6 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
-import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -24,7 +24,7 @@ const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -55,7 +55,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUpdateSiteAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -85,11 +85,13 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: Site[]): Promise<void> {
+  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult): Promise<void> {
     // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    // Add canCreate flag to root
+    sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
-    for (const site of sites) {
+    for (const site of sites.result) {
       site.canRead = Authorizations.canReadSite(userToken);
       site.canDelete = Authorizations.canDeleteSite(userToken);
       // update can be performed by admin or site admin
@@ -102,7 +104,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSitesAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -143,7 +145,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteUsersAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -162,7 +164,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserSitesAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -181,7 +183,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndAssignSiteUsersAuthorizationFilters(
-    tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [],
@@ -223,7 +225,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndAssignUserSitesAuthorizationFilters(
-    tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [],
@@ -268,7 +270,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersInErrorAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -299,7 +301,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -320,7 +322,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -340,7 +342,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagsAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpTagsRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpTagsRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -364,7 +366,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagAuthorizationFilters(
-    tenant: Tenant, userToken: UserToken, filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'],
@@ -380,15 +382,17 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: Company[]): Promise<void> {
-    // Get Site Admins - needed?
+  public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken, companies: CompanyDataResult): Promise<void> {
+    // Get Site Admins
     const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
     // Set to user
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
+    // Add canCreate flag to root
+    companies.canCreate = Authorizations.canCreateCompany(userToken);
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
-    for (const company of companies) {
+    for (const company of companies.result) {
       if (userToken.role === UserRole.ADMIN) {
         company.canRead = true;
         company.canUpdate = true;
@@ -566,8 +570,8 @@ export default class AuthorizationService {
   }
 
   private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
-    filteredRequest: HttpSiteUsersRequest | HttpUserSitesRequest | HttpUserRequest | HttpUserAssignSitesRequest | HttpTagsRequest,
-    authorizationFilters: AuthorizationFilter): Promise<void> {
+      filteredRequest: HttpSiteUsersRequest | HttpUserSitesRequest | HttpUserRequest | HttpUserAssignSitesRequest | HttpTagsRequest,
+      authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag

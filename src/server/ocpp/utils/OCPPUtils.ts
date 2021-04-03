@@ -47,7 +47,7 @@ const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
   public static async processOCPITransaction(tenantID: string, transaction: Transaction,
-    chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
+      chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     try {
       if (!transaction.user || transaction.user.issuer) {
         return;
@@ -155,7 +155,7 @@ export default class OCPPUtils {
   }
 
   public static async processOICPTransaction(tenantID: string, transaction: Transaction,
-    chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
+      chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     if (!transaction.user || transaction.user.issuer) {
       return;
     }
@@ -691,7 +691,7 @@ export default class OCPPUtils {
   }
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
-    user: User, alternateUser: User, tagId: string): void {
+      user: User, alternateUser: User, tagId: string): void {
     // Set final data
     transaction.stop = {
       meterStop: stopTransaction.meterStop,
@@ -708,7 +708,7 @@ export default class OCPPUtils {
   }
 
   public static createTransactionStopMeterValues(transaction: Transaction,
-    stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
+      stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
       chargeBoxID: transaction.chargeBoxID,
@@ -845,7 +845,7 @@ export default class OCPPUtils {
   }
 
   public static async createConsumptionsFromMeterValues(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, meterValues: OCPPNormalizedMeterValue[]): Promise<Consumption[]> {
+      transaction: Transaction, meterValues: OCPPNormalizedMeterValue[]): Promise<Consumption[]> {
     // Build consumptions
     const consumptions: Consumption[] = [];
     for (const meterValue of meterValues) {
@@ -879,7 +879,7 @@ export default class OCPPUtils {
   }
 
   public static async createConsumptionFromMeterValue(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
-    lastConsumption: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
+      lastConsumption: { value: number; timestamp: Date }, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isValidMeterValue(meterValue)) {
       // First meter value: Create one based on the transaction
@@ -1078,7 +1078,7 @@ export default class OCPPUtils {
   }
 
   public static async addConnectorLimitationToConsumption(tenantID: string, chargingStation: ChargingStation,
-    connectorID: number, consumption: Consumption): Promise<void> {
+      connectorID: number, consumption: Consumption): Promise<void> {
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (chargingStationVendor) {
       // Get current limitation
@@ -1405,8 +1405,8 @@ export default class OCPPUtils {
   }
 
   public static async enrichChargingStationConnectorWithTemplate(
-    tenantID: string, chargingStation: ChargingStation, connectorID: number,
-    chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+      tenantID: string, chargingStation: ChargingStation, connectorID: number,
+      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Copy from template
     if (chargingStationTemplate) {
       // Handle connector
@@ -1503,8 +1503,8 @@ export default class OCPPUtils {
   }
 
   public static async clearAndDeleteChargingProfilesForSiteArea(
-    tenantID: string, siteArea: SiteArea,
-    params?: { profilePurposeType?: ChargingProfilePurposeType; transactionId?: number }): Promise<ActionsResponse> {
+      tenantID: string, siteArea: SiteArea,
+      params?: { profilePurposeType?: ChargingProfilePurposeType; transactionId?: number }): Promise<ActionsResponse> {
     const actionsResponse: ActionsResponse = {
       inError: 0,
       inSuccess: 0
@@ -1747,7 +1747,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation,
-    forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
+      forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Configuration
       const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenantID, chargingStation, {});
@@ -1812,7 +1812,7 @@ export default class OCPPUtils {
   }
 
   public static async updateChargingStationTemplateOcppParameters(tenantID: string, chargingStation: ChargingStation,
-    currentOcppParameters?: OcppParameter[]): Promise<ActionsResponse> {
+      currentOcppParameters?: OcppParameter[]): Promise<ActionsResponse> {
     const updatedOcppParams = {
       inError: 0,
       inSuccess: 0
@@ -1915,7 +1915,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChangeChargingStationOcppParameter(tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam,
-    saveChange = true, triggerConditionalReset = false): Promise<OCPPChangeConfigurationCommandResult> {
+      saveChange = true, triggerConditionalReset = false): Promise<OCPPChangeConfigurationCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -1950,7 +1950,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChargingStationOcppParameters(
-    tenantID: string, chargingStation: ChargingStation, params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+      tenantID: string, chargingStation: ChargingStation, params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -1984,7 +1984,7 @@ export default class OCPPUtils {
   }
 
   public static async triggerChargingStationReset(tenantID: string, chargingStation: ChargingStation,
-    hardResetFallback = false, resetType: OCPPResetType = OCPPResetType.SOFT): Promise<OCPPResetCommandResult> {
+      hardResetFallback = false, resetType: OCPPResetType = OCPPResetType.SOFT): Promise<OCPPResetCommandResult> {
     // Get the Charging Station client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {

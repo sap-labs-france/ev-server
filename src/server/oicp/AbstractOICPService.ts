@@ -28,9 +28,9 @@ export default abstract class AbstractOICPService {
 
   // Create OICP Service
   protected constructor(
-    private readonly oicpRestConfig: OICPServiceConfiguration,
-    private readonly path: string,
-    private readonly version: string) {
+      private readonly oicpRestConfig: Configuration['OICPService'],
+      private readonly path: string,
+      private readonly version: string) {
   }
 
   /**

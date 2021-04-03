@@ -89,6 +89,7 @@ export enum ServerAction {
   PERFORMANCES = 'Performances',
 
   SCHEDULER = 'Scheduler',
+  ASYNC_TASK = 'AsyncTask',
 
   REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
   EMAIL_NOTIFICATION = 'EmailNotification',

@@ -39,8 +39,8 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-    params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
-    Promise<DataResult<RegistrationToken>> {
+      params: { tokenIDs?: string[]; siteIDs?: string[]; siteAreaID?: string } = {}, dbParams: DbParams, projectFields?: string[]):
+      Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
@@ -140,7 +140,7 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    projectFields?: string[]): Promise<RegistrationToken> {
+      projectFields?: string[]): Promise<RegistrationToken> {
     const registrationTokensMDB = await RegistrationTokenStorage.getRegistrationTokens(tenantID, {
       tokenIDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

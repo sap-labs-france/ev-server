@@ -815,7 +815,7 @@ export default class OCPPService {
   }
 
   public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended,
-    isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
+      isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1108,7 +1108,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     if (statusNotification.status === ChargePointStatus.AVAILABLE &&
         Utils.objectHasProperty(statusNotification, 'timestamp')) {
@@ -1182,7 +1182,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&
@@ -1852,7 +1852,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenantID, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
