@@ -3,6 +3,7 @@ import { OCPIConnector } from './OCPIConnector';
 export interface OCPIEvse {
   uid: string;
   evse_id: string;
+  location_id: string;
   status: OCPIEvseStatus;
   capabilities: OCPICapability[];
   connectors: OCPIConnector[];

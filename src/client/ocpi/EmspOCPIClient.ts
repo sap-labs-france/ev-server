@@ -107,7 +107,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PUSH_TOKENS,
       MODULE_NAME, 'sendTokens', result,
       `{{inSuccess}} Token(s) were successfully pushed in ${executionDurationSecs}s`,
       `{{inError}} Token(s) failed to be pushed in ${executionDurationSecs}s`,
@@ -187,7 +187,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     } while (nextResult);
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_LOCATIONS,
       MODULE_NAME, 'pullLocations', result,
       `{{inSuccess}} Location(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -245,7 +245,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_SESSIONS,
       MODULE_NAME, 'pullSessions', result,
       `{{inSuccess}} Session(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -303,7 +303,7 @@ export default class EmspOCPIClient extends OCPIClient {
     } while (nextResult);
     result.total = result.failure + result.success;
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
+    await Logging.logOcpiResult(this.tenant.id, ServerAction.OCPI_PULL_CDRS,
       MODULE_NAME, 'pullCdrs', result,
       `{{inSuccess}} CDR(s) were successfully pulled in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be pulled in ${executionDurationSecs}s`,
@@ -390,7 +390,7 @@ export default class EmspOCPIClient extends OCPIClient {
           );
           if (currentChargingStation) {
             await ChargingStationStorage.deleteChargingStation(this.tenant.id, currentChargingStation.id);
-            Logging.logDebug({
+            await Logging.logDebug({
               tenantID: this.tenant.id,
               action: ServerAction.OCPI_PULL_LOCATIONS,
               message: `Removed Charging Station EVSE UID '${evse.uid}' in Location ID '${location.id}'`,
@@ -405,7 +405,7 @@ export default class EmspOCPIClient extends OCPIClient {
         chargingStation.siteAreaID = siteArea.id;
         chargingStation.siteID = siteArea.siteID;
         await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
-        Logging.logDebug({
+        await Logging.logDebug({
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
           message: `Updated Charging Station ID '${evse.evse_id}' in Location '${location.name}'`,
@@ -490,7 +490,7 @@ export default class EmspOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
@@ -530,7 +530,7 @@ export default class EmspOCPIClient extends OCPIClient {
           'Content-Type': 'application/json'
         },
       });
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
       source: transaction.chargeBoxID,

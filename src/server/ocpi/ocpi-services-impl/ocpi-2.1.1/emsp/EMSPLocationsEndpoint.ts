@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { OCPIEvse, OCPIEvseStatus } from '../../../../../types/ocpi/OCPIEvse';
-import { OCPILocation, OCPILocationOptions } from '../../../../../types/ocpi/OCPILocation';
 
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
@@ -14,6 +13,7 @@ import Logging from '../../../../../utils/Logging';
 import OCPIClientFactory from '../../../../../client/ocpi/OCPIClientFactory';
 import { OCPIConnector } from '../../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocation } from '../../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
@@ -22,6 +22,7 @@ import { ServerAction } from '../../../../../types/Server';
 import SiteStorage from '../../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
+import Utils from '../../../../../utils/Utils';
 
 const MODULE_NAME = 'EMSPLocationsEndpoint';
 
@@ -59,10 +60,18 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const options: OCPILocationOptions = {
-      countryID: countryCode,
-      partyID: partyId
-    };
+    const location = req.body as OCPILocation;
+    if (locationId !== location.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PATCH_LOCATION,
+        module: MODULE_NAME, method: 'patchLocationRequest',
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Location ID '${locationId}' mismatch in URL`,
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+        detailedMessages: { locationId, location }
+      });
+    }
     if (evseUid) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
         tenant.id, locationId, evseUid);
@@ -72,23 +81,62 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           action: ServerAction.OCPI_PATCH_LOCATION,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
-          message: `Unknown Charging Station ID '${evseUid}'`,
-          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
+          message: `Unknown Charging Station with EVSE UID '${evseUid}' and Location ID '${locationId}'`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { locationId, evseUid, location }
+        });
+      }
+      const foundEvse = location.evses.find((evse) => evse.uid === evseUid);
+      if (!foundEvse) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `EVSE UID mismatch '${evseUid}' in URL`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { evseUid, location }
+        });
+      }
+      const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid === evseUid);
+      if (!chargingStationEvse) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.OCPI_PATCH_LOCATION,
+          module: MODULE_NAME, method: 'patchLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `Unknown EVSE UID '${evseUid}'`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { evseUid, chargingStation, location }
         });
       }
       if (connectorId) {
-        await this.patchConnector(tenant, chargingStation, connectorId, req.body);
+        const foundEvseConnector = foundEvse.connectors.find((evseConnector) => evseConnector.id === connectorId);
+        if (!foundEvseConnector) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.OCPI_PATCH_LOCATION,
+            module: MODULE_NAME, method: 'patchLocationRequest',
+            errorCode: StatusCodes.NOT_FOUND,
+            message: `Unknown Connector ID '${connectorId}' in EVSE UID '${evseUid}'`,
+            ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+            detailedMessages: { connectorId, evse: foundEvse, location }
+          });
+        }
+        // Patch Connector
+        await this.patchEvseConnector(tenant, chargingStation, foundEvseConnector);
       } else {
-        await this.patchEvse(tenant, chargingStation, req.body, options);
+        // Patch Evse
+        await this.patchEvse(tenant, chargingStation, foundEvse, location);
       }
     } else {
-      Logging.logDebug({
+      await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Patching of Location ID '${locationId}' is not supported currently`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchLocationRequest',
-        detailedMessages: location
+        detailedMessages: { location }
       });
     }
     return OCPIUtils.success();
@@ -106,110 +154,155 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PUT_LOCATION,
-        module: MODULE_NAME, method: 'updateLocationRequest',
+        module: MODULE_NAME, method: 'putLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
-    const company = await ocpiClient.checkAndGetCompany();
-    const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
-    if (evseUid && connectorId) {
-      await this.updateConnector(tenant, locationId, evseUid, connectorId, req.body);
-    } else if (evseUid) {
-      await this.updateEvse(tenant, locationId, evseUid, req.body);
+    const location = req.body as OCPILocation;
+    if (locationId !== location.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PUT_LOCATION,
+        module: MODULE_NAME, method: 'putLocationRequest',
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Location ID '${locationId}' mismatch in URL`,
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+        detailedMessages: { locationId, location }
+      });
+    }
+    if (evseUid) {
+      const foundEvse = location.evses.find(
+        (evse) => evse.uid === evseUid);
+      if (!foundEvse) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.OCPI_PUT_LOCATION,
+          module: MODULE_NAME, method: 'putLocationRequest',
+          errorCode: StatusCodes.NOT_FOUND,
+          message: `EVSE UID '${evseUid}' mismatch in URL`,
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+          detailedMessages: { evseUid, location }
+        });
+      }
+      if (connectorId) {
+        const foundEvseConnector = foundEvse.connectors.find(
+          (evseConnector) => evseConnector.id === connectorId);
+        if (!foundEvseConnector) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.OCPI_PUT_LOCATION,
+            module: MODULE_NAME, method: 'putLocationRequest',
+            errorCode: StatusCodes.NOT_FOUND,
+            message: `Unknown Connector ID '${connectorId}' in EVSE UID '${evseUid}'`,
+            ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+            detailedMessages: { connectorId, evse: foundEvse, location }
+          });
+        }
+        // Update EVSE Connector
+        await this.updateConnector(tenant, foundEvse, foundEvseConnector, location);
+      } else {
+        // Update EVSE
+        await this.updateEvse(tenant, foundEvse, location);
+      }
     } else {
-      await ocpiClient.processLocation(req.body, company, sites.result);
+      // Update Location
+      const company = await ocpiClient.checkAndGetCompany();
+      const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
+      const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
+      await ocpiClient.processLocation(location, company, sites.result);
     }
     return OCPIUtils.success();
   }
 
-  private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: Partial<OCPIEvse>, options: OCPILocationOptions) {
-    const chargingStationEvse = chargingStation.ocpiData.evses.find((evse) => evse.uid = evse.uid);
+  private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: OCPIEvse, location: OCPILocation) {
+    // Get the stored EVSE UID in ocpiData
+    const foundChargingStationEvse = chargingStation.ocpiData.evses.find(
+      (chargingStationEvse) => chargingStationEvse.uid === chargingStationEvse.uid);
     if (evse.status) {
       if (evse.status === OCPIEvseStatus.REMOVED) {
         await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
         return;
       }
-      chargingStationEvse.status = evse.status;
+      foundChargingStationEvse.status = evse.status;
+      // Update the Charging Station's connector
       const status = OCPIUtilsService.convertOCPIStatus2Status(evse.status);
-      for (const connector of chargingStation.connectors) {
-        connector.status = status;
+      let connectorID = OCPIUtils.getConnectorIDFromEvseID(evse.evse_id);
+      if (!connectorID) {
+        connectorID = OCPIUtils.getConnectorIDFromEvseUID(evse.uid);
+      }
+      if (connectorID) {
+        const connector = Utils.getConnectorFromID(chargingStation, Utils.convertToInt(connectorID));
+        if (connector) {
+          connector.status = status;
+        }
+      } else {
+        // Update all connectors
+        for (const connector of chargingStation.connectors) {
+          connector.status = status;
+        }
       }
     }
+    // Update timestamp
     if (evse.last_updated) {
       chargingStation.lastChangedOn = evse.last_updated;
-      chargingStationEvse.last_updated = evse.last_updated;
+      foundChargingStationEvse.last_updated = evse.last_updated;
     }
-    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(evse);
+    // Rebuild the charging station
+    const patchedChargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
+    // Report updates
     if (patchedChargingStation.coordinates) {
       chargingStation.coordinates = patchedChargingStation.coordinates;
     }
-    if (patchedChargingStation.connectors && patchedChargingStation.connectors.length > 0) {
+    if (!Utils.isEmptyArray(patchedChargingStation.connectors)) {
       chargingStation.connectors = patchedChargingStation.connectors;
       chargingStation.maximumPower = patchedChargingStation.maximumPower;
     }
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
   }
 
-  private async patchConnector(tenant: Tenant, chargingStation: ChargingStation, connectorId: string, ocpiConnector: Partial<OCPIConnector>) {
-    let found = false;
-    if (chargingStation.connectors && chargingStation.connectors.length > 0) {
-      for (const connector of chargingStation.connectors) {
-        if (connector.id === connectorId) {
-          if (ocpiConnector.id) {
-            connector.id = ocpiConnector.id;
-          }
-          if (ocpiConnector.amperage) {
-            connector.amperage = ocpiConnector.amperage;
-          }
-          if (ocpiConnector.voltage) {
-            connector.voltage = ocpiConnector.voltage;
-          }
-          connector.power = connector.amperage * connector.voltage;
-          if (ocpiConnector.standard) {
-            connector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
-          }
-          await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
-          found = true;
-          break;
-        }
-      }
-    }
-    if (!found) {
-      Logging.logError({
-        tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATION,
-        message: `Patching of Connector ID '${connectorId}' of Charging Station '${chargingStation.id}' failed because connector was not found`,
+  private async patchEvseConnector(tenant: Tenant, chargingStation: ChargingStation, ocpiConnector: Partial<OCPIConnector>) {
+    // Find the Charging Station's connector
+    const foundConnector = chargingStation.connectors.find(
+      (connector) => connector?.id === ocpiConnector.id);
+    if (!foundConnector) {
+      throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'patchConnector',
-        detailedMessages: { location }
+        action: ServerAction.OCPI_PUT_LOCATION,
+        module: MODULE_NAME, method: 'putLocationRequest',
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Connector ID '${ocpiConnector.id}' not found in Charging Station ID ${chargingStation.id}`,
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+        detailedMessages: { ocpiConnector, chargingStation }
       });
     }
+    // Update
+    if (ocpiConnector.amperage) {
+      foundConnector.amperage = ocpiConnector.amperage;
+    }
+    if (ocpiConnector.voltage) {
+      foundConnector.voltage = ocpiConnector.voltage;
+    }
+    foundConnector.power = foundConnector.amperage * foundConnector.voltage;
+    if (ocpiConnector.standard) {
+      foundConnector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
+    }
+    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
   }
 
-  private async updateEvse(tenant: Tenant, locationId: string, evseUid: string, evse: OCPIEvse, location?: OCPILocation) {
+  private async updateEvse(tenant: Tenant, evse: OCPIEvse, location: OCPILocation) {
     if (evse.status === OCPIEvseStatus.REMOVED) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-        tenant.id, location.id, evseUid);
+        tenant.id, location.id, evse.uid);
       if (chargingStation) {
         // Delete
         await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_PATCH_LOCATION,
-          message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been deleted`,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'updateEvse',
-          detailedMessages: location
-        });
-      } else {
-        Logging.logError({
-          tenantID: tenant.id,
-          action: ServerAction.OCPI_PATCH_LOCATION,
-          message: `Charging Station '${evseUid}' of Location ID '${locationId}' does not exist and cannot be deleted`,
+          message: `Charging Station '${evse.uid}' of Location ID '${location.id}' has been deleted`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateEvse',
           detailedMessages: location
@@ -219,10 +312,10 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       // Create/Update
       const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
-        message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been updated`,
+        message: `Charging Station '${evse.uid}' of Location ID '${location.id}' has been updated`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateEvse',
         detailedMessages: location
@@ -230,45 +323,43 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
   }
 
-  private async updateConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, ocpiConnector: OCPIConnector) {
+  private async updateConnector(tenant: Tenant, evse: OCPIEvse, evseConnector: OCPIConnector, location: OCPILocation) {
     const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-      tenant.id, locationId, evseUid);
+      tenant.id, location.id, evse.uid);
     if (!chargingStation) {
-      Logging.logError({
-        tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATION,
-        message: `Unable to update connector of non existing Charging Station '${evseUid}' of Location ID '${locationId}'`,
+      throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'updateLocation',
-        detailedMessages: { location }
+        action: ServerAction.OCPI_PUT_LOCATION,
+        module: MODULE_NAME, method: 'updateConnector',
+        errorCode: StatusCodes.NOT_FOUND,
+        message: `Unknown Charging Station with EVSE UID '${evse.uid}' and Location ID '${location.id}'`,
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
+        detailedMessages: { location, evse }
       });
-    } else {
-      let found = false;
-      for (const connector of chargingStation.connectors) {
-        if (connector.id === connectorId) {
-          connector.id = ocpiConnector.id;
-          connector.amperage = ocpiConnector.amperage;
-          connector.voltage = ocpiConnector.voltage;
-          connector.power = ocpiConnector.amperage * ocpiConnector.voltage;
-          connector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        chargingStation.connectors.push({
-          id: connectorId,
-          status: ChargePointStatus.AVAILABLE,
-          amperage: ocpiConnector.amperage,
-          voltage: ocpiConnector.voltage,
-          connectorId: chargingStation.connectors.length,
-          currentInstantWatts: 0,
-          power: ocpiConnector.amperage * ocpiConnector.voltage,
-          type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
-        });
-      }
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     }
+    const foundConnector = chargingStation.connectors.find(
+      (connector) => connector.id === evseConnector.id);
+    // Update Connector
+    if (foundConnector) {
+      foundConnector.id = evseConnector.id;
+      foundConnector.amperage = evseConnector.amperage;
+      foundConnector.voltage = evseConnector.voltage;
+      foundConnector.power = evseConnector.amperage * evseConnector.voltage;
+      foundConnector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard);
+    // Create Connector
+    } else {
+      chargingStation.connectors.push({
+        id: evseConnector.id,
+        status: ChargePointStatus.AVAILABLE,
+        amperage: evseConnector.amperage,
+        voltage: evseConnector.voltage,
+        connectorId: chargingStation.connectors.length,
+        currentInstantWatts: 0,
+        power: evseConnector.amperage * evseConnector.voltage,
+        type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
+      });
+    }
+    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
   }
 }
 

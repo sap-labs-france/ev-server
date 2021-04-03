@@ -5,7 +5,7 @@ import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } 
 import { OCPILocation, OCPILocationOptions, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
-import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import { PricingSettings, PricingSettingsType, SimplePricingSetting } from '../../../../types/Setting';
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 import User, { UserRole, UserStatus } from '../../../../types/User';
@@ -48,8 +48,8 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
-   public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
+  public static async convertSite2Location(tenant: Tenant, site: Site,
+    options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -72,7 +72,7 @@ export default class OCPIUtilsService {
     };
   }
 
-  public static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+  public static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location: OCPILocation): ChargingStation {
     const chargingStation = {
       maximumPower: 0,
       issuer: false,
@@ -81,6 +81,9 @@ export default class OCPIUtilsService {
         evses: [evse]
       }
     } as ChargingStation;
+    // Set the location ID
+    evse.location_id = location.id;
+    // Coordinates
     if (evse.coordinates?.latitude && evse.coordinates?.longitude) {
       chargingStation.coordinates = [
         Utils.convertToFloat(evse.coordinates.longitude),
@@ -116,7 +119,7 @@ export default class OCPIUtilsService {
     if (!chargingStation.id) {
       throw new BackendError({
         action: ServerAction.OCPI_ENDPOINT,
-        message: `Cannot find Charging Station EVSE ID`,
+        message: 'Cannot find Charging Station EVSE ID',
         module: MODULE_NAME, method: 'convertEvseToChargingStation',
         detailedMessages:  { evse, location }
       });
@@ -125,7 +128,7 @@ export default class OCPIUtilsService {
   }
 
   public static async getAllLocations(tenant: Tenant, limit: number, skip: number,
-      options: OCPILocationOptions, withChargingStations: boolean): Promise<DataResult<OCPILocation>> {
+    options: OCPILocationOptions, withChargingStations: boolean): Promise<DataResult<OCPILocation>> {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
@@ -174,7 +177,7 @@ export default class OCPIUtilsService {
     }
     let nbrOfTags = tags.count;
     if (nbrOfTags === -1) {
-      const tagsCount = await TagStorage.getTags(tenant.id, 
+      const tagsCount = await TagStorage.getTags(tenant.id,
         { issuer: true, dateFrom, dateTo, withUsersOnly: true },
         Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfTags = tagsCount.count;
@@ -199,25 +202,6 @@ export default class OCPIUtilsService {
     return {
       count: transactions.count,
       result: sessions
-    };
-  }
-
-  public static async getAllCdrs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPICdr>> {
-    // Result
-    const cdrs: OCPICdr[] = [];
-    // Get all transactions
-    const transactions = await TransactionStorage.getTransactions(tenant.id, { issuer: true, ocpiCdrDateFrom: dateFrom, ocpiCdrDateTo: dateTo }, {
-      limit,
-      skip
-    });
-    for (const transaction of transactions.result) {
-      if (transaction.ocpiData && transaction.ocpiData.cdr) {
-        cdrs.push(transaction.ocpiData.cdr);
-      }
-    }
-    return {
-      count: transactions.count,
-      result: cdrs
     };
   }
 
@@ -339,7 +323,7 @@ export default class OCPIUtilsService {
   }
 
   public static convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
-      connectorId: number, countryId: string, partyId: string): OCPILocation {
+    connectorId: number, countryId: string, partyId: string): OCPILocation {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     for (const chargingStationConnector of chargingStation.connectors) {
@@ -365,6 +349,7 @@ export default class OCPIUtilsService {
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
         evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id,
           Utils.getConnectorFromID(chargingStation, connectorId).connectorId),
+        location_id: chargingStation.siteID,
         status: OCPIUtilsService.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
@@ -471,7 +456,7 @@ export default class OCPIUtilsService {
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
       { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
-      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID' ]);
+      [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
     for (const chargingStation of chargingStations.result) {
       const chargingStationEvses: OCPIEvse[] = [];
       if (!Utils.isEmptyArray(chargingStation.chargePoints)) {
@@ -492,229 +477,6 @@ export default class OCPIUtilsService {
     return evses;
   }
 
-  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
-    // Loop through connectors and send one evse per connector
-    let connectors: Connector[];
-    if (chargePoint) {
-      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
-    } else {
-      connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    }
-    const evses = connectors.map((connector) => {
-      const evse: OCPIEvse = {
-        uid: OCPIUtils.buildEvseUID(chargingStation, connector),
-        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
-          chargingStation.id, connector.connectorId),
-        status: OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
-        capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        connectors: [OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
-        last_updated: chargingStation.lastSeen,
-        coordinates: {
-          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
-          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
-        }
-      };
-      // Check addChargeBoxID flag
-      if (options?.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.id;
-      }
-      return evse;
-    });
-    // Return all evses
-    return evses;
-  }
-
-  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
-      chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
-    let connectors: Connector[];
-    if (chargePoint) {
-      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
-    } else {
-      connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    }
-    // Get all connectors
-    const ocpiConnectors: OCPIConnector[] = connectors.map((connector: Connector) =>
-      OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
-    // Get connectors aggregated status
-    const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
-    // Build evse
-    const evse: OCPIEvse = {
-      // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
-      uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1, status: connectorOneStatus }),
-      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, 1),
-      status: OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
-      capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      connectors: ocpiConnectors,
-      last_updated: chargingStation.lastSeen,
-      coordinates: {
-        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
-        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
-      }
-    };
-    // Check addChargeBoxID flag
-    if (options?.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.id;
-    }
-    return [evse];
-  }
-
-  private static convertToOneConnectorStatus(connectors: Connector[]): ChargePointStatus {
-    // Build array with charging station ordered by priority
-    const statusesOrdered: ChargePointStatus[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
-    let aggregatedConnectorStatusIndex = 0;
-    // Loop through connector
-    for (const connector of connectors) {
-      if (statusesOrdered.indexOf(connector.status) > aggregatedConnectorStatusIndex) {
-        aggregatedConnectorStatusIndex = statusesOrdered.indexOf(connector.status);
-      }
-    }
-    // Return value
-    return statusesOrdered[aggregatedConnectorStatusIndex];
-  }
-
-  // FIXME: We should probably only have charging station output characteristics everywhere
-  private static getChargingStationOCPIVoltage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
-    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
-      case CurrentType.AC:
-        return Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
-      case CurrentType.DC:
-        return 400;
-      default:
-        return null;
-    }
-  }
-
-  private static getChargingStationOCPIAmperage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
-    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
-      case CurrentType.AC:
-        return Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connectorId);
-      case CurrentType.DC:
-        return Math.round(Utils.getChargingStationPower(chargingStation, chargePoint, connectorId) / OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connectorId));
-      default:
-        return null;
-    }
-  }
-
-  private static getChargingStationOCPINumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
-    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
-      case CurrentType.AC:
-        return Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
-      case CurrentType.DC:
-        return 0;
-      default:
-        return null;
-    }
-  }
-
-  private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
-    let type: OCPIConnectorType, format: OCPIConnectorFormat;
-    switch (connector.type) {
-      case ConnectorType.CHADEMO:
-        type = OCPIConnectorType.CHADEMO;
-        format = OCPIConnectorFormat.CABLE;
-        break;
-      case ConnectorType.TYPE_2:
-        type = OCPIConnectorType.IEC_62196_T2;
-        format = OCPIConnectorFormat.SOCKET;
-        break;
-      case ConnectorType.COMBO_CCS:
-        type = OCPIConnectorType.IEC_62196_T2_COMBO;
-        format = OCPIConnectorFormat.CABLE;
-        break;
-    }
-    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
-    const voltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
-    const amperage = OCPIUtilsService.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
-    const ocpiNumberOfConnectedPhases = OCPIUtilsService.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
-    return {
-      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
-      standard: type,
-      format: format,
-      voltage: voltage,
-      amperage: amperage,
-      power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
-      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation),
-      last_updated: chargingStation.lastSeen
-    };
-  }
-  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
-  // FIXME: add tariff id from the simple pricing settings remapping
-  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
-    switch (tenant?.id) {
-      // SLF
-      case '5be7fb271014d90008992f06':
-        // Check Site Area
-        // FIXME: siteAreaID must always be an attribute non null
-        switch (chargingStation?.siteAreaID) {
-          // Mougins - South
-          case '5abebb1b4bae1457eb565e98':
-            return 'FR*SLF_AC_Sud2';
-          // Mougins - South - Fastcharging
-          case '5b72cef274ae30000855e458':
-            return 'FR*SLF_DC_Sud';
-        }
-        return '';
-      // Proviridis
-      case '5e2701b248aaa90007904cca':
-        return '1';
-    }
-    return '';
-  }
-
-  private static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {
-    switch (ocpiNumberOfConnectedPhases) {
-      case 0:
-        return OCPIPowerType.DC;
-      case 1:
-        return OCPIPowerType.AC_1_PHASE;
-      case 3:
-        return OCPIPowerType.AC_3_PHASE;
-    }
-  }
-
-  private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
-    const chargingPeriod: OCPIChargingPeriod = {
-      start_date_time: consumption.endedAt,
-      dimensions: []
-    };
-    if (consumption.consumptionWh > 0) {
-      chargingPeriod.dimensions.push({
-        type: CdrDimensionType.ENERGY,
-        volume: Utils.truncTo(Utils.createDecimal(consumption.consumptionWh).div(1000).toNumber(), 3)
-      });
-    } else {
-      const duration = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
-      if (duration > 0) {
-        chargingPeriod.dimensions.push({
-          type: CdrDimensionType.PARKING_TIME,
-          volume: Utils.truncTo(duration, 3)
-        });
-      }
-    }
-    return chargingPeriod;
-  }
-
-  private static convertPricingSettings2ZeroFlatTariff(pricingSettings: PricingSettings): OCPITariff {
-    let tariff: OCPITariff;
-    tariff.id = '1';
-    tariff.elements[0].price_components[0].price = 0;
-    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
-    tariff.elements[0].price_components[0].step_size = 0;
-    switch (pricingSettings.type) {
-      case PricingSettingsType.SIMPLE:
-        tariff.currency = pricingSettings.simple.currency;
-        tariff.last_updated = pricingSettings.simple.last_updated;
-        break;
-      default:
-        // FIXME: get currency from the TZ
-        tariff.currency = 'EUR';
-        tariff.last_updated = new Date();
-        break;
-    }
-    return tariff;
-  }
-
   public static async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions): Promise<OCPILocation> {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
@@ -727,7 +489,7 @@ export default class OCPIUtilsService {
     // Get site
     const evses = await OCPIUtilsService.getEvsesFromSite(
       tenant, locationId, options, Constants.DB_PARAMS_SINGLE_RECORD,
-      { 'ocpiData.evses.uid' : evseUid })
+      { 'ocpiData.evses.uid' : evseUid });
     if (!Utils.isEmptyArray(evses)) {
       return evses.find((evse) => evse.uid === evseUid);
     }
@@ -821,7 +583,7 @@ export default class OCPIUtilsService {
       };
     }
     if (moment(session.last_updated).isBefore(transaction.lastConsumption.timestamp)) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenantId,
         action: ServerAction.OCPI_PUSH_SESSION,
         source: Constants.CENTRAL_SERVER,
@@ -965,84 +727,6 @@ export default class OCPIUtilsService {
     }
   }
 
-  private static async computeAndSaveConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
-    const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
-    const duration = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
-    if (consumptionWh > 0 || duration > 0) {
-      const sampleMultiplier = duration > 0 ? Utils.createDecimal(3600).div(duration).toNumber() : 0;
-      const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
-      const amount = Utils.createDecimal(session.total_cost).minus(transaction.price).toNumber();
-      transaction.currentInstantWatts = currentInstantWatts;
-      transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
-      transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
-      if (consumptionWh <= 0) {
-        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(duration).toNumber();
-        transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
-          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
-      }
-      const consumption: Consumption = {
-        transactionId: transaction.id,
-        connectorId: transaction.connectorId,
-        chargeBoxID: transaction.chargeBoxID,
-        userID: transaction.userID,
-        startedAt: new Date(transaction.lastConsumption.timestamp),
-        endedAt: new Date(session.last_updated),
-        consumptionWh: transaction.currentConsumptionWh,
-        instantWatts: Math.floor(transaction.currentInstantWatts),
-        instantAmps: Math.floor(transaction.currentInstantWatts / 230),
-        cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
-        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / 230),
-        totalInactivitySecs: transaction.currentTotalInactivitySecs,
-        totalDurationSecs: transaction.stop ?
-          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-          moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
-        stateOfCharge: transaction.currentStateOfCharge,
-        amount: amount,
-        currencyCode: session.currency,
-        cumulatedAmount: session.total_cost
-      } as Consumption;
-      await ConsumptionStorage.saveConsumption(tenantId, consumption);
-    }
-  }
-
-  private static validateSession(session: OCPISession): boolean {
-    if (!session.id
-      || !session.start_datetime
-      || !session.auth_id
-      || !session.auth_method
-      || !session.location
-      || !session.currency
-      || !session.status
-      || !session.last_updated
-    ) {
-      return false;
-    }
-    return OCPIUtilsService.validateLocation(session.location);
-  }
-
-  private static validateCdr(cdr: OCPICdr): boolean {
-    if (!cdr.id
-      || !cdr.start_date_time
-      || !cdr.stop_date_time
-      || !cdr.auth_id
-      || !cdr.auth_method
-      || !cdr.location
-      || !cdr.currency
-      || !cdr.charging_periods
-      || !cdr.last_updated
-    ) {
-      return false;
-    }
-    return OCPIUtilsService.validateLocation(cdr.location);
-  }
-
-  private static validateLocation(location: OCPILocation): boolean {
-    if (!location.evses || location.evses.length !== 1 || !location.evses[0].uid) {
-      return false;
-    }
-    return true;
-  }
-
   public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken, tag: Tag, emspUser: User): Promise<void> {
     if (!OCPIUtilsService.validateToken(token)) {
       throw new AppError({
@@ -1141,6 +825,310 @@ export default class OCPIUtilsService {
         !token.issuer ||
         !token.whitelist ||
         !token.last_updated) {
+      return false;
+    }
+    return true;
+  }
+
+  private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
+    chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+    // Loop through connectors and send one evse per connector
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
+    const evses = connectors.map((connector) => {
+      const evse: OCPIEvse = {
+        uid: OCPIUtils.buildEvseUID(chargingStation, connector),
+        evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID,
+          chargingStation.id, connector.connectorId),
+        location_id: chargingStation.siteID,
+        status: OCPIUtilsService.convertStatus2OCPIStatus(connector.status),
+        capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+        connectors: [OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID)],
+        last_updated: chargingStation.lastSeen,
+        coordinates: {
+          latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
+          longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
+        }
+      };
+      // Check addChargeBoxID flag
+      if (options?.addChargeBoxID) {
+        evse.chargeBoxId = chargingStation.id;
+      }
+      return evse;
+    });
+    // Return all evses
+    return evses;
+  }
+
+  private static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation,
+    chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
+    let connectors: Connector[];
+    if (chargePoint) {
+      connectors = Utils.getConnectorsFromChargePoint(chargingStation, chargePoint);
+    } else {
+      connectors = chargingStation.connectors.filter((connector) => connector !== null);
+    }
+    // Get all connectors
+    const ocpiConnectors: OCPIConnector[] = connectors.map((connector: Connector) =>
+      OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, options.countryID, options.partyID));
+    // Get connectors aggregated status
+    const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
+    // Build evse
+    const evse: OCPIEvse = {
+      // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
+      uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1, status: connectorOneStatus }),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, 1),
+      location_id: chargingStation.siteID,
+      status: OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
+      capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+      connectors: ocpiConnectors,
+      last_updated: chargingStation.lastSeen,
+      coordinates: {
+        latitude: chargingStation.coordinates[1] ? chargingStation.coordinates[1].toString() : null,
+        longitude: chargingStation.coordinates[0] ? chargingStation.coordinates[0].toString() : null
+      }
+    };
+    // Check addChargeBoxID flag
+    if (options?.addChargeBoxID) {
+      evse.chargeBoxId = chargingStation.id;
+    }
+    return [evse];
+  }
+
+  private static convertToOneConnectorStatus(connectors: Connector[]): ChargePointStatus {
+    // Build array with charging station ordered by priority
+    const statusesOrdered: ChargePointStatus[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
+    let aggregatedConnectorStatusIndex = 0;
+    // Loop through connector
+    for (const connector of connectors) {
+      if (statusesOrdered.indexOf(connector.status) > aggregatedConnectorStatusIndex) {
+        aggregatedConnectorStatusIndex = statusesOrdered.indexOf(connector.status);
+      }
+    }
+    // Return value
+    return statusesOrdered[aggregatedConnectorStatusIndex];
+  }
+
+  // FIXME: We should probably only have charging station output characteristics everywhere
+  private static getChargingStationOCPIVoltage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return 400;
+      default:
+        return null;
+    }
+  }
+
+  private static getChargingStationOCPIAmperage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getChargingStationAmperagePerPhase(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return Math.round(Utils.getChargingStationPower(chargingStation, chargePoint, connectorId) / OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connectorId));
+      default:
+        return null;
+    }
+  }
+
+  private static getChargingStationOCPINumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+    switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
+      case CurrentType.AC:
+        return Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId);
+      case CurrentType.DC:
+        return 0;
+      default:
+        return null;
+    }
+  }
+
+  private static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
+    let type: OCPIConnectorType, format: OCPIConnectorFormat;
+    switch (connector.type) {
+      case ConnectorType.CHADEMO:
+        type = OCPIConnectorType.CHADEMO;
+        format = OCPIConnectorFormat.CABLE;
+        break;
+      case ConnectorType.TYPE_2:
+        type = OCPIConnectorType.IEC_62196_T2;
+        format = OCPIConnectorFormat.SOCKET;
+        break;
+      case ConnectorType.COMBO_CCS:
+        type = OCPIConnectorType.IEC_62196_T2_COMBO;
+        format = OCPIConnectorFormat.CABLE;
+        break;
+    }
+    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
+    const voltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
+    const amperage = OCPIUtilsService.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
+    const ocpiNumberOfConnectedPhases = OCPIUtilsService.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
+    return {
+      id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
+      standard: type,
+      format: format,
+      voltage: voltage,
+      amperage: amperage,
+      power_type: OCPIUtilsService.convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases),
+      tariff_id: OCPIUtilsService.buildTariffID(tenant, chargingStation),
+      last_updated: chargingStation.lastSeen
+    };
+  }
+
+  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
+  // FIXME: add tariff id from the simple pricing settings remapping
+  private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
+    switch (tenant?.id) {
+      // SLF
+      case '5be7fb271014d90008992f06':
+        // Check Site Area
+        // FIXME: siteAreaID must always be an attribute non null
+        switch (chargingStation?.siteAreaID) {
+          // Mougins - South
+          case '5abebb1b4bae1457eb565e98':
+            return 'FR*SLF_AC_Sud2';
+          // Mougins - South - Fastcharging
+          case '5b72cef274ae30000855e458':
+            return 'FR*SLF_DC_Sud';
+        }
+        return '';
+      // Proviridis
+      case '5e2701b248aaa90007904cca':
+        return '1';
+    }
+    return '';
+  }
+
+  private static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {
+    switch (ocpiNumberOfConnectedPhases) {
+      case 0:
+        return OCPIPowerType.DC;
+      case 1:
+        return OCPIPowerType.AC_1_PHASE;
+      case 3:
+        return OCPIPowerType.AC_3_PHASE;
+    }
+  }
+
+  private static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
+    const chargingPeriod: OCPIChargingPeriod = {
+      start_date_time: consumption.endedAt,
+      dimensions: []
+    };
+    if (consumption.consumptionWh > 0) {
+      chargingPeriod.dimensions.push({
+        type: CdrDimensionType.ENERGY,
+        volume: Utils.truncTo(Utils.createDecimal(consumption.consumptionWh).div(1000).toNumber(), 3)
+      });
+    } else {
+      const duration = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
+      if (duration > 0) {
+        chargingPeriod.dimensions.push({
+          type: CdrDimensionType.PARKING_TIME,
+          volume: Utils.truncTo(duration, 3)
+        });
+      }
+    }
+    return chargingPeriod;
+  }
+
+  private static convertPricingSettings2ZeroFlatTariff(pricingSettings: PricingSettings): OCPITariff {
+    let tariff: OCPITariff;
+    tariff.id = '1';
+    tariff.elements[0].price_components[0].price = 0;
+    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
+    tariff.elements[0].price_components[0].step_size = 0;
+    switch (pricingSettings.type) {
+      case PricingSettingsType.SIMPLE:
+        tariff.currency = pricingSettings.simple.currency;
+        tariff.last_updated = pricingSettings.simple.last_updated;
+        break;
+      default:
+        // FIXME: get currency from the TZ
+        tariff.currency = 'EUR';
+        tariff.last_updated = new Date();
+        break;
+    }
+    return tariff;
+  }
+
+  private static async computeAndSaveConsumption(tenantId: string, transaction: Transaction, session: OCPISession): Promise<void> {
+    const consumptionWh = Utils.createDecimal(session.kwh).mul(1000).minus(Utils.convertToFloat(transaction.lastConsumption.value)).toNumber();
+    const duration = Utils.createDecimal(moment(session.last_updated).diff(transaction.lastConsumption.timestamp, 'milliseconds')).div(1000).toNumber();
+    if (consumptionWh > 0 || duration > 0) {
+      const sampleMultiplier = duration > 0 ? Utils.createDecimal(3600).div(duration).toNumber() : 0;
+      const currentInstantWatts = consumptionWh > 0 ? Utils.createDecimal(consumptionWh).mul(sampleMultiplier).toNumber() : 0;
+      const amount = Utils.createDecimal(session.total_cost).minus(transaction.price).toNumber();
+      transaction.currentInstantWatts = currentInstantWatts;
+      transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
+      transaction.currentTotalConsumptionWh = Utils.createDecimal(transaction.currentTotalConsumptionWh).plus(transaction.currentConsumptionWh).toNumber();
+      if (consumptionWh <= 0) {
+        transaction.currentTotalInactivitySecs = Utils.createDecimal(transaction.currentTotalInactivitySecs).plus(duration).toNumber();
+        transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
+          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
+      }
+      const consumption: Consumption = {
+        transactionId: transaction.id,
+        connectorId: transaction.connectorId,
+        chargeBoxID: transaction.chargeBoxID,
+        userID: transaction.userID,
+        startedAt: new Date(transaction.lastConsumption.timestamp),
+        endedAt: new Date(session.last_updated),
+        consumptionWh: transaction.currentConsumptionWh,
+        instantWatts: Math.floor(transaction.currentInstantWatts),
+        instantAmps: Math.floor(transaction.currentInstantWatts / 230),
+        cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
+        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / 230),
+        totalInactivitySecs: transaction.currentTotalInactivitySecs,
+        totalDurationSecs: transaction.stop ?
+          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
+          moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
+        stateOfCharge: transaction.currentStateOfCharge,
+        amount: amount,
+        currencyCode: session.currency,
+        cumulatedAmount: session.total_cost
+      } as Consumption;
+      await ConsumptionStorage.saveConsumption(tenantId, consumption);
+    }
+  }
+
+  private static validateSession(session: OCPISession): boolean {
+    if (!session.id
+      || !session.start_datetime
+      || !session.auth_id
+      || !session.auth_method
+      || !session.location
+      || !session.currency
+      || !session.status
+      || !session.last_updated
+    ) {
+      return false;
+    }
+    return OCPIUtilsService.validateLocation(session.location);
+  }
+
+  private static validateCdr(cdr: OCPICdr): boolean {
+    if (!cdr.id
+      || !cdr.start_date_time
+      || !cdr.stop_date_time
+      || !cdr.auth_id
+      || !cdr.auth_method
+      || !cdr.location
+      || !cdr.currency
+      || !cdr.charging_periods
+      || !cdr.last_updated
+    ) {
+      return false;
+    }
+    return OCPIUtilsService.validateLocation(cdr.location);
+  }
+
+  private static validateLocation(location: OCPILocation): boolean {
+    if (!location.evses || location.evses.length !== 1 || !location.evses[0].uid) {
       return false;
     }
     return true;

@@ -23,23 +23,11 @@ import Tenant from '../../../../../types/Tenant';
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
 
-/**
- * Credentials Endpoint
- */
 export default class CredentialsEndpoint extends AbstractEndpoint {
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
   async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
@@ -49,14 +37,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Registration process initiated by IOP
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get token from header
@@ -65,7 +45,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       token = req.headers.authorization.split(' ')[1];
     }
     // Log body
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: tenant.id,
       action: ServerAction.OCPI_DELETE_CREDENTIALS,
       message: 'Received unregister',
@@ -93,19 +73,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     return OCPIUtils.success();
   }
 
-  /**
-   * Registration process initiated by IOP
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
     const credential: OCPICredential = req.body;
     // Log body
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received credential object',
@@ -130,7 +102,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       token = req.headers.authorization.split(' ')[1];
     }
     // Log body
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received token',
@@ -158,7 +130,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     ocpiEndpoint.partyId = credential.party_id;
     ocpiEndpoint.businessDetails = credential.business_details;
     // Log updated ocpi endpoint
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'OCPI Server found and updated with credential object',
@@ -176,7 +148,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         },
       });
       // Log available OCPI Versions
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI Versions',
@@ -202,7 +174,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           ocpiEndpoint.versionUrl = version.url;
 
           // Log correct OCPI service found
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_POST_CREDENTIALS,
             message: 'Correct OCPI version found',
@@ -228,7 +200,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         }
       });
       // Log available OCPI services
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI services',
@@ -268,7 +240,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Build credential object
     const respCredential = await OCPIUtilsService.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenant.id,
       action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Response with credential object',

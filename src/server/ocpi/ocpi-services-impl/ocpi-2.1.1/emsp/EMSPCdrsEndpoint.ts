@@ -49,14 +49,25 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-    if (!transaction?.ocpiData?.cdr) {
+    if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The CDR ID '${id}' does not exist or does not belong to the requester`,
+        message: `No Transaction found for CDR ID '${id}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    if (!transaction.ocpiData?.cdr) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
+        module: MODULE_NAME, method: 'getCdrRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `No CDR found in Transaction ID '${transaction.id}'`,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
+        detailedMessages: { transaction }
       });
     }
     return OCPIUtils.success(transaction.ocpiData.cdr);

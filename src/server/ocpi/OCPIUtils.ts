@@ -11,6 +11,14 @@ import moment from 'moment';
 
 export default class OCPIUtils {
 
+  public static getConnectorIDFromEvseID(evseID: string): string {
+    return evseID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
+  public static getConnectorIDFromEvseUID(evseUID: string): string {
+    return evseUID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
   public static success(data?: any): OCPIResponse {
     return {
       data: data,

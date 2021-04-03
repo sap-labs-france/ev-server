@@ -44,7 +44,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionsRequest',
         errorCode: StatusCodes.BAD_REQUEST,
-        message: `Missing 'date_from' parameter`,
+        message: 'Missing \'date_from\' parameter',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }

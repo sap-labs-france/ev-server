@@ -41,8 +41,8 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     // Get filters
     const locationId = urlSegment.shift();
     const evseUid = urlSegment.shift();
-    const connectorId = urlSegment.shift();
-    let payload = {};
+    const evseConnectorId = urlSegment.shift();
+    let evseConnector = {};
     const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Define get option
     const options: OCPILocationOptions = {
@@ -51,44 +51,47 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)
     };
     // Process request
-    if (locationId && evseUid && connectorId) {
-      payload = await OCPIUtilsService.getConnector(tenant, locationId, evseUid, connectorId, options);
+    if (locationId && evseUid && evseConnectorId) {
+      evseConnector = await OCPIUtilsService.getConnector(tenant, locationId, evseUid, evseConnectorId, options);
       // Check if at least of site found
-      if (!payload) {
+      if (!evseConnector) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Connector ID '${connectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          message: `EVSE Connector ID '${evseConnectorId}' not found on Charging Station ID '${evseUid}' and Location ID '${locationId}'`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { locationId, evseUid, connectorId: evseConnectorId }
         });
       }
     } else if (locationId && evseUid) {
-      payload = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options);
+      evseConnector = await OCPIUtilsService.getEvse(tenant, locationId, evseUid, options);
       // Check if at least of site found
-      if (!payload) {
+      if (!evseConnector) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Station ID not found '${evseUid}' on Location ID '${locationId}'`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          message: `EVSE UID not found '${evseUid}' in Location ID '${locationId}'`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { locationId, evseUid }
         });
       }
     } else if (locationId) {
       // Get single location
-      payload = await OCPIUtilsService.getLocation(tenant, locationId, options);
+      evseConnector = await OCPIUtilsService.getLocation(tenant, locationId, options);
       // Check if at least of site found
-      if (!payload) {
+      if (!evseConnector) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
           action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site ID '${locationId}' not found`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          message: `Location ID '${locationId}' not found`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { locationId }
         });
       }
     } else {
@@ -97,7 +100,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
       // Get all locations
       const locations = await OCPIUtilsService.getAllLocations(tenant, limit, offset, options, true);
-      payload = locations.result;
+      evseConnector = locations.result;
       // Set header
       res.set({
         'X-Total-Count': locations.count,
@@ -112,7 +115,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
       }
     }
     // Return Payload
-    return OCPIUtils.success(payload);
+    return OCPIUtils.success(evseConnector);
   }
 }
 

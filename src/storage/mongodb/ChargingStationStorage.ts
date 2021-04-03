@@ -24,6 +24,7 @@ import moment from 'moment';
 const MODULE_NAME = 'ChargingStationStorage';
 
 export interface ConnectorMDB {
+  id?: string; // Needed for the roaming component
   connectorId: number;
   currentInstantWatts: number;
   currentStateOfCharge: number;
@@ -155,8 +156,8 @@ export default class ChargingStationStorage {
     ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
     projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      siteIDs: [ocpiLocationID],
-      ocpiEvseUid: ocpiEvseUid,
+      ocpiLocationID,
+      ocpiEvseUid,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -164,7 +165,8 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; ocpiEvseUid?: string; ocpiEvseID?: string;
+      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
+      ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
     },
@@ -225,9 +227,13 @@ export default class ChargingStationStorage {
         $in: params.chargingStationSerialNumbers
       };
     }
-    // OCPI Uids
+    // OCPI Evse Uids
     if (params.ocpiEvseUid) {
       filters['ocpiData.evses.uid'] = params.ocpiEvseUid;
+    }
+    // OCPI Location ID
+    if (params.ocpiLocationID) {
+      filters['ocpiData.evses.location_id'] = params.ocpiLocationID;
     }
     // OCPI Evse ID
     if (params.ocpiEvseID) {
@@ -367,10 +373,11 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    // TODO: To remove the 'if containsGPSCoordinates' when SiteID optimization will be implemented
+    // TODO: To remove when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
       aggregation.push({
         $sort: dbParams.sort
@@ -624,19 +631,20 @@ export default class ChargingStationStorage {
       evses: ocpiData.evses.map((evse) => ({
         uid: evse.uid,
         evse_id: evse.evse_id,
+        location_id: evse.location_id,
         status: evse.status,
         capabilities: evse.capabilities,
         connectors: evse.connectors,
         coordinates: evse.coordinates,
         last_updated: Utils.convertToDate(evse.last_updated),
       }))
-    }
+    };
     // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       { $set: {
-          ocpiData : ocpiDataMDB
-        }
+        ocpiData : ocpiDataMDB
+      }
       },
       { upsert: false });
     // Debug
@@ -1016,6 +1024,7 @@ export default class ChargingStationStorage {
   private static filterConnectorMDB(connector: Connector): ConnectorMDB {
     if (connector) {
       const filteredConnector: ConnectorMDB = {
+        id: connector.id,
         connectorId: Utils.convertToInt(connector.connectorId),
         currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
         currentStateOfCharge: connector.currentStateOfCharge,
