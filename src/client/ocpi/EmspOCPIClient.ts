@@ -166,7 +166,8 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       const locations = response.data.data as OCPILocation[];
       if (!Utils.isEmptyArray(locations)) {
-        await Promise.map(locations, async (location: OCPILocation) => {
+        // Cannot process locations in parallel (uniqueness is on site name) -> leads to dups
+        for (const location of locations) {
           try {
             await this.processLocation(location, company, sites.result);
             result.success++;
@@ -176,8 +177,7 @@ export default class EmspOCPIClient extends OCPIClient {
               `Failed to update Location '${location.name}': ${error.message}`
             );
           }
-        },
-        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+        }
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== locationsUrl) {
