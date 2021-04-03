@@ -15,6 +15,7 @@ import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import { ServerAction } from '../../../../types/Server';
+import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
@@ -57,6 +58,13 @@ export default class AuthService {
 
   public static authenticate(): RequestHandler {
     return passport.authenticate('jwt', { session: false });
+  }
+
+  public static async checkSessionHash(req: Request, res: Response, next: NextFunction) {
+    // Check if User has been updated and require new login
+    if(!await SessionHashService.isSessionHashUpdated(req, res, next)) {
+      next();
+    }
   }
 
   public static async handleLogIn(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
