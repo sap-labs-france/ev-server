@@ -1,4 +1,4 @@
-import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
+import { OCPIToken, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
@@ -415,45 +415,6 @@ export default class EmspOCPIClient extends OCPIClient {
       }
     }
   }
-
-  // Use by pushToken() for each Token, not scaling if thousand of them
-  // private async checkToken(tokenUid: string): Promise<boolean> {
-  //   // Get tokens endpoint url
-  //   const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
-  //   // Read configuration to retrieve
-  //   const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_TOKENS);
-  //   const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_TOKENS);
-  //   // Build url to IOP
-  //   const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${tokenUid}`;
-  //   // Call IOP
-  //   const response = await this.axiosInstance.get(
-  //     fullUrl,
-  //     {
-  //       headers: {
-  //         Authorization: `Token ${this.ocpiEndpoint.token}`
-  //       },
-  //     });
-  //   Logging.logDebug({
-  //     tenantID: this.tenant.id,
-  //     action: ServerAction.OCPI_CHECK_LOCATIONS,
-  //     message: `Token ID '${tokenUid}' checked successfully`,
-  //     module: MODULE_NAME, method: 'checkToken',
-  //     detailedMessages: { response : response.data }
-  //   });
-  //   const checkedToken = response.data.data as OCPILocation;
-  //   if (checkedToken) {
-  //     return true;
-  //   }
-  //   // Check response
-  //   if (!response.data) {
-  //     throw new BackendError({
-  //       action: ServerAction.OCPI_CHECK_TOKENS,
-  //       message: `Get Token ID '${tokenUid}' failed with status ${JSON.stringify(response)}`,
-  //       module: MODULE_NAME, method: 'getToken',
-  //       detailedMessages: { response: response.data }
-  //     });
-  //   }
-  // }
 
   public async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url

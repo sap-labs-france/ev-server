@@ -101,29 +101,33 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const tags = await TagStorage.getTags(this.tenant.id,
         { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
-      for (const token of response.data.data as OCPIToken[]) {
-        try {
-          // Get eMSP user
-          const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
-          // Check cache
-          let emspUser = emspUsers.get(email);
-          if (!emspUser) {
-            // Get User from DB
-            emspUser = await UserStorage.getUserByEmail(this.tenant.id, email);
-            if (emspUser) {
-              emspUsers.set(email, emspUser);
+      const tokens = response.data.data as OCPIToken[];
+      if (!Utils.isEmptyArray(tokens)) {
+        await Promise.map(tokens, async (token) => {
+          try {
+            // Get eMSP user
+            const email = OCPIUtils.buildEmspEmailFromOCPIToken(token, this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+            // Check cache
+            let emspUser = emspUsers.get(email);
+            if (!emspUser) {
+              // Get User from DB
+              emspUser = await UserStorage.getUserByEmail(this.tenant.id, email);
+              if (emspUser) {
+                emspUsers.set(email, emspUser);
+              }
             }
+            // Get the Tag
+            const emspTag = tags.result.find((tag) => tag.id === token.uid);
+            await OCPIUtilsService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
+            result.success++;
+          } catch (error) {
+            result.failure++;
+            result.logs.push(
+              `Failed to update Issuer '${token.issuer}' - Token ID '${token.uid}': ${error.message}`
+            );
           }
-          // Get the Tag
-          const emspTag = tags.result.find((tag) => tag.id === token.uid);
-          await OCPIUtilsService.updateToken(this.tenant.id, this.ocpiEndpoint, token, emspTag, emspUser);
-          result.success++;
-        } catch (error) {
-          result.failure++;
-          result.logs.push(
-            `Failed to update Issuer '${token.issuer}' - Token ID '${token.uid}': ${error.message}`
-          );
-        }
+        },
+        { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
       }
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== tokensUrl) {
@@ -669,54 +673,56 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get all locations
     const locations = await OCPIUtilsService.getAllLocations(this.tenant, 0, 0, options, false);
-    // Loop through locations
-    for (const location of locations.result) {
-      // Get the Charging Station should be processed
-      let currentSkip = 0;
-      let evses: OCPIEvse[];
-      do {
-        // Limit to a subset of Charging Stations?
-        let chargingStationIDs: string[];
-        if (!processAllEVSEs && !Utils.isEmptyArray(chargeBoxIDsToProcess)) {
-          chargingStationIDs = chargeBoxIDsToProcess;
-        }
-        evses = await OCPIUtilsService.getEvsesFromSite(this.tenant, location.id, options,
-          { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
-          { chargingStationIDs } )
-        // Loop through EVSE
-        if (!Utils.isEmptyArray(evses)) {
-          await Promise.map(evses, async (evse) => {
-            // Total amount of EVSEs
-            result.total++;
-            // Process it if not empty
-            if (location.id && evse?.uid) {
-              try {    
-                await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
-                result.success++;
-              } catch (error) {
-                result.failure++;
-                result.objectIDsInFailure.push(evse.chargeBoxId);
-                result.logs.push(
-                  `Update status failed on Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
-                );
+    if (!Utils.isEmptyArray(locations.result)) {
+      await Promise.map(locations.result, async (location) => {
+        // Get the Charging Station should be processed
+        let currentSkip = 0;
+        let evses: OCPIEvse[];
+        do {
+          // Limit to a subset of Charging Stations?
+          let chargingStationIDs: string[];
+          if (!processAllEVSEs && !Utils.isEmptyArray(chargeBoxIDsToProcess)) {
+            chargingStationIDs = chargeBoxIDsToProcess;
+          }
+          evses = await OCPIUtilsService.getEvsesFromSite(this.tenant, location.id, options,
+            { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
+            { chargingStationIDs } )
+          // Loop through EVSE
+          if (!Utils.isEmptyArray(evses)) {
+            await Promise.map(evses, async (evse) => {
+              // Total amount of EVSEs
+              result.total++;
+              // Process it if not empty
+              if (location.id && evse?.uid) {
+                try {    
+                  await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
+                  result.success++;
+                } catch (error) {
+                  result.failure++;
+                  result.objectIDsInFailure.push(evse.chargeBoxId);
+                  result.logs.push(
+                    `Update status failed on Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
+                  );
+                }
+                if (result.failure > 0) {
+                  // Send notification to admins
+                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                  NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                    this.tenant.id,
+                    {
+                      location: location.name,
+                      evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
+                    }
+                  );
+                }
               }
-              if (result.failure > 0) {
-                // Send notification to admins
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                  this.tenant.id,
-                  {
-                    location: location.name,
-                    evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),
-                  }
-                );
-              }
-            }
-          },
-          { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
-        }
-        currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
-      } while (!Utils.isEmptyArray(evses));
+            },
+            { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
+          }
+          currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+        } while (!Utils.isEmptyArray(evses));
+      },
+      { concurrency: Constants.OCPI_MAX_PARALLEL_REQUESTS });
     }
     // Save result in ocpi endpoint
     this.ocpiEndpoint.lastPatchJobOn = startDate;
