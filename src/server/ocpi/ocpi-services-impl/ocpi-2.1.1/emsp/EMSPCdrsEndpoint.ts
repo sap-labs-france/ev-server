@@ -11,6 +11,7 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 import Transaction from '../../../../../types/Transaction';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
@@ -40,6 +41,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -47,9 +49,10 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.cdr) {
+    if (!transaction?.ocpiData?.cdr) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The CDR ID '${id}' does not exist or does not belong to the requester`,

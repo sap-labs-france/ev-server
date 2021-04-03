@@ -13,6 +13,7 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../../types/Tenant';
 import { UserStatus } from '../../../../../types/User';
@@ -64,6 +65,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (!tokenId) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -74,6 +76,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (!locationReference) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing LocationReference',
@@ -83,6 +86,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing Charging Station ID',
@@ -92,6 +96,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (locationReference.evse_uids.length > 1) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid or missing parameters : does not support authorization request on multiple Charging Stations',
@@ -103,6 +108,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (!chargingStation) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown Charging Station '${locationReference.evse_uids[0]}'`,
@@ -113,6 +119,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     if (!tag?.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'UNKNOWN USER',

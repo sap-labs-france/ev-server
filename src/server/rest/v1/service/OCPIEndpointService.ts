@@ -659,7 +659,7 @@ export default class OCPIEndpointService {
     if (!patchStatusesLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
         message: 'Error in pushing the OCPI EVSE Statuses: cannot acquire the lock',
         module: MODULE_NAME, method: 'handlePushEVSEStatusesOcpiEndpoint',

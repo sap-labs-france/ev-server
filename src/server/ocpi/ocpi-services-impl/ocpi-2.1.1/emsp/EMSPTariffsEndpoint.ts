@@ -43,6 +43,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
     if (!countryCode || !partyId || !tariffId) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_GET_TARIFF,
         module: MODULE_NAME, method: 'getTariffRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',

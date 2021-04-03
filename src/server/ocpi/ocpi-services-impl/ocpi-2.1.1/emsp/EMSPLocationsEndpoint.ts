@@ -52,6 +52,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!countryCode || !partyId || !locationId) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         module: MODULE_NAME, method: 'patchLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -68,6 +69,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
+          action: ServerAction.OCPI_PATCH_LOCATION,
           module: MODULE_NAME, method: 'patchLocationRequest',
           errorCode: StatusCodes.NOT_FOUND,
           message: `Unknown Charging Station ID '${evseUid}'`,
@@ -82,7 +84,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     } else {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Patching of Location ID '${locationId}' is not supported currently`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchLocationRequest',
@@ -103,6 +105,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!countryCode || !partyId || !locationId) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'updateLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -178,7 +181,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!found) {
       Logging.logError({
         tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Patching of Connector ID '${connectorId}' of Charging Station '${chargingStation.id}' failed because connector was not found`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchConnector',
@@ -196,7 +199,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
         Logging.logInfo({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          action: ServerAction.OCPI_PATCH_LOCATION,
           message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been deleted`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateEvse',
@@ -205,7 +208,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       } else {
         Logging.logError({
           tenantID: tenant.id,
-          action: ServerAction.OCPI_PATCH_LOCATIONS,
+          action: ServerAction.OCPI_PATCH_LOCATION,
           message: `Charging Station '${evseUid}' of Location ID '${locationId}' does not exist and cannot be deleted`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateEvse',
@@ -218,7 +221,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
       Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Charging Station '${evseUid}' of Location ID '${locationId}' has been updated`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateEvse',
@@ -233,7 +236,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,
-        action: ServerAction.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATION,
         message: `Unable to update connector of non existing Charging Station '${evseUid}' of Location ID '${locationId}'`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',

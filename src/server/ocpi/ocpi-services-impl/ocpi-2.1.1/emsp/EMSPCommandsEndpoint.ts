@@ -36,10 +36,10 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           case OCPICommandType.STOP_SESSION:
           case OCPICommandType.RESERVE_NOW:
           case OCPICommandType.UNLOCK_CONNECTOR:
-            Logging.logDebug({
+            Logging.logWarning({
               tenantID: tenant.id,
               action: this.getAction(command),
-              message: `OCPI command response received for action '${command}' with ID '${commandId}'` ,
+              message: `OCPI command response received for action '${command}' with ID '${commandId}' - No action done` ,
               module: MODULE_NAME, method: 'process',
               detailedMessages: { response : req.body }
             });
