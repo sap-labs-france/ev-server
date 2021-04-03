@@ -39,7 +39,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Register Endpoint to this service
    *
-   * @param {*} endpoint AbstractEndpoint
+   * @param {AbstractEndpoint} endpoint
    */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);

@@ -978,10 +978,10 @@ export default class OCPPService {
 
   public async handleGet15118EVCertificate(headers: OCPPHeader, ev15118Certificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
     try {
-      // Check and get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      // Check the charging station
+      await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       const ccpClient = new ContractCertificatePoolClient(await TenantStorage.getTenant(headers.tenantID));
-      const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate);
+      const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate['15118SchemaVersion'], ev15118Certificate.exiRequest);
       return {
         status: OCPP15118EVCertificateStatus.ACCEPTED,
         exiResponse: exiResponse

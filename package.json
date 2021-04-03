@@ -156,7 +156,7 @@
     "socketio-jwt-auth": "^0.2.1",
     "source-map-support": "^0.5.19",
     "stripe": "^8.140.0",
-    "strong-soap": "^3.0.0",
+    "strong-soap": "^3.0.1",
     "swagger-ui-express": "^4.1.6",
     "tslib": "^2.1.0",
     "tz-lookup": "^6.1.25",

@@ -170,6 +170,8 @@ export default abstract class OCPIClient {
 
   /**
    * GET /ocpi/{role}/{version}
+   *
+   * @returns {Promise}
    */
   public async getServices(): Promise<any> {
     // Log
