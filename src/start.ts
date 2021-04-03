@@ -132,7 +132,7 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         await SchedulerManager.init();
         // -------------------------------------------------------------------------
-        // Init the Asyn Task
+        // Init the Async Task
         // -------------------------------------------------------------------------
         await AsyncTaskManager.init();
         // Locks remain in storage if server crashes

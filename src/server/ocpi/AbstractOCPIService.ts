@@ -31,7 +31,7 @@ export default abstract class AbstractOCPIService {
 
   // Create OCPI Service
   protected constructor(
-      private readonly ocpiRestConfig: Configuration['OCPIService'],
+      private readonly ocpiRestConfig: OCPIServiceConfiguration,
       private readonly role: string,
       private readonly version: string) {
   }

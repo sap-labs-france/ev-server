@@ -17,6 +17,7 @@ export default class OCPIUtils {
    * Return OCPI Success Body Response
    *
    * @param {*} data
+   * @returns {OCPIResponse}
    */
   public static success(data?: any): OCPIResponse {
     return {
@@ -31,6 +32,7 @@ export default class OCPIUtils {
    * Return OCPI Error Body Response
    *
    * @param {*} error
+   * @returns {OCPIResponse}
    */
   public static toErrorResponse(error: Error): OCPIResponse {
     return {
@@ -46,9 +48,10 @@ export default class OCPIUtils {
    *
    * @param {*} req request in order to get url
    * @param {*} baseUrl the baseUrl of the service to get url
-   * @param {*} offset  offset
+   * @param {*} offset offset
    * @param {*} limit limit of query
    * @param {*} total total number of records
+   * @returns {string|undefined}
    */
   public static buildNextUrl(req: Request, baseUrl: string, offset: number, limit: number, total: number): string | undefined {
     // Check if next link should be generated

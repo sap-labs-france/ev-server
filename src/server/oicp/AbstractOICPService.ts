@@ -28,7 +28,7 @@ export default abstract class AbstractOICPService {
 
   // Create OICP Service
   protected constructor(
-      private readonly oicpRestConfig: Configuration['OICPService'],
+      private readonly oicpRestConfig: OICPServiceConfiguration,
       private readonly path: string,
       private readonly version: string) {
   }
@@ -36,7 +36,7 @@ export default abstract class AbstractOICPService {
   /**
    * Register Endpoint to this service
    *
-   * @param {*} endpoint AbstractEndpoint
+   * @param {AbstractEndpoint} endpoint
    */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);
