@@ -59,9 +59,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         }
         switch (command) {
           case OCPICommandType.START_SESSION:
-            return this.remoteStartSession(req, res, next, tenant, ocpiEndpoint);
+            return this.remoteStartSessionRequest(req, res, next, tenant, ocpiEndpoint);
           case OCPICommandType.STOP_SESSION:
-            return this.remoteStopSession(req, res, next, tenant, ocpiEndpoint);
+            return this.remoteStopSessionRequest(req, res, next, tenant, ocpiEndpoint);
           case OCPICommandType.RESERVE_NOW:
           case OCPICommandType.UNLOCK_CONNECTOR:
             return this.buildOCPIResponse(OCPICommandResponseType.NOT_SUPPORTED);
@@ -78,7 +78,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
   }
 
-  private async remoteStartSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async remoteStartSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const startSession = req.body as OCPIStartSession;
     if (!this.validateStartSession(startSession)) {
       throw new AppError({
@@ -194,7 +194,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     return this.buildOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 
-  private async remoteStopSession(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async remoteStopSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const stopSession = req.body as OCPIStopSession;
     if (!this.validateStopSession(stopSession)) {
       throw new AppError({

@@ -4,14 +4,16 @@ import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import Constants from '../../../../../utils/Constants';
+import { DataResult } from '../../../../../types/DataResult';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
+import { OCPISession } from '../../../../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
-import OCPIUtilsService from '../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../../types/Tenant';
+import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../../../utils/Utils';
 
 const MODULE_NAME = 'CPOSessionsEndpoint';
@@ -49,7 +51,7 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
       });
     }
     // Get all sessions
-    const sessions = await OCPIUtilsService.getAllSessions(tenant, limit, offset,
+    const sessions = await this.getAllSessions(tenant, limit, offset,
       Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
@@ -64,5 +66,22 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
       });
     }
     return OCPIUtils.success(sessions.result);
+  }
+
+  private async getAllSessions(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPISession>> {
+    // Result
+    const sessions: OCPISession[] = [];
+    // Get all transactions
+    const transactions = await TransactionStorage.getTransactions(tenant.id, { issuer: true, ocpiSessionDateFrom: dateFrom, ocpiSessionDateTo: dateTo }, {
+      limit,
+      skip
+    });
+    for (const transaction of transactions.result) {
+      sessions.push(transaction.ocpiData.session);
+    }
+    return {
+      count: transactions.count,
+      result: sessions
+    };
   }
 }

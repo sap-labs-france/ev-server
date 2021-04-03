@@ -25,15 +25,15 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PUT':
-        return this.putToken(req, res, next, tenant, ocpiEndpoint);
+        return this.putTokenRequest(req, res, next, tenant, ocpiEndpoint);
       case 'PATCH':
-        return this.patchToken(req, res, next, tenant);
+        return this.patchTokenRequest(req, res, next, tenant);
       case 'GET':
-        return await this.getToken(req, res, next, tenant);
+        return await this.getTokenRequest(req, res, next, tenant);
     }
   }
 
-  private async getToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  private async getTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -52,7 +52,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Retrieve token
-    const token = await OCPIUtilsService.getToken(tenant, countryCode, partyId, tokenId);
+    const token = await this.getToken(tenant, countryCode, partyId, tokenId);
     if (!token) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -66,7 +66,16 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     return OCPIUtils.success(token);
   }
 
-  private async putToken(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  private async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
+    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    if (tag?.user) {
+      if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
+        return tag.ocpiToken;
+      }
+    }
+  }
+
+  private async putTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -146,7 +155,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     return OCPIUtils.success();
   }
 
-  private async patchToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+  private async patchTokenRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();

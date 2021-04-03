@@ -86,7 +86,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       detailedMessages: { credential }
     });
     // Check if valid
-    if (!OCPIUtilsService.isValidOCPICredential(credential)) {
+    if (!this.isValidOCPICredential(credential)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
@@ -251,5 +251,13 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Respond with credentials
     return OCPIUtils.success(respCredential);
   }
-}
 
+  private isValidOCPICredential(credential: OCPICredential): boolean {
+    return (!credential ||
+      !credential.url ||
+      !credential.token ||
+      !credential.party_id ||
+      !credential.country_code) ? false : true;
+  }
+
+}

@@ -1,16 +1,22 @@
+import { CdrDimensionType, OCPIChargingPeriod } from '../../types/ocpi/OCPIChargingPeriod';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPILocation, OCPILocationOptions, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationType } from '../../types/ocpi/OCPILocation';
 
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
+import Consumption from '../../types/Consumption';
+import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
+import CountryLanguage from 'country-language';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
 import OCPIClient from './OCPIClient';
+import { OCPIConnector } from '../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIResult } from '../../types/ocpi/OCPIResult';
@@ -20,7 +26,9 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIUtilsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIUtilsService';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
+import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
@@ -30,6 +38,7 @@ import User from '../../types/User';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
+import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
@@ -230,7 +239,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${authorizationId}`;
     const site = await SiteStorage.getSite(this.tenant.id, chargingStation.siteID);
-    const ocpiLocation: OCPILocation = OCPIUtilsService.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
+    const ocpiLocation: OCPILocation = this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
@@ -287,7 +296,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
-    transaction.ocpiData.session.charging_periods = await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant.id, transaction);
     // Send OCPI information
     const session: Partial<OCPISession> = {
       kwh: transaction.ocpiData.session.kwh,
@@ -301,11 +310,11 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await this.axiosInstance.patch(
       sessionsUrl,
       session, {
-      headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
-      },
-    });
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
     await Logging.logInfo({
       tenantID: this.tenant.id,
       source: transaction.chargeBoxID,
@@ -348,7 +357,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
-    transaction.ocpiData.session.charging_periods = await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant.id, transaction);
     // Call IOP
     const response = await this.axiosInstance.put(
       tokensUrl,
@@ -409,7 +418,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
-      charging_periods: await OCPIUtilsService.buildChargingPeriods(this.tenant.id, transaction),
+      charging_periods: await this.buildChargingPeriods(this.tenant.id, transaction),
       last_updated: transaction.stop.timestamp
     };
     // Call IOP
@@ -686,7 +695,7 @@ export default class CpoOCPIClient extends OCPIClient {
           }
           evses = await OCPIUtilsService.getEvsesFromSite(this.tenant, location.id, options,
             { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT },
-            { chargingStationIDs } )
+            { chargingStationIDs });
           // Loop through EVSE
           if (!Utils.isEmptyArray(evses)) {
             await Promise.map(evses, async (evse) => {
@@ -694,7 +703,7 @@ export default class CpoOCPIClient extends OCPIClient {
               result.total++;
               // Process it if not empty
               if (location.id && evse?.uid) {
-                try {    
+                try {
                   await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
                   result.success++;
                 } catch (error) {
@@ -980,5 +989,112 @@ export default class CpoOCPIClient extends OCPIClient {
       detailedMessages: { location, ocpiLocation }
     });
     return result;
+  }
+
+  private async buildChargingPeriods(tenantID: string, transaction: Transaction): Promise<OCPIChargingPeriod[]> {
+    if (!transaction || !transaction.timestamp) {
+      return [];
+    }
+    const chargingPeriods: OCPIChargingPeriod[] = [];
+    const consumptions = await ConsumptionStorage.getTransactionConsumptions(
+      tenantID, { transactionId: transaction.id });
+    if (consumptions.result) {
+      // Build based on consumptions
+      for (const consumption of consumptions.result) {
+        const chargingPeriod = this.buildChargingPeriod(consumption);
+        if (!Utils.isEmptyArray(chargingPeriod?.dimensions)) {
+          chargingPeriods.push(chargingPeriod);
+        }
+      }
+    } else {
+      // Build first/last consumption (if no consumptions is gathered)
+      const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
+      chargingPeriods.push({
+        start_date_time: transaction.timestamp,
+        dimensions: [{
+          type: CdrDimensionType.ENERGY,
+          volume: Utils.truncTo(Utils.createDecimal(consumption).div(1000).toNumber(), 3)
+        }]
+      });
+      const inactivity: number = transaction.stop ? transaction.stop.totalInactivitySecs : transaction.currentTotalInactivitySecs;
+      if (inactivity > 0) {
+        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.currentTimestamp;
+        chargingPeriods.push({
+          start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
+          dimensions: [{
+            type: CdrDimensionType.PARKING_TIME,
+            volume: Utils.truncTo(Utils.createDecimal(inactivity).div(3600).toNumber(), 3)
+          }]
+        });
+      }
+    }
+    return chargingPeriods;
+  }
+
+  private convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
+    connectorId: number, countryId: string, partyId: string): OCPILocation {
+    const connectors: OCPIConnector[] = [];
+    let status: ChargePointStatus;
+    for (const chargingStationConnector of chargingStation.connectors) {
+      if (chargingStationConnector.connectorId === connectorId) {
+        connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, countryId, partyId));
+        status = chargingStationConnector.status;
+        break;
+      }
+    }
+    const ocpiLocation: OCPILocation = {
+      id: site.id,
+      name: site.name,
+      address: `${site.address.address1} ${site.address.address2}`,
+      city: site.address.city,
+      postal_code: site.address.postalCode,
+      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(countryId, (err, languages) => languages[0].iso639_1)),
+      coordinates: {
+        latitude: site.address.coordinates[1].toString(),
+        longitude: site.address.coordinates[0].toString()
+      },
+      type: OCPILocationType.UNKNOWN,
+      evses: [{
+        uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
+        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id,
+          Utils.getConnectorFromID(chargingStation, connectorId).connectorId),
+        location_id: chargingStation.siteID,
+        status: OCPIUtilsService.convertStatus2OCPIStatus(status),
+        capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+        connectors: connectors,
+        coordinates: {
+          latitude: chargingStation.coordinates[1].toString(),
+          longitude: chargingStation.coordinates[0].toString()
+        },
+        last_updated: chargingStation.lastSeen
+      }],
+      last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
+      opening_times: {
+        twentyfourseven: true,
+      }
+    };
+    return ocpiLocation;
+  }
+
+  private buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
+    const chargingPeriod: OCPIChargingPeriod = {
+      start_date_time: consumption.endedAt,
+      dimensions: []
+    };
+    if (consumption.consumptionWh > 0) {
+      chargingPeriod.dimensions.push({
+        type: CdrDimensionType.ENERGY,
+        volume: Utils.truncTo(Utils.createDecimal(consumption.consumptionWh).div(1000).toNumber(), 3)
+      });
+    } else {
+      const duration = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
+      if (duration > 0) {
+        chargingPeriod.dimensions.push({
+          type: CdrDimensionType.PARKING_TIME,
+          volume: Utils.truncTo(duration, 3)
+        });
+      }
+    }
+    return chargingPeriod;
   }
 }
