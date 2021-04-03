@@ -306,7 +306,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean; name?: string;
       withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
     } = {},
@@ -343,6 +343,10 @@ export default class SiteStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Site Name
+    if (params.name) {
+      filters.name = params.name;
     }
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
