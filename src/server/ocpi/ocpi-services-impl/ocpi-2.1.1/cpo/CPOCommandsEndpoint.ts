@@ -105,8 +105,8 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
-      tenant.id, startSession.evse_uid);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
+      tenant.id, startSession.location_id, startSession.evse_uid);
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,

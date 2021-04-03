@@ -151,12 +151,12 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
-  public static async getChargingStationByOcpiLocationUid(tenantID: string, ocpiLocation: string = Constants.UNKNOWN_STRING_ID,
-    ocpiUid: string = Constants.UNKNOWN_STRING_ID,
+  public static async getChargingStationByOcpiLocationUid(tenantID: string, ocpiLocationID: string = Constants.UNKNOWN_STRING_ID,
+    ocpiEvseUid: string = Constants.UNKNOWN_STRING_ID,
     projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      siteIDs: [ocpiLocation],
-      ocpiUid: ocpiUid,
+      siteIDs: [ocpiLocationID],
+      ocpiEvseUid: ocpiEvseUid,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -164,7 +164,7 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenantID: string,
     params: {
       search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; ocpiUid?: string; ocpiEvseID?: string;
+      connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; ocpiEvseUid?: string; ocpiEvseID?: string;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
       locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
     },
@@ -226,8 +226,8 @@ export default class ChargingStationStorage {
       };
     }
     // OCPI Uids
-    if (params.ocpiUid) {
-      filters['ocpiData.evses.uid'] = params.ocpiUid;
+    if (params.ocpiEvseUid) {
+      filters['ocpiData.evses.uid'] = params.ocpiEvseUid;
     }
     // OCPI Evse ID
     if (params.ocpiEvseID) {

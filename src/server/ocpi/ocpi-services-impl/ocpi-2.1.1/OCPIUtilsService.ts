@@ -112,8 +112,10 @@ export default class OCPIUtilsService {
     }
     // Build ID
     chargingStation.id = evse.evse_id;
+    // TODO: Handle missing evse_id in eMSP (tokens, sessions, cdr): Need to identify the use cases so force it to crash here
     if (!chargingStation.id) {
       throw new BackendError({
+        action: ServerAction.OCPI_ENDPOINT,
         message: `Cannot find Charging Station EVSE ID`,
         module: MODULE_NAME, method: 'convertEvseToChargingStation',
         detailedMessages:  { evse, location }
