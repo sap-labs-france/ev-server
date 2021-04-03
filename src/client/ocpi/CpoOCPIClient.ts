@@ -874,28 +874,31 @@ export default class CpoOCPIClient extends OCPIClient {
           },
         });
       return false;
+    } else if (OCPIUtilsService.isSuccessResponse(response.data)) {
+      const cdr = response.data.data as OCPICdr;
+      if (cdr) {
+        transaction.ocpiData.cdrCheckedOn = new Date();
+        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          source: transaction.chargeBoxID,
+          action: ServerAction.OCPI_CHECK_CDRS,
+          message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
+          module: MODULE_NAME, method: 'checkCdr',
+          detailedMessages: { cdr }
+        });
+        return true;
+      }
     }
-    const cdr = response.data.data as OCPICdr;
-    if (cdr) {
-      transaction.ocpiData.cdrCheckedOn = new Date();
-      await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-      await Logging.logInfo({
-        tenantID: this.tenant.id,
-        source: transaction.chargeBoxID,
-        action: ServerAction.OCPI_CHECK_CDRS,
-        message: `CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
-        module: MODULE_NAME, method: 'checkCdr',
-        detailedMessages: { cdr }
-      });
-      return true;
-    }
-    throw new BackendError({
+    await Logging.logError({
+      tenantID: this.tenant.id,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_CDRS,
       message: `Failed to check CDR of OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
-      detailedMessages: { cdr: transaction.ocpiData.cdr, data: response.data }
+      detailedMessages: { response: response.data, cdr: transaction.ocpiData.cdr }
     });
+    return false;
   }
 
   private async checkSession(transaction: Transaction): Promise<boolean> {
@@ -924,27 +927,31 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
-    await Logging.logInfo({
-      tenantID: this.tenant.id,
-      source: transaction.chargeBoxID,
-      action: ServerAction.OCPI_CHECK_SESSIONS,
-      message: `OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
-      module: MODULE_NAME, method: 'checkSession',
-      detailedMessages: { transaction, response: response.data }
-    });
-    const session = response.data.data as OCPISession;
-    if (session) {
-      transaction.ocpiData.sessionCheckedOn = new Date();
-      await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-      return true;
+    if (OCPIUtilsService.isSuccessResponse(response.data)) {
+      const session = response.data.data as OCPISession;
+      if (session) {
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          source: transaction.chargeBoxID,
+          action: ServerAction.OCPI_CHECK_SESSIONS,
+          message: `OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') checked successfully`,
+          module: MODULE_NAME, method: 'checkSession',
+          detailedMessages: { response: response.data, transaction }
+        });
+        transaction.ocpiData.sessionCheckedOn = new Date();
+        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        return true;
+      }
     }
-    throw new BackendError({
+    await Logging.logError({
+      tenantID: this.tenant.id,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_SESSIONS,
       message: `Failed to check OCPI Session ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}') at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession',
-      detailedMessages: { data: response.data }
+      detailedMessages: { response: response.data, transaction }
     });
+    return false;
   }
 
   private async checkLocation(location: OCPILocation): Promise<boolean> {

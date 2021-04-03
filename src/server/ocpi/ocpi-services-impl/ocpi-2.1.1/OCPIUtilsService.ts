@@ -24,6 +24,7 @@ import Logging from '../../../../utils/Logging';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
@@ -47,6 +48,11 @@ import moment from 'moment';
 const MODULE_NAME = 'OCPIUtilsService';
 
 export default class OCPIUtilsService {
+  public static isSuccessResponse(response: OCPIResponse): boolean {
+    return !Utils.objectHasProperty(response, 'status_code') ||
+      response.status_code === 1000;
+  }
+
   public static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location: OCPILocation): ChargingStation {
     const chargingStation = {
       maximumPower: 0,
