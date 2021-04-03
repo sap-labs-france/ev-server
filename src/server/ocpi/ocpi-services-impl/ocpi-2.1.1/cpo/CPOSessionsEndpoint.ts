@@ -38,19 +38,19 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
-
     if (!req.query.date_from) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.OCPI_PULL_SESSIONS,
         module: MODULE_NAME, method: 'getSessionsRequest',
         errorCode: StatusCodes.BAD_REQUEST,
-        message: 'query parameter date_from is missing',
+        message: `Missing 'date_from' parameter`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     // Get all sessions
-    const sessions = await OCPIUtilsService.getAllSessions(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const sessions = await OCPIUtilsService.getAllSessions(tenant, limit, offset,
+      Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': sessions.count,

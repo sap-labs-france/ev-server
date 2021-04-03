@@ -25,6 +25,7 @@ import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../../types/Tenant';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
+import Utils from '../../../../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'CPOCommandsEndpoint';
@@ -46,6 +47,16 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         // Get filters
         // eslint-disable-next-line no-case-declarations
         const command = urlSegment.shift();
+        if (!command) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.OCPI_COMMAND,
+            module: MODULE_NAME, method: 'getToken',
+            errorCode: StatusCodes.BAD_REQUEST,
+            message: `OCPI Command is not provided`,
+            ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+          });
+        }
         switch (command) {
           case OCPICommandType.START_SESSION:
             return this.remoteStartSession(req, res, next, tenant, ocpiEndpoint);
@@ -54,6 +65,15 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           case OCPICommandType.RESERVE_NOW:
           case OCPICommandType.UNLOCK_CONNECTOR:
             return this.getOCPIResponse(OCPICommandResponseType.NOT_SUPPORTED);
+          default:
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.OCPI_COMMAND,
+              module: MODULE_NAME, method: 'getToken',
+              errorCode: StatusCodes.BAD_REQUEST,
+              message: `OCPI Command '${command}' is unknown`,
+              ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+            });
         }
     }
   }
@@ -84,22 +104,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!localToken.user || localToken.user.deleted || localToken.user.issuer) {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    let chargingStation: ChargingStation;
-    let connector: Connector;
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
-      siteIDs: [startSession.location_id],
-      issuer: true
-    }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (chargingStations?.result) {
-      for (const cs of chargingStations.result) {
-        for (const conn of cs.connectors) {
-          if (startSession.evse_uid === OCPIUtils.buildEvseUID(cs, conn)) {
-            chargingStation = cs;
-            connector = conn;
-          }
-        }
-      }
-    }
+    // Get the Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
+      tenant.id, startSession.evse_uid);
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,
@@ -109,6 +116,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
+    // Find the connector
+    const evseParts = startSession.evse_uid.split(Constants.OCPI_SEPARATOR);
+    const connector = Utils.getConnectorFromID(chargingStation, Utils.convertToInt(evseParts.pop()));
     if (!connector) {
       Logging.logError({
         tenantID: tenant.id,
@@ -172,7 +182,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     // Start the transaction
-    this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
+    await this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
     // Ok
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
@@ -232,7 +242,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.remoteStopTransaction(tenant, chargingStation, transaction.id, stopSession, ocpiEndpoint);
+    await this.remoteStopTransaction(tenant, chargingStation, transaction.id, stopSession, ocpiEndpoint);
     return this.getOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
 

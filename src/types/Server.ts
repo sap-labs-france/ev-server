@@ -122,6 +122,7 @@ export enum ServerAction {
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
+  OCPI_COMMAND = 'OcpiCommand',
   OCPI_PUT_TOKEN = 'OcpiPutToken',
   OCPI_PATCH_TOKEN = 'OcpiPatchToken',
   OCPI_PATCH_LOCATION = 'OcpiPatchLocation',
