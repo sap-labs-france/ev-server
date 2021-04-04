@@ -284,7 +284,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
-    connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+      connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -308,7 +308,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number,
-    stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+      stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
