@@ -17,7 +17,7 @@ const MODULE_NAME = 'SynchronizeRefundTransactionsTask';
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SYNCHRONIZE_REFUND,
         module: MODULE_NAME, method: 'run',
@@ -28,7 +28,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     // Get Concur Settings
     const refundConnector = await RefundFactory.getRefundImpl(tenant.id);
     if (!refundConnector) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.SYNCHRONIZE_REFUND,
         module: MODULE_NAME, method: 'run',
@@ -47,7 +47,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         // Check
         if (transactions.count > 0) {
           // Process them
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
             module: MODULE_NAME, method: 'processTenant',
@@ -75,11 +75,11 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
               }
             } catch (error) {
               actionsDone.error++;
-              Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
+              await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
             }
           }
           // Log result
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
             module: MODULE_NAME, method: 'processTenant',
@@ -87,7 +87,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           });
         } else {
           // Process them
-          Logging.logInfo({
+          await Logging.logInfo({
             tenantID: tenant.id,
             action: ServerAction.SYNCHRONIZE_REFUND,
             module: MODULE_NAME, method: 'processTenant',
@@ -96,7 +96,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
       } finally {
         // Release the lock
         await LockingManager.release(refundLock);

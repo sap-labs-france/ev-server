@@ -17,6 +17,7 @@ import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import TenantComponents from '../../../../types/TenantComponents';
+import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
 
@@ -178,25 +179,31 @@ export default class AssetService {
     }
     // Retrieve consumption
     const consumptions = await assetImpl.retrieveConsumptions(asset, true);
-    const consumption = consumptions[0];
-    // Assign
-    asset.lastConsumption = consumption.lastConsumption;
-    asset.currentConsumptionWh = consumption.currentConsumptionWh;
-    asset.currentInstantAmps = consumption.currentInstantAmps;
-    asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;
-    asset.currentInstantAmpsL2 = consumption.currentInstantAmpsL2;
-    asset.currentInstantAmpsL3 = consumption.currentInstantAmpsL3;
-    asset.currentInstantVolts = consumption.currentInstantVolts;
-    asset.currentInstantVoltsL1 = consumption.currentInstantVoltsL1;
-    asset.currentInstantVoltsL2 = consumption.currentInstantVoltsL2;
-    asset.currentInstantVoltsL3 = consumption.currentInstantVoltsL3;
-    asset.currentInstantWatts = consumption.currentInstantWatts;
-    asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
-    asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
-    asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
-    asset.currentStateOfCharge = consumption.currentStateOfCharge;
-    // Save Asset
-    await AssetStorage.saveAsset(req.user.tenantID, asset);
+    if (!Utils.isEmptyArray(consumptions)) {
+      const consumption = consumptions[0];
+      // Assign
+      if (consumption) {
+        asset.lastConsumption = consumption.lastConsumption;
+        asset.currentConsumptionWh = consumption.currentConsumptionWh;
+        asset.currentInstantAmps = consumption.currentInstantAmps;
+        asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;
+        asset.currentInstantAmpsL2 = consumption.currentInstantAmpsL2;
+        asset.currentInstantAmpsL3 = consumption.currentInstantAmpsL3;
+        asset.currentInstantVolts = consumption.currentInstantVolts;
+        asset.currentInstantVoltsL1 = consumption.currentInstantVoltsL1;
+        asset.currentInstantVoltsL2 = consumption.currentInstantVoltsL2;
+        asset.currentInstantVoltsL3 = consumption.currentInstantVoltsL3;
+        asset.currentInstantWatts = consumption.currentInstantWatts;
+        asset.currentInstantWattsL1 = consumption.currentInstantWattsL1;
+        asset.currentInstantWattsL2 = consumption.currentInstantWattsL2;
+        asset.currentInstantWattsL3 = consumption.currentInstantWattsL3;
+        asset.currentStateOfCharge = consumption.currentStateOfCharge;
+        // Save Asset
+        await AssetStorage.saveAsset(req.user.tenantID, asset);
+      }
+    } else {
+      // TODO: Return a specific HTTP code to tell the user that the consumption cannot be retrieved
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

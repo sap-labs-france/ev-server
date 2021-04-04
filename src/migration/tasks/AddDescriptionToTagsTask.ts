@@ -33,23 +33,23 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
       for (const tagMDB of tagsMDB) {
         await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
           { _id: tagMDB._id },
-          { $set: { description: `Tag ID '${tagMDB._id}'` } });
+          { $set: { description: `Badge ID '${tagMDB._id}'` } });
         updated++;
       }
     }
     // Log in the default tenant
     if (updated > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Tag(s) description have been updated in Tenant '${tenant.name}'`
+        message: `${updated} Tag(s) description have been updated in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {

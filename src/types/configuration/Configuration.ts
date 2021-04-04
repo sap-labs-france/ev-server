@@ -1,3 +1,4 @@
+import AsyncTaskConfiguration from './AsyncTaskConfiguration';
 import AuthorizationConfiguration from './AuthorizationConfiguration';
 import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';
@@ -7,6 +8,7 @@ import CentralSystemServerConfiguration from './CentralSystemServer';
 import ChargingStationConfiguration from './ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from './ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from './ClusterConfiguration';
+import ContractCertificatePoolConfiguration from './ContractsCertificatePoolConfiguration';
 import CryptoConfiguration from './CryptoConfiguration';
 import EVDatabaseConfiguration from './EVDatabaseConfiguration';
 import EmailConfiguration from './EmailConfiguration';
@@ -50,12 +52,14 @@ export interface Configuration {
   ChargingStation: ChargingStationConfiguration;
   Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
+  AsyncTask: AsyncTaskConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
   EVDatabase?: EVDatabaseConfiguration;
   ChargingStationTemplates?: ChargingStationTemplatesConfiguration;
-  Axios?: AxiosConfiguration
+  Axios?: AxiosConfiguration;
+  ContractCertificatePool?: ContractCertificatePoolConfiguration;
 }
 
-export type ConfigurationSection = CryptoConfiguration|ClusterConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|WSClientConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration;
+export type ConfigurationSection = CryptoConfiguration|ClusterConfiguration|CentralSystemServerConfiguration|CentralSystemConfiguration|CentralSystemRestServiceConfiguration|CentralSystemFrontEndConfiguration|WSDLEndpointConfiguration|JsonEndpointConfiguration|OCPIEndpointConfiguration|WSClientConfiguration|OCPIServiceConfiguration|ODataServiceConfiguration|FirebaseConfiguration|EmailConfiguration|StorageConfiguration|NotificationConfiguration|AuthorizationConfiguration|ChargingStationConfiguration|SchedulerConfiguration|LocalesConfiguration|LoggingConfiguration|HealthCheckConfiguration|MigrationConfiguration|EVDatabaseConfiguration|ChargingStationTemplatesConfiguration|AxiosConfiguration|ContractCertificatePoolConfiguration;

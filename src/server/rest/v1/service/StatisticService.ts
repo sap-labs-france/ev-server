@@ -7,7 +7,6 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
-import I18nManager from '../../../../utils/I18nManager';
 import { ServerAction } from '../../../../types/Server';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
@@ -474,38 +473,37 @@ export default class StatisticService {
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false);
-    const i18nManager = I18nManager.getInstanceForLocale(loggedUser.locale);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
     let csv: string;
     if (dataCategory === 'C') {
-      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
     } else {
-      csv = i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      csv = 'user' + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += i18nManager.translate('general.year') + Constants.CSV_SEPARATOR;
+      csv += 'year' + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += i18nManager.translate('general.month') + Constants.CSV_SEPARATOR;
+        csv += 'month' + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += i18nManager.translate('statistics.consumption') + '\r\n';
+        csv += 'consumption' + Constants.CR_LF;
         break;
       case 'Usage':
-        csv += i18nManager.translate('statistics.usage') + '\r\n';
+        csv += 'usage' + Constants.CR_LF;
         break;
       case 'Inactivity':
-        csv += i18nManager.translate('statistics.inactivity') + '\r\n';
+        csv += 'inactivity' + Constants.CR_LF;
         break;
       case 'Transactions':
-        csv += i18nManager.translate('statistics.numberOfSessions') + '\r\n';
+        csv += 'numberOfSessions' + Constants.CR_LF;
         break;
       case 'Pricing':
-        csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
-        csv += i18nManager.translate('general.priceUnit') + '\r\n';
+        csv += 'price' + Constants.CSV_SEPARATOR;
+        csv += 'priceUnit' + Constants.CR_LF;
         break;
       default:
         return csv;
@@ -652,12 +650,12 @@ export default class StatisticService {
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + Constants.CR_LF;
           } else {
-            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
+            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + Constants.CR_LF;
           }
         } else {
-          csv += number.toString() + '\r\n';
+          csv += number.toString() + Constants.CR_LF;
         }
       }
     }

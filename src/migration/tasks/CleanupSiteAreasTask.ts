@@ -4,6 +4,7 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'CleanupSiteAreasTask';
@@ -25,11 +26,11 @@ export default class CleanupSiteAreasTask extends MigrationTask {
 
     // Log in the default tenant
     if (result.deletedCount > 0) {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
-        message: `${result.deletedCount} Site area(s) have been deleted in Tenant '${tenant.name}'`
+        message: `${result.deletedCount} Site area(s) have been deleted in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

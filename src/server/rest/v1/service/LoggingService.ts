@@ -56,20 +56,19 @@ export default class LoggingService {
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('general.date') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.time') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.level') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.type') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.action') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.message') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.method') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.module') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.source') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.host') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('loggings.process') + '\r\n';
+      csv = 'date' + Constants.CSV_SEPARATOR;
+      csv += 'time' + Constants.CSV_SEPARATOR;
+      csv += 'level' + Constants.CSV_SEPARATOR;
+      csv += 'type' + Constants.CSV_SEPARATOR;
+      csv += 'action' + Constants.CSV_SEPARATOR;
+      csv += 'message' + Constants.CSV_SEPARATOR;
+      csv += 'method' + Constants.CSV_SEPARATOR;
+      csv += 'module' + Constants.CSV_SEPARATOR;
+      csv += 'source' + Constants.CSV_SEPARATOR;
+      csv += 'host' + Constants.CSV_SEPARATOR;
+      csv += 'process' + Constants.CR_LF;
     }
     // Content
     for (const log of loggings) {
@@ -83,7 +82,7 @@ export default class LoggingService {
       csv += log.module + Constants.CSV_SEPARATOR;
       csv += log.source + Constants.CSV_SEPARATOR;
       csv += log.host + Constants.CSV_SEPARATOR;
-      csv += log.process + '\r\n';
+      csv += log.process + Constants.CR_LF;
     }
     return csv;
   }

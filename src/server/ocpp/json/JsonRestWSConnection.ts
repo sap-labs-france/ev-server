@@ -28,7 +28,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Ok
       this.initialized = true;
       // Log
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,

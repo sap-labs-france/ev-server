@@ -1,16 +1,20 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import CarFactory from '../../../../integration/car/CarFactory';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
+import LockingHelper from '../../../../locking/LockingHelper';
+import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -161,16 +165,33 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const carDatabaseImpl = await CarFactory.getCarImpl();
-    if (!carDatabaseImpl) {
-      throw new BackendError({
+    // Get the lock
+    const syncCarCatalogsLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    if (!syncCarCatalogsLock) {
+      throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        message: 'Car service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
+        action: action,
+        errorCode: HTTPError.CANNOT_ACQUIRE_LOCK,
+        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs',
+        message: 'Error in synchronizing the Car Catalogs: cannot acquire the lock',
+        user: req.user
       });
     }
-    const result = await carDatabaseImpl.synchronizeCarCatalogs();
-    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    try {
+      // Create and Save async task
+      await AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
+        action,
+        type: AsyncTaskType.TASK,
+        module: MODULE_NAME,
+        method: 'handleSynchronizeCarCatalogs',
+      });
+    } finally {
+      // Release the lock
+      await LockingManager.release(syncCarCatalogsLock);
+    }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -566,7 +587,7 @@ export default class CarService {
   }
 
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
-    car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
+      car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
     if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];

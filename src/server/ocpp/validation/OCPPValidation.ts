@@ -58,11 +58,11 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
-    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
+      diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
   }
 
   validateFirmwareStatusNotification(chargingStation: ChargingStation,
-    firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
+      firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
   }
 
   validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {

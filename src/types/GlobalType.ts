@@ -38,6 +38,12 @@ export enum DocumentEncoding {
   BASE64 = 'base64',
 }
 
+export enum ImportStatus {
+  READY = 'R',
+  ERROR = 'E',
+}
+
+
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
@@ -58,4 +64,6 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
   console.error(`Unknown NODE_ENV '${process.env.NODE_ENV}' defined, exiting`);
   process.exit();
 }
+
 export default global;
+

@@ -1,0 +1,103 @@
+{
+  "title": "User Creation",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "email": {
+      "$ref": "common.json#/definitions/email"
+    },
+    "name": {
+      "$ref": "common.json#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "common.json#/definitions/firstName"
+    },
+    "password": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150
+    },
+    "locale": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": "boolean"
+    },
+    "deleted": {
+      "type": "boolean"
+    },
+    "role": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "passwordWrongNbrTrials": {
+      "type": "number"
+    },
+    "notificationsActive": {
+      "type": "boolean"
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "sendSessionStarted": {
+          "type": "boolean"
+        },
+        "sendOptimalChargeReached": {
+          "type": "boolean"
+        },
+        "sendEndOfCharge": {
+          "type": "boolean"
+        },
+        "sendEndOfSession": {
+          "type": "boolean"
+        },
+        "sendUserAccountStatusChanged": {
+          "type": "boolean"
+        },
+        "sendNewRegisteredUser": {
+          "type": "boolean"
+        },
+        "sendUnknownUserBadged": {
+          "type": "boolean"
+        },
+        "sendChargingStationStatusError": {
+          "type": "boolean"
+        },
+        "sendChargingStationRegistered": {
+          "type": "boolean"
+        },
+        "sendOcpiPatchStatusError": {
+          "type": "boolean"
+        },
+        "sendSmtpAuthError": {
+          "type": "boolean"
+        },
+        "sendUserAccountInactivity": {
+          "type": "boolean"
+        },
+        "sendPreparingSessionNotStarted": {
+          "type": "boolean"
+        },
+        "sendOfflineChargingStations": {
+          "type": "boolean"
+        },
+        "sendBillingUserSynchronizationFailed": {
+          "type": "boolean"
+        },
+        "sendSessionNotStarted": {
+          "type": "boolean"
+        },
+        "sendCarCatalogSynchronizationFailed": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "required": [
+    "email",
+    "firstName",
+    "name"
+  ]
+}

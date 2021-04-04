@@ -15,8 +15,8 @@ const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
   public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID,
-    params: { withImage?: boolean; } = {},
-    projectFields?: string[]): Promise<CarCatalog> {
+      params: { withImage?: boolean; } = {},
+      projectFields?: string[]): Promise<CarCatalog> {
     const carCatalogsMDB = await CarStorage.getCarCatalogs({
       carCatalogIDs: [id],
       withImage: params.withImage,
@@ -25,8 +25,8 @@ export default class CarStorage {
   }
 
   public static async getCarCatalogs(
-    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
+      params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[], withImage?: boolean; } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getCarCatalogs');
     // Clone before updating the values
@@ -143,7 +143,7 @@ export default class CarStorage {
     };
   }
 
-  public static async saveCarCatalog(carToSave: CarCatalog, saveImage = false): Promise<number> {
+  public static async saveCarCatalog(carToSave: CarCatalog): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog');
     // Build Request
@@ -312,31 +312,33 @@ export default class CarStorage {
       carMDB,
       { upsert: true }
     );
-    if (saveImage) {
-      await CarStorage.saveCarImages(carToSave.id, carToSave.images);
-    }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarCatalog', uniqueTimerID, carMDB);
     return carToSave.id;
   }
 
-  public static async saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
+  public static async saveCarImage(carID: number, carImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages');
-    // Delete old images
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage');
+    // Save new image
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
+      { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
+      { carID: Utils.convertToInt(carID), image: carImageToSave },
+      { upsert: true }
+    );
+    // Debug
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImage', uniqueTimerID, carImageToSave);
+  }
+
+  public static async deleteCarImages(carID: number): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteCarImages');
+    // Delete car catalogs images
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
       { carID: Utils.convertToInt(carID) }
     );
-    // Save new images
-    for (const carImageToSave of carImagesToSave) {
-      await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
-        { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
-        { carID: Utils.convertToInt(carID), image: carImageToSave },
-        { upsert: true }
-      );
-    }
     // Debug
-    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveCarImages', uniqueTimerID, carImagesToSave);
+    await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteCarImages', uniqueTimerID, carID);
   }
 
   public static async getCarCatalogImage(id: number): Promise<{ id: number; image: string }> {
@@ -558,14 +560,17 @@ export default class CarStorage {
         carUsersMDB.push(carUserMDB);
       }
       // Execute
-      await global.database.getCollection<any>(tenantID, 'carusers').insertMany(carUsersMDB);
+      await global.database.getCollection<any>(tenantID, 'carusers').insertMany(
+        carUsersMDB,
+        { ordered: false }
+      );
     }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'insertCarUsers', uniqueTimerID, carUsersMDB);
   }
 
   public static async getCar(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+      params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenantID, {
       carIDs: [id],
       withUsers: params.withUsers,
@@ -575,7 +580,7 @@ export default class CarStorage {
   }
 
   public static async getDefaultUserCar(tenantID: string, userID: string,
-    params: {} = {}, projectFields?: string[]): Promise<Car> {
+      params: {} = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
       defaultCar: true,
@@ -584,7 +589,7 @@ export default class CarStorage {
   }
 
   public static async getFirstAvailableUserCar(tenantID: string, userID: string,
-    params: {} = {}, projectFields?: string[]): Promise<Car> {
+      params: {} = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -592,22 +597,23 @@ export default class CarStorage {
   }
 
   public static async getCarByVinLicensePlate(tenantID: string,
-    licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+      licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
+      params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenantID, {
       licensePlate: licensePlate,
       vin: vin,
-      ...params
+      withUsers: params.withUsers,
+      userIDs: params.userIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
-    params: {
-      search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]
-    } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
+      params: {
+        search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
+        withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]
+      } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCars');
     // Clone before updating the values
@@ -788,8 +794,8 @@ export default class CarStorage {
   }
 
   public static async getCarUserByCarUser(tenantID: string,
-    carID: string = Constants.UNKNOWN_STRING_ID, userID: string = Constants.UNKNOWN_STRING_ID,
-    projectFields?: string[]): Promise<UserCar> {
+      carID: string = Constants.UNKNOWN_STRING_ID, userID: string = Constants.UNKNOWN_STRING_ID,
+      projectFields?: string[]): Promise<UserCar> {
     const carUsersMDB = await CarStorage.getCarUsers(tenantID, {
       carIDs: [carID],
       userIDs: [userID]
@@ -798,7 +804,7 @@ export default class CarStorage {
   }
 
   public static async getCarUser(tenantID: string, carUserID: string = Constants.UNKNOWN_STRING_ID,
-    projectFields?: string[]): Promise<UserCar> {
+      projectFields?: string[]): Promise<UserCar> {
     const carUsersMDB = await CarStorage.getCarUsers(tenantID, {
       carUsersIDs: [carUserID]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -846,8 +852,8 @@ export default class CarStorage {
   }
 
   public static async getCarUsers(tenantID: string,
-    params: { search?: string; carUsersIDs?: string[]; userIDs?: string[]; carIDs?: string[]; } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
+      params: { search?: string; carUsersIDs?: string[]; userIDs?: string[]; carIDs?: string[]; } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getCarUsers');
     // Clone before updating the values

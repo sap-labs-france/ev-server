@@ -30,28 +30,28 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
     }
   }
 
   // eslint-disable-next-line no-unused-vars
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspCdrsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPIPullCdrsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             action: ServerAction.OCPI_PULL_CDRS,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -59,7 +59,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpointatch',
@@ -69,7 +69,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
         // Send EVSE statuses
         const result = await ocpiClient.pullCdrs();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_PULL_CDRS,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
@@ -78,7 +78,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

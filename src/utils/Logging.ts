@@ -192,9 +192,9 @@ export default class Logging {
   }
 
   public static async logActionsResponse(
-    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): Promise<void> {
+      tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
+      messageSuccess: string, messageError: string, messageSuccessAndError: string,
+      messageNoSuccessNoError: string, user?: UserToken): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -204,6 +204,7 @@ export default class Logging {
     if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccessAndError
@@ -212,6 +213,7 @@ export default class Logging {
     } else if (actionsResponse.inSuccess > 0) {
       await Logging.logInfo({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageSuccess
@@ -220,6 +222,7 @@ export default class Logging {
     } else if (actionsResponse.inError > 0) {
       await Logging.logError({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageError
@@ -228,6 +231,7 @@ export default class Logging {
     } else {
       await Logging.logInfo({
         tenantID: tenantID,
+        user,
         source: Constants.CENTRAL_SERVER,
         action, module, method,
         message: messageNoSuccessNoError
@@ -237,9 +241,9 @@ export default class Logging {
   }
 
   public static async logOcpiResult(
-    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): Promise<void> {
+      tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+      messageSuccess: string, messageError: string, messageSuccessAndError: string,
+      messageNoSuccessNoError: string): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
     messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
@@ -289,7 +293,7 @@ export default class Logging {
   }
 
   public static async logOicpResult(tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): Promise<void> {
+      messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): Promise<void> {
     await Logging.logOcpiResult(tenantID, action, module, method, oicpResult,
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
@@ -513,28 +517,28 @@ export default class Logging {
   }
 
   public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any): Promise<void> {
+      action: ServerAction, args: any): Promise<void> {
     await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
   }
 
   public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): Promise<void> {
+      action: ServerAction, detailedMessages: any): Promise<void> {
     await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
   }
 
   public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, payload: any): Promise<void> {
+      action: ServerAction, payload: any): Promise<void> {
     await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
   }
 
   public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): Promise<void> {
+      action: ServerAction, detailedMessages: any): Promise<void> {
     await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
   public static async logException(error: Error, action: ServerAction, source: string,
-    module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
+      module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       await Logging.logSecurityError(log);
@@ -565,7 +569,7 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-    req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -684,7 +688,7 @@ export default class Logging {
   }
 
   private static _buildLog(error, action: ServerAction, source: string, module: string,
-    method: string, tenantID: string, user: UserToken|User|string): Log {
+      method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
@@ -970,7 +974,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
     // Keep duration
     Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
     // Log
@@ -985,7 +989,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;

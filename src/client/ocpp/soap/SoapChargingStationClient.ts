@@ -65,7 +65,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       }
       // Client options
       const options: any = {};
-      // Create client
+      // Create SOAP client
       soap.createClient(chargingStationWdsl, options, (error, client) => {
         if (error) {
           // Log

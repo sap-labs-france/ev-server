@@ -26,6 +26,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP Success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -42,6 +43,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP no success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -59,7 +61,8 @@ export default class OICPUtils {
 
   /**
    * Return OICP Error Body Response
-   * @param {*} error
+   *
+   * @param {Error} error
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {
     return {
@@ -83,7 +86,7 @@ export default class OICPUtils {
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
         cs.connectors.forEach((conn) => {
-          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs, conn)) {
+          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs.id, conn.connectorId)) {
             chargingStation = cs;
             connector = conn;
           }
@@ -155,7 +158,7 @@ export default class OICPUtils {
   }
 
   public static async getOICPIdentificationFromAuthorization(tenantID: string,
-    transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
+      transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenantID, {

@@ -13,6 +13,7 @@ import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import { OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPAuthorizationStatus } from '../../types/oicp/OICPAuthentication';
@@ -57,7 +58,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       siteArea = chargingStation.siteArea;
     }
-    const options = {
+    const options: OCPILocationOptions = {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
       addChargeBoxID: true
@@ -206,6 +207,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send all EVSEs
+   *
+   * @param processAllEVSEs
+   * @param actionType
    */
   public async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
@@ -225,7 +229,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
@@ -269,7 +273,7 @@ export default class CpoOICPClient extends OICPClient {
     // Only one post request to Hubject for multiple EVSEs
     result.total = evsesToProcess.length;
     if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
-      // Incase of multiple batches:
+      // In case of multiple batches:
       // delete all EVSEs on Hubject by overwriting with empty array
       // set action type to insert to avoid overwriting each batch with a full load request
       await this.pushEvseData([], OICPActionType.FULL_LOAD);
@@ -338,6 +342,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send all EVSE Statuses
+   *
+   * @param processAllEVSEs
+   * @param actionType
    */
   public async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
@@ -357,7 +364,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
@@ -457,6 +464,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Update EVSE Status
+   *
+   * @param chargingStation
+   * @param connector
    */
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
@@ -484,7 +494,7 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
@@ -496,6 +506,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Push EVSE
+   *
+   * @param evses
+   * @param actionType
    */
   public async pushEvseData(evses: OICPEvseDataRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -553,6 +566,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Push EVSE Status
+   *
+   * @param evseStatuses
+   * @param actionType
    */
   public async pushEvseStatus(evseStatuses: OICPEvseStatusRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -611,6 +627,9 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Authorize Start
+   *
+   * @param tagID
+   * @param transactionId
    */
   public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
@@ -692,6 +711,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Authorize Stop
+   *
+   * @param transaction
    */
   public async authorizeStop(transaction: Transaction): Promise<OICPAuthorizeStopCpoReceive> {
     const user = transaction.user;
@@ -777,6 +798,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * ERoaming Push Charge Detail Record
+   *
+   * @param transaction
    */
   public async pushCdr(transaction: Transaction): Promise<OICPAcknowledgment> {
     let pushCdrResponse: OICPAcknowledgment;
@@ -883,6 +906,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Start
+   *
+   * @param transaction
    */
   public async sendChargingNotificationStart(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationStartResponse: OICPAcknowledgment;
@@ -960,6 +985,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Progress
+   *
+   * @param transaction
    */
   public async sendChargingNotificationProgress(transaction: Transaction): Promise<OICPAcknowledgment> {
     if (this.checkProgressUpdateInterval(transaction)) {
@@ -1043,6 +1070,8 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification End
+   *
+   * @param transaction
    */
   public async sendChargingNotificationEnd(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationEndResponse: OICPAcknowledgment;
@@ -1137,6 +1166,10 @@ export default class CpoOICPClient extends OICPClient {
 
   /**
    * Send Charging Notification Error
+   *
+   * @param transaction
+   * @param error
+   * @param errorAdditionalInfo
    */
   public async sendChargingNotificationError(transaction: Transaction, error: OICPErrorClass, errorAdditionalInfo?: string): Promise<OICPAcknowledgment> {
     let notificationErrorResponse: OICPAcknowledgment;

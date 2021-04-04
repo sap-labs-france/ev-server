@@ -199,8 +199,8 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
 
 
   /**
-  * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
-  */
+   * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
+   */
   describe('Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint', () => {
     let response;
 
@@ -255,14 +255,14 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
   });
 
   /**
-  * Test /ocpi/cpo/2.1.1/locations
-  */
+   * Test /ocpi/cpo/2.1.1/locations
+   */
   describe('Test /ocpi/cpo/2.1.1/locations', () => {
     let response;
 
     /**
-      * Access without paging
-      */
+     * Access without paging
+     */
     describe('Access without paging', () => {
 
       // Check call
@@ -434,7 +434,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Site ID \'5abeba9e4bae1457eb565e67\' not found');
+        expect(locationResponse.data).to.have.property('status_message', 'Location ID \'5abeba9e4bae1457eb565e67\' not found');
       });
 
       // Invalid evse uid
@@ -445,7 +445,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Charging Station ID not found \'NonExistingSite\' on Location ID \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE UID not found \'NonExistingSite\' in Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
 
       // Invalid connector id
@@ -456,17 +456,17 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
     });
   });
 
   /**
- * Test single access to location/evse/connector:
- *    - /ocpi/cpo/2.1.1/locations/{locationId}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
- */
+   * Test single access to location/evse/connector:
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
+   */
   describe('Test registration process /ocpi/cpo/2.1.1/credentials/...', () => {
     let response;
     /**

@@ -5,6 +5,7 @@ import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 import moment from 'moment';
 
@@ -52,11 +53,11 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     }
     // Log
     if (meterValuesMDB.length > 0) {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
-        message: `Tenant ${tenant.name} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
+        message: `Tenant ${Utils.buildTenantName(tenant)} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }
   }

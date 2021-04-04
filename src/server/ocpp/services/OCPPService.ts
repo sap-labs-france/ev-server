@@ -13,6 +13,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import ContractCertificatePoolClient from '../../../client/contractcertificatepool/ContractCertificatePoolClient';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import I18nManager from '../../../utils/I18nManager';
@@ -22,7 +23,6 @@ import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPIStatusCode } from '../../../types/ocpi/OCPIStatusCode';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
@@ -819,7 +819,7 @@ export default class OCPPService {
   }
 
   public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended,
-    isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
+      isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -978,36 +978,20 @@ export default class OCPPService {
 
   public async handleGet15118EVCertificate(headers: OCPPHeader, ev15118Certificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
     try {
-      // Check and get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      // Get OCPI CPO client
-      const cpoOcpiClient = await OCPIClientFactory.getCpoOcpiClient(await TenantStorage.getTenant(headers.tenantID),
-        {
-          id: '',
-          role: OCPIRole.CPO,
-          name: '',
-          baseUrl: '',
-          localToken: '',
-          token: '',
-          countryCode: '',
-          partyId: '',
-          backgroundPatchJob: false
-        });
-      // Get 15118 EV Certificate
-      const ocpi15118EVCertificateResponse = await cpoOcpiClient.pull15118EVCertificate(ev15118Certificate);
-      if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
-        return {
-          status: OCPP15118EVCertificateStatus.ACCEPTED,
-          exiResponse: ocpi15118EVCertificateResponse.data.exiResponse
-        };
-      }
-      throw Error('Request to get EV 15118 certificate failed');
+      // Check the charging station
+      await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      const ccpClient = new ContractCertificatePoolClient(await TenantStorage.getTenant(headers.tenantID));
+      const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate['15118SchemaVersion'], ev15118Certificate.exiRequest);
+      return {
+        status: OCPP15118EVCertificateStatus.ACCEPTED,
+        exiResponse: exiResponse
+      };
     } catch (error) {
       if (error.params) {
         error.params.source = headers.chargeBoxIdentity;
       }
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_GET_15118_EV_CERTIFICATE, error);
+      await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_GET_15118_EV_CERTIFICATE, error);
       return {
         status: OCPP15118EVCertificateStatus.FAILED,
         exiResponse: ''
@@ -1151,7 +1135,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     if (statusNotification.status === ChargePointStatus.AVAILABLE &&
         Utils.objectHasProperty(statusNotification, 'timestamp')) {
@@ -1198,7 +1182,7 @@ export default class OCPPService {
 
   private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(tenantID, transaction.id);
+    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
     if (ocpiLock) {
       try {
         // Process
@@ -1212,7 +1196,7 @@ export default class OCPPService {
 
   private async checkAndSendOICPTransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(tenantID, transaction.id);
+    const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
     if (oicpLock) {
       try {
         // Process
@@ -1225,7 +1209,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&
@@ -1895,7 +1879,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenantID, siteArea);
+        const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenantID, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);

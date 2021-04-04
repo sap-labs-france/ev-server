@@ -92,8 +92,8 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_PULL_LOCATIONS]: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_SESSIONS]: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_TOKENS]: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
-          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handlePushEVSEStatusesOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handlePushTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
@@ -105,6 +105,7 @@ class RequestMapper {
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
           [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
+          [ServerAction.TAGS_IMPORT]: TagService.handleImportTags.bind(this),
         });
         break;
 
@@ -348,7 +349,7 @@ export default class CentralRestServerService {
           switch (action) {
             // Ping
             case ServerAction.BILLING_WEB_HOOK:
-              await BillingService.handleBillingWebHook(action, req, res);
+              await BillingService.handleBillingWebHook(action, req, res, next);
               // Res.sendStatus(StatusCodes.OK);
               break;
             default:
