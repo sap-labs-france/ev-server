@@ -1,6 +1,6 @@
 import AbstractOICPService from './AbstractOICPService';
 import CPOService from './oicp-services-impl/oicp-2.3.0/CPOService';
-import { Configuration } from '../../types/configuration/Configuration';
+import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 
 export default class OICPServices {
 
@@ -9,7 +9,7 @@ export default class OICPServices {
   // private emspServices: AbstractOICPService[] = [];
 
   // Create OICP Service
-  constructor(oicpRestConfig: Configuration['OICPService']) {
+  constructor(oicpRestConfig: OICPServiceConfiguration) {
     // Add available OICP services
     // version 2.3.0
     this.cpoServices.push(new CPOService(oicpRestConfig));

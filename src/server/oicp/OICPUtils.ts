@@ -86,7 +86,7 @@ export default class OICPUtils {
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
         cs.connectors.forEach((conn) => {
-          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs, conn)) {
+          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs.id, conn.connectorId)) {
             chargingStation = cs;
             connector = conn;
           }
