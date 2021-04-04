@@ -47,7 +47,9 @@ export default class CentralRestServer {
     // Routers
     this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
     // Secured API
-    this.expressApplication.all('/client/api/:action', AuthService.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
+    this.expressApplication.all('/client/api/:action',
+      AuthService.authenticate(),
+      CentralRestServerService.restServiceSecured.bind(this));
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue

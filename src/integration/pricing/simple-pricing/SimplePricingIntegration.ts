@@ -1,8 +1,8 @@
-import { PricingSettingsType, SimplePricingSetting } from '../../../types/Setting';
+import { PricedConsumption, PricingSource } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
-import { PricedConsumption } from '../../../types/Pricing';
 import PricingIntegration from '../PricingIntegration';
+import { SimplePricingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
@@ -35,7 +35,7 @@ export default class SimplePricingIntegration extends PricingIntegration<SimpleP
       roundedAmount = 0;
     }
     const pricedConsumption: PricedConsumption = {
-      pricingSource: PricingSettingsType.SIMPLE,
+      pricingSource: PricingSource.SIMPLE,
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,

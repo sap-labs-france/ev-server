@@ -1,24 +1,24 @@
 import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIToken, OCPITokenType } from '../../types/ocpi/OCPIToken';
 
 import AppError from '../../exception/AppError';
+import Constants from '../../utils/Constants';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { Request } from 'express';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
-/**
- * OCPI Utils
- */
 export default class OCPIUtils {
 
-  /**
-   * Return OCPI Success Body Response
-   *
-   * @param {*} data
-   * @returns {OCPIResponse}
-   */
+  public static getConnectorIDFromEvseID(evseID: string): string {
+    return evseID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
+  public static getConnectorIDFromEvseUID(evseUID: string): string {
+    return evseUID.split(Constants.OCPI_SEPARATOR).pop();
+  }
+
   public static success(data?: any): OCPIResponse {
     return {
       data: data,
@@ -28,12 +28,6 @@ export default class OCPIUtils {
     };
   }
 
-  /**
-   * Return OCPI Error Body Response
-   *
-   * @param {*} error
-   * @returns {OCPIResponse}
-   */
   public static toErrorResponse(error: Error): OCPIResponse {
     return {
       status_message: error.message,
@@ -43,16 +37,6 @@ export default class OCPIUtils {
     };
   }
 
-  /**
-   * Build Next Url
-   *
-   * @param {*} req request in order to get url
-   * @param {*} baseUrl the baseUrl of the service to get url
-   * @param {*} offset offset
-   * @param {*} limit limit of query
-   * @param {*} total total number of records
-   * @returns {string|undefined}
-   */
   public static buildNextUrl(req: Request, baseUrl: string, offset: number, limit: number, total: number): string | undefined {
     // Check if next link should be generated
     if (offset + limit < total) {
@@ -68,11 +52,6 @@ export default class OCPIUtils {
     }
   }
 
-  /**
-   * Retrieve the next url from the link response header
-   *
-   * @param {*} link the link header of the response
-   */
   public static getNextUrl(link: string): string | undefined {
     if (link) {
       const match = /<(.*)>;rel="next"/.exec(link.replace(/ /g, ''));
@@ -82,64 +61,27 @@ export default class OCPIUtils {
     }
   }
 
-  /**
-   * Build Location Url
-   *
-   * @param {*} req request in order to get url
-   * @param {*} baseUrl the baseUrl of the service to get url
-   * @param {*} id the object id to build the location url
-   */
   public static buildLocationUrl(req: Request, baseUrl: string, id: string): string {
     // Build url
     return `${baseUrl + req.originalUrl.split('?')[0]}/${id}`;
   }
 
-  /**
-   * Build Charging Station Id from OCPI location
-   *
-   * @param {*} locationId id of the location
-   * @param {*} evseId id of the evse
-   */
   public static buildChargingStationId(locationId: string, evseId: string): string {
     return `${locationId}-${evseId}`;
   }
 
-  /**
-   * Build Operator name from OCPI identifiers (country code and party Id)
-   *
-   * @param {*} countryCode the code of the operator
-   * @param {*} partyId the partyId of the operator
-   */
   public static buildOperatorName(countryCode: string, partyId: string): string {
     return `${countryCode}*${partyId}`;
   }
 
-  /**
-   * Build Site Area name from OCPI location
-   *
-   * @param {*} countryCode the code of the CPO
-   * @param {*} partyId the partyId of the CPO
-   * @param {*} locationId id of the location
-   */
   public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
     return `${countryCode}*${partyId}-${locationId}`;
   }
 
-  /**
-   * Build evse UID from charging station
-   *
-   * @param {*} chargingStation the charging station used to build the evse UID
-   * @param {*} connector the connector used to build the evse UID
-   */
   public static buildEvseUID(chargingStation: ChargingStation, connector: Connector): string {
     return `${chargingStation.id}*${connector.connectorId}`;
   }
 
-  /**
-   * Build evse UIDs from charging station
-   *
-   * @param {*} chargingStation the charging station used to build the evse UIDs
-   */
   public static buildEvseUIDs(chargingStation: ChargingStation): string[] {
     const evseUIDs: string[] = [];
     for (const _connector of chargingStation.connectors) {
@@ -150,42 +92,30 @@ export default class OCPIUtils {
     return evseUIDs;
   }
 
-  /**
-   * Build User email from OCPI token, eMSP country code and eMSP partyId
-   *
-   * @param {*} token the OCPI token of the user
-   * @param {*} countryCode the country code of the eMSP
-   * @param {*} partyId the party identifier of the eMSP
-   */
   public static buildEmspEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
     if (token?.issuer) {
       return `${token.issuer}@${partyId}.${countryCode}`;
     }
   }
 
-  /**
-   * Convert from base64 back to String.
-   *
-   * @param {*} base64 base64 encoded string
-   */
   public static atob(base64: string): string {
     return Buffer.from(base64, 'base64').toString('binary');
   }
 
-  /**
-   * Convert to base64 from String.
-   *
-   * @param {*} string string to base64 encode
-   */
   public static btoa(string: string): string {
     return Buffer.from(string).toString('base64');
   }
 
-  /**
-   * Generate a local token for a tenant subdomain
-   *
-   * @param tenantSubdomain
-   */
+  public static getOCPITokenTypeFromID(tagID: string): OCPITokenType {
+    // Virtual badges handling
+    return tagID.length % 8 === 0 ? OCPITokenType.RFID : OCPITokenType.OTHER;
+  }
+
+  public static getOCPIEmspLocationIDFromSiteAreaName(siteAreaName: string): string {
+    const siteParts = siteAreaName.split(Constants.OCPI_SEPARATOR);
+    return siteParts.pop();
+  }
+
   public static generateLocalToken(tenantSubdomain: string): string {
     const newToken: any = {};
     // Generate random

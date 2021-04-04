@@ -136,7 +136,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
       } = {},
@@ -190,8 +190,11 @@ export default class SiteAreaStorage {
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
     }
-    if (params.smartCharging === true || params.smartCharging === false) {
+    if (Utils.objectHasProperty(params, 'smartCharging') && Utils.isBoolean(params.smartCharging)) {
       filters.smartCharging = params.smartCharging;
+    }
+    if (params.name) {
+      filters.name = params.name;
     }
     // Filters
     if (filters) {
@@ -290,18 +293,20 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        // Skip site area with no charging stations if asked
-        if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
-          continue;
-        }
-        // Add counts of Available/Occupied Chargers/Connectors
-        if (params.withAvailableChargingStations) {
-          // Set the Charging Stations' Connector statuses
-          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-        }
-        // Charging stations
-        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
-          delete siteAreaMDB.chargingStations;
+        if (siteAreaMDB.issuer) {
+          // Skip site area with no charging stations if asked
+          if (params.withOnlyChargingStations && Utils.isEmptyArray(siteAreaMDB.chargingStations)) {
+            continue;
+          }
+          // Add counts of Available/Occupied Chargers/Connectors
+          if (params.withAvailableChargingStations) {
+            // Set the Charging Stations' Connector statuses
+            siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
+          }
+          // Charging stations
+          if (!params.withChargingStations && siteAreaMDB.chargingStations) {
+            delete siteAreaMDB.chargingStations;
+          }
         }
         // Add
         siteAreas.push(siteAreaMDB);

@@ -30,6 +30,7 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -95,12 +96,12 @@ export default class UserService {
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
       issuer: true
-    }, ['id', 'description']);
+    }, ['id', 'description', 'active']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, userID, {
         issuer: true
-      }, ['id', 'description']);
+      }, ['id', 'description', 'active']);
     }
     // Handle Car
     let car: Car;
@@ -383,7 +384,7 @@ export default class UserService {
           for (const tag of tags) {
             await ocpiClient.pushToken({
               uid: tag.id,
-              type: OCPITokenType.RFID,
+              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
               auth_id: tag.id,
               visual_number: user.id,
               issuer: tenant.name,
@@ -986,14 +987,14 @@ export default class UserService {
             `No User have been uploaded in ${executionDurationSecs}s`, req.user
           );
           // Create and Save async task
-          AsyncTaskManager.createAndSaveAsyncTasks({
+          await AsyncTaskManager.createAndSaveAsyncTasks({
             name: AsyncTasks.USERS_IMPORT,
             action: ServerAction.USERS_IMPORT,
             type: AsyncTaskType.TASK,
             tenantID: req.tenant.id,
             module: MODULE_NAME,
             method: 'handleImportUsers',
-          }, req.user);
+          });
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();
