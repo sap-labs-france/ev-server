@@ -6,7 +6,7 @@ export enum ContractCertificatePoolType {
 
 interface ContractCertificatePool {
   type: ContractCertificatePoolType;
-  endpoint: string;
+  endpoint?: string;
 }
 
 export default interface ContractCertificatePoolConfiguration {

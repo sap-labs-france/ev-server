@@ -168,11 +168,6 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  /**
-   * GET /ocpi/{role}/{version}
-   *
-   * @returns {Promise}
-   */
   public async getServices(): Promise<any> {
     // Log
     Logging.logInfo({
@@ -210,9 +205,6 @@ export default abstract class OCPIClient {
     return response;
   }
 
-  /**
-   * POST /ocpi/{role}/{version}/credentials
-   */
   public async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
