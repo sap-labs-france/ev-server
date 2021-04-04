@@ -1,4 +1,5 @@
 import AsyncTask, { AsyncTaskStatus } from '../../types/AsyncTask';
+import { ObjectID, ObjectId } from 'bson';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -25,7 +26,7 @@ export default class AsyncTaskStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
     // Set
     const asyncTaskMDB: any = {
-      _id: asyncTaskToSave.id ?? Cypher.hash(`${asyncTaskToSave.tenantID}~${asyncTaskToSave.name}~${asyncTaskToSave.parameters ? JSON.stringify(asyncTaskToSave.parameters) : ''}`),
+      _id: asyncTaskToSave.id ? Utils.convertToObjectID(asyncTaskToSave.id) : new ObjectID(),
       name: asyncTaskToSave.name,
       action: asyncTaskToSave.action,
       type: asyncTaskToSave.type,
@@ -34,6 +35,7 @@ export default class AsyncTaskStorage {
       parent: asyncTaskToSave.parent,
       execHost: asyncTaskToSave.execHost,
       execTimestamp: Utils.convertToDate(asyncTaskToSave.execTimestamp),
+      execDurationSecs: Utils.convertToFloat(asyncTaskToSave.execDurationSecs),
       module: asyncTaskToSave.module,
       method: asyncTaskToSave.method,
       message: asyncTaskToSave.message,
@@ -76,6 +78,10 @@ export default class AsyncTaskStorage {
     if (params.status) {
       filters.status = params.status;
     }
+    // Add filters
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

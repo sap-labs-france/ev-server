@@ -3,10 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from './oicp-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
 import AppError from '../../exception/AppError';
-import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
+import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
 import OICPUtils from './OICPUtils';
 import { ServerAction } from '../../types/Server';
@@ -28,7 +28,7 @@ export default abstract class AbstractOICPService {
 
   // Create OICP Service
   protected constructor(
-      private readonly oicpRestConfig: Configuration['OICPService'],
+      private readonly oicpRestConfig: OICPServiceConfiguration,
       private readonly path: string,
       private readonly version: string) {
   }
@@ -129,7 +129,7 @@ export default abstract class AbstractOICPService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(endpointName);
       if (endpoint) {
-        Logging.logDebug({
+        await Logging.logDebug({
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: endpointName,
@@ -139,7 +139,7 @@ export default abstract class AbstractOICPService {
         });
         const response = await endpoint.process(req, res, next, tenant);
         if (response) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: endpointName,
@@ -149,7 +149,7 @@ export default abstract class AbstractOICPService {
           });
           res.json(response);
         } else {
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: tenant.id,
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: endpointName,
@@ -169,7 +169,7 @@ export default abstract class AbstractOICPService {
         });
       }
     } catch (error) {
-      Logging.logError({
+      await Logging.logError({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: endpointName,
@@ -177,7 +177,7 @@ export default abstract class AbstractOICPService {
         action: ServerAction.OICP_ENDPOINT,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OICP_ENDPOINT, error);
+      await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OICP_ENDPOINT, error);
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;

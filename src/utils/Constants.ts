@@ -232,7 +232,12 @@ export default class Constants {
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
   public static readonly CENTRAL_SERVER = 'Central Server';
+
   public static readonly OCPI_SERVER = 'OCPI Server';
+  public static readonly OCPI_SEPARATOR = '*';
+  public static readonly OCPI_RECORDS_LIMIT = 25;
+  public static readonly OCPI_MAX_PARALLEL_REQUESTS = 5;
+
   public static readonly OICP_SERVER = 'OICP Server';
 
   // OICP constants

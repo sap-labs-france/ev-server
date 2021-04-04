@@ -11,32 +11,19 @@ import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import OCPIUtilsService from '../OCPIUtilsService';
+import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 import Transaction from '../../../../../types/Transaction';
 import TransactionStorage from '../../../../../storage/mongodb/TransactionStorage';
 
-const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
 
-/**
- * EMSP Cdrs Endpoint
- */
 export default class EMSPCdrsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'cdrs');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getCdrRequest(req, res, next, tenant);
@@ -45,16 +32,6 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Get the Cdr object from the eMSP system by its id {cdr_id}.
-   *
-   * /cdrs/{cdr_id}
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
@@ -64,6 +41,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
@@ -71,33 +49,33 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.cdr) {
+    if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
         module: MODULE_NAME, method: 'getCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The CDR ID '${id}' does not exist or does not belong to the requester`,
+        message: `No Transaction found for CDR ID '${id}'`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    if (!transaction.ocpiData?.cdr) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.OCPI_PULL_CDRS,
+        module: MODULE_NAME, method: 'getCdrRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `No CDR found in Transaction ID '${transaction.id}'`,
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR,
+        detailedMessages: { transaction }
       });
     }
     return OCPIUtils.success(transaction.ocpiData.cdr);
   }
 
-  /**
-   * Post a new cdr object.
-   *
-   * /cdrs/
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const cdr: OCPICdr = req.body as OCPICdr;
-
     await OCPIUtilsService.processCdr(tenant.id, cdr);
-
     res.setHeader('Location', OCPIUtils.buildLocationUrl(req, this.getBaseUrl(req), cdr.id));
     return OCPIUtils.success({});
   }

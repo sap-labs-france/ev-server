@@ -46,6 +46,12 @@ export enum OCPILocationType {
   UNKNOWN = 'UNKNOWN'
 }
 
+export interface OCPILocationOptions {
+  countryID: string;
+  partyID: string;
+  addChargeBoxID?: boolean;
+}
+
 export interface OCPILocationReference {
   location_id: string;
   evse_uids: string[];

@@ -36,7 +36,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoCdrsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckCdrsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered

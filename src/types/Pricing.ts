@@ -25,5 +25,12 @@ export interface PricedConsumption {
   cumulatedAmount: number;
   roundedAmount: number;
   currencyCode: string;
-  pricingSource: string;
+  pricingSource: PricingSource;
 }
+
+export enum PricingSource {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
+  OCPI = 'ocpi',
+}
+
