@@ -815,7 +815,7 @@ export default class OCPPService {
   }
 
   public async handleStopTransaction(headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended,
-    isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
+      isSoftStop = false, stoppedByCentralSystem = false): Promise<OCPPStopTransactionResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1108,7 +1108,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationExtraInactivity(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check Inactivity
     if (statusNotification.status === ChargePointStatus.AVAILABLE &&
         Utils.objectHasProperty(statusNotification, 'timestamp')) {
@@ -1155,7 +1155,7 @@ export default class OCPPService {
 
   private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(tenantID, transaction.id);
+    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
     if (ocpiLock) {
       try {
         // Process
@@ -1169,7 +1169,7 @@ export default class OCPPService {
 
   private async checkAndSendOICPTransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
     // Get the lock
-    const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(tenantID, transaction.id);
+    const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
     if (oicpLock) {
       try {
         // Process
@@ -1182,7 +1182,7 @@ export default class OCPPService {
   }
 
   private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation,
-    statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
+      statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check the status
     if (statusNotification.connectorId > 0 &&
       connector.currentTransactionID > 0 &&

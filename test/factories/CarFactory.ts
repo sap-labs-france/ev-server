@@ -9,8 +9,8 @@ export default Factory.define('car')
   .attr('usersUpserted', [])
   .attr('usersRemoved', [])
   .attr('converter', {
-    'amperagePerPhase': faker.random.number(64),
-    'numberOfPhases': faker.random.number({ min: 1, max: 4 }),
+    'amperagePerPhase': faker.datatype.number(64),
+    'numberOfPhases': faker.datatype.number({ min: 1, max: 4 }),
     'type': 'S',
-    'powerWatts': faker.random.number(32)
+    'powerWatts': faker.datatype.number(32)
   });

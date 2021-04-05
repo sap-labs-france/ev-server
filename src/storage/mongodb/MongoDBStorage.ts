@@ -56,7 +56,7 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',
@@ -104,7 +104,7 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1, issuer: 1 } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -302,7 +302,7 @@ export default class MongoDBStorage {
   }
 
   private async handleIndexesInCollection(tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
+      name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({

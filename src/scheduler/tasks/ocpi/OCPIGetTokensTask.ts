@@ -37,7 +37,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, config: OCPIGetTokensTaskConfig): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPullEmspTokensLock(tenant.id, ocpiEndpoint, config.partial);
+    const ocpiLock = await LockingHelper.createOCPIPullTokensLock(tenant.id, ocpiEndpoint, config.partial);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered

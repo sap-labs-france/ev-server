@@ -46,8 +46,8 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 message: `${transactionsMDB.length} Transaction's CDRs are going to be pushed to OCPI`,
               });
               for (const transactionMDB of transactionsMDB) {
-                // Get the lock
-                const ocpiTransactionLock = await LockingHelper.createOCPIPushCpoCdrLock(tenant.id, transactionMDB._id);
+                // Get the lock: Used to avoid collision with manual push or end of transaction push
+                const ocpiTransactionLock = await LockingHelper.createOCPIPushCdrLock(tenant.id, transactionMDB._id);
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction

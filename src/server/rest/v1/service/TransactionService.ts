@@ -219,7 +219,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+      const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
           // Post CDR
@@ -253,7 +253,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(req.user.tenantID, transaction.id);
+      const oicpLock = await LockingHelper.createOICPPushCdrLock(req.user.tenantID, transaction.id);
       if (oicpLock) {
         try {
           // Post CDR
@@ -284,7 +284,7 @@ export default class TransactionService {
       });
     }
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
     if (ocpiLock) {
       try {
         // Post CDR
@@ -1013,7 +1013,7 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, action: ServerAction,
-    params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+      params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({

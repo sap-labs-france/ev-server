@@ -61,13 +61,12 @@ export default class WSClient {
    * Send a data message.
    *
    * @param {*} data The message to send
-   * @param {Object} options Options object
+   * @param {object} options Options object
    * @param {boolean} options.compress Specifies whether or not to compress `data`
    * @param {boolean} options.binary Specifies whether `data` is binary or text
    * @param {boolean} options.fin Specifies whether the fragment is the last one
    * @param {boolean} options.mask Specifies whether or not to mask `data`
-   * @param {Function} cb Callback which is executed when data is written out
-   * @param callback
+   * @param {Function} callback Callback which is executed when data is written out
    * @public
    */
   public send(data, options?: { mask?: boolean; binary?: boolean; compress?: boolean; fin?: boolean }, callback?: (err?: Error) => void): void {
@@ -90,8 +89,8 @@ export default class WSClient {
    *              +---+
    *
    * @param {number} code Status code explaining why the connection is closing
-   * @param {string} data A string explaining why the connection is closing
-   * @param reason
+   * @param {string} reason A string explaining why the connection is closing
+   * @returns {void}
    * @public
    */
   public close(code?: number, reason?: string): void {
@@ -103,8 +102,7 @@ export default class WSClient {
    *
    * @param {*} data The data to send
    * @param {boolean} mask Indicates whether or not to mask `data`
-   * @param {Function} cb Callback which is executed when the ping is sent
-   * @param callback
+   * @param {Function} callback Callback which is executed when the ping is sent
    * @public
    */
   public ping(data?, mask?: boolean, callback?: (err: Error) => void): void {
@@ -116,8 +114,7 @@ export default class WSClient {
    *
    * @param {*} data The data to send
    * @param {boolean} mask Indicates whether or not to mask `data`
-   * @param {Function} cb Callback which is executed when the pong is sent
-   * @param callback
+   * @param {Function} callback Callback which is executed when the pong is sent
    * @public
    */
   public pong(data?, mask?, callback?: (err: Error) => void): void {
@@ -127,6 +124,7 @@ export default class WSClient {
   /**
    * Forcibly close the connection.
    *
+   * @returns {void}
    * @public
    */
   public terminate(): void {

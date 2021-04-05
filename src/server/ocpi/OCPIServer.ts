@@ -28,6 +28,7 @@ export default class OCPIServer {
       (req: Request, res: Response, next: NextFunction) => ocpiServices.getEMSPVersions(req, res, next));
     // Register all services in express
     for (const ocpiService of ocpiServices.getOCPIServiceImplementations()) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       this.expressApplication.use(ocpiService.getPath(), async (req: TenantIdHoldingRequest, res: Response, next: NextFunction) => {
         try {
           await ocpiService.restService(req, res, next);

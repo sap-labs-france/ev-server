@@ -81,8 +81,8 @@ export default class OCPIEndpointStorage {
 
   // Delegate
   static async getOcpiEndpoints(tenantID: string,
-    params: { search?: string; role?: OCPIRole; ocpiEndpointIDs?: string[]; localToken?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
+      params: { search?: string; role?: OCPIRole; ocpiEndpointIDs?: string[]; localToken?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant

@@ -184,17 +184,17 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-    tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+      tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction);
   }
 
   public static async isAuthorizedToStartTransaction(tenantID: string, chargingStation: ChargingStation,
-    tagID: string, action: ServerAction, authAction?: Action): Promise<User> {
+      tagID: string, action: ServerAction, authAction?: Action): Promise<User> {
     return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, action, authAction);
   }
 
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action): Promise<{ user: User; alternateUser: User }> {
+      transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action): Promise<{ user: User; alternateUser: User }> {
     let user: User, alternateUser: User;
     // Check if same user
     if (tagID !== transaction.tagID) {
@@ -760,7 +760,7 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+      transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     // Get the Organization component
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
@@ -859,7 +859,7 @@ export default class Authorizations {
         }
       ).catch(() => { });
       // Log
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         action: action,

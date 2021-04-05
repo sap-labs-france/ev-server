@@ -24,7 +24,13 @@
       "error",
       2,
       {
-        "SwitchCase": 1
+        "SwitchCase": 1,
+        "FunctionDeclaration": {
+          "parameters": 2
+        },
+        "FunctionExpression": {
+          "parameters": 2
+        }
       }
     ],
     "@typescript-eslint/array-type": "off",
@@ -106,6 +112,20 @@
     ],
     "keyword-spacing": [
       "error"
+    ],
+    "id-blacklist": [
+      "error",
+      "any",
+      "Number",
+      "number",
+      "String",
+      "string",
+      "Boolean",
+      "boolean",
+      "Undefined",
+      "undefined",
+      "Symbol",
+      "symbol"
     ],
     "linebreak-style": [
       "error",
