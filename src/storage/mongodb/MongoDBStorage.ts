@@ -56,7 +56,7 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',

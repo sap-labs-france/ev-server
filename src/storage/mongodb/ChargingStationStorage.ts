@@ -61,9 +61,8 @@ export default class ChargingStationStorage {
     try {
       chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
     } catch (error) {
-      if (error.code === 'ENOENT') {
-        throw error;
-      }
+      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      return;
     }
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
