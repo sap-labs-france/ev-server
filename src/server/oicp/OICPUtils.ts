@@ -62,7 +62,7 @@ export default class OICPUtils {
   /**
    * Return OICP Error Body Response
    *
-   * @param {*} error
+   * @param {Error} error
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {
     return {
