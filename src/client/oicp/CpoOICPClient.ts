@@ -229,7 +229,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options: OCPILocationOptions= {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)

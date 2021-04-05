@@ -1,6 +1,7 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 
 import OCPPService from '../OCPPService';
+import global from '../../../types/GlobalType';
 import soap from 'strong-soap';
 
 export default class OCPPSoapService15 extends OCPPService {
@@ -100,7 +101,7 @@ export default class OCPPSoapService15 extends OCPPService {
       // eslint-disable-next-line no-undef
       this.client = await new Promise(function(resolve, reject) {
         // Create the client
-        soap.soap.createClient('src/assets/server/ocpp/wsdl/OCPPCentralSystemService15.wsdl', options, (err, client) => {
+        soap.soap.createClient(`${global.appRoot}/src/assets/server/ocpp/wsdl/OCPPCentralSystemService15.wsdl`, options, (err, client) => {
           if (err) {
             reject(err);
           } else {

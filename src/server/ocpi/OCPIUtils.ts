@@ -112,7 +112,7 @@ export default class OCPIUtils {
   }
 
   public static getOCPIEmspLocationIDFromSiteAreaName(siteAreaName: string): string {
-    const siteParts = siteAreaName.split(Constants.OCPI_SEPARATOR) as string[];
+    const siteParts = siteAreaName.split(Constants.OCPI_SEPARATOR);
     return siteParts.pop();
   }
 
