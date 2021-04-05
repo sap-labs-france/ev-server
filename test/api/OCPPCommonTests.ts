@@ -152,34 +152,34 @@ export default class OCPPCommonTests {
     // eslint-disable-next-line no-useless-escape
     this.transactionEndSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">GChPf/f+0Rw6DDWI0mujec6dOMDqm5cuCLXdEVV6MRua6OVqcHNP85q7K70tRPJKAJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eodYDQF0IrEb+ACgAAAABAAERAP8e/8OtYQEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     // Energy Import Meter Value (14 values)
-    this.energyActiveImportMeterValues = Array.from({ length: 12 }, () => faker.random.number({
+    this.energyActiveImportMeterValues = Array.from({ length: 12 }, () => faker.datatype.number({
       min: 200, max: 500
     })).concat([0, 0]);
     // SoC Meter Value (14 values)
-    this.socMeterValues = Array.from({ length: 8 }, () => faker.random.number({
+    this.socMeterValues = Array.from({ length: 8 }, () => faker.datatype.number({
       min: 10, max: 90
     })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
     // Voltage (14 values)
-    this.voltageMeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.voltageMeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 220, max: 240
     }));
-    this.voltageL1MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.voltageL1MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 220, max: 240
     }));
-    this.voltageL2MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.voltageL2MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 220, max: 240
     }));
-    this.voltageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.voltageL3MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 220, max: 240
     }));
     // Amperage (14 values)
-    this.amperageL1MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.amperageL1MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 16, max: 32
     }));
-    this.amperageL2MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.amperageL2MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 16, max: 32
     }));
-    this.amperageL3MeterValues = Array.from({ length: 14 }, () => faker.random.number({
+    this.amperageL3MeterValues = Array.from({ length: 14 }, () => faker.datatype.number({
       min: 16, max: 32
     }));
     this.amperageMeterValues = [];
@@ -223,7 +223,7 @@ export default class OCPPCommonTests {
     // Tags
     this.validTag = faker.random.alphaNumeric(20).toString();
     this.invalidTag = faker.random.alphaNumeric(21).toString();
-    this.numberTag = faker.random.number(10000);
+    this.numberTag = faker.datatype.number(10000);
     if (this.createAnyUser) {
       this.anyUser = await this.createUser(Factory.user.build());
       if (!this.createdUsers) {
@@ -819,7 +819,7 @@ export default class OCPPCommonTests {
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
-      faker.random.number(100000),
+      faker.datatype.number(100000),
       this.transactionStartTime
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -861,7 +861,7 @@ export default class OCPPCommonTests {
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    const stopValue = this.energyActiveImportStartMeterValue + faker.datatype.number(100000);
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(
       transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
     expect(stopTransactionResponse).to.have.property('idTagInfo');
@@ -879,7 +879,7 @@ export default class OCPPCommonTests {
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    const stopValue = this.energyActiveImportStartMeterValue + faker.datatype.number(100000);
     let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
     if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       transactionData = [
@@ -947,7 +947,7 @@ export default class OCPPCommonTests {
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
-    const stopValue = this.energyActiveImportStartMeterValue + faker.random.number(100000);
+    const stopValue = this.energyActiveImportStartMeterValue + faker.datatype.number(100000);
     let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
     // Provide TransactionData for wrong OCPP Version
     if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {

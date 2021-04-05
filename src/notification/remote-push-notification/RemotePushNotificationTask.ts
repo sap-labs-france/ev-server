@@ -396,7 +396,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       return Promise.resolve();
     }
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
