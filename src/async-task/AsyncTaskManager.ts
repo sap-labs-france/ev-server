@@ -8,10 +8,18 @@ import Constants from '../utils/Constants';
 import LockingHelper from '../locking/LockingHelper';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
+import OCPICheckCdrsAsyncTask from './tasks/ocpi/OCPICheckCdrsAsyncTask';
+import OCPICheckLocationsAsyncTask from './tasks/ocpi/OCPICheckLocationsAsyncTask';
+import OCPICheckSessionsAsyncTask from './tasks/ocpi/OCPICheckSessionsAsyncTask';
+import OCPIPullCdrsAsyncTask from './tasks/ocpi/OCPIPullCdrsAsyncTask';
+import OCPIPullLocationsAsyncTask from './tasks/ocpi/OCPIPullLocationsAsyncTask';
+import OCPIPullSessionsAsyncTask from './tasks/ocpi/OCPIPullSessionsAsyncTask';
+import OCPIPullTokensAsyncTask from './tasks/ocpi/OCPIPullTokensAsyncTask';
+import OCPIPushEVSEStatusesAsyncTask from './tasks/ocpi/OCPIPushEVSEStatusesAsyncTask';
+import OCPIPushTokensAsyncTask from './tasks/ocpi/OCPIPushTokensAsyncTask';
 import { ServerAction } from '../types/Server';
+import SynchronizeCarCatalogsAsyncTask from './tasks/SynchronizeCarCatalogsAsyncTask';
 import TagsImportAsyncTask from './tasks/TagsImportAsyncTask';
-import User from '../types/User';
-import UserToken from '../types/UserToken';
 import UsersImportAsyncTask from './tasks/UsersImportAsyncTask';
 import Utils from '../utils/Utils';
 
@@ -26,11 +34,9 @@ export default class AsyncTaskManager {
     // Active?
     if (AsyncTaskManager.asyncTaskConfig?.active) {
       // Turn all Running task to Pending
-      const updatedAsyncTasks = await AsyncTaskStorage.updateRunningAsyncTaskToPending();
+      await AsyncTaskStorage.updateRunningAsyncTaskToPending();
       // Run it
-      if (updatedAsyncTasks > 0) {
-        void AsyncTaskManager.handleAsyncTasks();
-      }
+      void AsyncTaskManager.handleAsyncTasks();
     }
   }
 
@@ -54,7 +60,8 @@ export default class AsyncTaskManager {
         nbrTasksInParallel = this.asyncTaskConfig.nbrTasksInParallel;
       }
       // Get the tasks
-      const asyncTasks = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
+      const asyncTasks = await AsyncTaskStorage.getAsyncTasks(
+        { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
       // Process them
       let abstractAsyncTask: AbstractAsyncTask;
       if (!Utils.isEmptyArray(asyncTasks.result)) {
@@ -74,6 +81,36 @@ export default class AsyncTaskManager {
               case AsyncTasks.USERS_IMPORT:
                 abstractAsyncTask = new UsersImportAsyncTask(asyncTask);
                 break;
+              case AsyncTasks.SYNCHRONIZE_CAR_CATALOGS:
+                abstractAsyncTask = new SynchronizeCarCatalogsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PUSH_TOKENS:
+                abstractAsyncTask = new OCPIPushTokensAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PULL_LOCATIONS:
+                abstractAsyncTask = new OCPIPullLocationsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PULL_SESSIONS:
+                abstractAsyncTask = new OCPIPullSessionsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PULL_CDRS:
+                abstractAsyncTask = new OCPIPullCdrsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_CHECK_CDRS:
+                abstractAsyncTask = new OCPICheckCdrsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_CHECK_SESSIONS:
+                abstractAsyncTask = new OCPICheckSessionsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_CHECK_LOCATIONS:
+                abstractAsyncTask = new OCPICheckLocationsAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PULL_TOKENS:
+                abstractAsyncTask = new OCPIPullTokensAsyncTask(asyncTask);
+                break;
+              case AsyncTasks.OCPI_PUSH_EVSE_STATUSES:
+                abstractAsyncTask = new OCPIPushEVSEStatusesAsyncTask(asyncTask);
+                break;
               default:
                 await Logging.logError({
                   tenantID: Constants.DEFAULT_TENANT,
@@ -86,12 +123,13 @@ export default class AsyncTaskManager {
               // Get the lock
               const asyncTaskLock = await LockingHelper.createAsyncTaskLock(Constants.DEFAULT_TENANT, asyncTask);
               if (asyncTaskLock) {
+                const startAsyncTaskTime = new Date().getTime();
                 try {
-                  const startAsyncTaskTime = new Date().getTime();
                   // Update the task
                   asyncTask.execTimestamp = new Date();
                   asyncTask.execHost = Utils.getHostname();
                   asyncTask.status = AsyncTaskStatus.RUNNING;
+                  asyncTask.lastChangedOn = asyncTask.execTimestamp;
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log
                   await Logging.logInfo({
@@ -102,11 +140,15 @@ export default class AsyncTaskManager {
                   });
                   // Run
                   await abstractAsyncTask.run();
-                  // Delete the task
-                  await AsyncTaskStorage.deleteAsyncTask(asyncTask.id);
+                  // Duration
+                  const asyncTaskTotalDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                  // Mark the task
+                  asyncTask.status = AsyncTaskStatus.SUCCESS;
+                  asyncTask.execDurationSecs = asyncTaskTotalDurationSecs;
+                  asyncTask.lastChangedOn = new Date();
+                  await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   processedTask.inSuccess++;
                   // Log
-                  const asyncTaskTotalDurationSecs = Math.trunc((new Date().getTime() - startAsyncTaskTime) / 1000);
                   await Logging.logInfo({
                     tenantID: Constants.DEFAULT_TENANT,
                     action: ServerAction.ASYNC_TASK,
@@ -118,6 +160,8 @@ export default class AsyncTaskManager {
                   // Update the task
                   asyncTask.status = AsyncTaskStatus.ERROR;
                   asyncTask.message = error.message;
+                  asyncTask.execDurationSecs = Utils.truncTo((new Date().getTime() - startAsyncTaskTime) / 1000, 2);
+                  asyncTask.lastChangedOn = new Date();
                   await AsyncTaskStorage.saveAsyncTask(asyncTask);
                   // Log error
                   await Logging.logError({
@@ -134,17 +178,16 @@ export default class AsyncTaskManager {
               }
             }
           },
-          { concurrency: nbrTasksInParallel }).then(() => {
-          // Log result
-          const totalDurationSecs = Math.trunc((new Date().getTime() - startTime) / 1000);
-          void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
-            MODULE_NAME, 'handleAsyncTasks', processedTask,
-            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
-            `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
-            `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
-            'No Async Task to process'
-          );
-        });
+          { concurrency: nbrTasksInParallel });
+        // Log result
+        const totalDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+        void Logging.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.ASYNC_TASK,
+          MODULE_NAME, 'handleAsyncTasks', processedTask,
+          `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs`,
+          `{{inError}} Async Task(s) failed to be processed in ${totalDurationSecs} secs`,
+          `{{inSuccess}} Async Task(s) were successfully processed in ${totalDurationSecs} secs and {{inError}} failed`,
+          'No Async Task to process'
+        );
       } else {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -156,7 +199,7 @@ export default class AsyncTaskManager {
     }
   }
 
-  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>, user?: UserToken|User|string): Promise<void> {
+  public static async createAndSaveAsyncTasks(asyncTask: Omit<AsyncTask, 'id'>): Promise<void> {
     // Check
     if (Utils.isNullOrUndefined(asyncTask)) {
       throw new Error('The Async Task must not be null');
@@ -165,15 +208,11 @@ export default class AsyncTaskManager {
     if (Utils.isNullOrUndefined(asyncTask.name)) {
       throw new Error('The Name of the Async Task is mandatory');
     }
-    if (Utils.isNullOrUndefined(asyncTask.tenantID)) {
-      throw new Error('The Tenant ID of the Async Task is mandatory');
-    }
     if (!Utils.isNullOrUndefined(asyncTask.parameters) && (typeof asyncTask.parameters !== 'object')) {
       throw new Error('The Parameters of the Async Task must be a Json document');
     }
     // Set
     asyncTask.status = AsyncTaskStatus.PENDING;
-    asyncTask.createdBy = user as User ?? null;
     asyncTask.createdOn = new Date();
     // Save
     await AsyncTaskStorage.saveAsyncTask(asyncTask as AsyncTask);

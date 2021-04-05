@@ -6,7 +6,6 @@ import Cypher from '../../../../utils/Cypher';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
-import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';

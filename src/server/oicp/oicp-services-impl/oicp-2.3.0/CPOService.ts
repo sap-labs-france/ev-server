@@ -1,6 +1,6 @@
 import AbstractOICPService from '../../AbstractOICPService';
 import CPORemoteAuthorizationsEndpoint from './CPORemoteAuthorizationsEndpoint';
-import { Configuration } from '../../../../types/configuration/Configuration';
+import OICPServiceConfiguration from '../../../../types/configuration/OICPServiceConfiguration';
 import { OICPVersion } from '../../../../types/oicp/OICPGeneral';
 
 /**
@@ -11,7 +11,7 @@ export default class CPOService extends AbstractOICPService {
   public static readonly PATH = '/:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?';
 
   // Create OICP Service
-  constructor(oicpRestConfig: Configuration['OICPService']) {
+  constructor(oicpRestConfig: OICPServiceConfiguration) {
     super(oicpRestConfig, CPOService.PATH, CPOService.VERSION);
 
     // Register Endpoints

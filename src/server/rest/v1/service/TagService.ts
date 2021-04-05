@@ -21,6 +21,7 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
@@ -190,7 +191,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPITokenType.RFID,
+            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.userID,
             issuer: tenant.name,
@@ -298,7 +299,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: newTag.id,
-            type: OCPITokenType.RFID,
+            type: OCPIUtils.getOCPITokenTypeFromID(newTag.id),
             auth_id: newTag.userID,
             visual_number: newTag.userID,
             issuer: tenant.name,
@@ -435,7 +436,7 @@ export default class TagService {
         if (ocpiClient) {
           await ocpiClient.pushToken({
             uid: tag.id,
-            type: OCPITokenType.RFID,
+            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
             auth_id: tag.userID,
             visual_number: tag.userID,
             issuer: tenant.name,
@@ -588,14 +589,14 @@ export default class TagService {
             `No Tag have been uploaded in ${executionDurationSecs}s`, req.user
           );
           // Create and Save async task
-          AsyncTaskManager.createAndSaveAsyncTasks({
+          await AsyncTaskManager.createAndSaveAsyncTasks({
             name: AsyncTasks.TAGS_IMPORT,
             action: ServerAction.TAGS_IMPORT,
             type: AsyncTaskType.TASK,
             tenantID: req.tenant.id,
             module: MODULE_NAME,
             method: 'handleImportTags',
-          }, req.user);
+          });
           // Respond
           res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
           next();
@@ -738,7 +739,7 @@ export default class TagService {
             if (ocpiClient) {
               await ocpiClient.pushToken({
                 uid: tag.id,
-                type: OCPITokenType.RFID,
+                type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
                 auth_id: tag.userID,
                 visual_number: tag.userID,
                 issuer: tenant.name,

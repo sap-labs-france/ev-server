@@ -856,7 +856,7 @@ export default class Authorizations {
         }
       ).catch(() => { });
       // Log
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         action: action,

@@ -37,7 +37,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
 
   private async processOICPEndpoint(tenant: Tenant, oicpEndpoint: OICPEndpoint, config: OICPPushEvseStatusTaskConfig): Promise<void> {
     // Get the lock
-    const oicpLock = await LockingHelper.createOICPPatchCpoEvseStatusesLock(tenant.id, oicpEndpoint);
+    const oicpLock = await LockingHelper.createOICPPatchEvseStatusesLock(tenant.id, oicpEndpoint);
     if (oicpLock) {
       try {
         // Check if OICP endpoint is registered
