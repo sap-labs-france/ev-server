@@ -6,9 +6,9 @@ import Stripe from 'stripe';
 export default class StripeHelpers {
 
   public static async updateInvoiceAdditionalData(tenantID: string,
-    billingInvoice: BillingInvoice,
-    operationResult: BillingOperationResult,
-    billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
+      billingInvoice: BillingInvoice,
+      operationResult: BillingOperationResult,
+      billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
     // Do we have an error to preserve
     let billingError: BillingError;
     if (operationResult && !operationResult.succeeded) {
