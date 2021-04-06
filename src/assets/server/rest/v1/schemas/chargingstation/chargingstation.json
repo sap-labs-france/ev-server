@@ -134,13 +134,30 @@
           "type": "number",
           "sanitize": "mongo"
         },
+        "connectorType": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "T2",
+            "CCS",
+            "C",
+            "T1",
+            "T3C",
+            "T1CCS",
+            "D",
+            "U"
+          ]
+        },
         "power": {
           "type": "number",
           "sanitize": "mongo"
         },
         "voltage": {
           "type": "number",
-          "enum": [110, 230],
+          "enum": [
+            110,
+            230
+          ],
           "sanitize": "mongo"
         },
         "amperage": {
@@ -149,7 +166,10 @@
         },
         "currentType": {
           "type": "string",
-          "enum": ["AC", "DC"],
+          "enum": [
+            "AC",
+            "DC"
+          ],
           "sanitize": "mongo"
         },
         "numberOfConnectedPhase": {
@@ -184,12 +204,18 @@
         },
         "currentType": {
           "type": "string",
-          "enum": ["AC", "DC"],
+          "enum": [
+            "AC",
+            "DC"
+          ],
           "sanitize": "mongo"
         },
         "voltage": {
           "type": "number",
-          "enum": [110, 230],
+          "enum": [
+            110,
+            230
+          ],
           "sanitize": "mongo"
         },
         "amperage": {
@@ -213,7 +239,7 @@
           "sanitize": "mongo"
         },
         "ocppParamForPowerLimitation": {
-          "type": "boolean",
+          "type": "string",
           "sanitize": "mongo"
         },
         "power": {

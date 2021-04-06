@@ -4761,7 +4761,7 @@
         "type": "object",
         "properties": {
           "chargePointID": {
-            "type": "string"
+            "type": "number"
           },
           "currentType": {
             "type": "string",
@@ -4786,8 +4786,8 @@
           "excludeFromPowerLimitation": {
             "type": "boolean"
           },
-          "ocppParamForPowerLimitiation": {
-            "type": "boolean"
+          "ocppParamForPowerLimitation": {
+            "type": "string"
           },
           "power": {
             "type": "number"
