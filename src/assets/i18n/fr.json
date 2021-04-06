@@ -101,7 +101,7 @@
       "body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}' dans l'organisation '{{tenantName}}'"
     },
     "chargingStationRegistered": {
-      "title": "Connection borne",
+      "title": "Connexion borne",
       "body": "La borne '{{chargeBoxID}}' vient de se connecter au serveur central dans l'organisation '{{tenantName}}'"
     },
     "userAccountStatusChanged": {
