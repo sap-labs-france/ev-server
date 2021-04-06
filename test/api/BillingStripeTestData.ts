@@ -246,6 +246,7 @@ export default class StripeIntegrationTestData {
     // array of tax ids to apply to the line item
     const invoiceItem:BillingInvoiceItem = {
       description: `Stripe Integration - ${quantity} kWh * ${price} Eur`,
+      transactionID: 777,
       pricingData: {
         quantity, // kW.h
         amount, // total amount to bill -  not yet in cents
