@@ -88,18 +88,20 @@ export default class AuthorizationService {
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult): Promise<void> {
     // Get Site Admins
-    const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
     sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
     for (const site of sites.result) {
-      site.canRead = Authorizations.canReadSite(userToken);
-      site.canDelete = Authorizations.canDeleteSite(userToken);
-      // update can be performed by admin or site admin
-      if (userToken.role === UserRole.ADMIN) {
-        site.canUpdate = true;
+      if (!site.issuer) {
+        site.canRead = true;
+        site.canUpdate = false;
+        site.canDelete = false;
       } else {
-        site.canUpdate = Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id);
+        site.canRead = Authorizations.canReadSite(userToken);
+        site.canDelete = Authorizations.canDeleteSite(userToken);
+        // update can be performed by admin or site admin
+        site.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id));
       }
     }
   }
@@ -394,7 +396,11 @@ export default class AuthorizationService {
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies.result) {
-      if (userToken.role === UserRole.ADMIN) {
+      if (!company.issuer) {
+        company.canRead = true;
+        company.canUpdate = false;
+        company.canDelete = false;
+      } else if (userToken.role === UserRole.ADMIN) {
         company.canRead = true;
         company.canUpdate = true;
         company.canDelete = true;
@@ -615,7 +621,7 @@ export default class AuthorizationService {
     return _.uniq(_.map(sites.result, 'companyID'));
   }
 
-  private static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+  public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
       {

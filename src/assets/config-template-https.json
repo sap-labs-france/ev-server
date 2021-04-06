@@ -69,7 +69,9 @@
     "port": 8443,
     "sslKey": "**insert key in PEM format**",
     "sslCert": "**insert certificate in PEM format**",
-    "sslCa": ["**insert certificate in PEM format**"],
+    "sslCa": [
+      "**insert certificate in PEM format**"
+    ],
     "debug": false,
     "externalProtocol": "https"
   },
@@ -96,6 +98,10 @@
   },
   "OCPIEndpoint": {
     "baseUrl": ""
+  },
+  "AsyncTask": {
+    "active": true,
+    "nbrTasksInParallel": 4
   },
   "Storage": {
     "implementation": "mongodb",
@@ -174,21 +180,22 @@
     "active": false,
     "tasks": [
       {
-      "name": "OICPPushEVSEDataTask",
-      "active": false,
-      "periodicity": "*/10 * * * *",
-      "config": {
-        "processAllEVSEs": true
+        "name": "OICPPushEVSEDataTask",
+        "active": false,
+        "periodicity": "*/10 * * * *",
+        "config": {
+          "processAllEVSEs": true
+        }
+      },
+      {
+        "name": "OICPPushEvseStatusTask",
+        "active": false,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "processAllEVSEs": true
+        }
       }
-    },
-    {
-      "name": "OICPPushEvseStatusTask",
-      "active": false,
-      "periodicity": "*/5 * * * *",
-      "config": {
-        "processAllEVSEs": true
-      }
-    }]
+    ]
   },
   "Logging": {
     "logLevel": "D",

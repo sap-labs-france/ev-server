@@ -1,17 +1,36 @@
-import { BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingOperationResult } from '../../../types/Billing';
+import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Stripe from 'stripe';
 
 export default class StripeHelpers {
-  public static async handleStripeOperationResult(tenantID: string, billingInvoice: BillingInvoice, operationResult: BillingOperationResult): Promise<void> {
-    if (!billingInvoice || !operationResult) {
-      return;
-    }
-    if (!operationResult.succeeded) {
+
+  public static async updateInvoiceAdditionalData(tenantID: string,
+    billingInvoice: BillingInvoice,
+    operationResult: BillingOperationResult,
+    billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
+    // Do we have an error to preserve
+    let billingError: BillingError;
+    if (operationResult && !operationResult.succeeded) {
       // The operation failed
-      const billingError: BillingError = StripeHelpers.convertToBillingError(operationResult.error);
-      await BillingStorage.saveLastBillingError(tenantID, billingInvoice.id, billingError);
+      billingError = StripeHelpers.convertToBillingError(operationResult.error);
+    }
+    // Do we have a new charging session?
+    let session: BillingSessionData;
+    if (billingInvoiceItem) {
+      session = {
+        transactionID: billingInvoiceItem.transactionID,
+        description: billingInvoiceItem.description,
+        pricingData: billingInvoiceItem.pricingData,
+      };
+    }
+    // Is there anything to update?
+    if (session || billingError) {
+      const additionalData: BillingAdditionalData = {
+        session,
+        lastError: billingError
+      };
+      await BillingStorage.updateInvoiceAdditionalData(tenantID, billingInvoice, additionalData);
     }
   }
 
@@ -22,6 +41,7 @@ export default class StripeHelpers {
     // Wrap it in a format that we can consume!
     return {
       message: error.message,
+      when: new Date(),
       errorType,
       errorCode,
       rootCause,

@@ -430,7 +430,7 @@ export default class CarService {
     let userProject: string[] = [];
     if (Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
     }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
