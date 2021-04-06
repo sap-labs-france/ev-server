@@ -1,13 +1,12 @@
 import AsyncTask, { AsyncTaskStatus } from '../../types/AsyncTask';
-import { ObjectID, ObjectId } from 'bson';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'AsyncTaskStorage';

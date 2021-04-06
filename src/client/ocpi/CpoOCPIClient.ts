@@ -1039,7 +1039,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   private convertChargingStationToOCPILocation(tenant: Tenant, site: Site, chargingStation: ChargingStation,
-    connectorId: number, countryId: string, partyId: string): OCPILocation {
+      connectorId: number, countryId: string, partyId: string): OCPILocation {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
     for (const chargingStationConnector of chargingStation.connectors) {
