@@ -92,13 +92,15 @@ export default class AuthorizationService {
     sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
     for (const site of sites.result) {
-      site.canRead = Authorizations.canReadSite(userToken);
-      site.canDelete = Authorizations.canDeleteSite(userToken);
-      // update can be performed by admin or site admin
-      if (userToken.role === UserRole.ADMIN) {
-        site.canUpdate = true;
+      if (!site.issuer) {
+        site.canRead = true;
+        site.canUpdate = false;
+        site.canDelete = false;
       } else {
-        site.canUpdate = Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id);
+        site.canRead = Authorizations.canReadSite(userToken);
+        site.canDelete = Authorizations.canDeleteSite(userToken);
+        // update can be performed by admin or site admin
+        site.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id));
       }
     }
   }
@@ -393,7 +395,11 @@ export default class AuthorizationService {
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies.result) {
-      if (userToken.role === UserRole.ADMIN) {
+      if (!company.issuer) {
+        company.canRead = true;
+        company.canUpdate = false;
+        company.canDelete = false;
+      } else if (userToken.role === UserRole.ADMIN) {
         company.canRead = true;
         company.canUpdate = true;
         company.canDelete = true;
