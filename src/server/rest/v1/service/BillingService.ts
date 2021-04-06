@@ -292,7 +292,7 @@ export default class BillingService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
-        'id', 'number', 'status', 'amount', 'createdOn', 'nbrOfItems', 'currency', 'downloadable',
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
       ]);
     // Return

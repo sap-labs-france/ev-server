@@ -78,23 +78,33 @@ export interface BillingInvoice {
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  nbrOfItems?: number;
   downloadable?: boolean
   downloadUrl?: string;
+  sessions?: BillingSessionData[];
+  lastError?: BillingError;
 }
 
 export interface BillingInvoiceItem {
   description: string;
-  pricingData: {
-    quantity: number,
-    amount: number,
-    currency: string
-  }
+  transactionID: number;
+  pricingData: BillingPricingData;
   taxes?: string[];
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+}
+
+export interface BillingSessionData {
+  transactionID: number;
+  description: string;
+  pricingData: BillingPricingData;
+}
+
+export interface BillingPricingData {
+  quantity: number,
+  amount: number,
+  currency: string
 }
 
 export enum BillingInvoiceStatus {
@@ -130,6 +140,7 @@ export interface BillingPaymentMethod {
 export interface BillingError {
   // Billing Error should expose the information which is common to all payment platforms
   message: string
+  when: Date
   errorType: BillingErrorType, // SERVER or APPLICATION errors
   errorCode: BillingErrorCode, // More information about the root cause
   rootCause?: unknown; // The original error from the payment platform
@@ -147,4 +158,9 @@ export enum BillingErrorCode {
   UNEXPECTED_ERROR = 'unexpected',
   NO_PAYMENT_METHOD = 'no_payment_method',
   CARD_ERROR = 'card_error',
+}
+
+export interface BillingAdditionalData {
+  session?: BillingSessionData,
+  lastError?: BillingError,
 }
