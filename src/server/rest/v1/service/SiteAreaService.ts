@@ -24,6 +24,7 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../../types/TenantComponents';
+import { UserRole } from '../../../../types/User';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
@@ -338,6 +339,9 @@ export default class SiteAreaService {
     // Check SiteArea exists
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSiteArea', req.user);
+    // Add authorization
+    const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.ID);
+    siteArea.canUpdate = siteArea.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSiteArea(req.user) && updateSiteAreaAuthorization));
     // Return
     res.json(siteArea);
     next();
@@ -428,7 +432,7 @@ export default class SiteAreaService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'handleGetSiteArea',
+        module: MODULE_NAME, method: 'handleGetSiteAreaConsumption',
         value: filteredRequest.SiteAreaID
       });
     }
