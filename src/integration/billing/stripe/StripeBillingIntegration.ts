@@ -1107,6 +1107,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Let's populate the initial Billing Data of our new customer
     const billingData: BillingUserData = {
       customerID: customer.id,
+      liveMode: customer.livemode, // true when using a productive STRIPE account
       lastChangedOn: new Date(),
       hasSynchroError: false,
       invoicesLastSynchronizedOn: null

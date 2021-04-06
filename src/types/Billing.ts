@@ -38,8 +38,9 @@ export interface BillingDataTransactionStop {
 }
 
 export interface BillingUserData {
-  customerID?: string;
-  lastChangedOn?: Date;
+  customerID: string;
+  liveMode: boolean;
+  lastChangedOn: Date;
   hasSynchroError?: boolean;
   invoicesLastSynchronizedOn?: Date;
 }
