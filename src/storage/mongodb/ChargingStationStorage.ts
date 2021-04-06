@@ -1039,7 +1039,7 @@ export default class ChargingStationStorage {
         type: connector.type,
         voltage: Utils.convertToInt(connector.voltage),
         amperage: Utils.convertToInt(connector.amperage),
-        amperageLimit: connector.amperageLimit,
+        amperageLimit: Utils.convertToInt(connector.amperageLimit),
         currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
         userID: Utils.convertToObjectID(connector.userID),
         statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
@@ -1047,12 +1047,12 @@ export default class ChargingStationStorage {
         numberOfConnectedPhase: connector.numberOfConnectedPhase,
         currentType: connector.currentType,
         chargePointID: connector.chargePointID,
-        phaseAssignmentToGrid: connector.phaseAssignmentToGrid ?
+        phaseAssignmentToGrid: connector.phaseAssignmentToGrid &&
           {
             csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
             csPhaseL2: connector.phaseAssignmentToGrid.csPhaseL2,
             csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
-          } : null,
+          },
       };
       return filteredConnector;
     }
