@@ -97,6 +97,10 @@
   "OCPIEndpoint": {
     "baseUrl": ""
   },
+	"AsyncTask" : {
+		"active" : true,
+    "nbrTasksInParallel": 4
+  },
   "Storage": {
     "implementation": "mongodb",
     "uri": "YourConnectionURI",
