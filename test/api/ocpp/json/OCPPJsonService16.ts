@@ -81,8 +81,9 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     let result = {};
-    if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
-      result = await this.requestHandler['handle' + commandName](commandPayload);
+    const methodName = `handle${commandName}`;
+    if (this.requestHandler && typeof this.requestHandler[methodName] === 'function') {
+      result = await this.requestHandler[methodName](commandPayload);
     }
     await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
   }

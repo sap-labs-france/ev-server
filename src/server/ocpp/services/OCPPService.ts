@@ -181,10 +181,15 @@ export default class OCPPService {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
       const currentTenant = await TenantStorage.getTenant(headers.tenantID);
-      // Enrich Charging Station from templates
-      const chargingStationTemplateUpdateResult = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
-      // Save Charging Station
-      await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+      // Apply Charging Station Template
+      const chargingStationTemplateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(headers.tenantID, chargingStation, false);
+      // No matching template or manual configuration
+      if (!chargingStationTemplateUpdateResult.chargingStationUpdated) {
+        OCPPUtils.checkAndSetChargingStationAmperageLimit(chargingStation);
+        await OCPPUtils.setChargingStationPhaseAssignment(headers.tenantID, chargingStation);
+        // Save Charging Station
+        await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+      }
       // Save Boot Notification
       await OCPPStorage.saveBootNotification(headers.tenantID, bootNotification);
       // Send Notification (Async)
@@ -240,9 +245,10 @@ export default class OCPPService {
             message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
           });
         }
-        // Get config and save it
-        result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(headers.tenantID, chargingStation,
-          chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated);
+        // Apply Charging Station Template OCPP configuration
+        if (chargingStationTemplateUpdateResult.ocppStandardUpdated || chargingStationTemplateUpdateResult.ocppVendorUpdated) {
+          result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(headers.tenantID, chargingStation);
+        }
         if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
           await Logging.logError({
             tenantID: headers.tenantID,
@@ -252,7 +258,7 @@ export default class OCPPService {
             message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${currentTenant.name}' ('${currentTenant.subdomain}')`,
           });
         }
-      }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
+      }, Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS);
       // Return the result
       return {
         currentTime: bootNotification.timestamp.toISOString(),
@@ -534,7 +540,8 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader,
+      diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): Promise<OCPPDiagnosticsStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -566,7 +573,8 @@ export default class OCPPService {
     }
   }
 
-  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
+  public async handleFirmwareStatusNotification(headers: OCPPHeader,
+      firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);

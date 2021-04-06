@@ -85,6 +85,7 @@ export interface TemplateUpdate {
 }
 
 export interface TemplateUpdateResult {
+  chargingStationUpdated: boolean;
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
   ocppStandardUpdated: boolean;

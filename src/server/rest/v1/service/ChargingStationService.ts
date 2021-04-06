@@ -164,7 +164,7 @@ export default class ChargingStationService {
         delete chargingStation.templateHashTechnical;
       // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-        (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
+        (!filteredRequest.manualConfiguration && !Utils.isEmptyArray(chargingStation.chargePoints))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -652,7 +652,7 @@ export default class ChargingStationService {
       });
     }
     // Check if Charging Profile is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -709,7 +709,7 @@ export default class ChargingStationService {
       });
     }
     // Check if Charging Profile is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -830,9 +830,11 @@ export default class ChargingStationService {
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
-    // Get the Config
-    const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-      req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
+    // Get the configuration
+    let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.user.tenantID, chargingStation);
+    if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
+      result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.user.tenantID, chargingStation);
+    }
     // Ok
     res.json(result);
     next();
