@@ -87,7 +87,7 @@ export default class AuthorizationService {
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult): Promise<void> {
     // Get Site Admins
-    const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
+    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
     sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
@@ -508,7 +508,7 @@ export default class AuthorizationService {
     return _.uniq(_.map(sites.result, 'companyID'));
   }
 
-  private static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+  public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
       {
