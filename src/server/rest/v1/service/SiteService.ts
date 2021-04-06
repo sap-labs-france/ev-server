@@ -429,7 +429,7 @@ export default class SiteService {
       MODULE_NAME, 'handleGetSite', req.user);
     // Add authorization
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(req.tenant.id, req.user);
-    site.canUpdate = req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id));
+    site.canUpdate = site.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id)));
     // Return
     res.json(site);
     next();

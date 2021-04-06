@@ -102,7 +102,7 @@ export default class CompanyService {
       MODULE_NAME, 'handleGetCompany', req.user);
     // Add authorization
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
-    company.canUpdate = req.user.role === UserRole.ADMIN || (Authorizations.canUpdateCompany(req.user) && assignedCompanies.includes(company.id));
+    company.canUpdate = company.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateCompany(req.user) && assignedCompanies.includes(company.id)));
     // Return
     res.json(company);
     next();
