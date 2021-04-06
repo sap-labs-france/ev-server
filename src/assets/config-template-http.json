@@ -89,8 +89,8 @@
     "autoReconnectMaxRetries": 10,
     "autoReconnectTimeout": 60
   },
-	"AsyncTask" : {
-		"active" : true,
+  "AsyncTask": {
+    "active": true,
     "nbrTasksInParallel": 4
   },
   "Storage": {
@@ -170,22 +170,22 @@
     "active": false,
     "tasks": [
       {
-      "name": "OICPPushEVSEDataTask",
-      "active": false,
-      "periodicity": "*/10 * * * *",
-      "config": {
-        "processAllEVSEs": true
+        "name": "OICPPushEVSEDataTask",
+        "active": false,
+        "periodicity": "*/10 * * * *",
+        "config": {
+          "processAllEVSEs": true
+        }
+      },
+      {
+        "name": "OICPPushEvseStatusTask",
+        "active": false,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "processAllEVSEs": true
+        }
       }
-    },
-    {
-      "name": "OICPPushEvseStatusTask",
-      "active": false,
-      "periodicity": "*/5 * * * *",
-      "config": {
-        "processAllEVSEs": true
-      }
-    }
-  ]
+    ]
   },
   "Logging": {
     "logLevel": "D",
