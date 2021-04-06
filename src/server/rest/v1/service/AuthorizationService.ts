@@ -608,7 +608,7 @@ export default class AuthorizationService {
     }
   }
 
-  private static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
+  public static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
       {
