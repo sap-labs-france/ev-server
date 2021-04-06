@@ -583,20 +583,21 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult) {
+  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult): Promise<void> {
     // Add canCreate flag to root
     siteAreas.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
     for (const siteArea of siteAreas.result) {
-      siteArea.canRead = Authorizations.canReadSite(userToken);
-      // update can be performed by admin or site admin
-      if (userToken.role === UserRole.ADMIN) {
-        siteArea.canDelete = true;
-        siteArea.canUpdate = true;
+      if (!siteArea.issuer) {
+        siteArea.canRead = true;
+        siteArea.canUpdate = false;
+        siteArea.canDelete = false;
       } else {
+        siteArea.canRead = Authorizations.canReadSite(userToken);
+        // update & delete can be performed by admin or site admin
         const canModify = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(tenant, userToken, siteArea.id);
-        siteArea.canUpdate = Authorizations.canUpdateSiteArea(userToken) && canModify;
-        siteArea.canDelete = Authorizations.canDeleteSiteArea(userToken) && canModify;
+        siteArea.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSiteArea(userToken) && canModify);
+        siteArea.canDelete = userToken.role === UserRole.ADMIN || (Authorizations.canDeleteSiteArea(userToken) && canModify);
       }
     }
   }
