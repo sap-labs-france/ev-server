@@ -4,11 +4,11 @@ import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import AppAuthError from '../../exception/AppAuthError';
 import AppError from '../../exception/AppError';
 import BackendError from '../../exception/BackendError';
-import { Configuration } from '../../types/configuration/Configuration';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from './OCPIUtils';
 import { ServerAction } from '../../types/Server';
@@ -31,7 +31,7 @@ export default abstract class AbstractOCPIService {
 
   // Create OCPI Service
   protected constructor(
-      private readonly ocpiRestConfig: Configuration['OCPIService'],
+      private readonly ocpiRestConfig: OCPIServiceConfiguration,
       private readonly role: string,
       private readonly version: string) {
   }
@@ -39,7 +39,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Register Endpoint to this service
    *
-   * @param {*} endpoint AbstractEndpoint
+   * @param {AbstractEndpoint} endpoint
    */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);

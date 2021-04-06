@@ -31,7 +31,7 @@ export default class OICPClientFactory {
       switch (oicpEndpoint.role) {
         case OICPRole.CPO:
           return new CpoOICPClient(tenant, oicpSettings.oicp, oicpEndpoint);
-        // Case OICPRole.EMSP:
+        // case OICPRole.EMSP:
         //   return new EmspOICPClient(tenant, oicpSettings.oicp, oicpEndpoint);
       }
     }

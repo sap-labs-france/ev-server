@@ -27,8 +27,8 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
 
   public async processTenant(tenant: Tenant): Promise<void> {
     // Get the lock
-    const offlineChargingStationLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'check-template');
-    if (await LockingManager.acquire(offlineChargingStationLock)) {
+    const checkChargingStationTemplateLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.CHARGING_STATION, 'check-charging-station-template');
+    if (await LockingManager.acquire(checkChargingStationTemplateLock)) {
       try {
         // Update
         await this.applyTemplateToChargingStations(tenant);
@@ -37,7 +37,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE, error);
       } finally {
         // Release the lock
-        await LockingManager.release(offlineChargingStationLock);
+        await LockingManager.release(checkChargingStationTemplateLock);
       }
     }
   }

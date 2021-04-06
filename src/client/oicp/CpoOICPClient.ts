@@ -13,6 +13,7 @@ import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import { OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPAuthorizationStatus } from '../../types/oicp/OICPAuthentication';
@@ -57,7 +58,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       siteArea = chargingStation.siteArea;
     }
-    const options = {
+    const options: OCPILocationOptions = {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
       addChargeBoxID: true
@@ -228,7 +229,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
@@ -363,7 +364,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
@@ -493,7 +494,7 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
