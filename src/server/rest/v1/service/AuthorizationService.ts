@@ -8,6 +8,7 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -608,6 +609,41 @@ export default class AuthorizationService {
     }
   }
 
+  public static async checkAndGetChargingStationAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+        'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+        'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+        'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get assigned ChargingStations IDs
+      const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, userToken);
+      if (Utils.isEmptyArray(chargingStationIDs) || !chargingStationIDs.includes(filteredRequest.ID)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.FORBIDDEN,
+          user: userToken,
+          action: Action.READ, entity: Entity.SITE_AREA,
+          module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorizationFilters',
+        });
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+    return authorizationFilters;
+  }
+
   public static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
     // Get the Company IDs of the assigned Sites
     const sites = await SiteStorage.getSites(tenantID,
@@ -734,5 +770,16 @@ export default class AuthorizationService {
     // Get the Site IDs of SiteArea
     const siteArea = await SiteAreaStorage.getSiteArea(tenantID, siteAreaID);
     return siteArea.siteID;
+  }
+
+  private static async getAssignedChargingStationIDs(tenantID: string, userToken: UserToken, siteID?: string) {
+    // Get the ChargingStation IDs from sites assigned to the user
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, {
+      siteIDs: Authorizations.getAuthorizedSiteIDs(userToken, siteID ? [siteID] : null),
+      issuer: true,
+    }, Constants.DB_PARAMS_MAX_LIMIT,
+    ['id']);
+
+    return _.uniq(_.map(chargingStations.result, 'id'));
   }
 }

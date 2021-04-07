@@ -6,6 +6,7 @@ import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRem
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -966,8 +967,9 @@ export default class ChargingStationService {
   public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
+    // Check ID is provided
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
-    // Check auth
+    // Check static auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -977,22 +979,12 @@ export default class ChargingStationService {
         value: filteredRequest.ID
       });
     }
-    let projectFields = [
-      'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
-      'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
-      'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
-      'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
-      'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
-      'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
-    ];
-    // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
-    if (!Utils.isEmptyArray(httpProjectFields)) {
-      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
-    }
+    // check dynamic auth
+    const chargingStationAuthorizationFilters = await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
-      req.user.tenantID, filteredRequest.ID, {}, projectFields);
+      req.user.tenantID, filteredRequest.ID, chargingStationAuthorizationFilters.filters,chargingStationAuthorizationFilters.projectFields);
+    // Check charging station exists
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
