@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
+import { OCPITariff, OCPITariffDimensionType } from '../../../../../types/ocpi/OCPITariff';
+import { PricingSettings, PricingSettingsType } from '../../../../../types/Setting';
 
 import AbstractEndpoint from '../../AbstractEndpoint';
 import AbstractOCPIService from '../../../AbstractOCPIService';
 import AppError from '../../../../../exception/AppError';
 import Constants from '../../../../../utils/Constants';
+import { DataResult } from '../../../../../types/DataResult';
 import { HTTPError } from '../../../../../types/HTTPError';
 import OCPIEndpoint from '../../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../../types/ocpi/OCPIResponse';
@@ -11,56 +14,30 @@ import { OCPIStatusCode } from '../../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../../OCPIUtils';
 import OCPIUtilsService from '../OCPIUtilsService';
 import { ServerAction } from '../../../../../types/Server';
+import SettingStorage from '../../../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../../../types/Tenant';
 import Utils from '../../../../../utils/Utils';
 
-const EP_IDENTIFIER = 'tariffs';
 const MODULE_NAME = 'CPOTariffsEndpoint';
 
-const RECORDS_LIMIT = 25;
-
-/**
- * CPO Tariffs Endpoint
- */
 export default class CPOTariffsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'tariffs');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getTariffsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
-  /**
-   * Get Tariffs
-   *
-   * /tariffs/?date_from=xxx&date_to=yyy&offset=zzz&limit=www
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
   private async getTariffsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-    const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+    const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < Constants.OCPI_RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : Constants.OCPI_RECORDS_LIMIT;
     // Get all tariffs
-    const tariffs = await OCPIUtilsService.getAllTariffs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
+    const tariffs = await this.getAllTariffs(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     if (tariffs.count === 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -74,7 +51,7 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
     // Set header
     res.set({
       'X-Total-Count': tariffs.count,
-      'X-Limit': RECORDS_LIMIT
+      'X-Limit': Constants.OCPI_RECORDS_LIMIT
     });
     // Return next link
     const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tariffs.count);
@@ -84,5 +61,48 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
       });
     }
     return OCPIUtils.success(tariffs.result);
+  }
+
+  private async getAllTariffs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPITariff>> {
+    // Result
+    const tariffs: OCPITariff[] = [];
+    let tariff: OCPITariff;
+    if (tenant.components?.pricing?.active) {
+      // Get simple pricing settings
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
+      if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
+        tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
+        if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {
+          tariffs.push(tariff);
+        } else if (tariff.currency && tariff.elements[0].price_components[0].price === 0) {
+          tariff = this.convertPricingSettings2ZeroFlatTariff(pricingSettings);
+          tariffs.push(tariff);
+        }
+      }
+    }
+    return {
+      count: tariffs.length,
+      result: tariffs
+    };
+  }
+
+  private convertPricingSettings2ZeroFlatTariff(pricingSettings: PricingSettings): OCPITariff {
+    let tariff: OCPITariff;
+    tariff.id = '1';
+    tariff.elements[0].price_components[0].price = 0;
+    tariff.elements[0].price_components[0].type = OCPITariffDimensionType.FLAT;
+    tariff.elements[0].price_components[0].step_size = 0;
+    switch (pricingSettings.type) {
+      case PricingSettingsType.SIMPLE:
+        tariff.currency = pricingSettings.simple.currency;
+        tariff.last_updated = pricingSettings.simple.last_updated;
+        break;
+      default:
+        // FIXME: get currency from the TZ
+        tariff.currency = 'EUR';
+        tariff.last_updated = new Date();
+        break;
+    }
+    return tariff;
   }
 }

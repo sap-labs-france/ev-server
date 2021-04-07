@@ -83,7 +83,7 @@ describe('Security tests', function() {
   });
 
   describe('Success cases (tenant utall)', () => {
-    it('Check that sensitive data string (containing "=")  is anonymized', async () => {
+    it('Check that sensitive data string (containing "=") is anonymized', async () => {
       const logId:string = await Logging.logDebug({
         source: 'test',
         tenantID: testData.credentials.tenantId,

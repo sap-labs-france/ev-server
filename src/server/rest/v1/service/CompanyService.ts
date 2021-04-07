@@ -7,12 +7,14 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
+import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
+import { UserRole } from '../../../../types/User';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -84,6 +86,7 @@ export default class CompanyService {
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check dynamic auth
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
@@ -98,6 +101,9 @@ export default class CompanyService {
     // Check Company exists
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetCompany', req.user);
+    // Add authorization
+    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
+    company.canUpdate = company.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateCompany(req.user) && assignedCompanies.includes(company.id)));
     // Return
     res.json(company);
     next();
@@ -169,7 +175,7 @@ export default class CompanyService {
       authorizationCompaniesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies.result);
+    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult);
     // Return
     res.json(companies);
     next();

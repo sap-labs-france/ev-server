@@ -116,7 +116,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       });
       return false;
     };
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleProtocols = (protocols: string | string[], request: http.IncomingMessage): boolean | string => {
       // Check the protocols and ensure protocol used as ocpp1.6 or nothing (should create an error)
@@ -140,7 +139,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       });
       return false;
     };
-
     // Create the WS server
     this.wsServer = new WSServer(this.serverConfig.port, this.serverConfig.host, this.serverName, WSServer.createHttpServer(this.centralSystemConfig),
       verifyClient, handleProtocols);

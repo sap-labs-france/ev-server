@@ -24,6 +24,7 @@ import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
+import { OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
@@ -37,7 +38,6 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -91,33 +91,38 @@ export default class ChargingStationService {
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (filteredRequest.public !== chargingStation.public) {
-        if (!filteredRequest.public) {
+        // OCPI handling
+        if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
           // Remove charging station from ocpi
-          if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-            try {
-              const ocpiClient: CpoOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
-              if (ocpiClient) {
-                await ocpiClient.removeChargingStation(chargingStation);
-              }
-            } catch (error) {
-              await Logging.logError({
-                tenantID: req.user.tenantID,
-                module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
-                action: action,
-                user: req.user,
-                message: `Unable to remove charging station ${chargingStation.id} from IOP`,
-                detailedMessages: { error: error.message, stack: error.stack }
-              });
+          try {
+            const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(req.tenant, OCPIRole.CPO) as CpoOCPIClient;
+            let status: OCPIEvseStatus;
+            if (!filteredRequest.public) {
+              // Force remove
+              status = OCPIEvseStatus.REMOVED;
             }
+            if (ocpiClient) {
+              await ocpiClient.udpateChargingStationStatus(chargingStation, status);
+            }
+          } catch (error) {
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              action: action,
+              user: req.user,
+              message: `Unable to remove charging station ${chargingStation.id} from IOP`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
           }
         }
+        // OICP handling
         if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OICP)) {
           let actionType = OICPActionType.INSERT;
-          if (filteredRequest.public === false) {
+          if (!filteredRequest.public) {
             actionType = OICPActionType.DELETE;
           }
           try {
-            const oicpClient: CpoOICPClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
+            const oicpClient = await OICPClientFactory.getAvailableOicpClient(req.tenant, OCPIRole.CPO) as CpoOICPClient;
             if (oicpClient) {
               // Define get option
               const options = {
@@ -159,7 +164,7 @@ export default class ChargingStationService {
         delete chargingStation.templateHashTechnical;
       // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-        (!filteredRequest.manualConfiguration && !(chargingStation.chargePoints?.length > 0))) {
+        (!filteredRequest.manualConfiguration && !Utils.isEmptyArray(chargingStation.chargePoints))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -543,7 +548,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea);
+    const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
     if (siteAreaLock) {
       try {
         // Call
@@ -647,7 +652,7 @@ export default class ChargingStationService {
       });
     }
     // Check if Charging Profile is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -704,7 +709,7 @@ export default class ChargingStationService {
       });
     }
     // Check if Charging Profile is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -825,9 +830,11 @@ export default class ChargingStationService {
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
-    // Get the Config
-    const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-      req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
+    // Get the configuration
+    let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.user.tenantID, chargingStation);
+    if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
+      result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.user.tenantID, chargingStation);
+    }
     // Ok
     res.json(result);
     next();
@@ -1540,14 +1547,13 @@ export default class ChargingStationService {
 
   private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
     let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(userLocale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.value') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.site') + '\r\n';
+      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
+      csv += 'name' + Constants.CSV_SEPARATOR;
+      csv += 'value' + Constants.CSV_SEPARATOR;
+      csv += 'siteArea' + Constants.CSV_SEPARATOR;
+      csv += 'site' + Constants.CR_LF;
     }
     // Content
     for (const param of ocppParams.params) {
@@ -1555,34 +1561,33 @@ export default class ChargingStationService {
       csv += param.key + Constants.CSV_SEPARATOR;
       csv += Utils.replaceSpecialCharsInCSVValueParam(param.value) + Constants.CSV_SEPARATOR;
       csv += ocppParams.siteAreaName + Constants.CSV_SEPARATOR;
-      csv += ocppParams.siteName + '\r\n';
+      csv += ocppParams.siteName + Constants.CR_LF;
     }
     return csv;
   }
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
     let csv = '';
-
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('general.name') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.createdOn') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.numberOfConnectors') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.siteArea') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.latitude') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.longitude') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargePointSN') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.model') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargeBoxSN') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.vendor') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.firmwareVersion') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.ocppVersion') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.ocppProtocol') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.lastSeen') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.lastReboot') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.maxPower') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.powerLimitUnit') + '\r\n';
+      csv = 'name' + Constants.CSV_SEPARATOR;
+      csv += 'createdOn' + Constants.CSV_SEPARATOR;
+      csv += 'numberOfConnectors' + Constants.CSV_SEPARATOR;
+      csv += 'siteArea' + Constants.CSV_SEPARATOR;
+      csv += 'latitude' + Constants.CSV_SEPARATOR;
+      csv += 'longitude' + Constants.CSV_SEPARATOR;
+      csv += 'chargePointSerialNumber' + Constants.CSV_SEPARATOR;
+      csv += 'model' + Constants.CSV_SEPARATOR;
+      csv += 'chargeBoxSerialNumber' + Constants.CSV_SEPARATOR;
+      csv += 'vendor' + Constants.CSV_SEPARATOR;
+      csv += 'firmwareVersion' + Constants.CSV_SEPARATOR;
+      csv += 'ocppVersion' + Constants.CSV_SEPARATOR;
+      csv += 'ocppProtocol' + Constants.CSV_SEPARATOR;
+      csv += 'lastSeen' + Constants.CSV_SEPARATOR;
+      csv += 'lastReboot' + Constants.CSV_SEPARATOR;
+      csv += 'maxPower' + Constants.CSV_SEPARATOR;
+      csv += 'powerLimitUnit' + Constants.CR_LF;
     }
     // Content
     for (const chargingStation of chargingStations) {
@@ -1611,7 +1616,7 @@ export default class ChargingStationService {
       csv += i18nManager.formatDateTime(chargingStation.lastSeen, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastSeen, 'LT') + Constants.CSV_SEPARATOR;
       csv += i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT') + Constants.CSV_SEPARATOR;
       csv += chargingStation.maximumPower + Constants.CSV_SEPARATOR;
-      csv += chargingStation.powerLimitUnit + '\r\n';
+      csv += chargingStation.powerLimitUnit + Constants.CR_LF;
     }
     return csv;
   }
@@ -1686,7 +1691,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-    action: ServerAction, command: Command, params: any): Promise<any> {
+      action: ServerAction, command: Command, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);

@@ -60,7 +60,7 @@ export default class OICPMapping {
    */
   public static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
-    evseStatus.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    evseStatus.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId);
     evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
     evseStatus.ChargingStationID = chargingStation.id;
     return evseStatus;
@@ -410,7 +410,7 @@ export default class OICPMapping {
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
-    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId);
     evse.ChargingPoolID = OICPMapping.buildEChargingPoolID(options.countryID, options.partyID, siteArea.id); // Optional
     evse.ChargingStationID = chargingStation.id; // Optional
     evse.ChargingStationNames = [

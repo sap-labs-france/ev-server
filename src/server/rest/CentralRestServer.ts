@@ -47,7 +47,9 @@ export default class CentralRestServer {
     // Routers
     this.expressApplication.use('/v1', new GlobalRouter().buildRoutes());
     // Secured API
-    this.expressApplication.all('/client/api/:action', AuthService.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
+    this.expressApplication.all('/client/api/:action',
+      AuthService.authenticate(),
+      CentralRestServerService.restServiceSecured.bind(this));
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
@@ -428,6 +430,22 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.OCPI_ENDPOINTS,
+      'action': action
+    });
+  }
+
+  public notifyAsyncTaskEndpoint(tenantID: string, action: Action, data: NotificationData): void {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.ASYNC_TASK,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.ASYNC_TASKS,
       'action': action
     });
   }

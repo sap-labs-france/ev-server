@@ -15,6 +15,7 @@ export default class PerformanceStorage {
       cpusInfo: performanceRecord.cpusInfo,
       memoryTotalGb: performanceRecord.memoryTotalGb,
       memoryFreeGb: performanceRecord.memoryFreeGb,
+      networkInterface: performanceRecord.networkInterface,
       loadAverageLastMin: performanceRecord.loadAverageLastMin,
       process: performanceRecord.process,
       processMemoryUsage: performanceRecord.processMemoryUsage,

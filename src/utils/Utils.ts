@@ -1324,7 +1324,7 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-        // Car Connector
+      // Car Connector
       case TenantComponents.CAR_CONNECTOR:
         if (!currentSettingContent) {
           // Only Car Connector
@@ -1411,9 +1411,10 @@ export default class Utils {
       processMemoryUsage: process.memoryUsage(),
       processCPUUsage: process.cpuUsage(),
       cpusInfo: os.cpus(),
-      memoryTotalGb: os.totalmem(),
-      memoryFreeGb: os.freemem(),
+      memoryTotalGb: Utils.createDecimal(os.totalmem()).div(Constants.ONE_BILLION).toNumber(),
+      memoryFreeGb: Utils.createDecimal(os.freemem()).div(Constants.ONE_BILLION).toNumber(),
       loadAverageLastMin: os.loadavg()[0],
+      networkInterface: os.networkInterfaces(),
       numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
       source: params.source,
       module: params.module,

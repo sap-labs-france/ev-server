@@ -71,8 +71,8 @@ export default class OICPEndpointStorage {
 
   // Delegate
   static async getOicpEndpoints(tenantID: string,
-    params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
+      params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant

@@ -55,9 +55,11 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
   distanceMeters?: number;
-  ocpiData?: {
-    evse?: OCPIEvse;
-  };
+  ocpiData?: ChargingStationOcpiData;
+}
+
+export interface ChargingStationOcpiData {
+  evses?: OCPIEvse[];
 }
 
 export interface ChargingStationQRCode {
@@ -83,6 +85,7 @@ export interface TemplateUpdate {
 }
 
 export interface TemplateUpdateResult {
+  chargingStationUpdated: boolean;
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
   ocppStandardUpdated: boolean;
