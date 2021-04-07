@@ -1061,8 +1061,10 @@ export default class OCPPUtils {
         const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID,
           { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
-          for (const connector of chargingStationOfSiteArea.connectors) {
-            consumption.limitSiteAreaWatts = Utils.createDecimal(consumption.limitSiteAreaWatts).plus(connector.power).toNumber();
+          if (Utils.objectHasProperty(chargingStationOfSiteArea, 'connectors')) {
+            for (const connector of chargingStationOfSiteArea.connectors) {
+              consumption.limitSiteAreaWatts = Utils.createDecimal(consumption.limitSiteAreaWatts).plus(connector.power).toNumber();
+            }
           }
         }
         consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / siteArea.voltage);
@@ -1225,20 +1227,24 @@ export default class OCPPUtils {
   }
 
   public static async setChargingStationPhaseAssignment(tenantID: string, chargingStation: ChargingStation): Promise<void> {
-    for (const connector of chargingStation?.connectors) {
-      if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
-        await OCPPUtils.setConnectorPhaseAssignment(tenantID, chargingStation, connector);
+    if (Utils.objectHasProperty(chargingStation, 'connectors')) {
+      for (const connector of chargingStation.connectors) {
+        if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
+          await OCPPUtils.setConnectorPhaseAssignment(tenantID, chargingStation, connector);
+        }
       }
     }
   }
 
   public static checkAndSetChargingStationAmperageLimit(chargingStation: ChargingStation): void {
-    for (const connector of chargingStation?.connectors) {
-      const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector);
-      if (chargingStation.capabilities?.supportStaticLimitation && connectorAmperageLimit) {
-        connector.amperageLimit = connectorAmperageLimit;
-      } else {
-        delete connector.amperageLimit;
+    if (Utils.objectHasProperty(chargingStation, 'connectors')) {
+      for (const connector of chargingStation.connectors) {
+        const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector);
+        if (chargingStation.capabilities?.supportStaticLimitation && connectorAmperageLimit) {
+          connector.amperageLimit = connectorAmperageLimit;
+        } else {
+          delete connector.amperageLimit;
+        }
       }
     }
   }
@@ -1877,7 +1883,7 @@ export default class OCPPUtils {
             chargingStation.voltage = chargingStationTemplate.technical.voltage;
           }
           // Enrich connectors
-          if (chargingStation.connectors) {
+          if (Utils.objectHasProperty(chargingStation, 'connectors')) {
             for (const connector of chargingStation.connectors) {
               await OCPPUtils.enrichChargingStationConnectorWithTemplate(
                 tenantID, chargingStation, connector.connectorId, chargingStationTemplate);
@@ -2122,7 +2128,7 @@ export default class OCPPUtils {
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
-    const numberOfConnectors = chargingStation.connectors.length;
+    const numberOfConnectors = chargingStation?.connectors.length ?? 1;
     const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
     if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
       return connectorAmperageLimitMax;
