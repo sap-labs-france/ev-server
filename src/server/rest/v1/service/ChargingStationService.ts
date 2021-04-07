@@ -980,15 +980,22 @@ export default class ChargingStationService {
       });
     }
     // check dynamic auth
-    const chargingStationAuthorizationFilters = await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    const chargingStationAuthorizationFilters =
+      await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    if (!chargingStationAuthorizationFilters.authorized) {
+      // Force the failure
+      UtilsService.assertObjectExists(action, null, `Charging Station '${filteredRequest.ID}' does not exist`,
+        MODULE_NAME, 'handleGetChargingStation', req.user);
+      return;
+    }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
-      req.user.tenantID, filteredRequest.ID, chargingStationAuthorizationFilters.filters,chargingStationAuthorizationFilters.projectFields);
+      req.user.tenantID, filteredRequest.ID, chargingStationAuthorizationFilters.filters, chargingStationAuthorizationFilters.projectFields);
     // Check charging station exists
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
-    if (chargingStation.deleted) {
+    if (chargingStation?.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,

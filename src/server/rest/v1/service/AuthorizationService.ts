@@ -8,10 +8,10 @@ import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -609,7 +609,8 @@ export default class AuthorizationService {
     }
   }
 
-  public static async checkAndGetChargingStationAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest):Promise<AuthorizationFilter> {
+  public static async checkAndGetChargingStationAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpChargingStationRequest):Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -624,20 +625,18 @@ export default class AuthorizationService {
     };
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned ChargingStations IDs
-      const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, userToken);
-      if (Utils.isEmptyArray(chargingStationIDs) || !chargingStationIDs.includes(filteredRequest.ID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.READ, entity: Entity.SITE_AREA,
-          module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorizationFilters',
-        });
-      } else {
+      // Get assigned Site IDs assigned to user from DB
+      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(siteIDs)) {
+        // Force the filter
+        authorizationFilters.filters.siteIDs = siteIDs;
+      }
+      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
         authorizationFilters.authorized = true;
       }
     }
@@ -770,16 +769,5 @@ export default class AuthorizationService {
     // Get the Site IDs of SiteArea
     const siteArea = await SiteAreaStorage.getSiteArea(tenantID, siteAreaID);
     return siteArea.siteID;
-  }
-
-  private static async getAssignedChargingStationIDs(tenantID: string, userToken: UserToken, siteID?: string) {
-    // Get the ChargingStation IDs from sites assigned to the user
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, {
-      siteIDs: Authorizations.getAuthorizedSiteIDs(userToken, siteID ? [siteID] : null),
-      issuer: true,
-    }, Constants.DB_PARAMS_MAX_LIMIT,
-    ['id']);
-
-    return _.uniq(_.map(chargingStations.result, 'id'));
   }
 }
