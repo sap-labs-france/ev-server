@@ -50,7 +50,7 @@ export default class SiteAreaService {
       });
     }
     // Check static auth for getting site area
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -68,7 +68,7 @@ export default class SiteAreaService {
       MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     // Check auth
     const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteAreaID);
-    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
+    if (!await Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -91,7 +91,7 @@ export default class SiteAreaService {
     // Get Assets
     for (const assetID of filteredRequest.assetIDs) {
       // Check auth
-      if (!Authorizations.canReadAsset(req.user)) {
+      if (!await Authorizations.canReadAsset(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -145,7 +145,7 @@ export default class SiteAreaService {
       });
     }
     // Check static auth for getting site area
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -174,7 +174,7 @@ export default class SiteAreaService {
     }
     // Check auth
     const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteAreaID);
-    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
+    if (!await Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -186,7 +186,7 @@ export default class SiteAreaService {
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check auth
-      if (!Authorizations.canReadChargingStation(req.user)) {
+      if (!await Authorizations.canReadChargingStation(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -254,7 +254,7 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // Check auth
     const deleteSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, siteAreaID);
-    if (!Authorizations.canDeleteSiteArea(req.user) || !deleteSiteAreaAuthorization) {
+    if (!await Authorizations.canDeleteSiteArea(req.user) || !deleteSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -264,7 +264,7 @@ export default class SiteAreaService {
       });
     }
     // Check static auth for reading SiteArea
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -315,7 +315,7 @@ export default class SiteAreaService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check static auth
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -377,7 +377,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreas');
     // Check static auth
-    if (!Authorizations.canListSiteAreas(req.user)) {
+    if (!await Authorizations.canListSiteAreas(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -427,7 +427,7 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME,
       'handleGetSiteAreaConsumption', req.user);
     // Check static auth
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -491,7 +491,7 @@ export default class SiteAreaService {
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     const createSiteAreaAuthorization = await AuthorizationService.checkCreateSiteAreaAuthorization(req.tenant,req.user, filteredRequest.siteID);
-    if (!Authorizations.canCreateSiteArea(req.user) || !createSiteAreaAuthorization) {
+    if (!await Authorizations.canCreateSiteArea(req.user) || !createSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -500,7 +500,7 @@ export default class SiteAreaService {
       });
     }
     // Check static auth for reading site
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -557,7 +557,7 @@ export default class SiteAreaService {
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.id);
-    if (!Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
+    if (!await Authorizations.canUpdateSiteArea(req.user) || !updateSiteAreaAuthorization) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -567,7 +567,7 @@ export default class SiteAreaService {
       });
     }
     // Check auth for reading SiteArea
-    if (!Authorizations.canReadSiteArea(req.user)) {
+    if (!await Authorizations.canReadSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -593,7 +593,7 @@ export default class SiteAreaService {
       });
     }
     // Check static auth for reading site
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

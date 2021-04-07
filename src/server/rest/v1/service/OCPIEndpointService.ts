@@ -34,7 +34,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -70,7 +70,7 @@ export default class OCPIEndpointService {
     const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canReadOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -96,7 +96,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
     // Check auth
-    if (!Authorizations.canListOcpiEndpoints(req.user)) {
+    if (!await Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -106,7 +106,7 @@ export default class OCPIEndpointService {
     }
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
@@ -136,7 +136,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -177,7 +177,7 @@ export default class OCPIEndpointService {
     // Check Mandatory fields
     UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -213,7 +213,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canPingOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -260,7 +260,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -314,7 +314,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -368,7 +368,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -422,7 +422,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -476,7 +476,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -530,7 +530,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -584,7 +584,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -638,7 +638,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -692,7 +692,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -746,7 +746,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -796,7 +796,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -846,7 +846,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

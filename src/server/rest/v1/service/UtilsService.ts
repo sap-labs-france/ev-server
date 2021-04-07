@@ -41,11 +41,11 @@ export default class UtilsService {
     // Action provided
     if (!action) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(
+      void Logging.logActionExceptionMessageAndSendResponse(
         null, new Error('No Action has been provided'), req, res, next);
     } else {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(
+      void Logging.logActionExceptionMessageAndSendResponse(
         action, new Error(`The Action '${action}' does not exist`), req, res, next);
     }
   }

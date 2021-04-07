@@ -30,7 +30,7 @@ export default class RegistrationTokenService {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleCreateRegistrationToken', req.user);
-      if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
+      if (!await Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
         // Not Authorized!
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
@@ -39,7 +39,7 @@ export default class RegistrationTokenService {
           module: MODULE_NAME, method: 'handleCreateRegistrationToken'
         });
       }
-    } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
+    } else if (!await Authorizations.canCreateRegistrationToken(req.user, null)) {
       // Not Authorized!
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -97,7 +97,7 @@ export default class RegistrationTokenService {
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     // Check Auth
-    if (!Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
+    if (!await Authorizations.canUpdateRegistrationToken(req.user, filteredRequest.siteAreaID)) {
       // Not Authorized!
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -157,7 +157,7 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
       MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
+    if (!await Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -189,7 +189,7 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
       MODULE_NAME, 'handleRevokeRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
+    if (!await Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -228,7 +228,7 @@ export default class RegistrationTokenService {
 
   static async handleGetRegistrationTokens(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListRegistrationTokens(req.user)) {
+    if (!await Authorizations.canListRegistrationTokens(req.user)) {
       // Not Authorized!
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -240,7 +240,7 @@ export default class RegistrationTokenService {
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get the tokens
@@ -279,7 +279,7 @@ export default class RegistrationTokenService {
     const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get the token
@@ -293,7 +293,7 @@ export default class RegistrationTokenService {
     UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest}' does not exist`,
       MODULE_NAME, 'handleGetRegistrationToken', req.user);
     // Check auth
-    if (!Authorizations.canReadRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {
+    if (!await Authorizations.canReadRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {
       // Not Authorized!
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

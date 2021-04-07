@@ -34,7 +34,7 @@ export default class AssetService {
     UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
       'handleGetAssetConsumption', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
+    if (!await Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -105,7 +105,7 @@ export default class AssetService {
       });
     }
     // Is authorized to check connection ?
-    if (!Authorizations.canCheckAssetConnection(req.user)) {
+    if (!await Authorizations.canCheckAssetConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -139,7 +139,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
     // Is authorized to check connection ?
-    if (!Authorizations.canRetrieveAssetConsumption(req.user)) {
+    if (!await Authorizations.canRetrieveAssetConsumption(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -214,7 +214,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
     // Check auth
-    if (!Authorizations.canListAssetsInError(req.user)) {
+    if (!await Authorizations.canListAssetsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -254,7 +254,7 @@ export default class AssetService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteAsset', req.user);
     // Check auth
-    if (!Authorizations.canDeleteAsset(req.user)) {
+    if (!await Authorizations.canDeleteAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -294,7 +294,7 @@ export default class AssetService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
+    if (!await Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -341,7 +341,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssets');
     // Check auth
-    if (!Authorizations.canListAssets(req.user)) {
+    if (!await Authorizations.canListAssets(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -376,7 +376,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
     // Check auth
-    if (!Authorizations.canCreateAsset(req.user)) {
+    if (!await Authorizations.canCreateAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -435,7 +435,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetUpdateRequest(req.body);
     // Check auth
-    if (!Authorizations.canUpdateAsset(req.user)) {
+    if (!await Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

@@ -1,6 +1,6 @@
 import { Action, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
 
-import AccessControl from 'role-acl';
+import { AccessControl } from 'role-acl';
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
 
@@ -351,11 +351,11 @@ export default class AuthorizationsDefinition {
     return AuthorizationsDefinition._instance;
   }
 
-  public getScopes(roles: ReadonlyArray<string>): ReadonlyArray<string> {
-    const scopes = [];
+  public async getScopes(roles: string[]): Promise<string[]> {
+    const scopes: string[] = [];
     try {
-      for (const resource of this.accessControl.allowedResources({ role: roles }) as string[]) {
-        for (const action of this.accessControl.allowedActions({ role: roles, resource }) as string[]) {
+      for (const resource of await this.accessControl.allowedResources({ role: roles })) {
+        for (const action of await this.accessControl.allowedActions({ role: roles, resource })) {
           scopes.push(`${resource}:${action}`);
         }
       }
@@ -371,9 +371,9 @@ export default class AuthorizationsDefinition {
     return scopes;
   }
 
-  public can(role: ReadonlyArray<string>, resource: string, action: string, context?): boolean {
+  public async can(roles: string[], resource: string, action: string, context?): Promise<boolean> {
     try {
-      const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
+      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
       return permission.granted;
     } catch (error) {
       throw new BackendError({
@@ -386,9 +386,9 @@ export default class AuthorizationsDefinition {
     }
   }
 
-  public canPerformAction(role: ReadonlyArray<string>, resource: string, action: string, context?): AuthorizationResult {
+  public async canPerformAction(roles: string[], resource: string, action: string, context?): Promise<AuthorizationResult> {
     try {
-      const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
+      const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
       return {
         authorized: permission.granted,
         fields: permission.attributes,

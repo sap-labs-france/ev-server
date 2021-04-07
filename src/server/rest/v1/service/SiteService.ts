@@ -69,7 +69,7 @@ export default class SiteService {
       });
     }
     // Check static auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -122,7 +122,7 @@ export default class SiteService {
 
   public static async handleUpdateSiteOwner(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // check static auth
-    if (!Authorizations.canCreateSite(req.user)) {
+    if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -200,7 +200,7 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Check static auth
     if (action === ServerAction.ADD_USERS_TO_SITE) {
-      if (!Authorizations.canAssignUsersSites(req.user)) {
+      if (!await Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -208,7 +208,7 @@ export default class SiteService {
           module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
         });
       }
-    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -230,7 +230,7 @@ export default class SiteService {
       });
     }
     // Check static auth for read
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -283,7 +283,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsersFromSite');
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!await Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -295,7 +295,7 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteID, MODULE_NAME, 'handleGetUsersFromSite', req.user);
     // Check auth
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -321,7 +321,7 @@ export default class SiteService {
     // Check auth
     const authorizationSiteUsersFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteUsersFilters.authorized) {
+    if (!authorizationSiteFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -353,7 +353,7 @@ export default class SiteService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'handleDeleteSite', req.user);
     // Check static auth
-    if (!Authorizations.canDeleteSite(req.user)) {
+    if (!await Authorizations.canDeleteSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -401,7 +401,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Check static auth
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -429,7 +429,8 @@ export default class SiteService {
       MODULE_NAME, 'handleGetSite', req.user);
     // Add authorization
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(req.tenant.id, req.user);
-    site.canUpdate = site.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id)));
+    site.canUpdate = site.issuer && (req.user.role === UserRole.ADMIN ||
+      (await Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id)));
     // Return
     res.json(site);
     next();
@@ -440,7 +441,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
     // Check static auth
-    if (!Authorizations.canListSites(req.user)) {
+    if (!await Authorizations.canListSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -530,7 +531,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Check static auth
-    if (!Authorizations.canCreateSite(req.user)) {
+    if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -588,7 +589,7 @@ export default class SiteService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -600,7 +601,7 @@ export default class SiteService {
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check static auth for reading company
-    if (!Authorizations.canReadCompany(req.user).authorized) {
+    if (!(await Authorizations.canReadCompany(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

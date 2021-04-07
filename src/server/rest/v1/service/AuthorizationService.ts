@@ -92,7 +92,7 @@ export default class AuthorizationService {
     // Get Site Admins
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
-    sites.canCreate = Authorizations.canCreateSite(userToken);
+    sites.canCreate = await Authorizations.canCreateSite(userToken);
     // Enrich
     for (const site of sites.result) {
       if (!site.issuer) {
@@ -100,10 +100,10 @@ export default class AuthorizationService {
         site.canUpdate = false;
         site.canDelete = false;
       } else {
-        site.canRead = Authorizations.canReadSite(userToken);
-        site.canDelete = Authorizations.canDeleteSite(userToken);
+        site.canRead = await Authorizations.canReadSite(userToken);
+        site.canDelete = await Authorizations.canDeleteSite(userToken);
         // update can be performed by admin or site admin
-        site.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id));
+        site.canUpdate = userToken.role === UserRole.ADMIN || (await Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id));
       }
     }
   }
@@ -119,7 +119,7 @@ export default class AuthorizationService {
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Add user info
-    if (Authorizations.canListUsers(userToken)) {
+    if (await Authorizations.canListUsers(userToken)) {
       authorizationFilters.projectFields.push(
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
@@ -300,12 +300,12 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): void {
+  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): Promise<void> {
     // Enrich
     for (const user of users) {
-      user.canRead = Authorizations.canReadUser(userToken, user.id);
-      user.canUpdate = Authorizations.canUpdateUser(userToken, user.id);
-      user.canDelete = Authorizations.canDeleteUser(userToken, user.id);
+      user.canRead = await Authorizations.canReadUser(userToken, user.id);
+      user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
+      user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
     }
   }
 
@@ -362,7 +362,7 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
-    if (Authorizations.canListUsers(userToken)) {
+    if (await Authorizations.canListUsers(userToken)) {
       authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
@@ -402,7 +402,7 @@ export default class AuthorizationService {
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
     // Add canCreate flag to root
-    companies.canCreate = Authorizations.canCreateCompany(userToken);
+    companies.canCreate = await Authorizations.canCreateCompany(userToken);
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies.result) {
@@ -415,9 +415,9 @@ export default class AuthorizationService {
         company.canUpdate = true;
         company.canDelete = true;
       } else {
-        company.canRead = Authorizations.canReadCompany(userToken).authorized && assignedCompanies.includes(company.id);
-        company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
-        company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canRead = (await Authorizations.canReadCompany(userToken)).authorized && assignedCompanies.includes(company.id);
+        company.canUpdate = await Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canDelete = await Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
       }
     }
   }
@@ -430,7 +430,7 @@ export default class AuthorizationService {
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Check static auth
-    const authResult = Authorizations.canListCompanies(userToken);
+    const authResult = await Authorizations.canListCompanies(userToken);
     if (!authResult.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -480,7 +480,7 @@ export default class AuthorizationService {
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Check static auth
-    const authResult = Authorizations.canReadCompany(userToken);
+    const authResult = await Authorizations.canReadCompany(userToken);
     if (!authResult.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -622,7 +622,7 @@ export default class AuthorizationService {
 
   public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult): Promise<void> {
     // Add canCreate flag to root
-    siteAreas.canCreate = Authorizations.canCreateSite(userToken);
+    siteAreas.canCreate = await Authorizations.canCreateSite(userToken);
     // Enrich
     for (const siteArea of siteAreas.result) {
       if (!siteArea.issuer) {
@@ -630,11 +630,11 @@ export default class AuthorizationService {
         siteArea.canUpdate = false;
         siteArea.canDelete = false;
       } else {
-        siteArea.canRead = Authorizations.canReadSite(userToken);
+        siteArea.canRead = await Authorizations.canReadSite(userToken);
         // update & delete can be performed by admin or site admin
         const canModify = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(tenant, userToken, siteArea.id);
-        siteArea.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSiteArea(userToken) && canModify);
-        siteArea.canDelete = userToken.role === UserRole.ADMIN || (Authorizations.canDeleteSiteArea(userToken) && canModify);
+        siteArea.canUpdate = userToken.role === UserRole.ADMIN || (await Authorizations.canUpdateSiteArea(userToken) && canModify);
+        siteArea.canDelete = userToken.role === UserRole.ADMIN || (await Authorizations.canDeleteSiteArea(userToken) && canModify);
       }
     }
   }

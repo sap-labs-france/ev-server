@@ -29,7 +29,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOicpEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canDeleteOicpEndpoint(req.user)) {
+    if (!await Authorizations.canDeleteOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -62,7 +62,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.CREATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleCreateOicpEndpoint');
     // Check auth
-    if (!Authorizations.canCreateOicpEndpoint(req.user)) {
+    if (!await Authorizations.canCreateOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -116,7 +116,7 @@ export default class OICPEndpointService {
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canUpdateOicpEndpoint(req.user)) {
+    if (!await Authorizations.canUpdateOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -155,7 +155,7 @@ export default class OICPEndpointService {
     const endpointID = OICPEndpointSecurity.filterOicpEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOicpEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canReadOicpEndpoint(req.user)) {
+    if (!await Authorizations.canReadOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -181,7 +181,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.LIST, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleGetOicpEndpoints');
     // Check auth
-    if (!Authorizations.canListOicpEndpoints(req.user)) {
+    if (!await Authorizations.canListOicpEndpoints(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -191,7 +191,7 @@ export default class OICPEndpointService {
     }
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
@@ -221,7 +221,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -252,7 +252,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEsOicpEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -283,7 +283,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handlePingOicpEndpoint');
     // Check auth
-    if (!Authorizations.canPingOicpEndpoint(req.user)) {
+    if (!await Authorizations.canPingOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -333,7 +333,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleUnregisterOicpEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -382,7 +382,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleRegisterOicpEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

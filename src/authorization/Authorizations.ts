@@ -39,7 +39,7 @@ export default class Authorizations {
 
   private static configuration: AuthorizationConfiguration;
 
-  public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
+  public static async canRefundTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
     const context: AuthorizationContext = {
       UserID: transaction.userID,
       sitesOwner: loggedUser.sitesOwner,
@@ -49,7 +49,7 @@ export default class Authorizations {
       Action.REFUND_TRANSACTION, context);
   }
 
-  public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): boolean {
+  public static async canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): Promise<boolean> {
     let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
@@ -70,7 +70,7 @@ export default class Authorizations {
       Action.REMOTE_START_TRANSACTION, context);
   }
 
-  public static canStopTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
+  public static async canStopTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
     if (!transaction) {
       return false;
     }
@@ -159,6 +159,7 @@ export default class Authorizations {
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
+    const authDefinition = AuthorizationsDefinition.getInstance();
     const rolesACL = Authorizations.getAuthGroupsFromUser(user.role, siteAdminIDs.length, siteOwnerIDs.length);
     return {
       id: user.id,
@@ -177,7 +178,7 @@ export default class Authorizations {
       tenantSubdomain: tenantSubdomain,
       userHashID: SessionHashService.buildUserHashID(user),
       tenantHashID: tenantHashID,
-      scopes: AuthorizationsDefinition.getInstance().getScopes(rolesACL),
+      scopes: await authDefinition.getScopes(rolesACL),
       sitesAdmin: siteAdminIDs,
       sitesOwner: siteOwnerIDs,
       sites: siteIDs,
@@ -211,23 +212,23 @@ export default class Authorizations {
     return { user, alternateUser };
   }
 
-  public static canListLoggings(loggedUser: UserToken): boolean {
+  public static async canListLoggings(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGINGS, Action.LIST);
   }
 
-  public static canReadLog(loggedUser: UserToken): boolean {
+  public static async canReadLog(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.LOGGING, Action.READ);
   }
 
-  public static canListTransactions(loggedUser: UserToken): boolean {
+  public static async canListTransactions(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.LIST);
   }
 
-  public static canListTransactionsInError(loggedUser: UserToken): boolean {
+  public static async canListTransactionsInError(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTIONS, Action.IN_ERROR);
   }
 
-  public static canReadTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
+  public static async canReadTransaction(loggedUser: UserToken, transaction: Transaction): Promise<boolean> {
     if (!transaction) {
       return false;
     }
@@ -244,27 +245,27 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.READ, context);
   }
 
-  public static canReadReport(loggedUser: UserToken): boolean {
+  public static async canReadReport(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.REPORT, Action.READ);
   }
 
-  public static canUpdateTransaction(loggedUser: UserToken): boolean {
+  public static async canUpdateTransaction(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.UPDATE);
   }
 
-  public static canDeleteTransaction(loggedUser: UserToken): boolean {
+  public static async canDeleteTransaction(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION, Action.DELETE);
   }
 
-  public static canListChargingStations(loggedUser: UserToken): boolean {
+  public static async canListChargingStations(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.LIST);
   }
 
-  public static canListChargingStationsInError(loggedUser: UserToken): boolean {
+  public static async canListChargingStationsInError(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.IN_ERROR);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): boolean {
+  public static async canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): Promise<boolean> {
     if (!context) {
       const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION);
       context = {
@@ -278,25 +279,25 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, action, context);
   }
 
-  public static canReadChargingStation(loggedUser: UserToken): boolean {
+  public static async canReadChargingStation(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.READ);
   }
 
-  public static canUpdateChargingStation(loggedUser: UserToken, siteID: string): boolean {
+  public static async canUpdateChargingStation(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.UPDATE, {
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
     });
   }
 
-  public static canDeleteChargingStation(loggedUser: UserToken, siteID: string): boolean {
+  public static async canDeleteChargingStation(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.DELETE, {
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
     });
   }
 
-  public static canExportParams(loggedUser: UserToken, siteID: string): boolean {
+  public static async canExportParams(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.EXPORT, {
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
@@ -304,433 +305,433 @@ export default class Authorizations {
 
   }
 
-  public static canAssignUsersSites(loggedUser: UserToken): boolean {
+  public static async canAssignUsersSites(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.ASSIGN);
   }
 
-  public static canUnassignUsersSites(loggedUser: UserToken): boolean {
+  public static async canUnassignUsersSites(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
   }
 
-  public static canListUsersSites(loggedUser: UserToken): boolean {
+  public static async canListUsersSites(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.LIST);
   }
 
-  public static canListUsers(loggedUser: UserToken): boolean {
+  public static async canListUsers(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
   }
 
-  public static canListUsersInErrors(loggedUser: UserToken): boolean {
+  public static async canListUsersInErrors(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IN_ERROR);
   }
 
-  public static canListTags(loggedUser: UserToken): boolean {
+  public static async canListTags(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.LIST);
   }
 
-  public static canReadTag(loggedUser: UserToken): boolean {
+  public static async canReadTag(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.READ);
   }
 
-  public static canDeleteTag(loggedUser: UserToken): boolean {
+  public static async canDeleteTag(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.DELETE);
   }
 
-  public static canCreateTag(loggedUser: UserToken): boolean {
+  public static async canCreateTag(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.CREATE);
   }
 
-  public static canUpdateTag(loggedUser: UserToken): boolean {
+  public static async canUpdateTag(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
-  public static canImportTags(loggedUser: UserToken): boolean {
+  public static async canImportTags(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
-  public static canReadUser(loggedUser: UserToken, userID: string): boolean {
+  public static async canReadUser(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canCreateUser(loggedUser: UserToken): boolean {
+  public static async canCreateUser(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
-  public static canImportUsers(loggedUser: UserToken): boolean {
+  public static async canImportUsers(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
   }
 
-  public static canUpdateUser(loggedUser: UserToken, userID: string): boolean {
+  public static async canUpdateUser(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canDeleteUser(loggedUser: UserToken, userID: string): boolean {
+  public static async canDeleteUser(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.DELETE,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canListSites(loggedUser: UserToken): boolean {
+  public static async canListSites(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
   }
 
-  public static canReadSite(loggedUser: UserToken): boolean {
+  public static async canReadSite(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ);
   }
 
-  public static canCreateSite(loggedUser: UserToken): boolean {
+  public static async canCreateSite(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.CREATE);
   }
 
-  public static canUpdateSite(loggedUser: UserToken): boolean {
+  public static async canUpdateSite(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: UserToken): boolean {
+  public static async canDeleteSite(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE);
   }
 
-  public static canListSettings(loggedUser: UserToken): boolean {
+  public static async canListSettings(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTINGS, Action.LIST);
   }
 
-  public static canReadSetting(loggedUser: UserToken, context?): boolean {
+  public static async canReadSetting(loggedUser: UserToken, context?): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ, context);
   }
 
-  public static canDeleteSetting(loggedUser: UserToken): boolean {
+  public static async canDeleteSetting(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.DELETE);
   }
 
-  public static canCreateSetting(loggedUser: UserToken): boolean {
+  public static async canCreateSetting(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.CREATE);
   }
 
-  public static canUpdateSetting(loggedUser: UserToken): boolean {
+  public static async canUpdateSetting(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.UPDATE);
   }
 
-  public static canCreateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+  public static async canCreateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.CREATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canReadRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+  public static async canReadRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+  public static async canDeleteRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.DELETE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+  public static async canUpdateRegistrationToken(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.UPDATE, {
       site: siteID,
       sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canListRegistrationTokens(loggedUser: UserToken): boolean {
+  public static async canListRegistrationTokens(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKENS, Action.LIST);
   }
 
-  public static canListOcpiEndpoints(loggedUser: UserToken): boolean {
+  public static async canListOcpiEndpoints(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINTS, Action.LIST);
   }
 
-  public static canReadOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canReadOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.READ);
   }
 
-  public static canDeleteOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canDeleteOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.DELETE);
   }
 
-  public static canCreateOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canCreateOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.CREATE);
   }
 
-  public static canUpdateOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canUpdateOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.UPDATE);
   }
 
-  public static canPingOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canPingOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.PING);
   }
 
-  public static canTriggerJobOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canTriggerJobOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.TRIGGER_JOB);
   }
 
-  public static canRegisterOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canRegisterOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.REGISTER);
   }
 
-  public static canGenerateLocalTokenOcpiEndpoint(loggedUser: UserToken): boolean {
+  public static async canGenerateLocalTokenOcpiEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
-  public static canListOicpEndpoints(loggedUser: UserToken): boolean {
+  public static async canListOicpEndpoints(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINTS, Action.LIST);
   }
 
-  public static canReadOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canReadOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.READ);
   }
 
-  public static canDeleteOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canDeleteOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.DELETE);
   }
 
-  public static canCreateOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canCreateOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.CREATE);
   }
 
-  public static canUpdateOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canUpdateOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.UPDATE);
   }
 
-  public static canPingOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canPingOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.PING);
   }
 
-  public static canTriggerJobOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canTriggerJobOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.TRIGGER_JOB);
   }
 
-  public static canRegisterOicpEndpoint(loggedUser: UserToken): boolean {
+  public static async canRegisterOicpEndpoint(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.OICP_ENDPOINT, Action.REGISTER);
   }
 
-  public static canListChargingProfiles(loggedUser: UserToken): boolean {
+  public static async canListChargingProfiles(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILES, Action.LIST);
   }
 
-  public static canReadChargingProfile(loggedUser: UserToken, siteID: string): boolean {
+  public static async canReadChargingProfile(loggedUser: UserToken, siteID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_PROFILE, Action.READ,{
       site: siteID,
       sitesAdmin: loggedUser.sitesAdmin
     });
   }
 
-  public static canListSiteAreas(loggedUser: UserToken): boolean {
+  public static async canListSiteAreas(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREAS, Action.LIST);
   }
 
-  public static canReadSiteArea(loggedUser: UserToken): boolean {
+  public static async canReadSiteArea(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.READ);
   }
 
-  public static canCreateSiteArea(loggedUser: UserToken): boolean {
+  public static async canCreateSiteArea(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: UserToken, siteID?: string): boolean {
+  public static async canUpdateSiteArea(loggedUser: UserToken, siteID?: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.UPDATE, {
       site: siteID, sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canDeleteSiteArea(loggedUser: UserToken): boolean {
+  public static async canDeleteSiteArea(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
   }
 
-  public static canListCompanies(loggedUser: UserToken): AuthorizationResult {
+  public static async canListCompanies(loggedUser: UserToken): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken): AuthorizationResult {
+  public static async canReadCompany(loggedUser: UserToken): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.COMPANY, Action.READ);
   }
 
-  public static canCreateCompany(loggedUser: UserToken): boolean {
+  public static async canCreateCompany(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.CREATE);
   }
 
-  public static canUpdateCompany(loggedUser: UserToken): boolean {
+  public static async canUpdateCompany(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.UPDATE);
   }
 
-  public static canDeleteCompany(loggedUser: UserToken): boolean {
+  public static async canDeleteCompany(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
-  public static canListCarCatalogs(loggedUser: UserToken): boolean {
+  public static async canListCarCatalogs(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.LIST);
   }
 
-  public static canReadCarCatalog(loggedUser: UserToken): boolean {
+  public static async canReadCarCatalog(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOG, Action.READ);
   }
 
-  public static canListCars(loggedUser: UserToken): boolean {
+  public static async canListCars(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
   }
 
-  public static canReadCar(loggedUser: UserToken): boolean {
+  public static async canReadCar(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
-  public static canListUsersCars(loggedUser: UserToken): boolean {
+  public static async canListUsersCars(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
   }
 
-  public static canAssignUsersCars(loggedUser: UserToken): boolean {
+  public static async canAssignUsersCars(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
   }
 
-  public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {
+  public static async canSynchronizeCarCatalogs(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE);
   }
 
-  public static canCreateCar(loggedUser: UserToken): boolean {
+  public static async canCreateCar(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.CREATE);
   }
 
-  public static canUpdateCar(loggedUser: UserToken): boolean {
+  public static async canUpdateCar(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.UPDATE);
   }
 
-  public static canDeleteCar(loggedUser: UserToken): boolean {
+  public static async canDeleteCar(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.DELETE);
   }
 
-  public static canListAssets(loggedUser: UserToken): boolean {
+  public static async canListAssets(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
   }
 
-  public static canListAssetsInError(loggedUser: UserToken): boolean {
+  public static async canListAssetsInError(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.IN_ERROR);
   }
 
-  public static canReadAsset(loggedUser: UserToken): boolean {
+  public static async canReadAsset(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ);
   }
 
-  public static canCreateAsset(loggedUser: UserToken): boolean {
+  public static async canCreateAsset(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CREATE);
   }
 
-  public static canUpdateAsset(loggedUser: UserToken): boolean {
+  public static async canUpdateAsset(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.UPDATE);
   }
 
-  public static canDeleteAsset(loggedUser: UserToken): boolean {
+  public static async canDeleteAsset(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.DELETE);
   }
 
-  public static canListTenants(loggedUser: UserToken): boolean {
+  public static async canListTenants(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANTS, Action.LIST);
   }
 
-  public static canReadTenant(loggedUser: UserToken): boolean {
+  public static async canReadTenant(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANT, Action.READ);
   }
 
-  public static canCreateTenant(loggedUser: UserToken): boolean {
+  public static async canCreateTenant(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANT, Action.CREATE);
   }
 
-  public static canUpdateTenant(loggedUser: UserToken): boolean {
+  public static async canUpdateTenant(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANT, Action.UPDATE);
   }
 
-  public static canDeleteTenant(loggedUser: UserToken): boolean {
+  public static async canDeleteTenant(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANT, Action.DELETE);
   }
 
-  public static canCreateConnection(loggedUser: UserToken): boolean {
+  public static async canCreateConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.CREATE);
   }
 
-  public static canDeleteConnection(loggedUser: UserToken, userID: string): boolean {
+  public static async canDeleteConnection(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.DELETE,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canReadConnection(loggedUser: UserToken, userID: string): boolean {
+  public static async canReadConnection(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.READ,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canListConnections(loggedUser: UserToken): boolean {
+  public static async canListConnections(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTIONS, Action.LIST);
   }
 
-  public static canReadPricing(loggedUser: UserToken): boolean {
+  public static async canReadPricing(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.READ);
   }
 
-  public static canUpdatePricing(loggedUser: UserToken): boolean {
+  public static async canUpdatePricing(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
   }
 
-  public static canCheckConnectionBilling(loggedUser: UserToken): boolean {
+  public static async canCheckConnectionBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
-  public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
+  public static async canSynchronizeUsersBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS);
   }
 
-  public static canSynchronizeUserBilling(loggedUser: UserToken): boolean {
+  public static async canSynchronizeUserBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER);
   }
 
-  public static canReadTaxesBilling(loggedUser: UserToken): boolean {
+  public static async canReadTaxesBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
   }
 
-  public static canListInvoicesBilling(loggedUser: UserToken): boolean {
+  public static async canListInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
-  public static canSynchronizeInvoicesBilling(loggedUser: UserToken): boolean {
+  public static async canSynchronizeInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
   }
 
-  public static canCreateTransactionInvoice(loggedUser: UserToken): boolean {
+  public static async canCreateTransactionInvoice(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.CREATE);
   }
 
-  public static canDownloadInvoiceBilling(loggedUser: UserToken, userID: string): boolean {
+  public static async canDownloadInvoiceBilling(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.DOWNLOAD,
       { user: userID, owner: loggedUser.id });
   }
 
-  public static canCheckAssetConnection(loggedUser: UserToken): boolean {
+  public static async canCheckAssetConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
 
-  public static canRetrieveAssetConsumption(loggedUser: UserToken): boolean {
+  public static async canRetrieveAssetConsumption(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static canEndUserReportError(loggedUser: UserToken): boolean {
+  public static async canEndUserReportError(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
-  public static canListPaymentMethod(loggedUser: UserToken): boolean {
+  public static async canListPaymentMethod(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
   }
 
   // or canPerformAction(loggedUser, Entity.BILLING, Action.CREATE_PAYMENT_METHOD)
-  public static canCreatePaymentMethod(loggedUser: UserToken, userID: string): boolean {
+  public static async canCreatePaymentMethod(loggedUser: UserToken, userID: string): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE,
       { user: userID, owner: loggedUser.id }
     );
   }
 
-  public static canDeletePaymentMethod(loggedUser: UserToken): boolean {
+  public static async canDeletePaymentMethod(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE);
   }
 
@@ -916,7 +917,7 @@ export default class Authorizations {
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
+      if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -1009,9 +1010,10 @@ export default class Authorizations {
     return roles;
   }
 
-  private static canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): boolean {
+  private static async canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<boolean> {
     // Check
-    const authorized = AuthorizationsDefinition.getInstance().can(loggedUser.rolesACL, entity, action, context);
+    const authDefinition = AuthorizationsDefinition.getInstance();
+    const authorized = await authDefinition.can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
@@ -1023,9 +1025,10 @@ export default class Authorizations {
     return authorized;
   }
 
-  private static can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): AuthorizationResult {
+  private static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
     // Check
-    const result = AuthorizationsDefinition.getInstance().canPerformAction(loggedUser.rolesACL, entity, action, context);
+    const authDefinition = AuthorizationsDefinition.getInstance();
+    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
     if (!result.authorized && Authorizations.getConfiguration().debug) {
       void Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,

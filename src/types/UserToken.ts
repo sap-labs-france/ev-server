@@ -17,7 +17,7 @@ export default interface UserToken {
   tenantName?: string;
   userHashID?: string;
   tenantHashID?: string;
-  scopes?: readonly string[];
+  scopes?: string[];
   companies?: string[];
   sites?: string[];
   sitesAdmin?: string[];
