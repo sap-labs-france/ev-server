@@ -982,8 +982,8 @@ export default class ChargingStationService {
     // check dynamic auth
     const chargingStationAuthorizationFilters =
       await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    // Force the failure
     if (!chargingStationAuthorizationFilters.authorized) {
-      // Force the failure
       UtilsService.assertObjectExists(action, null, `Charging Station '${filteredRequest.ID}' does not exist`,
         MODULE_NAME, 'handleGetChargingStation', req.user);
       return;
@@ -1234,7 +1234,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
-    let result;
+    let result = null;
     // Remote Stop Transaction / Unlock Connector
     if (command === Command.REMOTE_STOP_TRANSACTION) {
       // Check Transaction ID

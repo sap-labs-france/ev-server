@@ -41,6 +41,12 @@ export default class CompanyService {
     // Get authorization filters
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       req.tenant, req.user, { ID: companyID });
+    // Force the failure
+    if (!authorizationCompanyFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Company with ID '${companyID}' does not exist`,
+        MODULE_NAME, 'handleDeleteCompany', req.user);
+      return;
+    }
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID, authorizationCompanyFilters.filters);
     UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
@@ -89,7 +95,14 @@ export default class CompanyService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check dynamic auth
-    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    const authorizationCompanyFilters =
+      await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    // Force the failure
+    if (!authorizationCompanyFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Company with ID '${filteredRequest.ID}' does not exist`,
+        MODULE_NAME, 'handleGetCompany', req.user);
+      return;
+    }
     // Get company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
       {
@@ -240,6 +253,12 @@ export default class CompanyService {
     // Check dynamic auth
     const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.id });
+    // Force the failure
+    if (!authorizationCompanyFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Company with ID '${filteredRequest.id}' does not exist`,
+        MODULE_NAME, 'handleUpdateCompany', req.user);
+      return;
+    }
     // Get Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationCompanyFilters.filters);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,

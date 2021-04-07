@@ -465,20 +465,15 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Company IDs from sssigned Sites
         const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-        if (Utils.isEmptyArray(companyIDs) || !companyIDs.includes(filteredRequest.ID)) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action: Action.READ, entity: Entity.COMPANY,
-            module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
-          });
-        } else {
+        if (!Utils.isEmptyArray(companyIDs) && companyIDs.includes(filteredRequest.ID)) {
           authorizationFilters.authorized = true;
         }
       } else {
@@ -630,13 +625,17 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned Site IDs assigned to user from DB
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteIDs = siteIDs;
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get assigned Site IDs assigned to user from DB
+        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
         authorizationFilters.authorized = true;
       }
     }
