@@ -986,7 +986,6 @@ export default class ChargingStationService {
     if (!chargingStationAuthorizationFilters.authorized) {
       UtilsService.assertObjectExists(action, null, `Charging Station '${filteredRequest.ID}' does not exist`,
         MODULE_NAME, 'handleGetChargingStation', req.user);
-      return;
     }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(

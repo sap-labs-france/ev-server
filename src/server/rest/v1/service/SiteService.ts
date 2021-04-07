@@ -81,10 +81,15 @@ export default class SiteService {
     // Check dynamic auth for reading site
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.siteID });
-    // Get the Site and check it exists
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.siteID}' does not exist`,
+        MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
+    }
+    // Get the Site
     const site = await SiteStorage.getSite(
       req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
+    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserAdmin', req.user);
     // Get dynamic auth filters for reading user
     const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
@@ -166,10 +171,15 @@ export default class SiteService {
     // Check dynamic auth for reading site
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.siteID });
-    // Get the Site and check it exists
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.siteID}' does not exist`,
+        MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
+    }
+    // Get the Site
     const site = await SiteStorage.getSite(
       req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.siteID}' does not exist`,
+    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
     // Get dynamic auth filters  for reading user
     const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
@@ -242,10 +252,15 @@ export default class SiteService {
     // Check dynamic auth for reading
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.siteID });
-    // Get the Site & check that it exists
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.siteID}' does not exist`,
+        MODULE_NAME, 'handleAssignUsersToSite', req.user);
+    }
+    // Get the Site
     const site = await SiteStorage.getSite(
       req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
-    UtilsService.assertObjectExists(action, site, `Site '${filteredRequest.siteID}' does not exist`,
+    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleAssignUsersToSite', req.user);
     // OCPI Site
     if (!site.issuer) {
@@ -365,9 +380,13 @@ export default class SiteService {
     // Check dynamic auth
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: siteID });
-    // Get the site
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${siteID}' does not exist`,
+        MODULE_NAME, 'handleDeleteSite', req.user);
+    }
+    // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, siteID, authorizationSiteFilters.filters);
-    // Check that the site exists
     UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
       MODULE_NAME, 'handleDeleteSite', req.user);
     // OCPI Site
@@ -416,7 +435,12 @@ export default class SiteService {
     // Check dynamic auth
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    // Get it
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.ID}' does not exist`,
+        MODULE_NAME, 'handleGetSite', req.user);
+    }
+    // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
       {
         withCompany: filteredRequest.WithCompany,

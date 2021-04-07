@@ -45,7 +45,6 @@ export default class CompanyService {
     if (!authorizationCompanyFilters.authorized) {
       UtilsService.assertObjectExists(action, null, `Company with ID '${companyID}' does not exist`,
         MODULE_NAME, 'handleDeleteCompany', req.user);
-      return;
     }
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID, authorizationCompanyFilters.filters);
@@ -101,7 +100,6 @@ export default class CompanyService {
     if (!authorizationCompanyFilters.authorized) {
       UtilsService.assertObjectExists(action, null, `Company with ID '${filteredRequest.ID}' does not exist`,
         MODULE_NAME, 'handleGetCompany', req.user);
-      return;
     }
     // Get company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
@@ -257,7 +255,6 @@ export default class CompanyService {
     if (!authorizationCompanyFilters.authorized) {
       UtilsService.assertObjectExists(action, null, `Company with ID '${filteredRequest.id}' does not exist`,
         MODULE_NAME, 'handleUpdateCompany', req.user);
-      return;
     }
     // Get Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationCompanyFilters.filters);

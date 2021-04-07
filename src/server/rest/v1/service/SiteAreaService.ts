@@ -512,7 +512,12 @@ export default class SiteAreaService {
     // Check dynamic auth for reading site
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.siteID });
-    // Get Site & check it exists
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.siteID}' does not exist`,
+        MODULE_NAME, 'handleCreateSiteArea', req.user);
+    }
+    // Get Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleCreateSiteArea', req.user);
@@ -605,7 +610,12 @@ export default class SiteAreaService {
     // Check dynamic auth for reading site
     const authorizationSiteFilters = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.siteID });
-    // Get Site & check it exists
+    // Force the failure
+    if (!authorizationSiteFilters.authorized) {
+      UtilsService.assertObjectExists(action, null, `Site ID '${filteredRequest.siteID}' does not exist`,
+        MODULE_NAME, 'handleUpdateSiteArea', req.user);
+    }
+    // Get Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID, authorizationSiteFilters.filters);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);

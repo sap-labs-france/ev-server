@@ -42,14 +42,7 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN) {
       // Get assigned Site IDs from DB
       const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
-      if (Utils.isEmptyArray(siteIDs) || !siteIDs.includes(filteredRequest.ID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.READ, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-        });
-      } else {
+      if (!Utils.isEmptyArray(siteIDs) && siteIDs.includes(filteredRequest.ID)) {
         authorizationFilters.authorized = true;
       }
     }
@@ -470,17 +463,12 @@ export default class AuthorizationService {
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Company IDs from sssigned Sites
-        const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(companyIDs) && companyIDs.includes(filteredRequest.ID)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
+      // Get Company IDs from sssigned Sites
+      const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(companyIDs) && companyIDs.includes(filteredRequest.ID)) {
         authorizationFilters.authorized = true;
       }
     }
-
     return authorizationFilters;
   }
 
