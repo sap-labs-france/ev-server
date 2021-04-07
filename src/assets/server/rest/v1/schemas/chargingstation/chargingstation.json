@@ -193,7 +193,10 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "connectorId"
+      ]
     },
     "chargePoint": {
       "type": "object",
