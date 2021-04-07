@@ -1,9 +1,9 @@
+import { ServerAction, ServerRoute } from '../../../../../types/Server';
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import express, { NextFunction, Request, Response } from 'express';
 
 import BillingService from '../../service/BillingService';
 import RouterUtils from '../RouterUtils';
-import { ServerAction } from '../../../../../types/Server';
 
 export default class BillingRouter {
   private router: express.Router;
@@ -13,32 +13,54 @@ export default class BillingRouter {
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteBillingSetupPaymentMethod();
     this.buildRouteBillingPaymentMethods();
+    // this.buildRouteBillingPaymentMethod(); - // No use case so far
+    // this.buildRouteBillingCreatePaymentMethod(); - // No use case so far
+    // this.buildRouteBillingUpdatePaymentMethod(); - // No use case so far
     this.buildRouteBillingDeletePaymentMethod();
+    this.buildRouteBillingPaymentMethodSetup();
+    this.buildRouteBillingPaymentMethodAttach();
+    this.buildRouteBillingPaymentMethodDetach();
     return this.router;
   }
 
-  protected buildRouteBillingSetupPaymentMethod(): void {
-    this.router.put(`/${ServerAction.BILLING_SETUP_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
-    });
-  }
-
-  // why in other routers we can see ServerRoute.REST_BILLING_PAYMENT_METHODS ????
-  // don't get the difference
   protected buildRouteBillingPaymentMethods(): void {
-    this.router.get(`/${ServerAction.BILLING_PAYMENT_METHODS}`, async (req: Request, res: Response, next: NextFunction) => {
-      // req.query.ID = req.params.id;
+    this.router.get(`/${ServerRoute.REST_BILLING_PAYMENT_METHODS}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.userID = req.params.userID;
       await RouterUtils.handleServerAction(BillingService.handleBillingGetPaymentMethods.bind(this), ServerAction.BILLING_PAYMENT_METHODS, req, res, next);
     });
   }
 
-  // delete ou post ?
   protected buildRouteBillingDeletePaymentMethod(): void {
-    this.router.delete(`/${ServerAction.BILLING_DELETE_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
-      req.query.ID = req.params.id;
+    this.router.delete(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.userID = req.params.userID;
+      req.body.paymentMethodId = req.params.paymentMethodID;
       await RouterUtils.handleServerAction(BillingService.handleBillingDeletePaymentMethod.bind(this), ServerAction.BILLING_DELETE_PAYMENT_METHOD, req, res, next);
     });
   }
+
+  protected buildRouteBillingPaymentMethodSetup(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD_SETUP}`, async (req: Request, res: Response, next: NextFunction) => {
+      // STRIPE prerequisite - ask for a setup intent first!
+      req.body.userID = req.params.userID;
+      await RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingPaymentMethodAttach(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD_ATTACH}`, async (req: Request, res: Response, next: NextFunction) => {
+      // Creates a new payment method and attach it to the user as its default
+      req.body.userID = req.params.userID;
+      await RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingPaymentMethodDetach(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD_DETACH}`, async (req: Request, res: Response, next: NextFunction) => {
+      // Detach a payment method from the user
+      req.body.userID = req.params.userID;
+      await RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
 }
