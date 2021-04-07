@@ -104,6 +104,7 @@ export default class CompanyService {
     // Add authorization
     const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
     company.canUpdate = company.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateCompany(req.user) && assignedCompanies.includes(company.id)));
+    company.canCreate = Authorizations.canCreateCompany(req.user);
     // Return
     res.json(company);
     next();
