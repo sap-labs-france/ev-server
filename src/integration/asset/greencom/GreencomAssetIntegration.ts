@@ -42,7 +42,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           headers: this.buildAuthHeader(token)
         }
       );
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,

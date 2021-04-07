@@ -390,13 +390,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
-    title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
+      title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
     }
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
@@ -440,7 +440,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private createMessage(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string,
-    data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+      data: Record<string, unknown>, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {

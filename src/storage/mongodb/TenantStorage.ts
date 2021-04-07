@@ -14,7 +14,7 @@ const MODULE_NAME = 'TenantStorage';
 
 export default class TenantStorage {
   public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
+      params: { withLogo?: boolean; } = {}, projectFields?: string[]): Promise<Tenant> {
     // Call DB
     const tenantsMDB = await TenantStorage.getTenants({
       tenantIDs: [id],
@@ -106,8 +106,8 @@ export default class TenantStorage {
 
   // Delegate
   public static async getTenants(
-    params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
+      params: { tenantIDs?: string[]; tenantName?: string; tenantSubdomain?: string; search?: string, withLogo?: boolean },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getTenants');
     // Clone before updating the values

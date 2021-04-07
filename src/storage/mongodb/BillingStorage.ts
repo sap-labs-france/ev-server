@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceDocument, BillingInvoiceStatus } from '../../types/Billing';
+import { BillingAdditionalData, BillingInvoice, BillingInvoiceStatus, BillingSessionData } from '../../types/Billing';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -34,11 +34,11 @@ export default class BillingStorage {
   }
 
   public static async getInvoices(tenantID: string,
-    params: {
-      invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
-      startDateTime?: Date; endDateTime?: Date;
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
+      params: {
+        invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
+        startDateTime?: Date; endDateTime?: Date;
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getInvoices');
     // Check Tenant
@@ -173,7 +173,6 @@ export default class BillingStorage {
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
-      nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems),
       downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
       downloadUrl: invoiceToSave.downloadUrl
     };
@@ -188,24 +187,26 @@ export default class BillingStorage {
     return invoiceMDB._id.toHexString();
   }
 
-  public static async saveLastPaymentFailure(tenantID: string, invoiceID: string, error: unknown): Promise<void> {
+  public static async updateInvoiceAdditionalData(tenantID: string, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'savePaymentData');
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveInvoiceAdditionalData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    // Preserve the previous list of sessions
+    const sessions: BillingSessionData[] = invoiceToUpdate.sessions || [];
+    if (additionalData.session) {
+      sessions.push(additionalData.session);
+    }
     // Set data
     const updatedInvoiceMDB: any = {
-      lastPaymentFailure: {
-        eventReceivedOn: new Date(),
-        error
-      }
+      sessions,
+      lastError: additionalData.lastError
     };
-    // Modify and return the modified document
     await global.database.getCollection(tenantID, 'invoices').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(invoiceID) },
+      { '_id': Utils.convertToObjectID(invoiceToUpdate.id) },
       { $set: updatedInvoiceMDB });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'savePaymentData', uniqueTimerID, updatedInvoiceMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoiceAdditionalData', uniqueTimerID, updatedInvoiceMDB);
   }
 
   public static async deleteInvoice(tenantID: string, id: string): Promise<void> {

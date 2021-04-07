@@ -11,9 +11,11 @@ import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
+import { SiteDataResult } from '../../../../types/DataResult';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TenantComponents from '../../../../types/TenantComponents';
+import { UserRole } from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -425,6 +427,9 @@ export default class SiteService {
     );
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
+    // Add authorization
+    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(req.tenant.id, req.user);
+    site.canUpdate = site.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id)));
     // Return
     res.json(site);
     next();
@@ -476,7 +481,7 @@ export default class SiteService {
       authorizationSiteFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites.result);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult);
     // Return
     res.json(sites);
     next();

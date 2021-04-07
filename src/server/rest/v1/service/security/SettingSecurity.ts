@@ -222,6 +222,12 @@ export default class SettingSecurity {
                   clientSecret: sanitize(connection.greencomConnection.clientSecret),
                 };
                 break;
+              case AssetConnectionType.IOTHINK:
+                sanitizedConnection.iothinkConnection = {
+                  user: sanitize(connection.iothinkConnection.user),
+                  password: sanitize(connection.iothinkConnection.password),
+                };
+                break;
             }
             settings.content.asset.connections.push(sanitizedConnection);
           }

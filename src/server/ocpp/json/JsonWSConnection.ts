@@ -123,13 +123,14 @@ export default class JsonWSConnection extends WSConnection {
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Log
     await Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    const methodName = `handle${commandName}`;
     // Check if method exist in the service
-    if (typeof this.chargingStationService['handle' + commandName] === 'function') {
+    if (typeof this.chargingStationService[methodName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
         this.headers.currentIPAddress = this.getClientIP();
       }
       // Call it
-      const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
+      const result = await this.chargingStationService[methodName](this.headers, commandPayload);
       // Log
       await Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response

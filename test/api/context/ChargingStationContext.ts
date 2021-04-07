@@ -237,19 +237,19 @@ export default class ChargingStationContext {
   }
 
   public async sendBeginMeterValue(connectorId: number, transactionId: number,
-    timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
+      timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     return this.sendBeginEndMeterValue(
       OCPPReadingContext.TRANSACTION_BEGIN, connectorId, transactionId, timestamp, meterValues);
   }
 
   public async sendEndMeterValue(connectorId: number, transactionId: number,
-    timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
+      timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     return this.sendBeginEndMeterValue(
       OCPPReadingContext.TRANSACTION_END, connectorId, transactionId, timestamp, meterValues);
   }
 
   public async sendBeginEndMeterValue(context: OCPPReadingContext.TRANSACTION_BEGIN | OCPPReadingContext.TRANSACTION_END,
-    connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
+      connectorId: number, transactionId: number, timestamp: Date, meterValues: MeterValueParams): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
@@ -434,8 +434,9 @@ export default class ChargingStationContext {
       connector.timestamp = new Date().toISOString();
     }
     const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
-    this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;
-    this.chargingStation.connectors[connector.connectorId - 1].errorCode = connector.errorCode;
+    const connectorId = connector.connectorId - 1;
+    this.chargingStation.connectors[connectorId].status = connector.status;
+    this.chargingStation.connectors[connectorId].errorCode = connector.errorCode;
     return response;
   }
 

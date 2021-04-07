@@ -10,28 +10,14 @@ import OCPIUtils from '../../../OCPIUtils';
 import { ServerAction } from '../../../../../types/Server';
 import Tenant from '../../../../../types/Tenant';
 
-const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'EMSPCommandsEndpoint';
 
-/**
- * EMSP Tokens Endpoint
- */
 export default class CPOCommandsEndpoint extends AbstractEndpoint {
-  // Create OCPI Service
-  constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER);
+  public constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, 'commands');
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   * @param ocpiEndpoint
-   */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+  public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         // Split URL Segments
@@ -50,10 +36,10 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           case OCPICommandType.STOP_SESSION:
           case OCPICommandType.RESERVE_NOW:
           case OCPICommandType.UNLOCK_CONNECTOR:
-            Logging.logDebug({
+            await Logging.logWarning({
               tenantID: tenant.id,
               action: this.getAction(command),
-              message: `OCPI command response received for action '${command}' with ID '${commandId}'` ,
+              message: `OCPI command response received for action '${command}' with ID '${commandId}' - No action done` ,
               module: MODULE_NAME, method: 'process',
               detailedMessages: { response : req.body }
             });

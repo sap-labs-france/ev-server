@@ -109,7 +109,7 @@ class TestData {
   }
 
   public static async sendMeterValue(voltage: number, amperagePerPhase:number, transaction: Transaction, chargingStationContext: ChargingStationContext,
-    phasesUsed?: CSPhasesUsed): Promise<void> {
+      phasesUsed?: CSPhasesUsed): Promise<void> {
     const meterValues = {
       energyActiveImportMeterValue: 0,
       amperageMeterValue: amperagePerPhase,

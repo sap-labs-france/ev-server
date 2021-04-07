@@ -74,7 +74,7 @@ export default class TransactionCommonTests {
   }
 
   public async testReadNonExistingTransaction() {
-    const response = await this.transactionUserService.transactionApi.readById(faker.random.number(100000));
+    const response = await this.transactionUserService.transactionApi.readById(faker.datatype.number(100000));
     expect(response.status).to.equal(550);
   }
 
@@ -113,7 +113,7 @@ export default class TransactionCommonTests {
   public async testReadStartedTransactionWithoutMeterValue() {
     const connectorId = 1;
     const tagId = this.transactionUser.tags[0].id;
-    const meterStart = faker.random.number({ min: 0, max: 1000 });
+    const meterStart = faker.datatype.number({ min: 0, max: 1000 });
     const startDate = moment();
     const startTransactionResponse = await this.chargingStationContext.startTransaction(
       connectorId, tagId, meterStart, startDate.toDate());
@@ -1025,7 +1025,7 @@ export default class TransactionCommonTests {
   }
 
   public async testDeleteNotExistingTransaction() {
-    const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
+    const response = await this.transactionUserService.transactionApi.delete(faker.datatype.number(100000));
     expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
   }
 
@@ -1090,7 +1090,7 @@ export default class TransactionCommonTests {
   }
 
   public async testMultiDeleteNotFoundTransactions() {
-    const response = await this.transactionUserService.transactionApi.deleteMany([faker.random.number(100000), faker.random.number(100000)]);
+    const response = await this.transactionUserService.transactionApi.deleteMany([faker.datatype.number(100000), faker.datatype.number(100000)]);
     expect(response.status).to.equal(200);
     expect(response.data.inSuccess).to.equal(0);
     expect(response.data.inError).to.equal(2);
@@ -1109,7 +1109,7 @@ export default class TransactionCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-    const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.random.number(100000)]);
+    const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.datatype.number(100000)]);
     if (allowed) {
       expect(transactionsDeleted.status).to.equal(200);
       expect(transactionsDeleted.data.inSuccess).to.equal(1);
