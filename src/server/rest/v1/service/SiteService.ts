@@ -600,7 +600,7 @@ export default class SiteService {
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check static auth for reading company
-    if (!Authorizations.canReadCompany(req.user)) {
+    if (!Authorizations.canReadCompany(req.user).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

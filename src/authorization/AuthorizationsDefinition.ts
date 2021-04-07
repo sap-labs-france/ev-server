@@ -1,4 +1,4 @@
-import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
+import { Action, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
 
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
@@ -30,12 +30,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
+        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ] },
       { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
-      { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
+      { resource: Entity.COMPANY, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
@@ -116,14 +119,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
+        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.COMPANY, action: Action.READ, attributes: ['*']
-      },
+      { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
       // -----------------------------------------------------------------------------------------------
       // TODO - put it pack as soon as BILLING has been validated of SLF
       // -----------------------------------------------------------------------------------------------
@@ -230,8 +232,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.COMPANY, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
+        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'] },
+      { resource: Entity.COMPANY, action: Action.READ, attributes: [
+        'id', 'name', 'issuer', 'logo', 'address'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
@@ -347,11 +351,11 @@ export default class AuthorizationsDefinition {
     return AuthorizationsDefinition._instance;
   }
 
-  public getScopes(groups: ReadonlyArray<string>): ReadonlyArray<string> {
+  public getScopes(roles: ReadonlyArray<string>): ReadonlyArray<string> {
     const scopes = [];
     try {
-      for (const resource of this.accessControl.allowedResources({ role: groups }) as string[]) {
-        for (const action of this.accessControl.allowedActions({ role: groups, resource: resource }) as string[]) {
+      for (const resource of this.accessControl.allowedResources({ role: roles }) as string[]) {
+        for (const action of this.accessControl.allowedActions({ role: roles, resource }) as string[]) {
           scopes.push(`${resource}:${action}`);
         }
       }
@@ -376,6 +380,24 @@ export default class AuthorizationsDefinition {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'can',
+        message: 'Unable to check authorization',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+  }
+
+  public canPerformAction(role: ReadonlyArray<string>, resource: string, action: string, context?): AuthorizationResult {
+    try {
+      const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
+      return {
+        authorized: permission.granted,
+        fields: permission.attributes,
+      };
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'canPerformAction',
         message: 'Unable to check authorization',
         detailedMessages: { error: error.message, stack: error.stack }
       });

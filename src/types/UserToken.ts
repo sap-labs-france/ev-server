@@ -3,6 +3,7 @@ import User from './User';
 export default interface UserToken {
   id?: string;
   role?: string;
+  rolesACL?: string[];
   name?: string;
   email?: string;
   mobile?: string;

@@ -1,4 +1,4 @@
-import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
 import ChargingStation, { Connector } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
@@ -159,27 +159,29 @@ export default class Authorizations {
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
+    const rolesACL = Authorizations.getAuthGroupsFromUser(user.role, siteAdminIDs.length, siteOwnerIDs.length);
     return {
-      'id': user.id,
-      'role': user.role,
-      'name': user.name,
-      'mobile': user.mobile,
-      'email': user.email,
-      'tagIDs': tags ? tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
-      'firstName': user.firstName,
-      'locale': user.locale,
-      'language': Utils.getLanguageFromLocale(user.locale),
-      'currency': currency,
-      'tenantID': tenantID,
-      'tenantName': tenantName,
-      'tenantSubdomain': tenantSubdomain,
-      'userHashID': SessionHashService.buildUserHashID(user),
-      'tenantHashID': tenantHashID,
-      'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
-      'sitesAdmin': siteAdminIDs,
-      'sitesOwner': siteOwnerIDs,
-      'sites': siteIDs,
-      'activeComponents': activeComponents
+      id: user.id,
+      role: user.role,
+      rolesACL,
+      name: user.name,
+      mobile: user.mobile,
+      email: user.email,
+      tagIDs: tags ? tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
+      firstName: user.firstName,
+      locale: user.locale,
+      language: Utils.getLanguageFromLocale(user.locale),
+      currency: currency,
+      tenantID: tenantID,
+      tenantName: tenantName,
+      tenantSubdomain: tenantSubdomain,
+      userHashID: SessionHashService.buildUserHashID(user),
+      tenantHashID: tenantHashID,
+      scopes: AuthorizationsDefinition.getInstance().getScopes(rolesACL),
+      sitesAdmin: siteAdminIDs,
+      sitesOwner: siteOwnerIDs,
+      sites: siteIDs,
+      activeComponents: activeComponents
     };
   }
 
@@ -542,12 +544,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
   }
 
-  public static canListCompanies(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANIES, Action.LIST);
+  public static canListCompanies(loggedUser: UserToken): AuthorizationResult {
+    return Authorizations.can(loggedUser, Entity.COMPANIES, Action.LIST);
   }
 
-  public static canReadCompany(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ);
+  public static canReadCompany(loggedUser: UserToken): AuthorizationResult {
+    return Authorizations.can(loggedUser, Entity.COMPANY, Action.READ);
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {
@@ -966,19 +968,13 @@ export default class Authorizations {
           });
         }
         // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
-        const transactionConnector: Connector = transaction?.connectorId ? Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
+        const transactionConnector: Connector = transaction?.connectorId ?
+          Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
         // Keep the Auth ID
         user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, transactionConnector);
       }
     }
     return user;
-  }
-
-  private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
-    // Get the group from User's role
-    const groups = Authorizations.getAuthGroupsFromUser(user.role, sitesAdminCount, sitesOwnerCount);
-    // Return the scopes
-    return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
   private static getConfiguration() {
@@ -988,42 +984,36 @@ export default class Authorizations {
     return Authorizations.configuration;
   }
 
-  private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
-    const groups: Array<string> = [];
+  private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number, sitesOwnerCount: number): string[] {
+    const roles: Array<string> = [];
     switch (userRole) {
       case UserRole.ADMIN:
-        groups.push('admin');
+        roles.push('admin');
         break;
       case UserRole.SUPER_ADMIN:
-        groups.push('superAdmin');
+        roles.push('superAdmin');
         break;
       case UserRole.BASIC:
-        groups.push('basic');
-        // Check Site Admin
+        roles.push('basic');
         if (sitesAdminCount > 0) {
-          groups.push('siteAdmin');
+          roles.push('siteAdmin');
         }
         break;
       case UserRole.DEMO:
-        groups.push('demo');
+        roles.push('demo');
         break;
     }
-
     if (sitesOwnerCount > 0) {
-      groups.push('siteOwner');
+      roles.push('siteOwner');
     }
-    return groups;
+    return roles;
   }
 
   private static canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): boolean {
-    // Get the groups
-    const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role,
-      loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0,
-      loggedUser.sitesOwner ? loggedUser.sitesOwner.length : 0);
     // Check
-    const authorized = AuthorizationsDefinition.getInstance().can(groups, entity, action, context);
+    const authorized = AuthorizationsDefinition.getInstance().can(loggedUser.rolesACL, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
-      Logging.logSecurityInfo({
+      void Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',
@@ -1031,5 +1021,19 @@ export default class Authorizations {
       });
     }
     return authorized;
+  }
+
+  private static can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): AuthorizationResult {
+    // Check
+    const result = AuthorizationsDefinition.getInstance().canPerformAction(loggedUser.rolesACL, entity, action, context);
+    if (!result.authorized && Authorizations.getConfiguration().debug) {
+      void Logging.logSecurityInfo({
+        tenantID: loggedUser.tenantID, user: loggedUser,
+        action: ServerAction.AUTHORIZATIONS,
+        module: MODULE_NAME, method: 'canPerformAction',
+        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
+      });
+    }
+    return result;
   }
 }

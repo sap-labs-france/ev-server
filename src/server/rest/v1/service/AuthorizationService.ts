@@ -405,7 +405,7 @@ export default class AuthorizationService {
         company.canUpdate = true;
         company.canDelete = true;
       } else {
-        company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
+        company.canRead = Authorizations.canReadCompany(userToken).authorized && assignedCompanies.includes(company.id);
         company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
         company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
       }
@@ -415,14 +415,20 @@ export default class AuthorizationService {
   public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: ['id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'],
+      projectFields: [],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Add user info
-    if (Authorizations.canListUsers(userToken)) {
-      authorizationFilters.projectFields.push(
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    // Check static auth
+    const authResult = Authorizations.canListCompanies(userToken);
+    if (!authResult.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST, entity: Entity.COMPANIES,
+        module: MODULE_NAME, method: 'checkAndGetCompaniesAuthorizationFilters'
+      });
     }
+    authorizationFilters.projectFields = authResult.fields;
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
@@ -457,11 +463,20 @@ export default class AuthorizationService {
   public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: [
-        'id', 'name', 'issuer', 'logo', 'address'
-      ],
+      projectFields: [],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check static auth
+    const authResult = Authorizations.canReadCompany(userToken);
+    if (!authResult.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
+      });
+    }
+    authorizationFilters.projectFields = authResult.fields;
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
       authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
