@@ -342,6 +342,7 @@ export default class SiteAreaService {
     // Add authorization
     const updateSiteAreaAuthorization = await AuthorizationService.checkUpdateDeleteSiteAreaAuthorization(req.tenant,req.user, filteredRequest.ID);
     siteArea.canUpdate = siteArea.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSiteArea(req.user) && updateSiteAreaAuthorization));
+    siteArea.canCreate = Authorizations.canCreateSiteArea(req.user);
     // Return
     res.json(siteArea);
     next();
