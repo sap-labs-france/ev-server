@@ -134,7 +134,7 @@
           "type": "number",
           "sanitize": "mongo"
         },
-        "connectorType": {
+        "type": {
           "type": "string",
           "sanitize": "mongo",
           "enum": [
