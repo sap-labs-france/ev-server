@@ -1,4 +1,5 @@
-import { CpuInfo } from 'os';
+import os, { CpuInfo } from 'os';
+
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
@@ -15,6 +16,7 @@ export default interface PerformanceRecord {
   memoryTotalGb: number;
   memoryFreeGb: number;
   loadAverageLastMin: number,
+  networkInterface: NodeJS.Dict<os.NetworkInterfaceInfo[]>,
   numberOfChargingStations?: number;
   source: string;
   module: string;
