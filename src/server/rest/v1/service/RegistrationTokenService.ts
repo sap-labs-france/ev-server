@@ -28,7 +28,7 @@ export default class RegistrationTokenService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist`,
+      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleCreateRegistrationToken', req.user);
       if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
         // Not Authorized!
@@ -154,7 +154,7 @@ export default class RegistrationTokenService {
     UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-    UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
+    UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
       MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
     if (!Authorizations.canDeleteRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
@@ -186,7 +186,7 @@ export default class RegistrationTokenService {
     UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Get Token
     const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-    UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist`,
+    UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
       MODULE_NAME, 'handleRevokeRegistrationToken', req.user);
     // Check auth
     if (!Authorizations.canUpdateRegistrationToken(req.user, registrationToken.siteArea?.siteID)) {
@@ -290,7 +290,7 @@ export default class RegistrationTokenService {
         'siteAreaID', 'siteArea.name',
         ...userProject
       ]);
-    UtilsService.assertObjectExists(action, registrationToken, `Token with ID '${filteredRequest}' does not exist`,
+    UtilsService.assertObjectExists(action, registrationToken, `Token ID '${filteredRequest}' does not exist`,
       MODULE_NAME, 'handleGetRegistrationToken', req.user);
     // Check auth
     if (!Authorizations.canReadRegistrationToken(req.user, registrationToken?.siteArea?.siteID)) {

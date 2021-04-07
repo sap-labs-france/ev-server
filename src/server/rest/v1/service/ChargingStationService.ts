@@ -53,7 +53,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest({ ...req.params, ...req.body });
     // Check the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.id}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.id}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     // OCPI Charging Station
     if (!chargingStation.issuer) {
@@ -70,7 +70,7 @@ export default class ChargingStationService {
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist.`,
+      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
     // Check Auth
@@ -333,11 +333,11 @@ export default class ChargingStationService {
     }
     // Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.chargeBoxID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
     // Charge Point
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
-    UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
     // Min Current
     const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
@@ -525,7 +525,7 @@ export default class ChargingStationService {
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.SiteAreaID}' does not exist`,
+    UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
@@ -594,7 +594,7 @@ export default class ChargingStationService {
     // Get the Charging Station`
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargingStationID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Found Connector ?
     UtilsService.assertObjectExists(action, Utils.getConnectorFromID(chargingStation, filteredRequest.ConnectorID),
@@ -618,7 +618,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileCreateReq(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargingStationID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleCreateChargingProfile', req.user);
     // OCPI Charging Station
     if (!chargingStation.issuer) {
@@ -632,7 +632,7 @@ export default class ChargingStationService {
       });
     }
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
-    UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleCreateChargingProfile', req.user);
     // Check Mandatory fields
     UtilsService.checkIfChargingProfileIsValid(chargingStation, chargePoint, filteredRequest, req);
@@ -675,7 +675,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest({ ...req.params, ...req.body });
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargingStationID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
     // OCPI Charging Station
     if (!chargingStation.issuer) {
@@ -689,7 +689,7 @@ export default class ChargingStationService {
       });
     }
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
-    UtilsService.assertObjectExists(action, chargePoint, `Charge Point '${filteredRequest.chargePointID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargePoint, `Charge Point ID '${filteredRequest.chargePointID}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
     // Check Mandatory fields
     UtilsService.checkIfChargingProfileIsValid(chargingStation, chargePoint, filteredRequest, req);
@@ -736,7 +736,7 @@ export default class ChargingStationService {
       MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // Get Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' does not exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingProfile.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // OCPI Charging Station
     if (!chargingStation.issuer) {
@@ -793,7 +793,7 @@ export default class ChargingStationService {
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargeBoxID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
@@ -829,7 +829,7 @@ export default class ChargingStationService {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Get the configuration
     let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.user.tenantID, chargingStation);
@@ -849,7 +849,7 @@ export default class ChargingStationService {
       'handleDeleteChargingStation', req.user);
     // Get
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${chargingStationID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'handleDeleteChargingStation', req.user);
     // OCPI Charging Station
     if (!chargingStation.issuer) {
@@ -982,16 +982,20 @@ export default class ChargingStationService {
     // check dynamic auth
     const chargingStationAuthorizationFilters =
       await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
-    // Force the failure
     if (!chargingStationAuthorizationFilters.authorized) {
-      UtilsService.assertObjectExists(action, null, `Charging Station '${filteredRequest.ID}' does not exist`,
-        MODULE_NAME, 'handleGetChargingStation', req.user);
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleGetChargingStation',
+        value: filteredRequest.ID
+      });
     }
     // Query charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(
       req.user.tenantID, filteredRequest.ID, chargingStationAuthorizationFilters.filters, chargingStationAuthorizationFilters.projectFields);
     // Check charging station exists
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
     if (chargingStation?.deleted) {
@@ -1231,7 +1235,7 @@ export default class ChargingStationService {
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     let result = null;
     // Remote Stop Transaction / Unlock Connector
