@@ -27,7 +27,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Check static auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -117,7 +117,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // check static auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -275,7 +275,7 @@ export default class SiteService {
     // Check auth
     const authorizationSiteUsersFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteFilters.authorized) {
+    if (!authorizationSiteUsersFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
