@@ -134,7 +134,6 @@ export default class CompanyService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
-        companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
