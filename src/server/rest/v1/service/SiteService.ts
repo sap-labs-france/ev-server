@@ -430,6 +430,7 @@ export default class SiteService {
     // Add authorization
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(req.tenant.id, req.user);
     site.canUpdate = site.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateSite(req.user) && siteAdminIDs.includes(site.id)));
+    site.canCreate = Authorizations.canCreateSite(req.user);
     // Return
     res.json(site);
     next();
