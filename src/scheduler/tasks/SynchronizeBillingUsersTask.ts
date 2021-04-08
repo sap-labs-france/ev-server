@@ -31,7 +31,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS, error);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
