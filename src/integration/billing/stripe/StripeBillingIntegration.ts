@@ -314,6 +314,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       });
     }
     // Destructuring the STRIPE invoice to extract the required information
+    // eslint-disable-next-line id-blacklist
     const { id: invoiceID, customer, number, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata } = stripeInvoice;
     const customerID = customer as string;
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
@@ -340,6 +341,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenantID, stripeInvoice.id);
     const invoiceToSave: BillingInvoice = {
       id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
+      // eslint-disable-next-line id-blacklist
       userID, invoiceID, customerID, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
       status: status as BillingInvoiceStatus,
     };

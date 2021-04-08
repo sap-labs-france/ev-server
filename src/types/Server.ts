@@ -497,12 +497,12 @@ export enum ServerRoute {
 
   REST_TENANTS = 'tenants',
 
-  // URLs for CRUD operations on PAYMENT METHODS
+  // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'billing/users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'billing/users/:userID/payment-methods/:paymentMethodID',
 
-  // URLs for Non-CRUD Operations on PAYMENT METHODS
+  // BILLING URLs for Non-CRUD Operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHOD_SETUP = 'billing/users/:userID/payment-methods/setup',
-  REST_BILLING_PAYMENT_METHOD_ATTACH = 'billing/users/:userID/payment-methods/attach',
-  REST_BILLING_PAYMENT_METHOD_DETACH = 'billing/users/:userID/payment-methods/detach',
+  REST_BILLING_PAYMENT_METHOD_ATTACH = 'billing/users/:userID/payment-methods/:paymentMethodID/attach',
+  REST_BILLING_PAYMENT_METHOD_DETACH = 'billing/users/:userID/payment-methods/:paymentMethodID/detach',
 }
