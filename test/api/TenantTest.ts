@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
-import Tenant from '../types/Tenant';
+import Tenant from '../../src/types/Tenant';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
@@ -249,6 +249,46 @@ describe('Tenant tests', function() {
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
+    });
+
+    it('Should not be possible to create a tenant with an already existing subdomain', async () => {
+      // Create
+      let tenant: Tenant = Factory.tenant.build();
+      const tenantSubdomain = tenant.subdomain;
+      // Call
+      let response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
+      // Check
+      expect(response.status).to.equal(200);
+
+      // Create
+      tenant = Factory.tenant.build();
+      tenant.subdomain = tenantSubdomain;
+      // Call
+      response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
+      // Check
+      expect(response.status).to.equal(597);
+    });
+
+    it('Should not be possible to create a tenant with an already existing name', async () => {
+      // Create
+      let tenant: Tenant = Factory.tenant.build();
+      const tenantName = tenant.name;
+      // Call
+      let response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
+      // Check
+      expect(response.status).to.equal(200);
+
+      // Create
+      tenant = Factory.tenant.build();
+      tenant.name = tenantName;
+      // Call
+      response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
+      // Check
+      expect(response.status).to.equal(597);
     });
   });
 });

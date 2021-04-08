@@ -60,7 +60,7 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async checkSessionHash(req: Request, res: Response, next: NextFunction) {
+  public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if User has been updated and require new login
     if (!await SessionHashService.isSessionHashUpdated(req, res, next)) {
       next();
