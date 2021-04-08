@@ -148,7 +148,7 @@ export default class BillingService {
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the lock
     const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
@@ -201,7 +201,7 @@ export default class BillingService {
     }
     // Get user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
     const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
@@ -317,7 +317,7 @@ export default class BillingService {
     if (!Authorizations.isAdmin(req.user)) {
       // Get the User
       user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-      UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
+      UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Get the billing impl
@@ -387,7 +387,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Get the Invoice lock
     let synchronizeAction: BillingUserSynchronizeAction = {
@@ -447,7 +447,7 @@ export default class BillingService {
     // Get the Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
       Utils.convertToInt(filteredRequest.transactionID));
-    UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
       MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     // Create an invoice for the transaction
     const billingDataStop = await billingImpl.stopTransaction(transaction);
@@ -501,7 +501,7 @@ export default class BillingService {
     }
     // Get user - ACHTUNG user !== req.user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleSetupPaymentMethod', req.user);
     // Invoke the billing implementation
     const paymentMethodId: string = filteredRequest.paymentMethodId;
@@ -541,7 +541,7 @@ export default class BillingService {
     }
     // Get user - ACHTUNG user !== req.user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
@@ -582,7 +582,7 @@ export default class BillingService {
     // Get user - TODO - userID should come from the filteredRequest not from the userToken
     const userID = req.user.id;
     const user: User = await UserStorage.getUser(req.user.tenantID, userID);
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
     await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
