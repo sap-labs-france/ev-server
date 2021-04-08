@@ -521,7 +521,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
