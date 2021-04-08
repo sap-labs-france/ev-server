@@ -31,7 +31,7 @@
     "subdomain": {
       "type": "string",
       "pattern": "^[a-z0-9]*$",
-      "minLength": 1,
+      "minLength": 0,
       "maxLength": 20,
       "sanitize": "mongo"
     },
