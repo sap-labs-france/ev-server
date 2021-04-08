@@ -58,7 +58,7 @@ export default class TagService {
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withUser: true },
       authorizationTagFilters.projectFields
     );
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
     if (!Authorizations.canReadUser(req.user, tag.userID)) {

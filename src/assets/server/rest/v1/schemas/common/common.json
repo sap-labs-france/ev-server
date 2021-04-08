@@ -28,6 +28,12 @@
       "format": "email",
       "sanitize": "mongo"
     },
+    "authSubdomain": {
+      "type": "string",
+      "pattern": "^[a-z0-9]*$",
+      "maxLength": 20,
+      "sanitize": "mongo"
+    },
     "subdomain": {
       "type": "string",
       "pattern": "^[a-z0-9]*$",

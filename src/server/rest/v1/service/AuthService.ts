@@ -60,7 +60,7 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async checkSessionHash(req: Request, res: Response, next: NextFunction) {
+  public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if User has been updated and require new login
     if (!await SessionHashService.isSessionHashUpdated(req, res, next)) {
       next();
@@ -102,7 +102,7 @@ export default class AuthService {
         // Yes: Check date to reset pass
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
-          Logging.logSecurityInfo({
+          await Logging.logSecurityInfo({
             tenantID: req.user.tenantID,
             actionOnUser: user,
             module: MODULE_NAME, method: 'handleLogIn', action: action,
@@ -256,7 +256,7 @@ export default class AuthService {
       }
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: newUser, action: action,
       module: MODULE_NAME,
@@ -336,7 +336,7 @@ export default class AuthService {
     // Init Password info
     await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME,
@@ -404,7 +404,7 @@ export default class AuthService {
       await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME,
@@ -555,7 +555,7 @@ export default class AuthService {
     if (billingImpl) {
       try {
         await billingImpl.createUser(user);
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
@@ -563,7 +563,7 @@ export default class AuthService {
           message: 'User has been created successfully in the billing system'
         });
       } catch (error) {
-        Logging.logError({
+        await Logging.logError({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
@@ -577,7 +577,7 @@ export default class AuthService {
     await UserStorage.saveUserAccountVerification(tenantID, user.id,
       { verificationToken: null, verifiedAt: new Date() });
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
@@ -691,7 +691,7 @@ export default class AuthService {
       verificationToken = user.verificationToken;
     }
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user,
       action: action,
@@ -770,7 +770,7 @@ export default class AuthService {
 
   public static async userLoginSucceeded(action: ServerAction, tenantID: string, user: User, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Password / Login OK
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user,
       module: MODULE_NAME, method: 'checkUserLogin',

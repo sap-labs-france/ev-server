@@ -38,24 +38,9 @@ export default class CompanyService {
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
-    // Get authorization filters
-    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
-      req.tenant, req.user, { ID: companyID });
-    // Get
-    const company = await CompanyStorage.getCompany(req.user.tenantID, companyID, authorizationCompanyFilters.filters);
-    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
-      MODULE_NAME, 'handleDeleteCompany', req.user);
-    // OCPI Company
-    if (!company.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleDeleteCompany',
-        user: req.user,
-        action: action
-      });
-    }
+    // Check and Get Company
+    const company = await UtilsService.checkAndGetCompanyAuthorization(
+      req.tenant, req.user, companyID, 'handleDeleteCompany', action, {});
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -86,25 +71,14 @@ export default class CompanyService {
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
-    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
-    // Check dynamic auth
-    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(req.tenant, req.user, filteredRequest);
-    // Get company
-    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID,
-      {
-        withLogo: true,
-        ...authorizationCompanyFilters.filters
-      },
-      authorizationCompanyFilters.projectFields
-    );
-    // Check Company exists
-    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetCompany', req.user);
-    // Add authorization
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(req.tenant.id, req.user);
-    company.canUpdate = company.issuer && (req.user.role === UserRole.ADMIN || (Authorizations.canUpdateCompany(req.user) && assignedCompanies.includes(company.id)));
-    company.canCreate = Authorizations.canCreateCompany(req.user);
+    // Check and Get Company
+    const company = await UtilsService.checkAndGetCompanyAuthorization(
+      req.tenant, req.user, filteredRequest.ID, 'handleGetCompany', action, {
+        withLogo: true
+      }, true);
+    // Add authorizations
+    AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
     // Return
     res.json(company);
     next();
@@ -150,7 +124,8 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
     // Check dynamic auth
-    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     if (!authorizationCompaniesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -160,7 +135,6 @@ export default class CompanyService {
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
-        companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
         withLogo: filteredRequest.WithLogo,
         locCoordinates: filteredRequest.LocCoordinates,
@@ -237,26 +211,11 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
-    // Check dynamic auth
-    const authorizationCompanyFilters = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.id });
-    // Get Company
-    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id, authorizationCompanyFilters.filters);
-    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     UtilsService.checkIfCompanyValid(filteredRequest, req);
-    // OCPI Company
-    if (!company.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateCompany',
-        user: req.user,
-        action: action
-      });
-    }
+    // Check and Get Company
+    const company = await UtilsService.checkAndGetCompanyAuthorization(
+      req.tenant, req.user, filteredRequest.id, 'handleUpdateCompany', action, {});
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
