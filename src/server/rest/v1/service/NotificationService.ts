@@ -65,7 +65,7 @@ export default class NotificationService {
     UtilsService.checkIfEndUserErrorNotificationValid(filteredRequest, req);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleEndUserReportError', req.user);
     // Save mobile number
     if (filteredRequest.mobile && (user.mobile !== filteredRequest.mobile)) {
