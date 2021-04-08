@@ -979,35 +979,11 @@ export default class ChargingStationService {
         value: filteredRequest.ID
       });
     }
-    // check dynamic auth
-    const chargingStationAuthorizationFilters =
-      await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(req.tenant, req.user, filteredRequest);
-    if (!chargingStationAuthorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'handleGetChargingStation',
-        value: filteredRequest.ID
-      });
-    }
-    // Query charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(
-      req.user.tenantID, filteredRequest.ID, chargingStationAuthorizationFilters.filters, chargingStationAuthorizationFilters.projectFields);
-    // Check charging station exists
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetChargingStation', req.user);
-    // Deleted?
-    if (chargingStation?.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleGetChargingStation',
-        user: req.user
-      });
-    }
+    // Check and Get Charging Station
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.ID, 'handleGetChargingStation', action, {
+        withLogo: true
+      }, true);
     res.json(chargingStation);
     next();
   }

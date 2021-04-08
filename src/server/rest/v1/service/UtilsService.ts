@@ -11,6 +11,7 @@ import Asset from '../../../../types/Asset';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
@@ -37,6 +38,66 @@ import moment from 'moment';
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
+
+  public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
+      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
+    // Check static auth for reading Charging Station
+    if (!Authorizations.canReadChargingStation(userToken)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method,
+        value: chargingStationID
+      });
+    }
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, method, userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(
+      tenant, userToken, { ID: chargingStationID });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method,
+      });
+    }
+    // Get ChargingStation
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
+      MODULE_NAME, method, userToken);
+    // External Charging Station
+    if (!chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
+        module: MODULE_NAME, method,
+        user: userToken,
+        action: action
+      });
+    }
+    // Deleted?
+    if (chargingStation?.deleted) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
+        module: MODULE_NAME,
+        method: 'handleGetChargingStation',
+        user: userToken
+      });
+    }
+    return chargingStation;
+  }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
