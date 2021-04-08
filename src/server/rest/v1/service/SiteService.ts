@@ -504,6 +504,8 @@ export default class SiteService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
+    console.log(JSON.stringify(req.user, null, ' '));
+
     if (!Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -518,25 +520,9 @@ export default class SiteService {
     // Check and Get Company
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, 'handleUpdateSite', action, {});
-    // Check dynamic auth
-    const authorizationSiteFilters = await AuthorizationService.checkAndGetUpdateSiteAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.id });
-    // Get Site & check it exists
-    const site = await SiteStorage.getSite(
-      req.user.tenantID, filteredRequest.id, authorizationSiteFilters.filters);
-    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateSite', req.user);
-    // External Site
-    if (!site.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateSite',
-        user: req.user,
-        action: action
-      });
-    }
+    // Check and Get Site
+    const site = await UtilsService.checkAndGetSiteAuthorization(
+      req.tenant, req.user, filteredRequest.id, 'handleUpdateSite', action, {});
     // Update
     site.name = filteredRequest.name;
     site.public = filteredRequest.public;

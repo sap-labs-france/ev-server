@@ -1,4 +1,3 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -6,11 +5,10 @@ import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } fro
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import { AuthorizationFilter } from '../../../../types/Authorization';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
@@ -25,8 +23,6 @@ import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
 
-const MODULE_NAME = 'AuthorizationService';
-
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
@@ -39,44 +35,14 @@ export default class AuthorizationService {
     };
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
       // Get assigned Site IDs from DB
       const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
       if (!Utils.isEmptyArray(siteIDs) && siteIDs.includes(filteredRequest.ID)) {
-        authorizationFilters.authorized = true;
-      }
-    }
-    return authorizationFilters;
-  }
-
-  public static async checkAndGetUpdateSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      projectFields: [
-        'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
-    };
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
-    // Not an Admin user?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get SiteIDs for which user is Site Admin
-      const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
-      if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(filteredRequest.ID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.UPDATE, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetUpdateSiteAuthorizationFilters',
-        });
-      } else {
         authorizationFilters.authorized = true;
       }
     }
@@ -129,7 +95,8 @@ export default class AuthorizationService {
     }
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -164,7 +131,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -183,7 +151,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -272,7 +241,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get authorization filters from users
     const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest);
@@ -309,7 +279,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -329,7 +300,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -353,7 +325,8 @@ export default class AuthorizationService {
     }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -370,7 +343,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -418,7 +392,8 @@ export default class AuthorizationService {
     }
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -482,7 +457,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -505,7 +481,8 @@ export default class AuthorizationService {
     };
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
