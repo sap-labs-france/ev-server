@@ -87,10 +87,6 @@ export default class Authorizations {
       loggedUser, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, context);
   }
 
-  public static getAuthorizedCompanyIDs(loggedUser: UserToken): string[] {
-    return loggedUser.companies;
-  }
-
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;

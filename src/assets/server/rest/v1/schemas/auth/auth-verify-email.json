@@ -6,7 +6,7 @@
       "$ref": "common.json#/definitions/email"
     },
     "Tenant": {
-      "$ref": "common.json#/definitions/subdomain"
+      "$ref": "common.json#/definitions/authSubdomain"
     },
     "VerificationToken": {
       "type": "string",

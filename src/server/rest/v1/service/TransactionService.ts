@@ -133,7 +133,7 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
     if (!refundConnector) {
@@ -332,7 +332,7 @@ export default class TransactionService {
     }
     // Get the user
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tag.id);
@@ -356,7 +356,7 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
     const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
@@ -398,11 +398,11 @@ export default class TransactionService {
     }
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     if (!user.issuer) {
       throw new AppError({
@@ -443,7 +443,7 @@ export default class TransactionService {
     }
     // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${transactionId}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionId}' does not exist`,
       MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
@@ -487,18 +487,18 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID ${transactionId} does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check User
     let user: User;
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
-      UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
+      UtilsService.assertObjectExists(action, user, `User ID '${transaction.userID}' does not exist`,
         MODULE_NAME, 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
@@ -563,7 +563,7 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
     if (!await Authorizations.canReadTransaction(req.user, transaction)) {
@@ -642,7 +642,7 @@ export default class TransactionService {
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description'
     ]);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
     // Check Transaction
     if (!await Authorizations.canReadTransaction(req.user, transaction)) {
@@ -835,7 +835,7 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID, ['id', 'ocpiData']);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Check
     if (!transaction?.ocpiData) {
