@@ -504,8 +504,6 @@ export default class SiteService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
-    console.log(JSON.stringify(req.user, null, ' '));
-
     if (!Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
