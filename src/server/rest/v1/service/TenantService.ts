@@ -46,7 +46,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${tenantID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -135,7 +135,7 @@ export default class TenantService {
       { withLogo: true },
       projectFields
     );
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(tenant);
@@ -338,7 +338,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
     if (filteredRequest.components && filteredRequest.components.smartCharging &&

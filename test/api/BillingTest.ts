@@ -154,11 +154,11 @@ class TestData {
     return (draftInvoices && draftInvoices.length > 0) ? draftInvoices[0] : null;
   }
 
-  public async getNumberOfItems(userId?: string): Promise<number> {
+  public async getNumberOfSessions(userId?: string): Promise<number> {
     // ACHTUNG: There is no data after running: npm run mochatest:createContext
     // In that situation we return 0!
     const draftInvoice = await this.getLatestDraftInvoice(userId);
-    return (draftInvoice) ? draftInvoice.nbrOfItems : 0;
+    return (draftInvoice) ? draftInvoice.sessions?.length : 0;
   }
 }
 
@@ -199,11 +199,11 @@ describe('Billing Service', function() {
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        const itemsBefore = await testData.getNumberOfItems(testData.userContext.id);
+        const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         // await testData.userService.billingApi.synchronizeInvoices({});
-        const itemsAfter = await testData.getNumberOfItems(testData.userContext.id);
+        const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
       });
 
@@ -264,11 +264,11 @@ describe('Billing Service', function() {
 
       it('should add an item to the existing invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        const itemsBefore = await testData.getNumberOfItems(testData.userContext.id);
+        const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         // await testData.userService.billingApi.synchronizeInvoices({});
-        const itemsAfter = await testData.getNumberOfItems(testData.userContext.id);
+        const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
 
@@ -424,11 +424,11 @@ describe('Billing Service', function() {
           testData.userContext
         );
         await testData.userService.billingApi.synchronizeInvoices({});
-        const itemsBefore = await testData.getNumberOfItems(basicUser.id);
+        const itemsBefore = await testData.getNumberOfSessions(basicUser.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
         await testData.userService.billingApi.synchronizeInvoices({});
-        const itemsAfter = await testData.getNumberOfItems(basicUser.id);
+        const itemsAfter = await testData.getNumberOfSessions(basicUser.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
     });

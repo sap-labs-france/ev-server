@@ -47,7 +47,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID, {},
       [ 'id', 'name' ]
     );
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.AssetID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.AssetID}' does not exist`,
       MODULE_NAME, 'handleGetAssetConsumption', req.user);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
@@ -152,7 +152,7 @@ export default class AssetService {
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
     // Get
     const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${assetID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' does not exist`,
       MODULE_NAME, 'handleRetrieveConsumption', req.user);
     // Dynamic asset ?
     if (!asset.dynamicAsset) {
@@ -267,7 +267,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
@@ -306,7 +306,7 @@ export default class AssetService {
     // Get it
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
     res.json(asset);
     next();
@@ -454,7 +454,7 @@ export default class AssetService {
     // Check email
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(action, asset, `Site Area with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
     // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);

@@ -12,7 +12,7 @@
       "$ref": "common.json#/definitions/acceptEula"
     },
     "tenant": {
-      "$ref": "common.json#/definitions/subdomain"
+      "$ref": "common.json#/definitions/authSubdomain"
     }
   },
   "required": [

@@ -614,7 +614,7 @@ export default class CarService {
       for (const userToCheck of usersToCheck) {
         // Check the user
         const foundUser = users.result.find((user) => user.id === userToCheck.user.id);
-        UtilsService.assertObjectExists(action, foundUser, `User '${userToCheck.user.id}' does not exist`,
+        UtilsService.assertObjectExists(action, foundUser, `User ID '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
         if (!Authorizations.canReadUser(loggedUser, foundUser.id)) {
