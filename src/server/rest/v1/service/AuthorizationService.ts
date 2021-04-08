@@ -386,28 +386,22 @@ export default class AuthorizationService {
     userToken.sitesOwner = siteOwnerIDs;
     // Add canCreate flag to root
     companies.canCreate = Authorizations.canCreateCompany(userToken);
-    const assignedSiteCompanyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies.result) {
-      await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, assignedSiteCompanyIDs);
+      AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
     }
   }
 
-  public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company, assignedSiteCompanyIDs?: string[]): Promise<void> {
-    // Get Site Admins
-    if (Utils.isEmptyArray(assignedSiteCompanyIDs)) {
-      assignedSiteCompanyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-    }
+  public static addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company): void {
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
       company.canUpdate = false;
       company.canDelete = false;
     } else {
-      const isAssignedToSiteCompany = assignedSiteCompanyIDs.includes(company.id) || (userToken.role === UserRole.ADMIN);
-      company.canRead = Authorizations.canReadSite(userToken);
-      company.canDelete = Authorizations.canDeleteSite(userToken);
-      company.canUpdate = Authorizations.canUpdateSite(userToken) && isAssignedToSiteCompany;
+      company.canRead = Authorizations.canReadCompany(userToken);
+      company.canDelete = Authorizations.canDeleteCompany(userToken);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken);
     }
   }
 
@@ -560,7 +554,7 @@ export default class AuthorizationService {
       siteArea.canDelete = false;
     } else {
       const isSiteAdmin = siteAdminIDs.includes(siteArea.siteID) || (userToken.role === UserRole.ADMIN);
-      siteArea.canRead = Authorizations.canReadSite(userToken);
+      siteArea.canRead = Authorizations.canReadSiteArea(userToken);
       siteArea.canUpdate = Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
       siteArea.canDelete = Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
     }

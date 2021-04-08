@@ -78,7 +78,7 @@ export default class CompanyService {
         withLogo: true
       }, true);
     // Add authorizations
-    await AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
+    AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
     // Return
     res.json(company);
     next();
