@@ -1178,7 +1178,7 @@ export default class ChargingStationService {
 
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
     if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
