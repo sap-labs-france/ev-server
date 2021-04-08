@@ -1,11 +1,11 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
-import ChargingStationContext from './context/ChargingStationContext';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { HTTPAuthError } from '../../src/types/HTTPError';
+import Site from '../types/Site';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
@@ -21,9 +21,10 @@ class TestData {
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public siteAreaContext: SiteAreaContext;
-  public chargingStationContext: ChargingStationContext;
   public newSiteArea: any;
   public newUser: any;
+  public siteWithSiteAdmin: Site;
+  public siteWithoutSiteAdmin: Site;
   public createdSiteAreas: any[] = [];
   public createdUsers: any[] = [];
 }
@@ -44,6 +45,30 @@ function login(userRole) {
       testData.userContext
     );
   }
+}
+
+/**
+ *
+ */
+async function createSiteWithoutSiteAdmin() {
+  // Create a site
+  const siteData = Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id });
+  testData.siteWithoutSiteAdmin = await testData.userService.createEntity(
+    testData.userService.siteApi,
+    siteData
+  );
+}
+
+/**
+ *
+ */
+async function createSiteWithSiteAdmin() {
+  // Create a site
+  testData.siteWithSiteAdmin = await testData.userService.createEntity(
+    testData.userService.siteApi,
+    Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
+  );
+  await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteWithSiteAdmin);
 }
 
 /**
@@ -82,7 +107,6 @@ describe('Site Area tests', function() {
       );
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
     after(async () => {
@@ -206,15 +230,19 @@ describe('Site Area tests', function() {
 
       it('Should be able to assign ChargingStations to SiteArea', async () => {
       // Assign ChargingStation to SiteArea
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(200);
       });
 
       it('Should be able to remove ChargingStations from SiteArea', async () => {
       // Remove ChargingStation from SiteArea
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(200);
       });
 
@@ -241,11 +269,23 @@ describe('Site Area tests', function() {
 
       before(async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        // Create the entity
+        await createSiteWithSiteAdmin();
         testData.newSiteArea = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
-          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+          Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id })
         );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+        await createSiteWithoutSiteAdmin();
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id })
+        );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+        // Create the entity
+        // testData.newSiteArea = await testData.userService.createEntity(
+        //   testData.userService.siteAreaApi,
+        //   Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
+        // );
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       });
 
@@ -253,30 +293,40 @@ describe('Site Area tests', function() {
         // Create the entity
         const response = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
-          Factory.siteArea.build({ siteID: testData.siteContext.getSite().id }), false
+          Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id }), false
         );
         expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+      });
+
+      it('Should be able to create a new site area if he is site admin', async () => {
+        // Create the entity
+        const response = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id }), false
+        );
+        expect(response.status).to.equal(200);
       });
 
       it('Should not be able to update the site area', async () => {
         // Change entity
-        testData.newSiteArea.name = 'New Name';
+        testData.createdSiteAreas[testData.createdSiteAreas.length - 1].name = 'New Name';
         // Update
         const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSiteArea, false
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1], false
         );
         expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
       });
 
-      it('Should not be able to delete the created site area', async () => {
-        // Delete the created entity
-        const response = await testData.userService.deleteEntity(
+      it('Should be able to update the site area if he is site admin', async () => {
+        // Change entity
+        testData.createdSiteAreas[testData.createdSiteAreas.length - 2].name = 'New Name';
+        // Update
+        const response = await testData.userService.updateEntity(
           testData.userService.siteAreaApi,
-          testData.newSiteArea,
-          false
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2], false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(200);
       });
 
       it('Should not be able to create a site area without a site', async () => {
@@ -286,7 +336,7 @@ describe('Site Area tests', function() {
           Factory.siteArea.build(),
           false
         );
-        expect(response.status).to.equal(403);
+        expect(response.status).to.equal(500);
       });
 
       it('Should not be able to read consumption without site Area ID', async () => {
@@ -312,15 +362,19 @@ describe('Site Area tests', function() {
 
       it('Should not be able to assign ChargingStations to SiteArea', async () => {
       // Try to assign ChargingStation to SiteArea
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(403);
       });
 
       it('Should not be able to remove ChargingStations from SiteArea', async () => {
       // Try to remove ChargingStation from SiteArea
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(403);
       });
 
@@ -329,7 +383,7 @@ describe('Site Area tests', function() {
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [assets.data.result[0].id]);
         expect(response.status).to.equal(403);
       });
 
@@ -338,51 +392,63 @@ describe('Site Area tests', function() {
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.removeAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [assets.data.result[0].id]);
         expect(response.status).to.equal(403);
       });
 
       it('Should be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
-        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteContext.getSite());
-        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         // Assign ChargingStation to SiteArea
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(200);
       });
 
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
-        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteContext.getSite());
-        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        const chargingStations = await testData.userService.chargingStationApi.readAll({});
+        expect(chargingStations.status).to.equal(200);
         // Remove ChargingStation from SiteArea
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
         expect(response.status).to.equal(200);
       });
 
       it('Should be able to assign Assets to SiteArea if he is SiteAdmin', async () => {
-        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteContext.getSite());
-        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        // Assign Assets to SiteArea
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(200);
+        // Assign Assets to SiteArea
         const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [assets.data.result[0].id]);
         expect(response.status).to.equal(200);
       });
 
       it('Should be able to remove Assets from SiteArea if he is SiteAdmin', async () => {
-        login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteContext.getSite());
-        login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         // Remove Assets from SiteArea
         const assets = await testData.userService.assetApi.readAll({});
         expect(assets.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.removeAssets(
-          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [assets.data.result[0].id]);
+        expect(response.status).to.equal(200);
+      });
+
+      it('Should not be able to delete the created site area', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 1],
+          false
+        );
+        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+      });
+
+      it('Should be able to delete the created site area if he is site admin', async () => {
+        // Delete the created entity
+        const response = await testData.userService.deleteEntity(
+          testData.userService.siteAreaApi,
+          testData.createdSiteAreas[testData.createdSiteAreas.length - 2],
+          false
+        );
         expect(response.status).to.equal(200);
       });
     });
