@@ -8,6 +8,7 @@ import { HTTPAuthError } from '../../src/types/HTTPError';
 import Site from '../types/Site';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -204,20 +205,20 @@ describe('Site Area tests', function() {
           Factory.siteArea.build(),
           false
         );
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('Should not be able to read consumption without site Area ID', async () => {
         // Try to call Consumptions without Site Area ID
         const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.data.message).to.equal('The ID must be provided');
       });
 
       it('Should not be able to read consumption without start and end date', async () => {
         // Try to call Consumptions without start and end date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.data.message).to.equal('Start date and end date must be provided');
       });
 
@@ -225,7 +226,7 @@ describe('Site Area tests', function() {
         // Try to call Consumptions with end date before start date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(
           testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('Should be able to assign ChargingStations to SiteArea', async () => {
@@ -249,19 +250,19 @@ describe('Site Area tests', function() {
       it('Should be able to assign Assets to SiteArea', async () => {
       // Assign Assets to SiteArea
         const assets = await testData.userService.assetApi.readAll({});
-        expect(assets.status).to.equal(200);
+        expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignAssets(
           testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to remove Assets from SiteArea', async () => {
       // Remove Assets from SiteArea
         const assets = await testData.userService.assetApi.readAll({});
-        expect(assets.status).to.equal(200);
+        expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
     });
 
@@ -295,7 +296,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id }), false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should be able to create a new site area if he is site admin', async () => {
@@ -315,7 +316,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           testData.createdSiteAreas[testData.createdSiteAreas.length - 1], false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should be able to update the site area if he is site admin', async () => {
@@ -342,14 +343,14 @@ describe('Site Area tests', function() {
       it('Should not be able to read consumption without site Area ID', async () => {
         // Try to call Consumptions without Site Area ID
         const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.data.message).to.equal('The ID must be provided');
       });
 
       it('Should not be able to read consumption without start and end date', async () => {
         // Try to call Consumptions without start and end date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(response.data.message).to.equal('Start date and end date must be provided');
       });
 
@@ -357,7 +358,7 @@ describe('Site Area tests', function() {
         // Try to call Consumptions with end date before start date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(
           testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('Should not be able to assign ChargingStations to SiteArea', async () => {
@@ -365,8 +366,8 @@ describe('Site Area tests', function() {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(403);
+          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to remove ChargingStations from SiteArea', async () => {
@@ -374,26 +375,26 @@ describe('Site Area tests', function() {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(200);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(403);
+          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to assign Assets to SiteArea', async () => {
       // Try to assign Assets to SiteArea
         const assets = await testData.userService.assetApi.readAll({});
-        expect(assets.status).to.equal(200);
+        expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [assets.data.result[0].id]);
-        expect(response.status).to.equal(403);
+          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to remove Assets from SiteArea', async () => {
       // Try to remove Assets from SiteArea
         const assets = await testData.userService.assetApi.readAll({});
-        expect(assets.status).to.equal(200);
+        expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeAssets(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [assets.data.result[0].id]);
-        expect(response.status).to.equal(403);
+          testData.siteAreaContext.getSiteArea().id, [assets.data.result[0].id]);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
@@ -401,8 +402,8 @@ describe('Site Area tests', function() {
         expect(chargingStations.status).to.equal(200);
         // Assign ChargingStation to SiteArea
         const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
@@ -410,8 +411,8 @@ describe('Site Area tests', function() {
         expect(chargingStations.status).to.equal(200);
         // Remove ChargingStation from SiteArea
         const response = await testData.userService.siteAreaApi.removeChargingStations(
-          testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+          testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to assign Assets to SiteArea if he is SiteAdmin', async () => {
@@ -426,7 +427,7 @@ describe('Site Area tests', function() {
       it('Should be able to remove Assets from SiteArea if he is SiteAdmin', async () => {
         // Remove Assets from SiteArea
         const assets = await testData.userService.assetApi.readAll({});
-        expect(assets.status).to.equal(200);
+        expect(assets.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [assets.data.result[0].id]);
         expect(response.status).to.equal(200);

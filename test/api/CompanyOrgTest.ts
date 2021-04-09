@@ -4,6 +4,7 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -263,7 +264,7 @@ describe('Company Org tests', function() {
           testData.newCompany
         );
       } catch (error) {
-        expect(error.actual).to.equal(403);
+        expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
       }
     });
   });
