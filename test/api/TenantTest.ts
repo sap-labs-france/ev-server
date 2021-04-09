@@ -268,7 +268,7 @@ describe('Tenant tests', function() {
       response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(597);
+      expect(response.status).to.equal(598);
     });
 
     it('Should not be possible to create a tenant with an already existing name', async () => {
