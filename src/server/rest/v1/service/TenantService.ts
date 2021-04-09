@@ -231,20 +231,8 @@ export default class TenantService {
         module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
-    // Check the Tenant's name
-    let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
-    if (foundTenant) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TENANT_ALREADY_EXIST,
-        message: `The tenant with name '${filteredRequest.name}' already exists`,
-        module: MODULE_NAME, method: 'handleCreateTenant',
-        user: req.user,
-        action: action
-      });
-    }
     // Get the Tenant with ID (subdomain)
-    foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
+    const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -340,6 +328,18 @@ export default class TenantService {
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTenant', req.user);
+    // Check subdomain
+    const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
+    if (filteredRequest.subdomain !== tenant.subdomain && foundTenant) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TENANT_ALREADY_EXIST,
+        message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTenant',
+        user: req.user,
+        action: action
+      });
+    }
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
     if (filteredRequest.components && filteredRequest.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&
