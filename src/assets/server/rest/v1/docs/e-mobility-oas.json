@@ -1019,7 +1019,7 @@
         }
       }
     },
-    "/api/chargingstations": {
+    "/api/charging-stations": {
       "get": {
         "security": [
           {
@@ -1232,7 +1232,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}": {
+    "/api/charging-stations/{id}": {
       "get": {
         "security": [
           {
@@ -1428,7 +1428,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/reset": {
+    "/api/charging-stations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1491,7 +1491,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/cache/clear": {
+    "/api/charging-stations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1549,7 +1549,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration/retrieve": {
+    "/api/charging-stations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1647,7 +1647,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration": {
+    "/api/charging-stations/{id}/configuration": {
       "put": {
         "security": [
           {
@@ -1712,7 +1712,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/start": {
+    "/api/charging-stations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1813,7 +1813,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/stop": {
+    "/api/charging-stations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1904,7 +1904,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1968,7 +1968,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -2111,7 +2111,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -2207,7 +2207,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/firmware/update": {
+    "/api/charging-stations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -2284,7 +2284,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/availability/change": {
+    "/api/charging-stations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2386,7 +2386,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/generate": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/qrcode/generate": {
       "get": {
         "security": [
           {
@@ -2438,7 +2438,7 @@
         }
       }
     },
-    "/api/chargingstations/qrcode/download": {
+    "/api/charging-stations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2491,7 +2491,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters": {
+    "/api/charging-stations/{id}/ocpp/parameters": {
       "get": {
         "security": [
           {
@@ -2567,7 +2567,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters": {
+    "/api/charging-stations/ocpp/parameters": {
       "post": {
         "security": [
           {
@@ -2624,7 +2624,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters/export": {
+    "/api/charging-stations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2664,7 +2664,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/parameters": {
+    "/api/charging-stations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2739,7 +2739,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/power/limit": {
+    "/api/charging-stations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2809,7 +2809,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/transactions": {
+    "/api/charging-stations/{id}/transactions": {
       "get": {
         "security": [
           {
@@ -2955,7 +2955,7 @@
         }
       }
     },
-    "/api/chargingstations/status/in-error": {
+    "/api/charging-stations/status/in-error": {
       "get": {
         "security": [
           {
@@ -3011,7 +3011,7 @@
         }
       }
     },
-    "/api/chargingstations/action/export": {
+    "/api/charging-stations/action/export": {
       "get": {
         "security": [
           {
@@ -3081,7 +3081,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/download": {
+    "/api/charging-stations/firmware/download": {
       "get": {
         "security": [
           {
@@ -3125,7 +3125,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/connection/check": {
+    "/api/charging-stations/smartcharging/connection/check": {
       "get": {
         "security": [
           {
@@ -3152,7 +3152,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/trigger": {
+    "/api/charging-stations/smartcharging/trigger": {
       "get": {
         "security": [
           {
@@ -3184,7 +3184,7 @@
         }
       }
     },
-    "/api/chargingprofiles": {
+    "/api/charging-profiles": {
       "get": {
         "security": [
           {
@@ -3329,7 +3329,7 @@
         }
       }
     },
-    "/api/chargingprofiles/{id}": {
+    "/api/charging-profiles/{id}": {
       "put": {
         "security": [
           {
