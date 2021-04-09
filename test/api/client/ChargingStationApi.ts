@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { StatusCodes } from 'http-status-codes';
 import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
 
@@ -60,7 +61,7 @@ export default class ChargingStationApi extends CrudApi {
     // Retrieve it from the backend
     const response = await this.readById(chargingStation.id);
     // Check if ok
-    expect(response.status).to.equal(200);
+    expect(response.status).to.equal(StatusCodes.OK);
     expect(response.data.id).is.eql(chargingStation.id);
     // Check Connector
     const foundChargingStation = response.data;

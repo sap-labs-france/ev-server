@@ -1,3 +1,4 @@
+import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
 import chai, { expect } from 'chai';
 
 import { Car } from '../types/Car';
@@ -5,7 +6,7 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import User from '../types/User';
 import chaiSubset from 'chai-subset';
@@ -54,27 +55,27 @@ describe('Car Tests', function() {
         });
         it('Should not be able to get car catalogs', async () => {
           const response = await testData.centralService.carApi.readCarCatalogs({});
-          expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should not be able to get car catalog by ID', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should not be able to get image of a car', async () => {
           const response = await testData.centralService.carApi.readCarImages(null);
-          expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should not be able to get car makers', async () => {
           const response = await testData.centralService.carApi.readCarMakers({});
-          expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should not be able to get a detailed car catalog', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
       });
     });
@@ -92,27 +93,27 @@ describe('Car Tests', function() {
         it('Should be able to get car catalogs', async () => {
           const response = await testData.centralService.carApi.readCarCatalogs({});
           carID = response.data.result[0].id;
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
 
         it('Should be able to get car catalog by ID', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(carID);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
 
         it('Should be able to get image of a car', async () => {
           const response = await testData.centralService.carApi.readCarImages(carID);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
 
         it('Should be able to get car makers', async () => {
           const response = await testData.centralService.carApi.readCarMakers({});
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
 
         it('Should not be able to get a detailed car catalog without ID', async () => {
           const response = await testData.centralService.carApi.readCarCatalog(null);
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
         });
 
         it('Should be able to create a new car', async () => {
@@ -138,7 +139,7 @@ describe('Car Tests', function() {
               vin: null,
             }), false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('Vin Car is mandatory');
         });
 
@@ -150,7 +151,7 @@ describe('Car Tests', function() {
               licensePlate: null,
             }), false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('License Plate is mandatory');
         });
 
@@ -162,7 +163,7 @@ describe('Car Tests', function() {
               type: null,
             }), false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('Car type is mandatory');
         });
 
@@ -174,7 +175,7 @@ describe('Car Tests', function() {
               carCatalogID: null,
             }), false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('Car Catalog ID is mandatory');
         });
 
@@ -187,7 +188,7 @@ describe('Car Tests', function() {
               licensePlate: testData.newCar.licensePlate,
             }), false
           );
-          expect(response.status).to.equal(591);
+          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
         });
 
         it('Should be able to update a car', async () => {
@@ -216,17 +217,17 @@ describe('Car Tests', function() {
             testData.newCar,
             false
           );
-          expect(response.status).to.equal(591);
+          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR);
         });
 
         it('Should be able to get car', async () => {
           const response = await testData.centralService.carApi.readCar(testData.newCar.id);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
 
         it('Should be able to get cars', async () => {
           const response = await testData.centralService.carApi.readCars({});
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
         });
       });
       describe('Where basic user', () => {
@@ -260,7 +261,7 @@ describe('Car Tests', function() {
             testData.centralService.carApi,
             testData.createdCars[0], false
           );
-          expect(response.status).to.equal(592);
+          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR_DIFFERENT_USER);
           testData.createdCars[0]['forced'] = true;
           await testData.centralService.createEntity(
             testData.centralService.carApi,
@@ -275,7 +276,7 @@ describe('Car Tests', function() {
             testData.centralService.carApi,
             newCar, false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('Pool cars can only be created by admin');
         });
 
@@ -295,7 +296,7 @@ describe('Car Tests', function() {
             testData.createdCars[1],
             false
           );
-          expect(response.status).to.equal(550);
+          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
 
         it('Should not be able to update a car to a pool car', async () => {
@@ -307,7 +308,7 @@ describe('Car Tests', function() {
             carToUpdate,
             false
           );
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
           expect(response.data.message).to.equal('Pool cars can only be created by admin');
         });
 
@@ -318,7 +319,7 @@ describe('Car Tests', function() {
             testData.createdCars[1],
             false
           );
-          expect(response.status).to.equal(550);
+          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
       });
 
@@ -341,43 +342,43 @@ describe('Car Tests', function() {
     describe('Where Super admin user', () => {
       it('Should be able to get car catalog by ID', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarCatalog(carID);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to get image of a car', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarImages(carID);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to get car makers', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarMakers({});
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to get a detailed car catalog without ID', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarCatalog(null);
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('Should be able to get car catalog debug object', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarCatalog(carID);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data).to.have.property('hash');
       });
 
       it('Should be able to get car catalogs', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCarCatalogs({});
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to get cars from super tenant', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCars({});
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to get car from super tenant', async () => {
         const response = await testData.centralService.carApiSuperTenant.readCar({});
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to create a car from super tenant', async () => {
@@ -387,7 +388,7 @@ describe('Car Tests', function() {
           Factory.car.build(),
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
     });
   });
