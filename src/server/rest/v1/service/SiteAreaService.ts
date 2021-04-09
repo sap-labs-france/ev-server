@@ -438,7 +438,9 @@ export default class SiteAreaService {
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.id, 'handleUpdateSiteArea', action, {});
+      req.tenant, req.user, filteredRequest.id, 'handleUpdateSiteArea', action, {
+        withChargingStations: true,
+      });
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
