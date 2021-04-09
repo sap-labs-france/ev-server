@@ -1086,8 +1086,7 @@ export default class OCPPUtils {
       // Get current limitation
       const connector = Utils.getConnectorFromID(chargingStation, connectorID);
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
-      const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
-        tenantID, chargingStation, chargePoint, connectorID);
+      const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, chargePoint, connectorID);
       consumption.limitAmps = connectorLimit.limitAmps;
       consumption.limitWatts = connectorLimit.limitWatts;
       consumption.limitSource = connectorLimit.limitSource;
@@ -1186,15 +1185,8 @@ export default class OCPPUtils {
               delete connector.numberOfConnectedPhase;
             }
             const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-            if (chargingStation.capabilities?.supportStaticLimitation) {
-              // Check connector amperage limit
-              const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
-              if (connectorAmperageLimit) {
-                connector.amperageLimit = connectorAmperageLimit;
-              }
-            } else {
-              delete connector.amperageLimit;
-            }
+            // Amperage limit
+            OCPPUtils.checkAndSetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
             // Phase Assignment
             if (!Utils.objectHasProperty(connector, 'phaseAssignmentToGrid')) {
               await OCPPUtils.setConnectorPhaseAssignment(tenantID, chargingStation, connector, numberOfPhases);
@@ -1239,12 +1231,7 @@ export default class OCPPUtils {
   public static checkAndSetChargingStationAmperageLimit(chargingStation: ChargingStation): void {
     if (Utils.objectHasProperty(chargingStation, 'connectors')) {
       for (const connector of chargingStation.connectors) {
-        const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector);
-        if (chargingStation.capabilities?.supportStaticLimitation && connectorAmperageLimit) {
-          connector.amperageLimit = connectorAmperageLimit;
-        } else {
-          delete connector.amperageLimit;
-        }
+        OCPPUtils.checkAndSetConnectorAmperageLimit(chargingStation, connector);
       }
     }
   }
@@ -1885,8 +1872,7 @@ export default class OCPPUtils {
           // Enrich connectors
           if (Utils.objectHasProperty(chargingStation, 'connectors')) {
             for (const connector of chargingStation.connectors) {
-              await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-                tenantID, chargingStation, connector.connectorId, chargingStationTemplate);
+              await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenantID, chargingStation, connector.connectorId, chargingStationTemplate);
             }
           }
           // Set the hash
@@ -2123,6 +2109,19 @@ export default class OCPPUtils {
       detailedMessages: { chargingStation }
     });
     return templateUpdateResult;
+  }
+
+  private static checkAndSetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): void {
+    if (chargingStation.capabilities?.supportStaticLimitation) {
+      const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+      // Check connector amperage limit
+      const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
+      if (connectorAmperageLimit) {
+        connector.amperageLimit = connectorAmperageLimit;
+      }
+    } else {
+      delete connector.amperageLimit;
+    }
   }
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
