@@ -1102,7 +1102,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction();
+            await testData.ocppCommonTests.testStopTransaction(false,true);
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
@@ -1201,7 +1201,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Stop user should be able to stop the transaction (with SignedData)', async () => {
-            await testData.ocppCommonTests.testStopTransaction();
+            await testData.ocppCommonTests.testStopTransaction(false,true);
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity (with SignedData)', async () => {
