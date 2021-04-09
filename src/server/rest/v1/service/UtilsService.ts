@@ -43,7 +43,7 @@ export default class UtilsService {
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
     // Check static auth for reading Charging Station
-    if (!Authorizations.canReadChargingStation(userToken)) {
+    if (!await Authorizations.canReadChargingStation(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -103,7 +103,7 @@ export default class UtilsService {
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
     // Check static auth for reading company
-    if (!Authorizations.canReadCompany(userToken)) {
+    if (!await Authorizations.canReadCompany(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -152,7 +152,7 @@ export default class UtilsService {
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
     // Check static auth for reading user
-    if (!Authorizations.canReadUser(userToken, userID)) {
+    if (!await Authorizations.canReadUser(userToken, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -201,7 +201,7 @@ export default class UtilsService {
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
     // Check static auth for reading site
-    if (!Authorizations.canReadSite(userToken)) {
+    if (!await Authorizations.canReadSite(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -250,7 +250,7 @@ export default class UtilsService {
   public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string,
       method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
     // Check static auth for reading site area
-    if (!Authorizations.canReadSiteArea(userToken)) {
+    if (!await Authorizations.canReadSiteArea(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -885,7 +885,7 @@ export default class UtilsService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
+        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage as number}V`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
@@ -1001,7 +1001,7 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
+  public static checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): void {
     // Check badge ID
     if (!tag.id) {
       throw new AppError({

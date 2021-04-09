@@ -35,7 +35,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
     // Check static auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    if (!await Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -101,7 +101,7 @@ export default class SiteAreaService {
       req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
     // Check static auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    if (!await Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -192,7 +192,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
     // Check static auth
-    if (!Authorizations.canDeleteSiteArea(req.user)) {
+    if (!await Authorizations.canDeleteSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -383,7 +383,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
     // Check static auth
-    if (!Authorizations.canCreateSiteArea(req.user)) {
+    if (!await Authorizations.canCreateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -424,7 +424,7 @@ export default class SiteAreaService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
     // Check static auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    if (!await Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
