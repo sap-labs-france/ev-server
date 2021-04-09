@@ -579,8 +579,7 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get user - TODO - userID should come from the filteredRequest not from the userToken
-    const userID = req.user.id;
+    const userID = filteredRequest.userID;
     const user: User = await UserStorage.getUser(req.user.tenantID, userID);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);

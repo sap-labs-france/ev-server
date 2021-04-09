@@ -30,6 +30,7 @@ import Tag from '../../../../types/Tag';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import { TransactionInErrorType } from '../../../../types/InError';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import countries from 'i18n-iso-countries';
@@ -146,6 +147,55 @@ export default class UtilsService {
       });
     }
     return company;
+  }
+
+  public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string,
+      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
+    // Check static auth for reading user
+    if (!Authorizations.canReadUser(userToken, userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method,
+        value: userID
+      });
+    }
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, method, userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      tenant, userToken, { ID: userID });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method,
+      });
+    }
+    // Get User
+    const user = await UserStorage.getUser(tenant.id, userID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
+      MODULE_NAME, method, userToken);
+    // External User
+    if (!user.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
+        module: MODULE_NAME, method,
+        user: userToken,
+        action: action
+      });
+    }
+    return user;
   }
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string,
