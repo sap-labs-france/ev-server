@@ -5,6 +5,7 @@ import ChargingStationContext from './context/ChargingStationContext';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -111,7 +112,7 @@ describe('User tests', function() {
               'Content-Type': 'application/json'
             }
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           expect(response.data).not.null;
           expect(response.data).to.have.property('eulaAccepted');
           expect(response.data.eulaAccepted).to.eql(true);
@@ -181,7 +182,7 @@ describe('User tests', function() {
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
           const resDelete = await testData.userService.userApi.deleteTag(tagId);
-          expect(resDelete.status).to.equal(575);
+          expect(resDelete.status).to.equal(HTTPError.TAG_HAS_TRANSACTIONS);
           const tag = (await testData.userService.userApi.readTag(tagId)).data;
           expect(tag).to.not.be.null;
         });
@@ -189,7 +190,7 @@ describe('User tests', function() {
         it('Should be able to deactivate a badge', async () => {
           testData.newTag.active = false;
           const response = await testData.userService.userApi.updateTag(testData.newTag);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           const tag = (await testData.userService.userApi.readTag(testData.newTag.id)).data;
           expect(tag.active).to.equal(false);
         });
@@ -210,9 +211,9 @@ describe('User tests', function() {
           let response = await testData.userService.userApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           response = await testData.userService.userApi.deleteTag(testData.newTag.id);
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           response = (await testData.userService.userApi.readTag(testData.newTag.id));
-          expect(response.status).to.equal(550);
+          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
 
         it('Should find the updated user by id', async () => {
@@ -254,7 +255,7 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
 
           await testData.userService.deleteEntity(
@@ -273,7 +274,7 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
@@ -293,7 +294,7 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
@@ -313,7 +314,7 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
@@ -333,7 +334,7 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          expect(response.status).to.equal(200);
+          expect(response.status).to.equal(StatusCodes.OK);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 

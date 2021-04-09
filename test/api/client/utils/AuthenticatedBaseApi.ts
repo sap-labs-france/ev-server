@@ -1,5 +1,6 @@
 import AuthenticationApi from '../AuthenticationApi';
 import BaseApi from './BaseApi';
+import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
 
@@ -42,7 +43,7 @@ export default class AuthenticatedBaseApi extends BaseApi {
       // No, try to log in
       const response = await this._authenticationApi.login(this._user, this._password, true, this._tenant);
       // Keep the token
-      expect(response.status).to.be.eql(200);
+      expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('token');
       this._token = response.data.token;
       this._decodedToken = jwt.decode(this._token);
