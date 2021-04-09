@@ -1,3 +1,4 @@
+import { Action, AuthorizationFilter } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
@@ -5,7 +6,6 @@ import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } fro
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
-import { AuthorizationFilter } from '../../../../types/Authorization';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
@@ -26,7 +26,7 @@ import _ from 'lodash';
 
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest, action: ServerAction): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       projectFields: [
@@ -41,9 +41,15 @@ export default class AuthorizationService {
     }
     // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
-      // Check assigned Site
-      await AuthorizationService.checkAssignedSites(
-        tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      if (action === ServerAction.SITE_UPDATE) {
+        // Check assigned Site
+        await AuthorizationService.checkAssignedSiteAdmins(
+          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      } else {
+        // Check assigned Site
+        await AuthorizationService.checkAssignedSites(
+          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      }
     }
     return authorizationFilters;
   }
@@ -121,7 +127,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -141,7 +147,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -270,7 +276,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -312,7 +318,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -337,7 +343,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -355,7 +361,7 @@ export default class AuthorizationService {
         (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -678,7 +684,7 @@ export default class AuthorizationService {
     }
   }
 
-  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
+  private static async checkAssignedSiteAdminsAndOwners(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
@@ -689,6 +695,32 @@ export default class AuthorizationService {
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filterß
           authorizationFilters.filters.siteIDs = allSites;
+          // Check if filter is provided
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+  }
+
+  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin & Site Owner flag
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
+          // Force the filterß
+          authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (filteredRequest?.SiteID) {
             const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
