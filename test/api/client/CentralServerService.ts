@@ -10,6 +10,7 @@ import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import ContextDefinition from '../context/ContextDefinition';
+import { HTTPError } from '../../../src/types/HTTPError';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
@@ -19,6 +20,7 @@ import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
 import SmartChargingApi from './SmartChargingApi';
 import StatisticsApi from './StatisticsApi';
+import { StatusCodes } from 'http-status-codes';
 import TenantApi from './TenantApi';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TestConstants from './utils/TestConstants';
@@ -148,7 +150,7 @@ export default class CentralServerService {
     const response = await entityApi.create(entity);
     // Check
     if (performCheck) {
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data).not.null;
       expect(response.data.status).to.eql('Success');
       expect(response.data).to.have.property('id');
@@ -170,7 +172,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check if ok
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.id).is.eql(entity.id);
       expect(response.data).to.containSubset(entity);
       // Return the entity
@@ -191,7 +193,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       // Contains props
       expect(response.data).to.have.property('count');
       expect(response.data).to.have.property('result');
@@ -217,7 +219,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       // Contains props
       expect(response.data).to.have.property('count');
       expect(response.data).to.have.property('result');
@@ -238,7 +240,7 @@ export default class CentralServerService {
     const response = await entityApi.delete(entity.id);
     // Check
     if (performCheck) {
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
       return response;
     }
@@ -255,7 +257,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
       return response;
     }
@@ -271,7 +273,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check if not found
-      expect(response.status).to.equal(550);
+      expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     } else {
       // Let the caller to handle response
       return response;
@@ -286,7 +288,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       // Check
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
       expect(response.data.status).to.eql('Success');
       return response;
     }
