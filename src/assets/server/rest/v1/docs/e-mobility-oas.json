@@ -4787,18 +4787,7 @@
       "ChargePoint": {
         "type": "object",
         "required": [
-          "chargePointID",
-          "currentType",
-          "voltage",
-          "amperage",
-          "numberOfConnectedPhase",
-          "cannotChargeInParallel",
-          "sharePowerToAllConnectors",
-          "excludeFromPowerLimitation",
-          "ocppParamForPowerLimitation",
-          "power",
-          "efficiency",
-          "connectorIDs"
+          "chargePointID"
         ],
         "properties": {
           "chargePointID": {
