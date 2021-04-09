@@ -902,7 +902,7 @@ export default class OCPPUtils {
       // Handle SoC (%)
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = Utils.convertToFloat(meterValue.value);
-        // Handle Power (W/kW)
+      // Handle Power (W/kW)
       } else if (OCPPUtils.isPowerActiveImportMeterValue(meterValue)) {
         // Compute power
         const powerInMeterValue = Utils.convertToFloat(meterValue.value);
@@ -2090,6 +2090,17 @@ export default class OCPPUtils {
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
         message: 'Template has already been applied',
         detailedMessages: { chargingStationTemplate, chargingStation }
+      });
+      return templateUpdateResult;
+    } else if (chargingStationTemplate && chargingStation.manualConfiguration) {
+      // Log
+      await Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
+        message: 'Template matching the charging station has been found but manual configuration is enabled. If that\'s not intentional, disable it',
+        detailedMessages: { chargingStation }
       });
       return templateUpdateResult;
     }
