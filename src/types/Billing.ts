@@ -70,8 +70,10 @@ export interface BillingTax {
 export interface BillingInvoice {
   id: string;
   invoiceID: string;
+  liveMode: boolean;
   userID?: string;
   user?: User;
+  // eslint-disable-next-line id-blacklist
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;
