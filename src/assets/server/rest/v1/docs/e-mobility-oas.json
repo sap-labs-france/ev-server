@@ -694,7 +694,10 @@
             "description": "Transaction status",
             "schema": {
               "type": "string",
-              "enum": ["completed", "active"]
+              "enum": [
+                "completed",
+                "active"
+              ]
             }
           },
           {
@@ -4033,7 +4036,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["userID", "issuer", "active", "description"],
+                "required": [
+                  "userID",
+                  "issuer",
+                  "active",
+                  "description"
+                ],
                 "properties": {
                   "userID": {
                     "type": "string",
@@ -4561,6 +4569,9 @@
       },
       "Connector": {
         "type": "object",
+        "required": [
+          "connectorId"
+        ],
         "properties": {
           "connectorId": {
             "type": "number",
@@ -4570,18 +4581,34 @@
             "type": "number"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "T2",
+              "CCS",
+              "C",
+              "T1",
+              "T3C",
+              "T1CCS",
+              "D",
+              "U"
+            ]
           },
           "voltage": {
             "type": "number",
-            "enum": [110, 230]
+            "enum": [
+              110,
+              230
+            ]
           },
           "amperage": {
             "type": "number"
           },
           "currentType": {
             "type": "string",
-            "enum": ["AC", "DC"]
+            "enum": [
+              "AC",
+              "DC"
+            ]
           },
           "numberOfConnectedPhase": {
             "type": "number"
@@ -4759,17 +4786,37 @@
       },
       "ChargePoint": {
         "type": "object",
+        "required": [
+          "chargePointID",
+          "currentType",
+          "voltage",
+          "amperage",
+          "numberOfConnectedPhase",
+          "cannotChargeInParallel",
+          "sharePowerToAllConnectors",
+          "excludeFromPowerLimitation",
+          "ocppParamForPowerLimitation",
+          "power",
+          "efficiency",
+          "connectorIDs"
+        ],
         "properties": {
           "chargePointID": {
             "type": "number"
           },
           "currentType": {
             "type": "string",
-            "enum": ["AC", "DC"]
+            "enum": [
+              "AC",
+              "DC"
+            ]
           },
           "voltage": {
             "type": "number",
-            "enum": [110, 230]
+            "enum": [
+              110,
+              230
+            ]
           },
           "amperage": {
             "type": "number"
@@ -4805,7 +4852,13 @@
       },
       "Tag": {
         "type": "object",
-        "required": ["id", "userID", "issuer", "active", "description"],
+        "required": [
+          "id",
+          "userID",
+          "issuer",
+          "active",
+          "description"
+        ],
         "properties": {
           "id": {
             "type": "string",

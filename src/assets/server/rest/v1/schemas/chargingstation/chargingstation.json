@@ -259,7 +259,10 @@
             "$ref": "#/definitions/connector/properties/connectorId"
           }
         }
-      }
+      },
+      "required": [
+        "chargePointID"
+      ]
     }
   }
 }
