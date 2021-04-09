@@ -108,7 +108,7 @@ export default class OCPPUtils {
             tagID: transaction.tagID
           }, Constants.DB_PARAMS_MAX_LIMIT);
           // Found ID?
-          if (authorizations && authorizations.result && authorizations.result.length > 0) {
+          if (!Utils.isEmptyArray(authorizations.result)) {
             // Get the first non used Authorization OCPI ID
             for (const authorization of authorizations.result) {
               if (authorization.authorizationId) {

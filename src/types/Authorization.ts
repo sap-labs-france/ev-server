@@ -24,6 +24,12 @@ export interface AuthorizationDefinition {
     $extend?: any;
   };
 }
+
+export interface AuthorizationResult {
+  authorized: boolean;
+  fields: string[];
+}
+
 export interface AuthorizationFilter {
   filters: Record<string, any>;
   projectFields: string[];

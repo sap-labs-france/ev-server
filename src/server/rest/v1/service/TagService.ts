@@ -42,7 +42,7 @@ export default class TagService {
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!await Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -61,7 +61,7 @@ export default class TagService {
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
-    if (!Authorizations.canReadUser(req.user, tag.userID)) {
+    if (!await Authorizations.canReadUser(req.user, tag.userID)) {
       delete tag.userID;
       delete tag.user;
     }
@@ -72,7 +72,7 @@ export default class TagService {
 
   public static async handleGetTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListTags(req.user)) {
+    if (!await Authorizations.canListTags(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -112,7 +112,7 @@ export default class TagService {
     // Filter
     const tagsIds = TagSecurity.filterTagRequestByIDs(req.body);
     // Check auth
-    if (!Authorizations.canDeleteTag(req.user)) {
+    if (!await Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -132,7 +132,7 @@ export default class TagService {
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTag', req.user);
     // Check auth
-    if (!Authorizations.canDeleteTag(req.user)) {
+    if (!await Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -224,7 +224,7 @@ export default class TagService {
 
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    if (!Authorizations.canCreateTag(req.user)) {
+    if (!await Authorizations.canCreateTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -235,7 +235,7 @@ export default class TagService {
     // Filter
     const filteredRequest = TagSecurity.filterTagCreateRequest(req.body, req.user);
     // Check
-    await UtilsService.checkIfUserTagIsValid(filteredRequest, req);
+    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
@@ -332,7 +332,7 @@ export default class TagService {
 
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    if (!Authorizations.canUpdateTag(req.user)) {
+    if (!await Authorizations.canUpdateTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -345,7 +345,7 @@ export default class TagService {
     let formerTagUserID: string;
     let formerTagDefault: boolean;
     // Check
-    await UtilsService.checkIfUserTagIsValid(filteredRequest, req);
+    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get Tag
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
@@ -471,7 +471,7 @@ export default class TagService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportTags(req.user)) {
+    if (!await Authorizations.canImportTags(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
