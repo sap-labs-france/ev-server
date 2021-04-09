@@ -236,7 +236,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TENANT_ALREADY_EXIST,
+        errorCode: HTTPError.TENANT_NAME_ALREADY_EXIST,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
         user: req.user,
@@ -248,7 +248,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TENANT_ALREADY_EXIST,
+        errorCode: HTTPError.TENANT_SUBDOMAIN_ALREADY_EXIST,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTenant',
         user: req.user,
