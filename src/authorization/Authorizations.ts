@@ -87,10 +87,6 @@ export default class Authorizations {
       loggedUser, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, context);
   }
 
-  public static getAuthorizedCompanyIDs(loggedUser: UserToken): string[] {
-    return loggedUser.companies;
-  }
-
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
@@ -524,25 +520,22 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREAS, Action.LIST);
   }
 
-  public static canReadSiteArea(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.READ,
-      { site: siteID, sites: loggedUser.sites });
+  public static canReadSiteArea(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.READ);
   }
 
-  public static canCreateSiteArea(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canCreateSiteArea(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: UserToken, siteID: string): boolean {
+  public static canUpdateSiteArea(loggedUser: UserToken, siteID?: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.UPDATE, {
       site: siteID, sites: loggedUser.sitesAdmin
     });
   }
 
-  public static canDeleteSiteArea(loggedUser: UserToken, siteID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE,
-      { site: siteID, sites: loggedUser.sitesAdmin });
+  public static canDeleteSiteArea(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
   }
 
   public static canListCompanies(loggedUser: UserToken): boolean {

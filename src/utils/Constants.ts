@@ -5,6 +5,8 @@ import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
+  public static readonly ONE_BILLION = 1000000000;
+
   public static readonly BOOT_NOTIFICATION_WAIT_TIME = 60;
 
   public static readonly CSV_SEPARATOR = ',';

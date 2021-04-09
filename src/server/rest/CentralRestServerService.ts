@@ -340,7 +340,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -354,7 +354,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }

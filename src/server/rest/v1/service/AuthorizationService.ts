@@ -1,17 +1,21 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { CompanyDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
-import AppAuthError from '../../../../exception/AppAuthError';
+import { AuthorizationFilter } from '../../../../types/Authorization';
 import Authorizations from '../../../../authorization/Authorizations';
+import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
-import { HTTPAuthError } from '../../../../types/HTTPError';
+import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -19,8 +23,6 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import _ from 'lodash';
-
-const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
   public static async checkAndGetSiteAuthorizationFilters(
@@ -34,53 +36,14 @@ export default class AuthorizationService {
     };
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned Site IDs from DB
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken, filteredRequest.ID);
-      if (Utils.isEmptyArray(siteIDs) || !siteIDs.includes(filteredRequest.ID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.READ, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-        });
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
-    return authorizationFilters;
-  }
-
-  public static async checkAndGetUpdateSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      projectFields: [
-        'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
-    };
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
-    // Not an Admin user?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get SiteIDs for which user is Site Admin
-      const { siteAdminIDs, siteOwnerIDs } = await AuthorizationService.getSiteAdminOwnerIDs(tenant, userToken);
-      if (Utils.isEmptyArray(siteAdminIDs) || !siteAdminIDs.includes(filteredRequest.ID)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: Action.READ, entity: Entity.SITE,
-          module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-        });
-      } else {
-        authorizationFilters.authorized = true;
-      }
+      // Check assigned Site
+      await AuthorizationService.checkAssignedSites(
+        tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
     }
     return authorizationFilters;
   }
@@ -92,16 +55,25 @@ export default class AuthorizationService {
     sites.canCreate = Authorizations.canCreateSite(userToken);
     // Enrich
     for (const site of sites.result) {
-      if (!site.issuer) {
-        site.canRead = true;
-        site.canUpdate = false;
-        site.canDelete = false;
-      } else {
-        site.canRead = Authorizations.canReadSite(userToken);
-        site.canDelete = Authorizations.canDeleteSite(userToken);
-        // update can be performed by admin or site admin
-        site.canUpdate = userToken.role === UserRole.ADMIN || (Authorizations.canUpdateSite(userToken) && siteAdminIDs.includes(site.id));
-      }
+      await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, siteAdminIDs);
+    }
+  }
+
+  public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, siteAdminIDs?: string[]): Promise<void> {
+    // Get Site Admins
+    if (Utils.isEmptyArray(siteAdminIDs)) {
+      siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+    }
+    // Enrich
+    if (!site.issuer) {
+      site.canRead = true;
+      site.canUpdate = false;
+      site.canDelete = false;
+    } else {
+      const isSiteAdmin = siteAdminIDs.includes(site.id) || (userToken.role === UserRole.ADMIN);
+      site.canRead = Authorizations.canReadSite(userToken);
+      site.canDelete = Authorizations.canDeleteSite(userToken);
+      site.canUpdate = Authorizations.canUpdateSite(userToken) && isSiteAdmin;
     }
   }
 
@@ -122,26 +94,14 @@ export default class AuthorizationService {
     }
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned Site IDs assigned to user from DB
-      const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteIDs = siteIDs;
-        // Check if filter is provided
-        if (filteredRequest.SiteID) {
-          const filteredSiteIDs = filteredRequest.SiteID.split('|');
-          // Override
-          authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-            (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
-        }
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
-        authorizationFilters.authorized = true;
-      }
+      // Check assigned Sites
+      await AuthorizationService.checkAssignedSites(
+        tenant, userToken, filteredRequest, authorizationFilters);
     }
     return authorizationFilters;
   }
@@ -157,7 +117,8 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
@@ -176,11 +137,12 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
-      tenant, userToken, filteredRequest, authorizationFilters);
+      tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
@@ -212,15 +174,6 @@ export default class AuthorizationService {
             authorizationFilters.authorized = true;
           }
         }
-      }
-      if (!authorizationFilters.authorized) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: userToken,
-          action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-          entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'checkAndAssignSiteUsersAuthorizationFilters'
-        });
       }
     }
     return authorizationFilters;
@@ -255,15 +208,6 @@ export default class AuthorizationService {
             }
           }
         }
-        if (!authorizationFilters.authorized) {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action: action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN : Action.UNASSIGN,
-            entity: Entity.USERS_SITES,
-            module: MODULE_NAME, method: 'checkAndAssignUserSitesAuthorizationFilters'
-          });
-        }
       } else {
         authorizationFilters.authorized = true;
       }
@@ -283,10 +227,12 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Get authorization filters from users
-    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, filteredRequest);
+    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+      tenant, userToken, filteredRequest);
     // Override
     authorizationFilters.authorized = usersAuthorizationFilters.authorized;
     authorizationFilters.filters = usersAuthorizationFilters.filters;
@@ -296,10 +242,15 @@ export default class AuthorizationService {
   public static addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): void {
     // Enrich
     for (const user of users) {
-      user.canRead = Authorizations.canReadUser(userToken, user.id);
-      user.canUpdate = Authorizations.canUpdateUser(userToken, user.id);
-      user.canDelete = Authorizations.canDeleteUser(userToken, user.id);
+      AuthorizationService.addUserAuthorizations(tenant, userToken, user);
     }
+  }
+
+  public static addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User): void {
+    // Enrich
+    user.canRead = Authorizations.canReadUser(userToken, user.id);
+    user.canUpdate = Authorizations.canUpdateUser(userToken, user.id);
+    user.canDelete = Authorizations.canDeleteUser(userToken, user.id);
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
@@ -315,10 +266,32 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
+      tenant, userToken, filteredRequest, authorizationFilters);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetAssetsAuthorizationFilters(
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpAssetsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Handle Sites
+    await AuthorizationService.checkAssignedSites(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -335,11 +308,12 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
-      tenant, userToken, filteredRequest, authorizationFilters);
+      tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
@@ -359,11 +333,12 @@ export default class AuthorizationService {
     }
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
-      tenant, userToken, filteredRequest, authorizationFilters);
+      tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
@@ -376,11 +351,12 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
-      tenant, userToken, filteredRequest, authorizationFilters);
+      tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
@@ -392,22 +368,22 @@ export default class AuthorizationService {
     userToken.sitesOwner = siteOwnerIDs;
     // Add canCreate flag to root
     companies.canCreate = Authorizations.canCreateCompany(userToken);
-    const assignedCompanies = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
     // Enrich
     for (const company of companies.result) {
-      if (!company.issuer) {
-        company.canRead = true;
-        company.canUpdate = false;
-        company.canDelete = false;
-      } else if (userToken.role === UserRole.ADMIN) {
-        company.canRead = true;
-        company.canUpdate = true;
-        company.canDelete = true;
-      } else {
-        company.canRead = Authorizations.canReadCompany(userToken) && assignedCompanies.includes(company.id);
-        company.canUpdate = Authorizations.canUpdateCompany(userToken) && assignedCompanies.includes(company.id);
-        company.canDelete = Authorizations.canDeleteCompany(userToken) && assignedCompanies.includes(company.id);
-      }
+      AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+    }
+  }
+
+  public static addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company): void {
+    // Enrich
+    if (!company.issuer) {
+      company.canRead = true;
+      company.canUpdate = false;
+      company.canDelete = false;
+    } else {
+      company.canRead = Authorizations.canReadCompany(userToken);
+      company.canDelete = Authorizations.canDeleteCompany(userToken);
+      company.canUpdate = Authorizations.canUpdateCompany(userToken);
     }
   }
 
@@ -424,7 +400,8 @@ export default class AuthorizationService {
     }
     // Check Projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
@@ -463,34 +440,135 @@ export default class AuthorizationService {
     };
     // Check projection
     if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
     }
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(companyIDs)) {
-          if (!companyIDs.includes(filteredRequest.ID)) {
-            throw new AppAuthError({
-              errorCode: HTTPAuthError.FORBIDDEN,
-              user: userToken,
-              action: Action.READ, entity: Entity.SITE,
-              module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-            });
-          } else {
-            authorizationFilters.authorized = true;
-          }
-        } else {
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action: Action.READ, entity: Entity.SITE,
-            module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
-          });
-        }
-      } else {
+      // Get Company IDs from sssigned Sites
+      const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(companyIDs) && companyIDs.includes(filteredRequest.ID)) {
         authorizationFilters.authorized = true;
       }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(siteAreaIDs) && siteAreaIDs.includes(filteredRequest.ID)) {
+        authorizationFilters.authorized = true;
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetSiteAreasAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreasRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get assigned SiteArea IDs
+      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
+      if (!Utils.isEmptyArray(siteAreaIDs)) {
+        // Force the filter
+        authorizationFilters.filters.siteAreaIDs = siteAreaIDs;
+        // Check if filter is provided
+        if (Utils.objectHasProperty(filteredRequest, 'SiteAreaID') &&
+              !Utils.isNullOrUndefined(filteredRequest['SiteAreaID'])) {
+          const filteredSiteAreaIDs: string[] = filteredRequest['SiteAreaID'].split('|');
+          // Override
+          authorizationFilters.filters.siteAreaIDs = filteredSiteAreaIDs.filter(
+            (siteAreaID) => authorizationFilters.filters.siteAreaIDs.includes(siteAreaID));
+        }
+      }
+      if (!Utils.isEmptyArray(authorizationFilters.filters.siteAreaIDs)) {
+        authorizationFilters.authorized = true;
+      }
+    }
+
+    return authorizationFilters;
+  }
+
+  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult): Promise<void> {
+    // Get Site Admins
+    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+    // Add canCreate flag to root
+    siteAreas.canCreate = Authorizations.canCreateSite(userToken);
+    // Enrich
+    for (const siteArea of siteAreas.result) {
+      await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, siteAdminIDs);
+    }
+  }
+
+  public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, siteAdminIDs?: string[]): Promise<void> {
+    // Get Site Admins
+    if (Utils.isEmptyArray(siteAdminIDs)) {
+      siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+    }
+    // Enrich
+    if (!siteArea.issuer) {
+      siteArea.canRead = true;
+      siteArea.canUpdate = false;
+      siteArea.canDelete = false;
+    } else {
+      const isSiteAdmin = siteAdminIDs.includes(siteArea.siteID) || (userToken.role === UserRole.ADMIN);
+      siteArea.canRead = Authorizations.canReadSiteArea(userToken);
+      siteArea.canUpdate = Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
+      siteArea.canDelete = Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
+    }
+  }
+
+  public static async checkAndGetChargingStationAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpChargingStationRequest):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [
+        'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+        'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+        'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+        'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+        'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+      ],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Check Projection
+    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
+      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
+        (projectField) => filteredRequest.ProjectFields.includes(projectField));
+    }
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Check assigned Sites
+      await AuthorizationService.checkAssignedSites(
+        tenant, userToken, null, authorizationFilters);
     }
     return authorizationFilters;
   }
@@ -532,11 +610,10 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
+  private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites assigned to user
     const sites = await SiteStorage.getSites(tenantID,
       {
-        siteIDs: siteID ? [siteID] : null,
         userID: userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
@@ -575,22 +652,18 @@ export default class AuthorizationService {
     };
   }
 
-  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpSiteUsersRequest | HttpUserSitesRequest | HttpUserRequest | HttpUserAssignSitesRequest | HttpTagsRequest,
-      authorizationFilters: AuthorizationFilter): Promise<void> {
+  private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
-        const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
-        if (!Utils.isEmptyArray(allSites)) {
-          // Force the filterß
-          authorizationFilters.filters.siteIDs = allSites;
+        // Get assigned Site IDs assigned to user from DB
+        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteIDs)) {
+          // Force the filter
+          authorizationFilters.filters.siteIDs = siteIDs;
           // Check if filter is provided
-          if (Utils.objectHasProperty(filteredRequest, 'SiteID') &&
-              !Utils.isNullOrUndefined(filteredRequest['SiteID'])) {
-            const filteredSiteIDs: string[] = filteredRequest['SiteID'].split('|');
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs = filteredRequest.SiteID.split('|');
             // Override
             authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
               (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
@@ -603,5 +676,51 @@ export default class AuthorizationService {
         authorizationFilters.authorized = true;
       }
     }
+  }
+
+  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin & Site Owner flag
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
+        const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
+        if (!Utils.isEmptyArray(allSites)) {
+          // Force the filterß
+          authorizationFilters.filters.siteIDs = allSites;
+          // Check if filter is provided
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+  }
+
+  private static async getAssignedSiteAreaIDs(tenantID: string, userToken: UserToken, siteID?: string) {
+    // Get the SiteArea IDs from sites assigned to the user
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID,
+      {
+        siteIDs: Authorizations.getAuthorizedSiteIDs(userToken, siteID ? [siteID] : null),
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return _.uniq(_.map(siteAreas.result, 'id'));
+  }
+
+  private static async getSiteAreaSiteID(tenantID: string, siteAreaID: string) {
+    // Get the Site IDs of SiteArea
+    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, siteAreaID);
+    return siteArea.siteID;
   }
 }

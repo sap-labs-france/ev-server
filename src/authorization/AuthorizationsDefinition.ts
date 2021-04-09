@@ -121,9 +121,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.COMPANY, action: Action.READ, attributes: ['*']
-      },
+      { resource: Entity.COMPANY, action: Action.READ, attributes: ['*'] },
       // -----------------------------------------------------------------------------------------------
       // TODO - put it pack as soon as BILLING has been validated of SLF
       // -----------------------------------------------------------------------------------------------
@@ -141,14 +139,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
-      },
+      { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*']
-      },
+      { resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
@@ -169,9 +162,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      {
-        resource: Entity.TAG, action: Action.READ, attributes: ['*']
-      },
+      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
@@ -272,10 +263,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: [Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
-      {
-        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
-      },
+      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
