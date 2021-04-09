@@ -611,7 +611,7 @@ export default class OCPPCommonTests {
     }
   }
 
-  public async testStopTransaction(withSoC = false) {
+  public async testStopTransaction(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -635,6 +635,7 @@ export default class OCPPCommonTests {
     const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
     expect(this.totalPrice).equal(totalTransactionPrice);
     expect(transactionValidation.data).to.deep['containSubset']({
+      'signedData': (withSignedData ? this.transactionStartSignedData : null),
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
@@ -647,6 +648,7 @@ export default class OCPPCommonTests {
         'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
+        'signedData': (withSignedData, this.transactionEndSignedData: null),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
@@ -668,6 +670,7 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
+      'signedData': (withSignedData ? this.transactionStartSignedData : null),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -676,6 +679,7 @@ export default class OCPPCommonTests {
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
+        'signedData': (withSignedData ? this.transactionEndSignedData : null),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
