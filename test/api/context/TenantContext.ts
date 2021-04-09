@@ -11,6 +11,7 @@ import RegistrationToken from '../../types/RegistrationToken';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
 import Utils from '../../../src/utils/Utils';
 import config from '../../config';
@@ -537,7 +538,7 @@ export default class TenantContext {
       description: `Test Token for site area ${siteAreaID}`,
       siteAreaID: siteAreaID
     });
-    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.status).eq(StatusCodes.OK);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
     return registrationTokenResponse.data.id;
@@ -545,7 +546,7 @@ export default class TenantContext {
 
   async getRegistrationToken(siteAreaID: string): Promise<RegistrationToken> {
     const registrationTokenResponse = await this.centralAdminServerService.registrationApi.readAll({ SiteAreaID: siteAreaID });
-    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.status).eq(StatusCodes.OK);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
     if (registrationTokenResponse.data.result.length !== 0) {
