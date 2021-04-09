@@ -2,6 +2,8 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
+import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../src/types/Tenant';
 import TestUtils from './TestUtils';
 import chaiSubset from 'chai-subset';
@@ -133,7 +135,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.getEntityById(
         CentralServerService.defaultInstance.tenantApi, { id: '' }, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to read an invalid tenant', async () => {
@@ -141,7 +143,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.getEntityById(
         CentralServerService.defaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to read an unknown tenant', async () => {
@@ -149,7 +151,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.getEntityById(
         CentralServerService.defaultInstance.tenantApi, { id: '123456789012345678901234' }, false);
       // Check
-      expect(response.status).to.equal(550);
+      expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     });
 
     it('Should not be possible to create a tenant without email', async () => {
@@ -160,7 +162,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant without a name', async () => {
@@ -171,7 +173,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant without a subdomain', async () => {
@@ -182,7 +184,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an empty email', async () => {
@@ -193,7 +195,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an empty name', async () => {
@@ -204,7 +206,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an empty subdomain', async () => {
@@ -215,7 +217,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an invalid email', async () => {
@@ -226,7 +228,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an invalid name', async () => {
@@ -237,7 +239,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an invalid subdomain', async () => {
@@ -248,7 +250,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
     });
 
     it('Should not be possible to create a tenant with an already existing subdomain', async () => {
@@ -259,7 +261,7 @@ describe('Tenant tests', function() {
       let response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
 
       // Create
       tenant = Factory.tenant.build();
@@ -268,27 +270,7 @@ describe('Tenant tests', function() {
       response = await CentralServerService.defaultInstance.createEntity(
         CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(598);
-    });
-
-    it('Should not be possible to create a tenant with an already existing name', async () => {
-      // Create
-      let tenant: Tenant = Factory.tenant.build();
-      const tenantName = tenant.name;
-      // Call
-      let response = await CentralServerService.defaultInstance.createEntity(
-        CentralServerService.defaultInstance.tenantApi, tenant, false);
-      // Check
-      expect(response.status).to.equal(200);
-
-      // Create
-      tenant = Factory.tenant.build();
-      tenant.name = tenantName;
-      // Call
-      response = await CentralServerService.defaultInstance.createEntity(
-        CentralServerService.defaultInstance.tenantApi, tenant, false);
-      // Check
-      expect(response.status).to.equal(597);
+      expect(response.status).to.equal(HTTPError.TENANT_ALREADY_EXIST);
     });
   });
 });
