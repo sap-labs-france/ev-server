@@ -1,13 +1,15 @@
-import { Action, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
+import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
@@ -29,6 +31,21 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
+  public static canPerfomAuthorizationAction(entity: AuthorizationActions, authAction: Action): boolean {
+    switch (authAction) {
+      case Action.READ:
+        return entity.canRead;
+      case Action.UPDATE:
+        return entity.canUpdate;
+      case Action.CREATE:
+        return entity.canCreate;
+      case Action.DELETE:
+        return entity.canDelete;
+      default:
+        return false;
+    }
+  }
+
   public static async checkAndGetSiteAuthorizationFilters(
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
@@ -91,6 +108,15 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check static auth
+    if (!await Authorizations.canListSites(userToken)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST, entity: Entity.SITES,
+        module: MODULE_NAME, method: 'checkAndGetSitesAuthorizationFilters'
+      });
+    }
     // Add user info
     if (await Authorizations.canListUsers(userToken)) {
       authorizationFilters.projectFields.push(
@@ -150,7 +176,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndAssignSiteUsersAuthorizationFilters(
+  public static async checkAssignSiteUsersAuthorizationFilters(
       tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
@@ -168,13 +194,80 @@ export default class AuthorizationService {
           let foundInvalidUserID = false;
           // Get User IDs already assigned to the site
           const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
-          // Check if any of the users we want to unassign are missing
+          // Check if any of the Users we want to unassign are missing
           for (const userID of filteredRequest.userIDs) {
             if (!userIDs.includes(userID)) {
               foundInvalidUserID = true;
             }
           }
           if (!foundInvalidUserID) {
+            authorizationFilters.authorized = true;
+          }
+        }
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAssignSiteAreaAssetsAuthorizationFilters(
+      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea, filteredRequest: HttpAssignAssetsToSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get Site IDs for which user is admin from db
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      // Check Site
+      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
+        // Site Authorized, now check Assets
+        if (!Utils.isEmptyArray(filteredRequest.assetIDs)) {
+          let foundInvalidAssetID = false;
+          // Get Asset IDs already assigned to the site
+          const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant.id, siteArea.siteID);
+          // Check if any of the Assets we want to unassign are missing
+          for (const assetID of filteredRequest.assetIDs) {
+            if (!assetIDs.includes(assetID)) {
+              foundInvalidAssetID = true;
+            }
+          }
+          if (!foundInvalidAssetID) {
+            authorizationFilters.authorized = true;
+          }
+        }
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAssignSiteAreaChargingStationsAuthorizationFilters(
+      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea,
+      filteredRequest: HttpAssignChargingStationToSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get Site IDs for which user is admin from db
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      // Check Site
+      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
+        // Site Authorized, now check Assets
+        if (!Utils.isEmptyArray(filteredRequest.chargingStationIDs)) {
+          let foundInvalidChargingStationID = false;
+          // Get Charging Station IDs already assigned to the Site
+          const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
+          // Check if any of the Charging Stations we want to unassign are missing
+          for (const chargingStationID of filteredRequest.chargingStationIDs) {
+            if (!chargingStationIDs.includes(chargingStationID)) {
+              foundInvalidChargingStationID = true;
+            }
+          }
+          if (!foundInvalidChargingStationID) {
             authorizationFilters.authorized = true;
           }
         }
@@ -632,7 +725,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
-    // Get the Sites assigned to user
+    // Get the Sites assigned to the User
     const sites = await SiteStorage.getSites(tenantID,
       {
         userID: userToken.id,
@@ -644,7 +737,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedUsersIDs(tenantID: string, siteID: string): Promise<string[]> {
-    // Get the Users assigned to the site
+    // Get the Users assigned to the Site
     const users = await UserStorage.getUsers(tenantID,
       {
         siteIDs: [siteID],
@@ -653,6 +746,32 @@ export default class AuthorizationService {
       ['id']
     );
     return users.result.map((user) => user.id);
+  }
+
+  private static async getAssignedAssetIDs(tenantID: string, siteID: string): Promise<string[]> {
+    // Get the Assets assigned to the Site
+    const assets = await AssetStorage.getAssets(tenantID,
+      {
+        siteIDs: [siteID],
+        // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
+        // issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return assets.result.map((asset) => asset.id);
+  }
+
+  private static async getAssignedChargingStationIDs(tenantID: string, siteID: string): Promise<string[]> {
+    // Get the Charging Stations assigned to the Site
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
+      {
+        siteIDs: [siteID],
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return chargingStations.result.map(
+      (chargingStation) => chargingStation.id);
   }
 
   private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {

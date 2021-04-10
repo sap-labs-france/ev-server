@@ -188,14 +188,12 @@ describe('Site Area tests', function() {
         // Try to call Consumptions without Site Area ID
         const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('The ID must be provided');
       });
 
       it('Should not be able to read consumption without start and end date', async () => {
         // Try to call Consumptions without start and end date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('Start date and end date must be provided');
       });
 
       it('Should not be able to read consumption with end date before start date', async () => {
@@ -294,14 +292,12 @@ describe('Site Area tests', function() {
         // Try to call Consumptions without Site Area ID
         const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('The ID must be provided');
       });
 
       it('Should not be able to read consumption without start and end date', async () => {
         // Try to call Consumptions without start and end date
         const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
         expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-        expect(response.data.message).to.equal('Start date and end date must be provided');
       });
 
       it('Should not be able to read consumption with end date before start date', async () => {
@@ -343,14 +339,14 @@ describe('Site Area tests', function() {
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
-      it('Should be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
+      it('Should not be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteContext.getSite());
         login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         // Assign ChargingStation to SiteArea
         const response = await testData.userService.siteAreaApi.assignChargingStations(
           testData.siteAreaContext.getSiteArea().id, [testData.chargingStationContext.getChargingStation().id]);
-        expect(response.status).to.equal(StatusCodes.OK);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
