@@ -103,16 +103,6 @@ export default class UtilsService {
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
-    // Check static auth for reading company
-    if (!await Authorizations.canReadCompany(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        value: companyID
-      });
-    }
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
