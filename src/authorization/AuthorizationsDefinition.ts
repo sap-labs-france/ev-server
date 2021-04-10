@@ -323,7 +323,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
 const MODULE_NAME = 'AuthorizationsDefinition';
 
 export default class AuthorizationsDefinition {
-  private static _instance: AuthorizationsDefinition;
+  private static instance: AuthorizationsDefinition;
   private accessControl: AccessControl;
 
   private constructor() {
@@ -340,10 +340,10 @@ export default class AuthorizationsDefinition {
   }
 
   public static getInstance(): AuthorizationsDefinition {
-    if (!AuthorizationsDefinition._instance) {
-      AuthorizationsDefinition._instance = new AuthorizationsDefinition();
+    if (!AuthorizationsDefinition.instance) {
+      AuthorizationsDefinition.instance = new AuthorizationsDefinition();
     }
-    return AuthorizationsDefinition._instance;
+    return AuthorizationsDefinition.instance;
   }
 
   public async getScopes(roles: string[]): Promise<string[]> {
