@@ -332,9 +332,8 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getScopes',
-        message: 'Unable to load authorization grants',
+        module: MODULE_NAME, method: 'constructor',
+        message: 'Unable to init authorization definition',
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
@@ -367,7 +366,7 @@ export default class AuthorizationsDefinition {
     return scopes;
   }
 
-  public async can(roles: string[], resource: string, action: string, context?): Promise<boolean> {
+  public async can(roles: string[], resource: string, action: string, context?: any): Promise<boolean> {
     try {
       const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
       return permission.granted;
@@ -382,7 +381,7 @@ export default class AuthorizationsDefinition {
     }
   }
 
-  public async canPerformAction(roles: string[], resource: string, action: string, context?): Promise<AuthorizationResult> {
+  public async canPerformAction(roles: string[], resource: string, action: string, context?: any): Promise<AuthorizationResult> {
     try {
       const permission = await this.accessControl.can(roles).execute(action).with(context).on(resource);
       return {

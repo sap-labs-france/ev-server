@@ -981,7 +981,7 @@ export default class ChargingStationService {
     }
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ID, 'handleGetChargingStation', action, {
+      req.tenant, req.user, filteredRequest.ID, action, {
         withLogo: true
       }, true);
     res.json(chargingStation);

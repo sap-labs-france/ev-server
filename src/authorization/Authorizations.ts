@@ -986,22 +986,26 @@ export default class Authorizations {
     switch (userRole) {
       case UserRole.ADMIN:
         roles.push('admin');
+        if (sitesOwnerCount > 0) {
+          roles.push('siteOwner');
+        }
         break;
       case UserRole.SUPER_ADMIN:
         roles.push('superAdmin');
         break;
       case UserRole.BASIC:
-        roles.push('basic');
         if (sitesAdminCount > 0) {
           roles.push('siteAdmin');
+        } else {
+          roles.push('basic');
+        }
+        if (sitesOwnerCount > 0) {
+          roles.push('siteOwner');
         }
         break;
       case UserRole.DEMO:
         roles.push('demo');
         break;
-    }
-    if (sitesOwnerCount > 0) {
-      roles.push('siteOwner');
     }
     return roles;
   }

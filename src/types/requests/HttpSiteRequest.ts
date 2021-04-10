@@ -26,7 +26,6 @@ export interface HttpSiteImageRequest extends HttpByIDRequest {
 export interface HttpSiteAssignUsersRequest extends HttpDatabaseProjectRequest {
   siteID: string;
   userIDs: string[];
-  role: string;
 }
 
 export interface HttpSiteUserAdminRequest {

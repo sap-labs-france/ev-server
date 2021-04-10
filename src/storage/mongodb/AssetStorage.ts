@@ -99,7 +99,7 @@ export default class AssetStorage {
 
   public static async getAssets(tenantID: string,
       params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-        withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
+        withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssets');
@@ -129,9 +129,14 @@ export default class AssetStorage {
         $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
       };
     }
+    // Issuer
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
+      filters.issuer = params.issuer;
+    }
+    // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Dynamic Asset
