@@ -27,7 +27,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Check static auth
-    if (!Authorizations.canDeleteCompany(req.user)) {
+    if (!await Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -60,15 +60,6 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
-    // Check static auth
-    if (!Authorizations.canReadCompany(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleGetCompany',
-      });
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
@@ -112,15 +103,6 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
-    // Check static auth
-    if (!Authorizations.canListCompanies(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.COMPANIES,
-        module: MODULE_NAME, method: 'handleGetCompanies'
-      });
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
     // Check dynamic auth
@@ -161,7 +143,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Check auth
-    if (!Authorizations.canCreateCompany(req.user)) {
+    if (!await Authorizations.canCreateCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -200,7 +182,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Check static auth
-    if (!Authorizations.canUpdateCompany(req.user)) {
+    if (!await Authorizations.canUpdateCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

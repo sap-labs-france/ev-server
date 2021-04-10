@@ -35,7 +35,7 @@ export default class TenantService {
     const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
-    if (!Authorizations.canDeleteTenant(req.user)) {
+    if (!await Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -113,7 +113,7 @@ export default class TenantService {
     const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
-    if (!Authorizations.canReadTenant(req.user)) {
+    if (!await Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -146,7 +146,7 @@ export default class TenantService {
     // Validate
     const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
-    if (!Authorizations.canListTenants(req.user)) {
+    if (!await Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -223,7 +223,7 @@ export default class TenantService {
     // Validate
     const filteredRequest = await TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
-    if (!Authorizations.canCreateTenant(req.user)) {
+    if (!await Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -315,7 +315,7 @@ export default class TenantService {
     // Check
     const filteredRequest = await TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
-    if (!Authorizations.canUpdateTenant(req.user)) {
+    if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

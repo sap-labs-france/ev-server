@@ -27,7 +27,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
     // Check static auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -117,7 +117,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteOwner');
     // check static auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -187,7 +187,7 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Check static auth
     if (action === ServerAction.ADD_USERS_TO_SITE) {
-      if (!Authorizations.canAssignUsersSites(req.user)) {
+      if (!await Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -195,7 +195,7 @@ export default class SiteService {
           module: MODULE_NAME, method: 'handleAssignUsersToSite'
         });
       }
-    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -253,7 +253,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!await Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -303,7 +303,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Check static auth
-    if (!Authorizations.canDeleteSite(req.user)) {
+    if (!await Authorizations.canDeleteSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -338,7 +338,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Check static auth
-    if (!Authorizations.canReadSite(req.user)) {
+    if (!await Authorizations.canReadSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -368,7 +368,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
     // Check static auth
-    if (!Authorizations.canListSites(req.user)) {
+    if (!await Authorizations.canListSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -458,7 +458,7 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
     // Check static auth
-    if (!Authorizations.canCreateSite(req.user)) {
+    if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -504,7 +504,7 @@ export default class SiteService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!await Authorizations.canUpdateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

@@ -74,7 +74,7 @@ export default class ChargingStationService {
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
+    if (!await Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -358,7 +358,7 @@ export default class ChargingStationService {
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+    if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -471,7 +471,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
     // Check auth
-    if (!Authorizations.canListChargingProfiles(req.user)) {
+    if (!await Authorizations.canListChargingProfiles(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -528,7 +528,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+    if (!await Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -578,7 +578,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationQRCodeGenerateReq(req.query);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -643,7 +643,7 @@ export default class ChargingStationService {
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+    if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -700,7 +700,7 @@ export default class ChargingStationService {
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+    if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -757,7 +757,7 @@ export default class ChargingStationService {
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+    if (!await Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -796,7 +796,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargeBoxID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -817,7 +817,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterRequestChargingStationOcppParametersRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -869,7 +869,7 @@ export default class ChargingStationService {
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check auth
-    if (!Authorizations.canDeleteChargingStation(req.user, siteID)) {
+    if (!await Authorizations.canDeleteChargingStation(req.user, siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -969,8 +969,8 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetReq({ ...req.params, ...req.query });
     // Check ID is provided
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
-    // Check static auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    // Check auth
+    if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1000,7 +1000,7 @@ export default class ChargingStationService {
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
       // Check all chargers
-      if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
+      if (!await Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -1060,7 +1060,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListChargingStationsInError(req.user)) {
+    if (!await Authorizations.canListChargingStationsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1116,7 +1116,7 @@ export default class ChargingStationService {
 
   public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!await Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1136,7 +1136,7 @@ export default class ChargingStationService {
 
   public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!await Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user, action: Action.LIST,
@@ -1301,7 +1301,7 @@ export default class ChargingStationService {
       }
     } else if (command === Command.GET_COMPOSITE_SCHEDULE) {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -1341,7 +1341,7 @@ export default class ChargingStationService {
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -1365,7 +1365,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
     // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
+    if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1459,7 +1459,7 @@ export default class ChargingStationService {
 
   private static async getChargingStations(req: Request, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
+    if (!await Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1471,7 +1471,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
     }
     // Project fields

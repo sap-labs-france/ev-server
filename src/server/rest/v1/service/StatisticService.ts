@@ -25,7 +25,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -54,7 +54,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -83,7 +83,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -112,7 +112,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -141,7 +141,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -170,7 +170,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -199,7 +199,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -228,7 +228,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -257,7 +257,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -286,7 +286,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -315,7 +315,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleExportStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
