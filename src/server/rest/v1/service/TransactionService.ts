@@ -1062,8 +1062,9 @@ export default class TransactionService {
       extrafilters.stop = { $exists: false };
     }
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
