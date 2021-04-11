@@ -14,6 +14,7 @@ import { HTTPAuthError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
@@ -284,7 +285,7 @@ describe('Billing Service', function() {
 
       it('Should list invoices', async () => {
         const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
-        expect(response.status).to.be.eq(200);
+        expect(response.status).to.be.eq(StatusCodes.OK);
         expect(response.data.result.length).to.be.gt(0);
       });
 
@@ -342,7 +343,7 @@ describe('Billing Service', function() {
 
       it('Should not be able to test connection to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('Should not create a user', async () => {
@@ -356,7 +357,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('Should not update a user', async () => {
@@ -371,7 +372,7 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('Should not delete a user', async () => {
@@ -380,7 +381,7 @@ describe('Billing Service', function() {
           { id: 0 },
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('Should not synchronize a user', async () => {
@@ -388,7 +389,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       it('Should not force synchronization of a user', async () => {
@@ -396,7 +397,7 @@ describe('Billing Service', function() {
           ...Factory.user.build(),
         } as User;
         const response = await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       xit('Should list invoices', async () => {

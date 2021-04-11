@@ -51,12 +51,8 @@ export default class UtilsSecurity {
   }
 
   public static filterProject(request: any, filteredRequest: any): void {
-    // Count Only?
     if (Utils.objectHasProperty(request, 'ProjectFields')) {
-      // Clean
-      request.ProjectFields = sanitize(request.ProjectFields);
-      // Convert to array
-      filteredRequest.ProjectFields = request.ProjectFields.split('|');
+      filteredRequest.ProjectFields = sanitize(request.ProjectFields);
     }
   }
 
@@ -128,25 +124,6 @@ export default class UtilsSecurity {
       ];
     }
     return [];
-  }
-
-  static filterCreatedAndLastChanged(filteredEntity: any, entity: any, loggedUser: UserToken): void {
-    if (Utils.objectHasProperty(entity, 'createdBy') && typeof entity.createdBy === 'object' &&
-        Utils.objectHasProperty(entity.createdBy, 'id') && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
-      // Build user
-      filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
-    }
-    if (Utils.objectHasProperty(entity, 'lastChangedBy') && typeof entity.lastChangedBy === 'object' &&
-      entity.lastChangedBy.id && Authorizations.canReadUser(loggedUser, entity.lastChangedBy.id)) {
-      // Build user
-      filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);
-    }
-    if (Utils.objectHasProperty(entity, 'lastChangedOn')) {
-      filteredEntity.lastChangedOn = entity.lastChangedOn;
-    }
-    if (Utils.objectHasProperty(entity, 'createdOn')) {
-      filteredEntity.createdOn = entity.createdOn;
-    }
   }
 }
 

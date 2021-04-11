@@ -21,14 +21,14 @@ export default class SiteAreaSecurity {
   public static filterAssignAssetsToSiteAreaRequest(request: any): HttpAssignAssetsToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      assetIDs: request.assetIDs.map(sanitize)
+      assetIDs: request.assetIDs?.map(sanitize)
     };
   }
 
   public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(sanitize)
+      chargingStationIDs: request.chargingStationIDs?.map(sanitize)
     };
   }
 
