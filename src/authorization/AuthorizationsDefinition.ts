@@ -1,6 +1,6 @@
-import { Action, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
+import { AccessControl, IDictionary, IFunctionCondition } from 'role-acl';
+import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationResult, Entity } from '../types/Authorization';
 
-import { AccessControl } from 'role-acl';
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
 
@@ -28,7 +28,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } },
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
         'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
@@ -119,13 +119,26 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
-        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
+      {
+        resource: Entity.COMPANIES, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSitesCompanies'] }
+        },
+        attributes: ['id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn']
+      },
+      {
+        resource: Entity.COMPANY, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSitesCompanies'] }
+        },
+        attributes: ['id', 'name', 'issuer', 'logo', 'address']
+      },
       // -----------------------------------------------------------------------------------------------
       // TODO - put it pack as soon as BILLING has been validated of SLF
       // -----------------------------------------------------------------------------------------------
@@ -320,6 +333,18 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
 };
 
+
+const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
+  dynamicAuthorizationFilters: (context: Record<string, any>, args: AuthorizationContext): boolean => {
+    // Pass the dynamic filters to the context
+    // Used by the caller to execute dynamic filters
+    if (context) {
+      context.filters = args.filters;
+    }
+    return true;
+  }
+};
+
 const MODULE_NAME = 'AuthorizationsDefinition';
 
 export default class AuthorizationsDefinition {
@@ -328,7 +353,7 @@ export default class AuthorizationsDefinition {
 
   private constructor() {
     try {
-      this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION);
+      this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION, AUTHORIZATION_CONDITIONS);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

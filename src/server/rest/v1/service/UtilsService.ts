@@ -112,17 +112,14 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: Action.READ, entity: Entity.COMPANY,
+        action: authAction, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
         value: companyID
       });
     }
     // Get Company
     const company = await CompanyStorage.getCompany(tenant.id, companyID,
-      {
-        ...additionalFilters,
-        ...authorizationFilter.filters
-      },
+      { ...additionalFilters },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, company, `Company ID '${companyID}' does not exist`,
@@ -700,10 +697,8 @@ export default class UtilsService {
     }
   }
 
-  public static httpFilterProjectToMongoDB(httpProjectFields: string): string[] {
-    // Exist?
+  public static httpFilterProjectToArray(httpProjectFields: string): string[] {
     if (httpProjectFields) {
-      // Convert to array
       return httpProjectFields.split('|');
     }
   }
