@@ -56,7 +56,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!await Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -65,7 +65,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!await Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -76,7 +76,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -127,7 +127,7 @@ export default class UserService {
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Check auth
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!Authorizations.canAssignUsersSites(req.user)) {
+      if (!await Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -135,7 +135,7 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -158,7 +158,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -231,7 +231,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
     // Check auth
-    if (!Authorizations.canDeleteUser(req.user, userID)) {
+    if (!await Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -449,7 +449,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -611,7 +611,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -667,7 +667,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -709,7 +709,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -756,7 +756,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!await Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -768,7 +768,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -832,7 +832,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListUsersInErrors(req.user)) {
+    if (!await Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -867,7 +867,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -876,7 +876,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportUsers(req.user)) {
+    if (!await Authorizations.canImportUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1060,7 +1060,7 @@ export default class UserService {
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateUser(req.user)) {
+    if (!await Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1199,7 +1199,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
+    if (!await Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1372,7 +1372,7 @@ export default class UserService {
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!await Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1421,7 +1421,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
   }
