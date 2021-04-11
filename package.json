@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LucasBrazi06/ev-server.git"
+    "url": "https://github.com/sap-labs-france/ev-server.git"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -18,7 +18,7 @@
   ],
   "description": "Backend for Electric Vehicle charging station",
   "author": "SAP E-Mobility Labs France <e-mobility@sap.com>",
-  "homepage": "https://github.com/LucasBrazi06/ev-server",
+  "homepage": "https://github.com/sap-labs-france/ev-server",
   "main": "dist/start.js",
   "scripts": {
     "git:sinit": "git submodule update --init --recursive --force",

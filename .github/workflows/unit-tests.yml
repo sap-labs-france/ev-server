@@ -14,13 +14,13 @@ jobs:
   #   runs-on: ubuntu-latest
   #   strategy:
   #     matrix:
-  #       node-version: [12.x, 14.x]
+  #       node-version: [14.x]
   #       mongodb-version: [4.2]
   #   steps:
   #   - uses: actions/checkout@v2
   #   - uses: actions/checkout@v2
   #     with:
-  #       repository: LucasBrazi06/ev-ci
+  #       repository: sap-labs-france/ev-ci
   #       ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
   #       path: src/assets/configs-ci
   #   - name: Start MongoDB
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [14.x]
         mongodb-version: [4.2]
     steps:
     - uses: actions/checkout@v2

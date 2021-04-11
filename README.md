@@ -2,7 +2,7 @@
 
 ## Summary
 
-This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/LucasBrazi06/ev-dashboard)).
+This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/sap-labs-france/ev-dashboard)).
 
 The application features:
 
@@ -17,7 +17,6 @@ The application features:
 ## Installation
 
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
-* Install Python version 2.7 (not the version 3.7!)
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
@@ -36,14 +35,14 @@ The application features:
 * On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
 
 ```
-choco install -y nodejs-lts python2 mongodb postman robot3t microsoft-build-tools
+choco install -y nodejs-lts mongodb postman robot3t microsoft-build-tools
 ```
 
 * On Mac OSX with **Homebrew** (https://brew.sh/), do:
 
 ```
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 && brew cask install postman robo-3t
+brew install node mongodb-community@4.2 postman robo-3t
 ```
 
 * Follow the rest of the setup below
@@ -223,7 +222,7 @@ There can be several central systems with different protocols.
 
 ### The Central Service REST Server (CSRS)
 
-The server also exposes a set of REST services to serve the front-end [Angular Dashboard](https://github.com/LucasBrazi06/ev-dashboard).
+The server also exposes a set of REST services to serve the front-end [Angular Dashboard](https://github.com/sap-labs-france/ev-dashboard).
 
 This application displays the charging stations with their statuses, charging curves, user management...
 
