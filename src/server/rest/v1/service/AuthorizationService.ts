@@ -477,6 +477,7 @@ export default class AuthorizationService {
     const authorizationContext: AuthorizationContext = {};
     const authResult = await Authorizations.canListCompanies(userToken, authorizationContext);
     authorizationFilters.authorized = authResult.authorized;
+    // Check
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -505,6 +506,7 @@ export default class AuthorizationService {
     const authorizationContext: AuthorizationContext = {};
     const authResult = await Authorizations.canReadCompany(userToken, authorizationContext);
     authorizationFilters.authorized = authResult.authorized;
+    // Check
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -514,7 +516,7 @@ export default class AuthorizationService {
       });
     }
     // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.LIST, Entity.COMPANIES,
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.COMPANY,
       authorizationFilters, authorizationContext, { CompanyID: filteredRequest.ID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
