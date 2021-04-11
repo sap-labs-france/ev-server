@@ -541,12 +541,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
   }
 
-  public static async canListCompanies(loggedUser: UserToken): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.COMPANIES, Action.LIST);
+  public static async canListCompanies(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.COMPANIES, Action.LIST, authContext);
   }
 
-  public static async canReadCompany(loggedUser: UserToken): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.COMPANY, Action.READ);
+  public static async canReadCompany(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.COMPANY, Action.READ, authContext);
   }
 
   public static async canCreateCompany(loggedUser: UserToken): Promise<boolean> {

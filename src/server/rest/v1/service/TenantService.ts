@@ -126,7 +126,7 @@ export default class TenantService {
       'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo'
     ];
     // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
@@ -162,7 +162,7 @@ export default class TenantService {
       projectFields.push('components');
     }
     // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }

@@ -495,8 +495,9 @@ export default class ChargingStationService {
       ...projectFields
     ];
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the profiles
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
@@ -1091,8 +1092,9 @@ export default class ChargingStationService {
       'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
     ];
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const projectHttpFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(projectHttpFields)) {
+      projectFields = projectFields.filter((projectField) => projectHttpFields.includes(projectField));
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
@@ -1492,7 +1494,7 @@ export default class ChargingStationService {
       ];
     }
     // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }

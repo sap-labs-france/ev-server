@@ -165,6 +165,7 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
+  filters?: DynamicAuthorizationFilters[];
 }
 
 export interface AuthorizationActions {
@@ -172,4 +173,8 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+}
+
+export enum DynamicAuthorizationFilters {
+  ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
 }
