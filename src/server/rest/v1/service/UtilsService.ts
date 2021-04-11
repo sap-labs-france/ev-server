@@ -106,6 +106,7 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
+    // TODO: Should have Provider data in the authorizationFilter
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       tenant, userToken, { ID: companyID });
     if (!authorizationFilter.authorized) {
@@ -136,6 +137,7 @@ export default class UtilsService {
       });
     }
     // Add actions
+    // TODO: Pass the data from Data Provider as extraFilters
     await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
     // Check
     const authorized = AuthorizationService.canPerfomAuthorizationAction(company, authAction);

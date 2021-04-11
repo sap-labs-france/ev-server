@@ -1,4 +1,5 @@
-import { AuthorizationFilter } from '../../types/Authorization';
+import { AuthorizationFilter, Entity } from '../../types/Authorization';
+
 import AuthorizationService from '../../server/rest/v1/service/AuthorizationService';
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 import Tenant from '../../types/Tenant';
@@ -7,6 +8,7 @@ import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 
 export default class AssignedSitesCompaniesDynamicAuthorizationFilter implements DynamicAuthorizationFilter {
+  // TODO: Process the assigned company IDs from the extraFilters (do not call the DB)
   public async processFilter(tenant: Tenant, userToken: UserToken,
       authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
@@ -30,5 +32,13 @@ export default class AssignedSitesCompaniesDynamicAuthorizationFilter implements
     } else {
       authorizationFilters.authorized = true;
     }
+  }
+
+  public getEntities(): Entity[] {
+    return [Entity.COMPANY, Entity.COMPANIES];
+  }
+
+  getDataSources(): string[] {
+    return [];
   }
 }

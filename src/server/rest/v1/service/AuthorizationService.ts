@@ -454,6 +454,7 @@ export default class AuthorizationService {
   }
 
   public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company): Promise<void> {
+    // TODO: Use the Data Provider in the Extra context
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
@@ -503,6 +504,7 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static auth
+    // TODO: Can get here the Data Provider (AssignedCompanyIDs) + Intantiate them + Get the Data: JSon: { assignedCompanyIDs: [...]}
     const authorizationContext: AuthorizationContext = {};
     const authResult = await Authorizations.canReadCompany(userToken, authorizationContext);
     authorizationFilters.authorized = authResult.authorized;
@@ -516,6 +518,7 @@ export default class AuthorizationService {
       });
     }
     // Process dynamic filters
+    // TODO: Pass here the JSon Data from all the Data Provider to the extra filter
     await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.COMPANY,
       authorizationFilters, authorizationContext, { CompanyID: filteredRequest.ID });
     // Filter projected fields

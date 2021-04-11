@@ -57,8 +57,6 @@ export default class CompanyService {
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
         withLogo: true
       }, true);
-    // Add authorizations
-    await AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
     // Return
     res.json(company);
     next();
