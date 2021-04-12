@@ -490,18 +490,31 @@ export default class OCPPService {
       const user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation,
         authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
       // Roaming User
-      if (user && !user.issuer && user.authorizationID) {
-        // Public Charging Station
-        if (chargingStation.public) {
-          // Keep Romaing Auth ID
-          authorize.authorizationId = user.authorizationID;
+      if (user && !user.issuer) {
+        // Authorization ID provided?
+        if (user.authorizationID) {
+          // Public Charging Station
+          if (chargingStation.public) {
+            // Keep Romaing Auth ID
+            authorize.authorizationId = user.authorizationID;
+          } else {
+            throw new BackendError({
+              user: user,
+              action: ServerAction.AUTHORIZE,
+              module: MODULE_NAME,
+              method: 'handleAuthorize',
+              message: 'Cannot authorize a roaming user on a private charging station',
+              detailedMessages: { authorize }
+            });
+          }
         } else {
           throw new BackendError({
             user: user,
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME,
             method: 'handleAuthorize',
-            message: 'Cannot authorize a roaming user on a private charging station'
+            message: 'Authorization ID has not been supplied',
+            detailedMessages: { authorize }
           });
         }
       }
@@ -515,7 +528,8 @@ export default class OCPPService {
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleAuthorize',
         action: ServerAction.AUTHORIZE, user: (authorize.user ? authorize.user : null),
-        message: `User has been authorized with Badge ID '${authorize.idTag}'`
+        message: `User has been authorized with Badge ID '${authorize.idTag}'`,
+        detailedMessages: { authorize }
       });
       // Return
       return {
