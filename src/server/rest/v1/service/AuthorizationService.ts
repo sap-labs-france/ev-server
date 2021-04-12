@@ -12,7 +12,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
-import DynamicAuthorizationFilterFactory from '../../../../authorization/DynamicAuthorizationFilterFactory';
+import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -640,19 +640,6 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getAssignedSitesCompanyIDs(tenantID: string, userToken: UserToken, siteID?: string): Promise<string[]> {
-    // Get the Company IDs of the assigned Sites
-    const sites = await SiteStorage.getSites(tenantID,
-      {
-        siteIDs: siteID ? [siteID] : null,
-        userID: userToken.id,
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['companyID']
-    );
-    return _.uniq(_.map(sites.result, 'companyID'));
-  }
-
   public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
@@ -828,7 +815,7 @@ export default class AuthorizationService {
         // Reset to false
         authorizationFilters.authorized = false;
         // Get the filter
-        const dynamicFilter = DynamicAuthorizationFilterFactory.getDynamicFilter(filter);
+        const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant.id, userToken.id, filter);
         if (!dynamicFilter) {
           // Filter not found -> Not authorized (all auth filter MUST work)
           throw new AppAuthError({
@@ -839,7 +826,7 @@ export default class AuthorizationService {
           });
         }
         // Process the filter
-        await dynamicFilter.processFilter(tenant, userToken, authorizationFilters, extraFilters);
+        dynamicFilter.processFilter(authorizationFilters, extraFilters);
         // Check
         if (!authorizationFilters.authorized) {
           break;

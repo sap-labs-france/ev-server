@@ -1,13 +1,34 @@
-import { AuthorizationFilter, Entity } from '../types/Authorization';
+import { AuthorizationFilter, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, Entity } from '../types/Authorization';
 
-import Tenant from '../types/Tenant';
-import UserToken from '../types/UserToken';
+import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 
-export default interface DynamicAuthorizationFilter {
-  processFilter(tenant: Tenant, userToken: UserToken, authorizationFilters: AuthorizationFilter,
-    extraFilters: Record<string, any>): Promise<void>;
+export default abstract class DynamicAuthorizationFilter {
+  protected tenantID: string;
+  protected userID: string;
+  private dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> = new Map();
 
-  getEntities(): Entity[];
+  public constructor(tenantID: string, userID: string) {
+    this.tenantID = tenantID;
+    this.userID = userID;
+  }
 
-  getDataSources(): string[];
+  public getDataSources(): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>[] {
+    return Array.from(this.dataSources.values());
+  }
+
+  public getDataSource(dataSourceName: DynamicAuthorizationDataSourceName): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData> {
+    return this.dataSources.get(dataSourceName);
+  }
+
+  public setDataSource(dataSourceName: DynamicAuthorizationDataSourceName,
+      dataSource: DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>): void {
+    this.dataSources.set(dataSourceName, dataSource);
+  }
+
+  public abstract processFilter(
+    authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void;
+
+  public abstract getApplicableEntities(): Entity[];
+
+  public abstract getApplicableDataSources(): DynamicAuthorizationDataSourceName[];
 }
