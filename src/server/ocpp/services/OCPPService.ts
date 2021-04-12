@@ -691,7 +691,7 @@ export default class OCPPService {
         user
       };
       // Car handling
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR)) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
         // Check default car
         if (user.lastSelectedCarID) {
           transaction.carID = user.lastSelectedCarID;
@@ -790,7 +790,7 @@ export default class OCPPService {
         });
       }
       // Clear last user's car selection
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user.lastSelectedCarID) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user?.lastSelectedCarID) {
         await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
       }
       // Return
