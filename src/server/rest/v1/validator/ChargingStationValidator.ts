@@ -2,13 +2,13 @@ import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest,
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import Schema from './Schema';
+import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class ChargingStationValidator extends SchemaValidator {
-  private static instance: ChargingStationValidator | undefined;
+  private static instance: ChargingStationValidator|null = null;
   private chargingStationsGet: Schema;
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
@@ -56,7 +56,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationActionReq(data: any): HttpChargingStationCommandRequest {
+  public validateChargingStationActionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandRequest {
     // Validate schema
     this.validate(this.chargingStationAction, data);
     return data;
@@ -68,7 +68,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationQRCodeDownloadReq(data: any): HttpDownloadQrCodeRequest {
+  public validateChargingStationQRCodeDownloadReq(data: HttpDownloadQrCodeRequest): HttpDownloadQrCodeRequest {
     // Validate schema
     this.validate(this.chargingStationQRCodeDownload, data);
     return data;
@@ -81,7 +81,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   }
 
 
-  public validateChargingProfileCreateReq(data: any): ChargingProfile {
+  public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
     // Validate schema
     this.validate(this.chargingProfileCreate, data);
     return data;
