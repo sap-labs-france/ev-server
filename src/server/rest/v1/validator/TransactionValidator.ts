@@ -1,8 +1,5 @@
-import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest } from '../../../../types/requests/HttpChargingStationRequest';
-
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Schema from './Schema';
+import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';

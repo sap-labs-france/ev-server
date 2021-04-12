@@ -6,7 +6,6 @@ import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRem
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -1070,7 +1069,7 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationInErrorReq(req.query);
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -1107,7 +1106,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields

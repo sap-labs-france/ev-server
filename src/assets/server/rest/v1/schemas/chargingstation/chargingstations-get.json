@@ -37,10 +37,6 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "ErrorType": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
     "LocLongitude": {
       "type": "number",
       "sanitize": "mongo"
