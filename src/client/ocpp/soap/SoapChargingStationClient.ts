@@ -37,7 +37,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
     const scsc = new SoapChargingStationClient(tenantID, chargingStation);
-    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files

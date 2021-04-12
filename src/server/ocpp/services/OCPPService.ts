@@ -935,7 +935,7 @@ export default class OCPPService {
         // Delete TxProfile if any
         await this.deleteAllTransactionTxProfile(headers.tenantID, transaction);
         // Call async because the Transaction ID on the connector should be cleared
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           try {
             // Trigger Smart Charging

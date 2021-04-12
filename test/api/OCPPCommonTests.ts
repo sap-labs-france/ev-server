@@ -6,7 +6,6 @@ import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
 import { StatusCodes } from 'http-status-codes';
@@ -354,7 +353,7 @@ export default class OCPPCommonTests {
   public async testChargingStationRegistrationWithInvalidIdentifier() {
     try {
       await this.chargingStationContext.sendBootNotification();
-      fail('BootNotification should failed');
+      fail('BootNotification should fail');
     } catch (error) {
       expect(error).to.be.not.null;
     }
