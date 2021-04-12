@@ -150,7 +150,7 @@
     "qrcode": "^1.4.4",
     "rfc2047": "^3.0.1",
     "role-acl": "^4.5.4",
-    "sharp": "^0.27.2",
+    "sharp": "^0.28.1",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^3.1.2",
     "socketio-jwt-auth": "^0.2.1",
