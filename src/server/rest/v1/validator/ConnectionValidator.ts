@@ -1,10 +1,11 @@
+import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class ConnectionValidator extends SchemaValidator {
   private static instance: ConnectionValidator|null = null;
-  private connectionCreation: any;
+  private connectionCreation: Schema;
 
   private constructor() {
     super('ConnectionValidator');
