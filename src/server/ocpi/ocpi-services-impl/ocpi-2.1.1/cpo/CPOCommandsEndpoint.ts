@@ -207,7 +207,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction = await TransactionStorage.getOCPITransaction(tenant.id, stopSession.session_id);
+    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, stopSession.session_id);
     if (!transaction) {
       await Logging.logError({
         tenantID: tenant.id,
