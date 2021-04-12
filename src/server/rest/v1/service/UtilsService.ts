@@ -8,6 +8,7 @@ import User, { UserRole, UserStatus } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Asset from '../../../../types/Asset';
+import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -41,19 +42,19 @@ const MODULE_NAME = 'UtilsService';
 export default class UtilsService {
 
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
-      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
     // Check static auth for reading Charging Station
-    if (!Authorizations.canReadChargingStation(userToken)) {
+    if (!await Authorizations.canReadChargingStation(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
         value: chargingStationID
       });
     }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, method, userToken);
+    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationAuthorizationFilters(
       tenant, userToken, { ID: chargingStationID });
@@ -62,7 +63,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
       });
     }
     // Get ChargingStation
@@ -74,14 +75,14 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation ID '${chargingStationID}' does not exist`,
-      MODULE_NAME, method, userToken);
+      MODULE_NAME, 'checkAndGetChargingStationAuthorization', userToken);
     // External Charging Station
     if (!chargingStation.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `ChargingStation Id '${chargingStation.id}' not issued by the organization`,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationAuthorization',
         user: userToken,
         action: action
       });
@@ -100,20 +101,10 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string,
-      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
-    // Check static auth for reading company
-    if (!Authorizations.canReadCompany(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.COMPANY,
-        module: MODULE_NAME, method,
-        value: companyID
-      });
-    }
+  public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, method, userToken);
+    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       tenant, userToken, { ID: companyID });
@@ -121,48 +112,59 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: Action.READ, entity: Entity.COMPANY,
-        module: MODULE_NAME, method,
+        action: authAction, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        value: companyID
       });
     }
     // Get Company
     const company = await CompanyStorage.getCompany(tenant.id, companyID,
-      {
-        ...additionalFilters,
-        ...authorizationFilter.filters
-      },
+      { ...additionalFilters },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, company, `Company ID '${companyID}' does not exist`,
-      MODULE_NAME, method, userToken);
+      MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // External Company
     if (!company.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Company '${company.name}' with ID '${company.id}' not issued by the organization`,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
         user: userToken,
-        action: action
+        action: action,
+      });
+    }
+    // Add actions
+    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+    // Check
+    const authorized = AuthorizationService.canPerfomAuthorizationAction(company, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        value: companyID
       });
     }
     return company;
   }
 
-  public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string,
-      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
+  public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
     // Check static auth for reading user
-    if (!Authorizations.canReadUser(userToken, userID)) {
+    if (!await Authorizations.canReadUser(userToken, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
         value: userID
       });
     }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, method, userToken);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
       tenant, userToken, { ID: userID });
@@ -171,7 +173,8 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        value: userID
       });
     }
     // Get User
@@ -183,35 +186,48 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, method, userToken);
+      MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // External User
     if (!user.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
         user: userToken,
         action: action
+      });
+    }
+    // Add actions
+    await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
+    // Check
+    const authorized = AuthorizationService.canPerfomAuthorizationAction(user, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.USER,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        value: userID
       });
     }
     return user;
   }
 
-  public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string,
-      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
+  public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
     // Check static auth for reading site
-    if (!Authorizations.canReadSite(userToken)) {
+    if (!await Authorizations.canReadSite(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         value: siteID
       });
     }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, method, userToken);
+    UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       tenant, userToken, { ID: siteID });
@@ -220,7 +236,8 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
+        value: siteID
       });
     }
     // Get Site
@@ -232,35 +249,200 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, site, `Site ID '${siteID}' does not exist`,
-      MODULE_NAME, method, userToken);
+      MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // External Site
     if (!site.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site '${site.name}' with ID '${site.id}' not issued by the organization`,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         user: userToken,
         action: action
+      });
+    }
+    // Add actions
+    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
+    // Check
+    const authorized = AuthorizationService.canPerfomAuthorizationAction(site, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
+        value: siteID
       });
     }
     return site;
   }
 
-  public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string,
-      method: string, action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
+  public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+    // Check dynamic auth for assignment
+    const authorizationFilter = await AuthorizationService.checkAssignSiteUsersAuthorizationFilters(
+      tenant, action, userToken, { siteID: site.id, userIDs });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+      });
+    }
+    // Get Users
+    const users = await UserStorage.getUsers(tenant.id,
+      {
+        userIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Must have the same result
+    if (userIDs.length !== users.result.length) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+      });
+    }
+    // Check
+    for (const user of users.result) {
+      // External User
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'User not issued by the organization',
+          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+          user: userToken,
+          actionOnUser: user,
+          action: action
+        });
+      }
+    }
+    return users.result;
+  }
+
+  public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Asset[]> {
+    // Check dynamic auth for assignment
+    const authorizationFilter = await AuthorizationService.checkAssignSiteAreaAssetsAuthorizationFilters(
+      tenant, action, userToken, siteArea, { siteAreaID: siteArea.id, assetIDs });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+      });
+    }
+    // Get Assets
+    const assets = await AssetStorage.getAssets(tenant.id,
+      {
+        assetIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Must have the same result
+    if (assetIDs.length !== assets.result.length) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+      });
+    }
+    // Check
+    for (const asset of assets.result) {
+      // External Asset
+      // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
+      // if (!asset.issuer) {
+      //   throw new AppError({
+      //     source: Constants.CENTRAL_SERVER,
+      //     errorCode: HTTPError.GENERAL_ERROR,
+      //     message: `Asset ID '${asset.id}' not issued by the organization`,
+      //     module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+      //     user: userToken,
+      //     action: action
+      //   });
+      // }
+    }
+    return assets.result;
+  }
+
+  public static async checkSiteAreaChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, chargingStationIDs: string[],
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
+    // Check dynamic auth for assignment
+    const authorizationFilter = await AuthorizationService.checkAssignSiteAreaChargingStationsAuthorizationFilters(
+      tenant, action, userToken, siteArea, { siteAreaID: siteArea.id, chargingStationIDs });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+      });
+    }
+    // Get Charging Stations
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+      {
+        chargingStationIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Must have the same result
+    if (chargingStationIDs.length !== chargingStations.result.length) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+      });
+    }
+    // Check
+    for (const chargingStation of chargingStations.result) {
+      // External Charging Station
+      if (!chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
+    }
+    return chargingStations.result;
+  }
+
+  public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
     // Check static auth for reading site area
-    if (!Authorizations.canReadSiteArea(userToken)) {
+    if (!await Authorizations.canReadSiteArea(userToken)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
         value: siteAreaID
       });
     }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, method, userToken);
+    UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
       tenant, userToken, { ID: siteAreaID });
@@ -269,7 +451,8 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
+        value: siteAreaID
       });
     }
     // Get SiteArea
@@ -281,16 +464,29 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${siteAreaID}' does not exist`,
-      MODULE_NAME, method, userToken);
+      MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // External Site Area
     if (!siteArea.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Site Area '${siteArea.name}' with ID '${siteArea.id}' not issued by the organization`,
-        module: MODULE_NAME, method,
+        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
         user: userToken,
         action: action
+      });
+    }
+    // Add actions
+    await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea);
+    // Check
+    const authorized = AuthorizationService.canPerfomAuthorizationAction(siteArea, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
+        value: siteAreaID
       });
     }
     return siteArea;
@@ -501,10 +697,8 @@ export default class UtilsService {
     }
   }
 
-  public static httpFilterProjectToMongoDB(httpProjectFields: string): string[] {
-    // Exist?
+  public static httpFilterProjectToArray(httpProjectFields: string): string[] {
     if (httpProjectFields) {
-      // Convert to array
       return httpProjectFields.split('|');
     }
   }
@@ -885,7 +1079,7 @@ export default class UtilsService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
+        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage as number}V`,
         module: MODULE_NAME, method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
@@ -1001,7 +1195,7 @@ export default class UtilsService {
     }
   }
 
-  public static async checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): Promise<void> {
+  public static checkIfUserTagIsValid(tag: Partial<Tag>, req: Request): void {
     // Check badge ID
     if (!tag.id) {
       throw new AppError({

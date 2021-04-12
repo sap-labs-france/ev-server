@@ -694,7 +694,10 @@
             "description": "Transaction status",
             "schema": {
               "type": "string",
-              "enum": ["completed", "active"]
+              "enum": [
+                "completed",
+                "active"
+              ]
             }
           },
           {
@@ -1014,7 +1017,7 @@
         }
       }
     },
-    "/api/chargingstations": {
+    "/api/charging-stations": {
       "get": {
         "security": [
           {
@@ -1227,7 +1230,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}": {
+    "/api/charging-stations/{id}": {
       "get": {
         "security": [
           {
@@ -1423,7 +1426,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/reset": {
+    "/api/charging-stations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1486,7 +1489,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/cache/clear": {
+    "/api/charging-stations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1544,7 +1547,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration/retrieve": {
+    "/api/charging-stations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1642,7 +1645,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration": {
+    "/api/charging-stations/{id}/configuration": {
       "put": {
         "security": [
           {
@@ -1707,7 +1710,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/start": {
+    "/api/charging-stations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1808,7 +1811,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/stop": {
+    "/api/charging-stations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1899,7 +1902,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1963,7 +1966,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -2106,7 +2109,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -2202,7 +2205,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/firmware/update": {
+    "/api/charging-stations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -2279,7 +2282,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/availability/change": {
+    "/api/charging-stations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2381,7 +2384,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/generate": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/qrcode/generate": {
       "get": {
         "security": [
           {
@@ -2433,7 +2436,7 @@
         }
       }
     },
-    "/api/chargingstations/qrcode/download": {
+    "/api/charging-stations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2486,7 +2489,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters": {
+    "/api/charging-stations/{id}/ocpp/parameters": {
       "get": {
         "security": [
           {
@@ -2562,7 +2565,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters": {
+    "/api/charging-stations/ocpp/parameters": {
       "post": {
         "security": [
           {
@@ -2619,7 +2622,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters/export": {
+    "/api/charging-stations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2659,7 +2662,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/parameters": {
+    "/api/charging-stations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2678,6 +2681,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargingStationUrl": {
+                    "type": "string"
+                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2689,6 +2695,9 @@
                   "forceInactive": {
                     "type": "boolean",
                     "example": false
+                  },
+                  "manualConfiguration": {
+                    "type": "boolean"
                   },
                   "public": {
                     "type": "boolean",
@@ -2705,6 +2714,12 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/Connector"
+                    }
+                  },
+                  "chargePoints": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ChargePoint"
                     }
                   }
                 }
@@ -2734,7 +2749,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/power/limit": {
+    "/api/charging-stations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2804,7 +2819,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/transactions": {
+    "/api/charging-stations/{id}/transactions": {
       "get": {
         "security": [
           {
@@ -2938,7 +2953,7 @@
         }
       }
     },
-    "/api/chargingstations/status/in-error": {
+    "/api/charging-stations/status/in-error": {
       "get": {
         "security": [
           {
@@ -2994,7 +3009,7 @@
         }
       }
     },
-    "/api/chargingstations/action/export": {
+    "/api/charging-stations/action/export": {
       "get": {
         "security": [
           {
@@ -3070,7 +3085,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/download": {
+    "/api/charging-stations/firmware/download": {
       "get": {
         "security": [
           {
@@ -3114,7 +3129,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/connection/check": {
+    "/api/charging-stations/smartcharging/connection/check": {
       "get": {
         "security": [
           {
@@ -3141,7 +3156,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/trigger": {
+    "/api/charging-stations/smartcharging/trigger": {
       "get": {
         "security": [
           {
@@ -3173,7 +3188,7 @@
         }
       }
     },
-    "/api/chargingprofiles": {
+    "/api/charging-profiles": {
       "get": {
         "security": [
           {
@@ -3318,7 +3333,7 @@
         }
       }
     },
-    "/api/chargingprofiles/{id}": {
+    "/api/charging-profiles/{id}": {
       "put": {
         "security": [
           {
@@ -4010,7 +4025,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["userID", "issuer", "active", "description"],
+                "required": [
+                  "userID",
+                  "issuer",
+                  "active",
+                  "description"
+                ],
                 "properties": {
                   "userID": {
                     "type": "string",
@@ -4538,6 +4558,9 @@
       },
       "Connector": {
         "type": "object",
+        "required": [
+          "connectorId"
+        ],
         "properties": {
           "connectorId": {
             "type": "number",
@@ -4547,16 +4570,34 @@
             "type": "number"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "T2",
+              "CCS",
+              "C",
+              "T1",
+              "T3C",
+              "T1CCS",
+              "D",
+              "U"
+            ]
           },
           "voltage": {
-            "type": "number"
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
           },
           "amperage": {
             "type": "number"
           },
           "currentType": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
           },
           "numberOfConnectedPhase": {
             "type": "number"
@@ -4732,9 +4773,70 @@
           "chargingSchedulePeriod"
         ]
       },
+      "ChargePoint": {
+        "type": "object",
+        "required": [
+          "chargePointID"
+        ],
+        "properties": {
+          "chargePointID": {
+            "type": "number"
+          },
+          "currentType": {
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
+          },
+          "voltage": {
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
+          },
+          "amperage": {
+            "type": "number"
+          },
+          "numberOfConnectedPhase": {
+            "type": "number"
+          },
+          "cannotChargeInParallel": {
+            "type": "boolean"
+          },
+          "sharePowerToAllConnectors": {
+            "type": "boolean"
+          },
+          "excludeFromPowerLimitation": {
+            "type": "boolean"
+          },
+          "ocppParamForPowerLimitation": {
+            "type": "string"
+          },
+          "power": {
+            "type": "number"
+          },
+          "efficiency": {
+            "type": "number"
+          },
+          "connectorIDs": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
       "Tag": {
         "type": "object",
-        "required": ["id", "userID", "issuer", "active", "description"],
+        "required": [
+          "id",
+          "userID",
+          "issuer",
+          "active",
+          "description"
+        ],
         "properties": {
           "id": {
             "type": "string",

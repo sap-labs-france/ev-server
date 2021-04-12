@@ -41,7 +41,7 @@ export default class LoggingService {
       'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
     ]);
     // Check auth
-    if (!Authorizations.canReadLog(req.user)) {
+    if (!await Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -89,7 +89,7 @@ export default class LoggingService {
 
   private static async getLogs(req: Request): Promise<DataResult<Log>> {
     // Check auth
-    if (!Authorizations.canListLoggings(req.user)) {
+    if (!await Authorizations.canListLoggings(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

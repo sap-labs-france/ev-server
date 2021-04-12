@@ -1,9 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
-import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
@@ -11,10 +9,10 @@ import { CompanyDataResult } from '../../../../types/DataResult';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
+import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
-import { UserRole } from '../../../../types/User';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -26,21 +24,12 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
-    // Check static auth
-    if (!Authorizations.canDeleteCompany(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleDeleteCompany',
-      });
-    }
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, companyID, 'handleDeleteCompany', action, {});
+      req.tenant, req.user, companyID, Action.DELETE, action, {});
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -60,25 +49,16 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
-    // Check static auth
-    if (!Authorizations.canReadCompany(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleGetCompany',
-      });
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.ID, 'handleGetCompany', action, {
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
         withLogo: true
       }, true);
     // Add authorizations
-    AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
+    await AuthorizationService.addCompanyAuthorizations(req.tenant, req.user, company);
     // Return
     res.json(company);
     next();
@@ -112,19 +92,11 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
-    // Check static auth
-    if (!Authorizations.canListCompanies(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.COMPANIES,
-        module: MODULE_NAME, method: 'handleGetCompanies'
-      });
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
     // Check dynamic auth
-    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
     if (!authorizationCompaniesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -160,7 +132,7 @@ export default class CompanyService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Check auth
-    if (!Authorizations.canCreateCompany(req.user)) {
+    if (!await Authorizations.canCreateCompany(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -198,15 +170,6 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
-    // Check static auth
-    if (!Authorizations.canUpdateCompany(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'handleUpdateCompany',
-      });
-    }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
@@ -214,7 +177,7 @@ export default class CompanyService {
     UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.id, 'handleUpdateCompany', action, {});
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {});
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;

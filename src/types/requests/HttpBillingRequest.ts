@@ -26,6 +26,6 @@ export interface HttpPaymentMethods {
 }
 
 export interface HttpDeletePaymentMethod {
-  // userID: string;
+  userID: string;
   paymentMethodId: string;
 }

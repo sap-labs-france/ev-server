@@ -6,6 +6,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -63,7 +64,7 @@ describe('Firmware Update Status Tests', function() {
 
       it('An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
         expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
           if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
             return true;
@@ -76,7 +77,7 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADING);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADING);
       });
 
@@ -84,7 +85,7 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOADED);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADED);
       });
 
@@ -92,13 +93,13 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.DOWNLOAD_FAILED);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOAD_FAILED);
       });
 
       it('Should have the connectors to available before Installing', async () => {
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         for (let i = 0; i < chargingStationResponse.data.connectors.length; i++) {
           expect(chargingStationResponse.data.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
         }
@@ -108,7 +109,7 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLING);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLING);
       });
 
@@ -116,13 +117,13 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLED);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
       });
 
       it('Should restore the connectors to available after Installing', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
           expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
@@ -133,7 +134,7 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLATION_FAILED);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLATION_FAILED);
       });
 
@@ -141,7 +142,7 @@ describe('Firmware Update Status Tests', function() {
         const firmwareResponse = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.IDLE);
         expect(firmwareResponse).to.eql({});
         const chargingStationResponse = await testData.chargingStationContext.readChargingStation();
-        expect(chargingStationResponse.status).to.equal(200);
+        expect(chargingStationResponse.status).to.equal(StatusCodes.OK);
         expect(chargingStationResponse.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.IDLE);
       });
     });

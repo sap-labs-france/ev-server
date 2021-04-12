@@ -121,7 +121,7 @@ export default class TransactionService {
         continue;
       }
       // Check auth
-      if (!Authorizations.canRefundTransaction(req.user, transaction)) {
+      if (!await Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -179,7 +179,7 @@ export default class TransactionService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -312,7 +312,7 @@ export default class TransactionService {
 
   public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -344,7 +344,7 @@ export default class TransactionService {
 
   public static async handleRebuildTransactionConsumptions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -368,7 +368,7 @@ export default class TransactionService {
 
   public static async handleAssignTransactionsToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -433,7 +433,7 @@ export default class TransactionService {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
-    if (!Authorizations.canDeleteTransaction(req.user)) {
+    if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -456,7 +456,7 @@ export default class TransactionService {
     // Filter
     const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
     // Check auth
-    if (!Authorizations.canDeleteTransaction(req.user)) {
+    if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -477,7 +477,7 @@ export default class TransactionService {
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -548,14 +548,14 @@ export default class TransactionService {
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (Authorizations.canListCars(req.user)) {
+      if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
           'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
           'carCatalog.vehicleModelVersion', 'carCatalog.image',
         ];
       }
-      if (Authorizations.canUpdateCar(req.user)) {
+      if (await Authorizations.canUpdateCar(req.user)) {
         projectFields = [
           ...projectFields,
           'car.licensePlate',
@@ -567,7 +567,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
-    if (!Authorizations.canReadTransaction(req.user, transaction)) {
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -577,7 +577,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -646,7 +646,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
     // Check Transaction
-    if (!Authorizations.canReadTransaction(req.user, transaction)) {
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -656,7 +656,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -744,7 +744,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetRefundReports');
     // Check Transaction
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -754,7 +754,7 @@ export default class TransactionService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
@@ -821,7 +821,7 @@ export default class TransactionService {
 
   public static async handleExportTransactionOcpiCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -856,7 +856,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListTransactionsInError(req.user)) {
+    if (!await Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1016,7 +1016,7 @@ export default class TransactionService {
   private static async getTransactions(req: Request, action: ServerAction,
       params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1025,7 +1025,7 @@ export default class TransactionService {
       });
     }
     // Check Users
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       if (projectFields) {
         projectFields = [
           ...projectFields,
@@ -1036,13 +1036,13 @@ export default class TransactionService {
     }
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (Authorizations.canListCars(req.user)) {
+      if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
           'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
         ];
       }
-      if (Authorizations.canUpdateCar(req.user)) {
+      if (await Authorizations.canUpdateCar(req.user)) {
         projectFields = [
           ...projectFields,
           'car.licensePlate',
@@ -1063,8 +1063,9 @@ export default class TransactionService {
       extrafilters.stop = { $exists: false };
     }
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
