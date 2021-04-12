@@ -1,12 +1,12 @@
 import { HttpCheckEulaRequest, HttpEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 
-import Schema from './Schema';
+import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class AuthValidator extends SchemaValidator {
-  private static _instance: AuthValidator | undefined;
+  private static instance: AuthValidator|null = null;
   private authSignIn: Schema;
   private authSignOn: Schema;
   private authResetPassword: Schema;
@@ -27,10 +27,10 @@ export default class AuthValidator extends SchemaValidator {
   }
 
   public static getInstance(): AuthValidator {
-    if (!AuthValidator._instance) {
-      AuthValidator._instance = new AuthValidator();
+    if (!AuthValidator.instance) {
+      AuthValidator.instance = new AuthValidator();
     }
-    return AuthValidator._instance;
+    return AuthValidator.instance;
   }
 
   public validateAuthSignIn(data: HttpLoginRequest): HttpLoginRequest {
@@ -63,7 +63,7 @@ export default class AuthValidator extends SchemaValidator {
     return data;
   }
 
-  public validateAuthResendVerificationEmail(data: any): Partial<HttpResendVerificationMailRequest> {
+  public validateAuthResendVerificationEmail(data: HttpResendVerificationMailRequest): Partial<HttpResendVerificationMailRequest> {
     // Validate schema
     this.validate(this.authResendVerificationEmail, data);
     return data;

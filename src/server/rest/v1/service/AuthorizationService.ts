@@ -1,14 +1,19 @@
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
-import { AuthorizationFilter } from '../../../../types/Authorization';
+import AppAuthError from '../../../../exception/AppAuthError';
+import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
+import DynamicAuthorizationFilterFactory from '../../../../authorization/DynamicAuthorizationFilterFactory';
+import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
@@ -22,9 +27,27 @@ import TenantComponents from '../../../../types/TenantComponents';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import UtilsService from './UtilsService';
 import _ from 'lodash';
 
+const MODULE_NAME = 'AuthorizationService';
+
 export default class AuthorizationService {
+  public static canPerfomAuthorizationAction(entity: AuthorizationActions, authAction: Action): boolean {
+    switch (authAction) {
+      case Action.READ:
+        return entity.canRead;
+      case Action.UPDATE:
+        return entity.canUpdate;
+      case Action.CREATE:
+        return entity.canCreate;
+      case Action.DELETE:
+        return entity.canDelete;
+      default:
+        return false;
+    }
+  }
+
   public static async checkAndGetSiteAuthorizationFilters(
       tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
@@ -34,11 +57,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
       // Check assigned Site
@@ -52,7 +73,7 @@ export default class AuthorizationService {
     // Get Site Admins
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
-    sites.canCreate = Authorizations.canCreateSite(userToken);
+    sites.canCreate = await Authorizations.canCreateSite(userToken);
     // Enrich
     for (const site of sites.result) {
       await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, siteAdminIDs);
@@ -71,9 +92,9 @@ export default class AuthorizationService {
       site.canDelete = false;
     } else {
       const isSiteAdmin = siteAdminIDs.includes(site.id) || (userToken.role === UserRole.ADMIN);
-      site.canRead = Authorizations.canReadSite(userToken);
-      site.canDelete = Authorizations.canDeleteSite(userToken);
-      site.canUpdate = Authorizations.canUpdateSite(userToken) && isSiteAdmin;
+      site.canRead = await Authorizations.canReadSite(userToken);
+      site.canDelete = await Authorizations.canDeleteSite(userToken);
+      site.canUpdate = await Authorizations.canUpdateSite(userToken) && isSiteAdmin;
     }
   }
 
@@ -87,16 +108,23 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
+    // Check static auth
+    if (!await Authorizations.canListSites(userToken)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST, entity: Entity.SITES,
+        module: MODULE_NAME, method: 'checkAndGetSitesAuthorizationFilters'
+      });
+    }
     // Add user info
-    if (Authorizations.canListUsers(userToken)) {
+    if (await Authorizations.canListUsers(userToken)) {
       authorizationFilters.projectFields.push(
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Check assigned Sites
@@ -115,11 +143,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
@@ -135,18 +161,16 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
-  public static async checkAndAssignSiteUsersAuthorizationFilters(
+  public static async checkAssignSiteUsersAuthorizationFilters(
       tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
@@ -164,13 +188,80 @@ export default class AuthorizationService {
           let foundInvalidUserID = false;
           // Get User IDs already assigned to the site
           const userIDs = await AuthorizationService.getAssignedUsersIDs(tenant.id, filteredRequest.siteID);
-          // Check if any of the users we want to unassign are missing
+          // Check if any of the Users we want to unassign are missing
           for (const userID of filteredRequest.userIDs) {
             if (!userIDs.includes(userID)) {
               foundInvalidUserID = true;
             }
           }
           if (!foundInvalidUserID) {
+            authorizationFilters.authorized = true;
+          }
+        }
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAssignSiteAreaAssetsAuthorizationFilters(
+      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea, filteredRequest: HttpAssignAssetsToSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get Site IDs for which user is admin from db
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      // Check Site
+      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
+        // Site Authorized, now check Assets
+        if (!Utils.isEmptyArray(filteredRequest.assetIDs)) {
+          let foundInvalidAssetID = false;
+          // Get Asset IDs already assigned to the site
+          const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant.id, siteArea.siteID);
+          // Check if any of the Assets we want to unassign are missing
+          for (const assetID of filteredRequest.assetIDs) {
+            if (!assetIDs.includes(assetID)) {
+              foundInvalidAssetID = true;
+            }
+          }
+          if (!foundInvalidAssetID) {
+            authorizationFilters.authorized = true;
+          }
+        }
+      }
+    }
+    return authorizationFilters;
+  }
+
+  public static async checkAssignSiteAreaChargingStationsAuthorizationFilters(
+      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea,
+      filteredRequest: HttpAssignChargingStationToSiteAreaRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      projectFields: [],
+      authorized: userToken.role === UserRole.ADMIN,
+    };
+    // Not an Admin?
+    if (userToken.role !== UserRole.ADMIN) {
+      // Get Site IDs for which user is admin from db
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      // Check Site
+      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
+        // Site Authorized, now check Assets
+        if (!Utils.isEmptyArray(filteredRequest.chargingStationIDs)) {
+          let foundInvalidChargingStationID = false;
+          // Get Charging Station IDs already assigned to the Site
+          const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
+          // Check if any of the Charging Stations we want to unassign are missing
+          for (const chargingStationID of filteredRequest.chargingStationIDs) {
+            if (!chargingStationIDs.includes(chargingStationID)) {
+              foundInvalidChargingStationID = true;
+            }
+          }
+          if (!foundInvalidChargingStationID) {
             authorizationFilters.authorized = true;
           }
         }
@@ -225,11 +316,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Get authorization filters from users
     const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       tenant, userToken, filteredRequest);
@@ -239,18 +328,18 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): void {
+  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): Promise<void> {
     // Enrich
     for (const user of users) {
-      AuthorizationService.addUserAuthorizations(tenant, userToken, user);
+      await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
     }
   }
 
-  public static addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User): void {
+  public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User): Promise<void> {
     // Enrich
-    user.canRead = Authorizations.canReadUser(userToken, user.id);
-    user.canUpdate = Authorizations.canUpdateUser(userToken, user.id);
-    user.canDelete = Authorizations.canDeleteUser(userToken, user.id);
+    user.canRead = await Authorizations.canReadUser(userToken, user.id);
+    user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
+    user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
@@ -264,11 +353,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, filteredRequest, authorizationFilters);
@@ -285,11 +372,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSites(
       tenant, userToken, filteredRequest, authorizationFilters);
@@ -306,11 +391,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, null, authorizationFilters);
@@ -327,15 +410,13 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
-    if (Authorizations.canListUsers(userToken)) {
+    if (await Authorizations.canListUsers(userToken)) {
       authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, null, authorizationFilters);
@@ -349,11 +430,9 @@ export default class AuthorizationService {
       projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
     await AuthorizationService.checkAssignedSiteAdmins(
       tenant, userToken, null, authorizationFilters);
@@ -367,90 +446,81 @@ export default class AuthorizationService {
     userToken.sitesAdmin = siteAdminIDs;
     userToken.sitesOwner = siteOwnerIDs;
     // Add canCreate flag to root
-    companies.canCreate = Authorizations.canCreateCompany(userToken);
+    companies.canCreate = await Authorizations.canCreateCompany(userToken);
     // Enrich
     for (const company of companies.result) {
-      AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+      await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
     }
   }
 
-  public static addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company): void {
+  public static async addCompanyAuthorizations(tenant: Tenant, userToken: UserToken, company: Company): Promise<void> {
     // Enrich
     if (!company.issuer) {
       company.canRead = true;
       company.canUpdate = false;
       company.canDelete = false;
     } else {
-      company.canRead = Authorizations.canReadCompany(userToken);
-      company.canDelete = Authorizations.canDeleteCompany(userToken);
-      company.canUpdate = Authorizations.canUpdateCompany(userToken);
+      company.canRead = (await Authorizations.canReadCompany(userToken)).authorized;
+      company.canDelete = await Authorizations.canDeleteCompany(userToken);
+      company.canUpdate = await Authorizations.canUpdateCompany(userToken);
     }
   }
 
-  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: ['id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
-    // Add user info
-    if (Authorizations.canListUsers(userToken)) {
-      authorizationFilters.projectFields.push(
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canListCompanies(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST, entity: Entity.COMPANIES,
+        module: MODULE_NAME, method: 'checkAndGetCompaniesAuthorizationFilters'
+      });
     }
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Company IDs from Site Admin flag
-        const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(companyIDs)) {
-          // Force the filter
-          authorizationFilters.filters.companyIDs = companyIDs;
-          // Check if filter is provided
-          if (Utils.objectHasProperty(filteredRequest, 'CompanyID') &&
-              !Utils.isNullOrUndefined(filteredRequest['CompanyID'])) {
-            const filteredCompanyIDs: string[] = filteredRequest['CompanyID'].split('|');
-            // Override
-            authorizationFilters.filters.companyIDs = filteredCompanyIDs.filter(
-              (companyID) => authorizationFilters.filters.companyIDs.includes(companyID));
-          }
-        }
-        if (!Utils.isEmptyArray(authorizationFilters.filters.companyIDs)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.LIST, Entity.COMPANIES,
+      authorizationFilters, authorizationContext, filteredRequest);
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
-  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
-      projectFields: [
-        'id', 'name', 'issuer', 'logo', 'address'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canReadCompany(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorizationFilters',
+      });
     }
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get Company IDs from sssigned Sites
-      const companyIDs = await AuthorizationService.getAssignedSitesCompanyIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(companyIDs) && companyIDs.includes(filteredRequest.ID)) {
-        authorizationFilters.authorized = true;
-      }
-    }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.COMPANY,
+      authorizationFilters, authorizationContext, { CompanyID: filteredRequest.ID });
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
@@ -463,11 +533,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
@@ -487,11 +555,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get assigned SiteArea IDs
@@ -520,7 +586,7 @@ export default class AuthorizationService {
     // Get Site Admins
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
-    siteAreas.canCreate = Authorizations.canCreateSite(userToken);
+    siteAreas.canCreate = await Authorizations.canCreateSite(userToken);
     // Enrich
     for (const siteArea of siteAreas.result) {
       await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, siteAdminIDs);
@@ -539,9 +605,9 @@ export default class AuthorizationService {
       siteArea.canDelete = false;
     } else {
       const isSiteAdmin = siteAdminIDs.includes(siteArea.siteID) || (userToken.role === UserRole.ADMIN);
-      siteArea.canRead = Authorizations.canReadSiteArea(userToken);
-      siteArea.canUpdate = Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
-      siteArea.canDelete = Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
+      siteArea.canRead = await Authorizations.canReadSiteArea(userToken);
+      siteArea.canUpdate = await Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
+      siteArea.canDelete = await Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
     }
   }
 
@@ -559,11 +625,9 @@ export default class AuthorizationService {
       ],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Check Projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      authorizationFilters.projectFields = authorizationFilters.projectFields.filter(
-        (projectField) => filteredRequest.ProjectFields.includes(projectField));
-    }
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Check assigned Sites
@@ -611,7 +675,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
-    // Get the Sites assigned to user
+    // Get the Sites assigned to the User
     const sites = await SiteStorage.getSites(tenantID,
       {
         userID: userToken.id,
@@ -623,7 +687,7 @@ export default class AuthorizationService {
   }
 
   private static async getAssignedUsersIDs(tenantID: string, siteID: string): Promise<string[]> {
-    // Get the Users assigned to the site
+    // Get the Users assigned to the Site
     const users = await UserStorage.getUsers(tenantID,
       {
         siteIDs: [siteID],
@@ -632,6 +696,32 @@ export default class AuthorizationService {
       ['id']
     );
     return users.result.map((user) => user.id);
+  }
+
+  private static async getAssignedAssetIDs(tenantID: string, siteID: string): Promise<string[]> {
+    // Get the Assets assigned to the Site
+    const assets = await AssetStorage.getAssets(tenantID,
+      {
+        siteIDs: [siteID],
+        // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
+        // issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return assets.result.map((asset) => asset.id);
+  }
+
+  private static async getAssignedChargingStationIDs(tenantID: string, siteID: string): Promise<string[]> {
+    // Get the Charging Stations assigned to the Site
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
+      {
+        siteIDs: [siteID],
+        issuer: true,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      ['id']
+    );
+    return chargingStations.result.map(
+      (chargingStation) => chargingStation.id);
   }
 
   private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
@@ -718,9 +808,40 @@ export default class AuthorizationService {
     return _.uniq(_.map(siteAreas.result, 'id'));
   }
 
-  private static async getSiteAreaSiteID(tenantID: string, siteAreaID: string) {
-    // Get the Site IDs of SiteArea
-    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, siteAreaID);
-    return siteArea.siteID;
+  private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
+    let fields = authFields;
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(httpProjectField);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      fields = authFields.filter(
+        (authField) => httpProjectFields.includes(authField));
+    }
+    return fields;
+  }
+
+  private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, action: Action, entity: Entity,
+      authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, extraFilters?: any): Promise<void> {
+    if (!Utils.isEmptyArray(authorizationContext.filters)) {
+      for (const filter of authorizationContext.filters) {
+        // Reset to false
+        authorizationFilters.authorized = false;
+        // Get the filter
+        const dynamicFilter = DynamicAuthorizationFilterFactory.getDynamicFilter(filter);
+        if (!dynamicFilter) {
+          // Filter not found -> Not authorized (all auth filter MUST work)
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: userToken,
+            action, entity,
+            module: MODULE_NAME, method: 'processDynamicFilters'
+          });
+        }
+        // Process the filter
+        await dynamicFilter.processFilter(tenant, userToken, authorizationFilters, extraFilters);
+        // Check
+        if (!authorizationFilters.authorized) {
+          break;
+        }
+      }
+    }
   }
 }

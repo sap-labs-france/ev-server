@@ -3,6 +3,7 @@ import User from './User';
 export default interface UserToken {
   id?: string;
   role?: string;
+  rolesACL?: string[];
   name?: string;
   email?: string;
   mobile?: string;
@@ -16,7 +17,7 @@ export default interface UserToken {
   tenantName?: string;
   userHashID?: string;
   tenantHashID?: string;
-  scopes?: readonly string[];
+  scopes?: string[];
   companies?: string[];
   sites?: string[];
   sitesAdmin?: string[];

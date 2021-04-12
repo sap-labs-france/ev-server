@@ -35,7 +35,7 @@ export default class TenantService {
     const tenantID = TenantValidator.getInstance().validateTenantDeleteRequestSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
-    if (!Authorizations.canDeleteTenant(req.user)) {
+    if (!await Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -113,7 +113,7 @@ export default class TenantService {
     const filteredRequest = TenantValidator.getInstance().validateTenantGetReqSuperAdmin(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
-    if (!Authorizations.canReadTenant(req.user)) {
+    if (!await Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -126,7 +126,7 @@ export default class TenantService {
       'id', 'name', 'email', 'subdomain', 'components', 'address', 'logo'
     ];
     // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
@@ -146,7 +146,7 @@ export default class TenantService {
     // Validate
     const filteredRequest = TenantValidator.getInstance().validateTenantsGetReqSuperAdmin(req.query);
     // Check auth
-    if (!Authorizations.canListTenants(req.user)) {
+    if (!await Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -162,7 +162,7 @@ export default class TenantService {
       projectFields.push('components');
     }
     // Check projection
-    const httpProjectFields = UtilsService.httpFilterProjectToMongoDB(filteredRequest.ProjectFields);
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
@@ -221,9 +221,9 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    const filteredRequest = await TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreateRequestSuperAdmin(req.body);
     // Check auth
-    if (!Authorizations.canCreateTenant(req.user)) {
+    if (!await Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -231,20 +231,8 @@ export default class TenantService {
         module: MODULE_NAME, method: 'handleCreateTenant'
       });
     }
-    // Check the Tenant's name
-    let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
-    if (foundTenant) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TENANT_ALREADY_EXIST,
-        message: `The tenant with name '${filteredRequest.name}' already exists`,
-        module: MODULE_NAME, method: 'handleCreateTenant',
-        user: req.user,
-        action: action
-      });
-    }
     // Get the Tenant with ID (subdomain)
-    foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
+    const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -325,9 +313,9 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = await TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
     // Check auth
-    if (!Authorizations.canUpdateTenant(req.user)) {
+    if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -340,6 +328,18 @@ export default class TenantService {
     const tenant = await TenantStorage.getTenant(filteredRequest.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateTenant', req.user);
+    // Check subdomain
+    const foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
+    if (filteredRequest.subdomain !== tenant.subdomain && foundTenant) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TENANT_ALREADY_EXIST,
+        message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTenant',
+        user: req.user,
+        action: action
+      });
+    }
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
     if (filteredRequest.components && filteredRequest.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&

@@ -15,7 +15,6 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
-    // eslint-disable-next-line no-undef
     this.wsSessions = new Map<string, { connection: WSClient, requests: any }>();
     this.requestHandler = requestHandler;
   }
@@ -25,7 +24,6 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   public async openConnection(chargeBoxIdentity: string): Promise<{ connection: WSClient, requests: any }> {
-    // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
@@ -166,7 +164,6 @@ export default class OCPPJsonService16 extends OCPPService {
     });
     if (message[0] === OCPPMessageType.CALL_MESSAGE) {
       // Return a promise
-      // eslint-disable-next-line no-undef
       return new Promise((resolve, reject) => {
         // Set the resolve function
         this.wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };

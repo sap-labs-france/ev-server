@@ -101,7 +101,6 @@ export default class StatisticsContext {
       status: RefundStatus.APPROVED,
     };
     await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
-    // eslint-disable-next-line no-undef
     console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 
