@@ -272,25 +272,5 @@ describe('Tenant tests', function() {
       // Check
       expect(response.status).to.equal(HTTPError.TENANT_ALREADY_EXIST);
     });
-
-    it('Should not be possible to create a tenant with an already existing name', async () => {
-      // Create
-      let tenant: Tenant = Factory.tenant.build();
-      const tenantName = tenant.name;
-      // Call
-      let response = await CentralServerService.defaultInstance.createEntity(
-        CentralServerService.defaultInstance.tenantApi, tenant, false);
-      // Check
-      expect(response.status).to.equal(StatusCodes.OK);
-
-      // Create
-      tenant = Factory.tenant.build();
-      tenant.name = tenantName;
-      // Call
-      response = await CentralServerService.defaultInstance.createEntity(
-        CentralServerService.defaultInstance.tenantApi, tenant, false);
-      // Check
-      expect(response.status).to.equal(HTTPError.TENANT_ALREADY_EXIST);
-    });
   });
 });
