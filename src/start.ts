@@ -282,7 +282,7 @@ export default class Bootstrap {
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
+              // FIXME: Issue with cluster, see https://github.com/sap-labs-france/ev-server/issues/1097
               await Bootstrap.JsonCentralSystemServer.start();
               break;
             // Not Found

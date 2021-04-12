@@ -909,7 +909,7 @@ describe('Smart Charging Service', function() {
         await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
       });
 
-      it('Test for sticky limit with different buffer value- two cars charging with lower site area limit', async () => {
+      it('Test for sticky limit with different buffer value - two cars charging with lower site area limit', async () => {
         const chargingProfiles = await smartChargingIntegrationWithDifferentBufferValues.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
