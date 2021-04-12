@@ -229,8 +229,17 @@ export default class AuthorizationService {
           const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant.id, siteArea.siteID);
           // Check if any of the Assets we want to unassign are missing
           for (const assetID of filteredRequest.assetIDs) {
-            if (!assetIDs.includes(assetID)) {
-              foundInvalidAssetID = true;
+            switch (action) {
+              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
+                if (assetIDs.includes(assetID)) {
+                  foundInvalidAssetID = true;
+                }
+                break;
+              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
+                if (!assetIDs.includes(assetID)) {
+                  foundInvalidAssetID = true;
+                }
+                break;
             }
           }
           if (!foundInvalidAssetID) {
@@ -263,8 +272,17 @@ export default class AuthorizationService {
           const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
           // Check if any of the Charging Stations we want to unassign are missing
           for (const chargingStationID of filteredRequest.chargingStationIDs) {
-            if (!chargingStationIDs.includes(chargingStationID)) {
-              foundInvalidChargingStationID = true;
+            switch (action) {
+              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
+                if (chargingStationIDs.includes(chargingStationID)) {
+                  foundInvalidChargingStationID = true;
+                }
+                break;
+              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
+                if (!chargingStationIDs.includes(chargingStationID)) {
+                  foundInvalidChargingStationID = true;
+                }
+                break;
             }
           }
           if (!foundInvalidChargingStationID) {
