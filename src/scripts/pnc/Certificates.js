@@ -11,9 +11,9 @@ const hostRestApi = 'localhost';
 const portRestApi = '8090';
 const httpsClient = false;
 const httpClient = httpsClient ? https : http;
-const pushEndpointPathURI = `/v1/api/chargingstations/:id/certificates/install`;
-const deleteEndpointPathURI = `/v1/api/chargingstations/:id/certificates/delete`;
-const pullEndpointPathURI = `/v1/api/chargingstations/:id/certificates`;
+const pushEndpointPathURI = `/v1/api/charging-stations/:id/certificates/install`;
+const deleteEndpointPathURI = `/v1/api/charging-stations/:id/certificates/delete`;
+const pullEndpointPathURI = `/v1/api/charging-stations/:id/certificates`;
 
 const args = process.argv.slice(2);
 const cmd = args[0];
