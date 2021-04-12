@@ -961,7 +961,7 @@ export default class UtilsService {
         });
       }
       // Check connectors power when it is shared within the charge point
-      if (chargePoint.sharePowerToAllConnectors) {
+      if (chargePoint.sharePowerToAllConnectors || chargePoint.cannotChargeInParallel) {
         if (connector.amperage && chargePoint.amperage && connector.amperage !== chargePoint.amperage) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,

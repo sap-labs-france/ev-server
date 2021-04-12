@@ -3,14 +3,14 @@ import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '..
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import Schema from './Schema';
+import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../../types/Tenant';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
-  private static _instance: TenantValidator | undefined;
+  private static instance: TenantValidator|null = null;
   private tenantCreateReqSuperAdmin: Schema;
   private tenantUpdateReqSuperAdmin: Schema;
   private tenantDeleteReqSuperAdmin: Schema;
@@ -29,25 +29,25 @@ export default class TenantValidator extends SchemaValidator {
   }
 
   public static getInstance(): TenantValidator {
-    if (!TenantValidator._instance) {
-      TenantValidator._instance = new TenantValidator();
+    if (!TenantValidator.instance) {
+      TenantValidator.instance = new TenantValidator();
     }
-    return TenantValidator._instance;
+    return TenantValidator.instance;
   }
 
-  public async validateTenantCreateRequestSuperAdmin(tenant: Tenant): Promise<Tenant> {
+  public validateTenantCreateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this.tenantCreateReqSuperAdmin, tenant);
     // Validate deps between components
-    await this.validateComponentDependencies(tenant);
+    this.validateComponentDependencies(tenant);
     return tenant;
   }
 
-  public async validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Promise<Tenant> {
+  public validateTenantUpdateRequestSuperAdmin(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this.tenantUpdateReqSuperAdmin, tenant);
     // Validate deps between components
-    await this.validateComponentDependencies(tenant);
+    this.validateComponentDependencies(tenant);
     return tenant;
   }
 
@@ -57,7 +57,7 @@ export default class TenantValidator extends SchemaValidator {
     return data.ID;
   }
 
-  public validateGetLogoReqSuperAdmin(data: any): HttpTenantLogoRequest {
+  public validateGetLogoReqSuperAdmin(data: HttpTenantLogoRequest): HttpTenantLogoRequest {
     // Validate schema
     this.validate(this.tenantGetLogoReqSuperAdmin, data);
     return data;
@@ -75,7 +75,7 @@ export default class TenantValidator extends SchemaValidator {
     return data;
   }
 
-  private async validateComponentDependencies(tenant: Tenant): Promise<void> {
+  private validateComponentDependencies(tenant: Tenant): void {
     if (tenant.components) {
       // Smart Charging active: Organization must be active
       if (tenant.components.smartCharging && tenant.components.organization &&
