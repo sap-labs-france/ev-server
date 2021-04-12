@@ -165,7 +165,9 @@ export default class BillingStorage {
     const invoiceMDB: any = {
       _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
+      // eslint-disable-next-line id-blacklist
       number: invoiceToSave.number,
+      liveMode: Utils.convertToBoolean(invoiceToSave.liveMode),
       userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),

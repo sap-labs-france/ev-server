@@ -54,6 +54,17 @@ export default class Utils {
     return connectors;
   }
 
+  public static convertAddressToOneLine(address: Address): string {
+    const oneLineAddress: string[] = [];
+    if (address?.address1) {
+      oneLineAddress.push(address.address1);
+    }
+    if (address?.address2) {
+      oneLineAddress.push(address.address2);
+    }
+    return oneLineAddress.join(' ');
+  }
+
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
     // Handle Error outside 2xx range
     if (axiosError.response) {
