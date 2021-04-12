@@ -694,7 +694,10 @@
             "description": "Transaction status",
             "schema": {
               "type": "string",
-              "enum": ["completed", "active"]
+              "enum": [
+                "completed",
+                "active"
+              ]
             }
           },
           {
@@ -2683,6 +2686,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargingStationUrl": {
+                    "type": "string"
+                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2694,6 +2700,9 @@
                   "forceInactive": {
                     "type": "boolean",
                     "example": false
+                  },
+                  "manualConfiguration": {
+                    "type": "boolean"
                   },
                   "public": {
                     "type": "boolean",
@@ -2710,6 +2719,12 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/Connector"
+                    }
+                  },
+                  "chargePoints": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ChargePoint"
                     }
                   }
                 }
@@ -4021,7 +4036,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["userID", "issuer", "active", "description"],
+                "required": [
+                  "userID",
+                  "issuer",
+                  "active",
+                  "description"
+                ],
                 "properties": {
                   "userID": {
                     "type": "string",
@@ -4549,6 +4569,9 @@
       },
       "Connector": {
         "type": "object",
+        "required": [
+          "connectorId"
+        ],
         "properties": {
           "connectorId": {
             "type": "number",
@@ -4558,16 +4581,34 @@
             "type": "number"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "T2",
+              "CCS",
+              "C",
+              "T1",
+              "T3C",
+              "T1CCS",
+              "D",
+              "U"
+            ]
           },
           "voltage": {
-            "type": "number"
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
           },
           "amperage": {
             "type": "number"
           },
           "currentType": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
           },
           "numberOfConnectedPhase": {
             "type": "number"
@@ -4743,9 +4784,70 @@
           "chargingSchedulePeriod"
         ]
       },
+      "ChargePoint": {
+        "type": "object",
+        "required": [
+          "chargePointID"
+        ],
+        "properties": {
+          "chargePointID": {
+            "type": "number"
+          },
+          "currentType": {
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
+          },
+          "voltage": {
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
+          },
+          "amperage": {
+            "type": "number"
+          },
+          "numberOfConnectedPhase": {
+            "type": "number"
+          },
+          "cannotChargeInParallel": {
+            "type": "boolean"
+          },
+          "sharePowerToAllConnectors": {
+            "type": "boolean"
+          },
+          "excludeFromPowerLimitation": {
+            "type": "boolean"
+          },
+          "ocppParamForPowerLimitation": {
+            "type": "string"
+          },
+          "power": {
+            "type": "number"
+          },
+          "efficiency": {
+            "type": "number"
+          },
+          "connectorIDs": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
       "Tag": {
         "type": "object",
-        "required": ["id", "userID", "issuer", "active", "description"],
+        "required": [
+          "id",
+          "userID",
+          "issuer",
+          "active",
+          "description"
+        ],
         "properties": {
           "id": {
             "type": "string",
