@@ -28,8 +28,7 @@
       "sanitize": "mongo"
     },
     "ConnectorType": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "chargingstation.json#/definitions/connector/properties/type"
     },
     "ChargingStationID": {
       "$ref": "chargingstation.json#/definitions/id"
