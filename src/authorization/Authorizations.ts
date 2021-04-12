@@ -5,6 +5,7 @@ import User, { UserRole, UserStatus } from '../types/User';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
@@ -13,6 +14,7 @@ import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
+import OCPIUtils from '../server/ocpi/OCPIUtils';
 import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
@@ -967,8 +969,31 @@ export default class Authorizations {
         // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
         const transactionConnector: Connector = transaction?.connectorId ?
           Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
-        // Keep the Auth ID
-        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, transactionConnector);
+        // Check Authorization in Charging Statiom
+        if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
+          for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
+            if (remoteAuthorization.tagId === tag.ocpiToken.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+              await Logging.logDebug({
+                source: chargingStation.id,
+                tenantID,
+                action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+                message: `Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
+                module: MODULE_NAME, method: 'authorizeToken',
+                detailedMessages: { response: remoteAuthorization }
+              });
+              user.authorizationID = remoteAuthorization.id;
+              break;
+            }
+          }
+          // Clean up
+          if (!user.authorizationID) {
+            chargingStation.remoteAuthorizations = [];
+            await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+          }
+        }
+        // Retrieve Auth token from OCPI
+        user.authorizationID = await ocpiClient.authorizeToken(
+          tag.ocpiToken, chargingStation, transactionConnector);
       }
     }
     return user;
