@@ -98,7 +98,6 @@ export default class OCPPSoapService15 extends OCPPService {
     // Check
     if (!this.client) {
       // Create the Promise
-      // eslint-disable-next-line no-undef
       this.client = await new Promise(function(resolve, reject) {
         // Create the client
         soap.soap.createClient(`${global.appRoot}/assets/server/ocpp/wsdl/OCPPCentralSystemService15.wsdl`, options, (err, client) => {
