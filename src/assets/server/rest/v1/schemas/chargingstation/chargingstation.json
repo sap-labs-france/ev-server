@@ -15,7 +15,7 @@
           "$ref": "chargingstation.json#/definitions/id"
         },
         "connectorID": {
-          "$ref": "chargingstation.json#/definitions/connectorID"
+          "$ref": "#/definitions/connector/properties/connectorId"
         },
         "chargePointID": {
           "type": "number",
@@ -122,14 +122,147 @@
         "profile"
       ]
     },
-    "connectorID": {
-      "type": "number",
-      "sanitize": "mongo"
-    },
     "connectorIDs": {
       "type": "string",
       "pattern": "^(\\d\\|?)*$",
       "sanitize": "mongo"
+    },
+    "connector": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "type": {
+          "type": "string",
+          "sanitize": "mongo",
+          "enum": [
+            "T2",
+            "CCS",
+            "C",
+            "T1",
+            "T3C",
+            "T1CCS",
+            "D",
+            "U"
+          ]
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [
+            110,
+            230
+          ],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": [
+            "AC",
+            "DC"
+          ],
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "phaseAssignmentToGrid": {
+          "type": "object",
+          "properties": {
+            "csPhaseL1": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL2": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "csPhaseL3": {
+              "type": "string",
+              "sanitize": "mongo"
+            }
+          }
+        }
+      },
+      "required": [
+        "connectorId"
+      ]
+    },
+    "chargePoint": {
+      "type": "object",
+      "properties": {
+        "chargePointID": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "currentType": {
+          "type": "string",
+          "enum": [
+            "AC",
+            "DC"
+          ],
+          "sanitize": "mongo"
+        },
+        "voltage": {
+          "type": "number",
+          "enum": [
+            110,
+            230
+          ],
+          "sanitize": "mongo"
+        },
+        "amperage": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "numberOfConnectedPhase": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "cannotChargeInParallel": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "sharePowerToAllConnectors": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "excludeFromPowerLimitation": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "ocppParamForPowerLimitation": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "power": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "efficiency": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "connectorIDs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/connector/properties/connectorId"
+          }
+        }
+      },
+      "required": [
+        "chargePointID"
+      ]
     }
   }
 }

@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
@@ -14,23 +15,23 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.read({}, `/v1/api/chargingstations/${id}`);
+    return super.read({}, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${id}`);
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/v1/api/chargingstations');
+    return super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}`);
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/v1/api/chargingstations/status/in-error');
+    return super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS_IN_ERROR}`);
   }
 
   public async update(data) {
-    return super.update(data, `/v1/api/chargingstations/${data.id}/parameters`);
+    return super.update(data, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${data.id}/parameters`);
   }
 
   public async delete(id) {
-    return super.delete(id, `/v1/api/chargingstations/${id}`);
+    return super.delete(id, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${id}`);
   }
 
   public async readConsumptionStatistics(year) {
@@ -42,7 +43,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readAllTransactions(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/chargingstations/${params.id}/transactions`);
+    return super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${params.id}/transactions`);
   }
 
   public async readAllYears(params) {
@@ -50,7 +51,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async remoteStartTransaction(data) {
-    return super.update(data, `/v1/api/chargingstations/${data.chargeBoxID}/remote/start`);
+    return super.update(data, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${data.chargeBoxID}/remote/start`);
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {

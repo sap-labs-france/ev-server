@@ -8,6 +8,7 @@ import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationT
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
@@ -165,21 +166,6 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   public async authorizeToken(token: OCPIToken, chargingStation: ChargingStation, connector: Connector): Promise<string> {
-    if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
-      for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
-        if (remoteAuthorization.tagId === token.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
-          await Logging.logDebug({
-            source: chargingStation.id,
-            tenantID: this.tenant.id,
-            action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-            message: `Valid Remote Authorization found for Tag ID '${token.uid}'`,
-            module: MODULE_NAME, method: 'authorizeToken',
-            detailedMessages: { response: remoteAuthorization }
-          });
-          return remoteAuthorization.id;
-        }
-      }
-    }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', ServerAction.OCPI_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
     // Build payload
@@ -1052,13 +1038,13 @@ export default class CpoOCPIClient extends OCPIClient {
     const ocpiLocation: OCPILocation = {
       id: site.id,
       name: site.name,
-      address: `${site.address.address1} ${site.address.address2}`,
-      city: site.address.city,
-      postal_code: site.address.postalCode,
+      address: Utils.convertAddressToOneLine(site.address),
+      city: site.address?.city,
+      postal_code: site.address?.postalCode,
       country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(countryId, (err, languages) => languages[0].iso639_1)),
       coordinates: {
-        latitude: site.address.coordinates[1].toString(),
-        longitude: site.address.coordinates[0].toString()
+        latitude: site.address?.coordinates[1]?.toString(),
+        longitude: site.address?.coordinates[0]?.toString()
       },
       type: OCPILocationType.UNKNOWN,
       evses: [{
@@ -1070,8 +1056,8 @@ export default class CpoOCPIClient extends OCPIClient {
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
         coordinates: {
-          latitude: chargingStation.coordinates[1].toString(),
-          longitude: chargingStation.coordinates[0].toString()
+          latitude: chargingStation.coordinates[1]?.toString(),
+          longitude: chargingStation.coordinates[0]?.toString()
         },
         last_updated: chargingStation.lastSeen
       }],

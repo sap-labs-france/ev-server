@@ -1,5 +1,5 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
