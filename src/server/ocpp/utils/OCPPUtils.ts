@@ -1,6 +1,6 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -690,12 +690,9 @@ export default class OCPPUtils {
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
       user: User, alternateUser: User, tagId: string): void {
     // Handle Signed Data
-    for (const meterValue of (stopTransaction.transactionData as OCPPMeterValue[])) {
-      if (meterValue.sampledValue) {
-        for (const sampledValue of meterValue.sampledValue) {
-          this.updateSignedData(transaction, sampledValue, sampledValue.value);
-        }
-      }
+    const stopMeterValues = this.createTransactionStopMeterValues(transaction, stopTransaction);
+    for (const meterValue of (stopMeterValues)) {
+      this.updateSignedData(transaction, meterValue);
     }
     // Set final data
     transaction.stop = {
@@ -729,6 +726,23 @@ export default class OCPPUtils {
       value: stopTransaction.meterStop,
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     });
+    // Add SignedData
+    if (transaction.signedData) {
+      stopMeterValues.push({
+        id:(id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.signedData,
+        attribute: Constants.OCPP_START_SIGNED_DATA_ATTRIBUTE
+      });
+    }
+    if (transaction.currentSignedData) {
+      stopMeterValues.push({
+        id:(id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.currentSignedData,
+        attribute: Constants.OCPP_STOP_SIGNED_DATA_ATTRIBUTE
+      });
+    }
     // Add SoC
     if (transaction.currentStateOfCharge > 0) {
       stopMeterValues.push({
@@ -1837,14 +1851,14 @@ export default class OCPPUtils {
     return resetResult;
   }
 
-  public static updateSignedData(transaction: Transaction, attribute: OCPPAttribute, value: string): void {
-    if (attribute.format === OCPPValueFormat.SIGNED_DATA) {
-      if (attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+  public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): void {
+    if (meterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
+      if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
         // Set the first Signed Data and keep it
-        transaction.signedData = value;
-      } else if (attribute.context === OCPPReadingContext.TRANSACTION_END) {
+        transaction.signedData = meterValue.value as string;
+      } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
         // Set the last Signed Data (used in the last consumption)
-        transaction.currentSignedData = value;
+        transaction.currentSignedData = meterValue.value as string;
       }
     }
   }
