@@ -377,7 +377,7 @@ export default class OCPPCommonTests {
       this.transactionStartTime
     );
     if (validTransaction) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(startTransactionResponse).to.be.transactionValid;
       const transactionId = startTransactionResponse.transactionId;
       await this.validateStartedTransaction(
@@ -610,7 +610,7 @@ export default class OCPPCommonTests {
     }
   }
 
-  public async testStopTransaction(withSoC = false) {
+  public async testStopTransaction(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -634,6 +634,7 @@ export default class OCPPCommonTests {
     const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
     expect(this.totalPrice).equal(totalTransactionPrice);
     expect(transactionValidation.data).to.deep['containSubset']({
+      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
@@ -646,6 +647,7 @@ export default class OCPPCommonTests {
         'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
+        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
@@ -656,7 +658,7 @@ export default class OCPPCommonTests {
     });
   }
 
-  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false) {
+  public async testTransactionMetrics(withSoC = false, checkNewMeterValues = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
