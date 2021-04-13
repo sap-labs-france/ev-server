@@ -406,6 +406,7 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       siteID: siteArea ? siteArea.siteID : null,
+      issuer: true,
       assetType: filteredRequest.assetType,
       excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
