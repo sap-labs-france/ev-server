@@ -81,6 +81,8 @@ export default class OCPPCommonTests {
   public createdUsers: User[] = [];
   public createdTags: Tag[] = [];
 
+  // TEST
+
   public constructor(tenantContext: TenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
     this.tenantContext = tenantContext;
