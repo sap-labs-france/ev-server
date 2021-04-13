@@ -244,19 +244,19 @@ describe('Site Area tests', function() {
       it('Should be able to assign ChargingStations to SiteArea', async () => {
       // Assign ChargingStation to SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
           testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to remove ChargingStations from SiteArea', async () => {
       // Remove ChargingStation from SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
           testData.siteAreaContext.getSiteArea().id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to assign Assets to SiteArea', async () => {
@@ -324,7 +324,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id }), false
         );
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to update the site area', async () => {
@@ -346,7 +346,7 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2], false
         );
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to create a site area without a site', async () => {
@@ -381,19 +381,19 @@ describe('Site Area tests', function() {
       it('Should not be able to assign ChargingStations to SiteArea', async () => {
         // Try to assign ChargingStation to SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.assignChargingStations(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(403);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to remove ChargingStations from SiteArea', async () => {
         // Try to remove ChargingStation from SiteArea
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         const response = await testData.userService.siteAreaApi.removeChargingStations(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 1].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(403);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       it('Should not be able to assign Assets to SiteArea', async () => {
@@ -410,32 +410,32 @@ describe('Site Area tests', function() {
 
       it('Should be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         // Assign ChargingStation to SiteArea
         const response = await testData.userService.siteAreaApi.assignChargingStations(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(200);
+        expect(chargingStations.status).to.equal(StatusCodes.OK);
         // Remove ChargingStation from SiteArea
         const response = await testData.userService.siteAreaApi.removeChargingStations(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to assign Assets to SiteArea if he is SiteAdmin', async () => {
         const response = await testData.userService.siteAreaApi.assignAssets(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [testData.testAsset.id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should be able to remove Assets from SiteArea if he is SiteAdmin', async () => {
         const response = await testData.userService.siteAreaApi.removeAssets(
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2].id, [testData.testAsset.id]);
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
 
       it('Should not be able to delete the created site area', async () => {
@@ -455,7 +455,7 @@ describe('Site Area tests', function() {
           testData.createdSiteAreas[testData.createdSiteAreas.length - 2],
           false
         );
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(StatusCodes.OK);
       });
     });
   });
