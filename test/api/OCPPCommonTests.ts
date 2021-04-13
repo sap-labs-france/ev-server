@@ -634,7 +634,7 @@ export default class OCPPCommonTests {
     const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
     expect(this.totalPrice).equal(totalTransactionPrice);
     expect(transactionValidation.data).to.deep['containSubset']({
-      'signedData': (withSignedData ? this.transactionStartSignedData : null),
+      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
@@ -647,7 +647,7 @@ export default class OCPPCommonTests {
         'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
-        'signedData': (withSignedData ? this.transactionEndSignedData : null),
+        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
@@ -669,7 +669,7 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
-      'signedData': (withSignedData ? this.transactionStartSignedData : null),
+      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -678,7 +678,7 @@ export default class OCPPCommonTests {
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
-        'signedData': (withSignedData ? this.transactionEndSignedData : null),
+        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
