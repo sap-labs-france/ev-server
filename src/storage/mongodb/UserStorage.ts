@@ -489,6 +489,7 @@ export default class UserStorage {
     const updatedUserMDB: any = {
       billingData: {
         customerID: billingData.customerID,
+        liveMode: Utils.convertToBoolean(billingData.liveMode),
         hasSynchroError: billingData.hasSynchroError,
         invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
         lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),

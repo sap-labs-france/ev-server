@@ -313,7 +313,11 @@ describe('Billing Service', function() {
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-        fakeUser.billingData = { customerID: 'cus_utbilling_fake_user' }; // TODO - not supported anymore
+        fakeUser.billingData = {
+          customerID: 'cus_utbilling_fake_user',
+          liveMode: false,
+          lastChangedOn: new Date(),
+        }; // TODO - not supported anymore
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser

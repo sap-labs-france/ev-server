@@ -981,9 +981,8 @@ export default class Logging {
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module, method: action,
+      module: module, method: action, action,
       message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`,
-      action: action,
       detailedMessages: { args }
     });
   }
@@ -1005,7 +1004,8 @@ export default class Logging {
       await Logging.logError({
         tenantID,
         source: Constants.CENTRAL_SERVER,
-        action, module, method: 'traceChargingStationActionEnd',
+        action: ServerAction.PERFORMANCES,
+        module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

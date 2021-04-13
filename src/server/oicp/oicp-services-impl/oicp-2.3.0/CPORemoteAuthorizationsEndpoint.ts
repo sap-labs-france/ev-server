@@ -32,14 +32,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     super(oicpService, EP_IDENTIFIER);
   }
 
-  /**
-   * Main Process Method for the endpoint
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   public async process(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     switch (req.method) {
       case 'POST':
@@ -55,14 +47,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     }
   }
 
-  /**
-   * Remote Start Transaction requested by Hubject
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async authorizeRemoteStart(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStart = req.body as OICPAuthorizeRemoteStartCpoReceive;
     // Check props
@@ -160,14 +144,6 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     return OICPUtils.noSuccess(session, 'Remote Start rejected by Charging Station');
   }
 
-  /**
-   * Remote stop Transaction requested by Hubject
-   *
-   * @param req
-   * @param res
-   * @param next
-   * @param tenant
-   */
   private async authorizeRemoteStop(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OICPAcknowledgment> {
     const authorizeRemoteStop = req.body as OICPAuthorizeRemoteStopCpoReceive;
     // Check props
@@ -175,7 +151,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStop.SessionID;
     session.providerID = authorizeRemoteStop.ProviderID;
-    const transaction = await TransactionStorage.getOICPTransaction(tenant.id, authorizeRemoteStop.SessionID);
+    const transaction = await TransactionStorage.getOICPTransactionBySessionID(tenant.id, authorizeRemoteStop.SessionID);
     if (!transaction) {
       await Logging.logDebug({
         tenantID: tenant.id,
@@ -222,7 +198,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     return OICPUtils.noSuccess(session, 'Remote Stop rejected by Charging Station');
   }
 
-  private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
+  private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
+      connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
