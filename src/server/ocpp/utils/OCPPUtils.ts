@@ -1,6 +1,6 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
+import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -689,6 +689,14 @@ export default class OCPPUtils {
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
       user: User, alternateUser: User, tagId: string): void {
+    // Handle Signed Data
+    for (const meterValue of (stopTransaction.transactionData as OCPPMeterValue[])) {
+      if (meterValue.sampledValue) {
+        for (const sampledValue of meterValue.sampledValue) {
+          this.updateSignedData(transaction, sampledValue, sampledValue.value);
+        }
+      }
+    }
     // Set final data
     transaction.stop = {
       meterStop: stopTransaction.meterStop,
@@ -1827,6 +1835,18 @@ export default class OCPPUtils {
       }
     }
     return resetResult;
+  }
+
+  public static updateSignedData(transaction: Transaction, attribute: OCPPAttribute, value: string): void {
+    if (attribute.format === OCPPValueFormat.SIGNED_DATA) {
+      if (attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+        // Set the first Signed Data and keep it
+        transaction.signedData = value;
+      } else if (attribute.context === OCPPReadingContext.TRANSACTION_END) {
+        // Set the last Signed Data (used in the last consumption)
+        transaction.currentSignedData = value;
+      }
+    }
   }
 
   private static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
