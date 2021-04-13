@@ -394,6 +394,16 @@ export default class Constants {
     format: OCPPValueFormat.RAW,
   });
 
+  public static readonly OCPP_START_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_BEGIN,
+  });
+
+  public static readonly OCPP_STOP_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_END,
+  });
+
   public static readonly OCPP_VOLTAGE_ATTRIBUTE: OCPPAttribute = Object.freeze({
     format: OCPPValueFormat.RAW,
     measurand: OCPPMeasurand.VOLTAGE,
