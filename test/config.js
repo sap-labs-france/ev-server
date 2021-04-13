@@ -252,36 +252,6 @@ const config = convict({
     }
   },
   billing: {
-    currency: {
-      doc: 'billing currency',
-      format: String,
-      default: ''
-    },
-    url: {
-      doc: 'Billing provider dashboard',
-      format: String,
-      default: ''
-    },
-    publicKey: {
-      doc: 'Public key',
-      format: String,
-      default: ''
-    },
-    secretKey: {
-      doc: 'Secret Key',
-      format: String,
-      default: ''
-    },
-    noCardAllowed: {
-      doc: 'Allow no card user',
-      format: Boolean,
-      default: ''
-    },
-    advanceBillingAllowed: {
-      doc: 'Allow advance billing',
-      format: Boolean,
-      default: ''
-    },
     immediateBillingAllowed: {
       doc: 'Allow immediate billing',
       format: Boolean,
@@ -297,6 +267,23 @@ const config = convict({
       format: String,
       default: ''
     }
+  },
+  stripe: {
+    url: {
+      doc: 'Billing provider dashboard',
+      format: String,
+      default: ''
+    },
+    publicKey: {
+      doc: 'Public key',
+      format: String,
+      default: ''
+    },
+    secretKey: {
+      doc: 'Secret Key',
+      format: String,
+      default: ''
+    },
   },
   smartCharging: {
     optimizerUrl: {

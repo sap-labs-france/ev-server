@@ -1,5 +1,5 @@
 import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSetting, BillingSettings, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
 import BillingIntegration from '../../src/integration/billing/BillingIntegration';
@@ -10,12 +10,12 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
+import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
@@ -46,58 +46,65 @@ class TestData {
   // Dynamic User for testing billing against an empty STRIPE account
   public dynamicUser: User;
   // Billing Implementation - STRIPE?
-  public billingImpl: BillingIntegration<BillingSetting>;
+  public billingImpl: BillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
   public async setBillingSystemValidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(false);
-    await this.saveBillingSettings(stripeSettings);
+    const billingSettings = this.getLocalSettings(false);
+    await this.saveBillingSettings(billingSettings);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
-    stripeSettings.secretKey = await Cypher.encrypt(tenantId, stripeSettings.secretKey);
-    const billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, billingSettings.stripe.secretKey);
+    const billingImpl = new StripeBillingIntegration(tenantId, billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(false);
+    const billingSettings = this.getLocalSettings(false);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
-    stripeSettings.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
-    await this.saveBillingSettings(stripeSettings);
-    const billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
+    await this.saveBillingSettings(billingSettings);
+    const billingImpl = new StripeBillingIntegration(tenantId, billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }
 
-  public getLocalSettings(immediateBilling: boolean): StripeBillingSetting {
-    const settings: StripeBillingSetting = {
-      url: config.get('billing.url'),
-      publicKey: config.get('billing.publicKey'),
-      secretKey: config.get('billing.secretKey'),
-      noCardAllowed: config.get('billing.noCardAllowed'),
-      advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
-      currency: config.get('billing.currency'),
+  public getLocalSettings(immediateBilling: boolean): BillingSettings {
+    const billingProperties = {
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
+    };
+    const stripeProperties = {
+      url: config.get('stripe.url'),
+      publicKey: config.get('stripe.publicKey'),
+      secretKey: config.get('stripe.secretKey'),
+    };
+    const settings: BillingSettings = {
+      identifier: TenantComponents.BILLING,
+      type: BillingSettingsType.STRIPE,
+      billing: billingProperties,
+      stripe: stripeProperties,
     };
 
     // ---------------------------------------------------------
     // Our test needs the immediate billing to be switched off!
     // Because we want to check the DRAFT state of the invoice
-    settings.immediateBillingAllowed = immediateBilling;
+    settings.billing.immediateBillingAllowed = immediateBilling;
     // ---------------------------------------------------------
     return settings;
   }
 
-  public async saveBillingSettings(stripeSettings: StripeBillingSetting) {
+  public async saveBillingSettings(billingSettings: BillingSettings) {
+    // TODO - rethink that part
     const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
     componentSetting.content.type = BillingSettingsType.STRIPE;
-    componentSetting.content.stripe = stripeSettings;
+    componentSetting.content.billing = billingSettings.billing;
+    componentSetting.content.stripe = billingSettings.stripe;
     componentSetting.sensitiveData = ['content.stripe.secretKey'];
     await this.adminUserService.settingApi.update(componentSetting);
   }
@@ -142,10 +149,9 @@ class TestData {
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getLocalSettings(false);
     // Check that the mandatory settings are properly provided
-    return (!!billingSettings.publicKey
-      && !!billingSettings.secretKey
-      && !!billingSettings.url
-      && !!billingSettings.currency);
+    return (!!billingSettings.stripe.publicKey
+      && !!billingSettings.stripe.secretKey
+      && !!billingSettings.stripe.url);
   }
 
   public async getLatestDraftInvoice(userId?: string) {
