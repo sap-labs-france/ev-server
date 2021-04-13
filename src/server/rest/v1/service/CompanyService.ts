@@ -119,7 +119,7 @@ export default class CompanyService {
       authorizationCompaniesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult);
+    await AuthorizationService.addCompaniesAuthorizations(req.tenant, req.user, companies as CompanyDataResult, authorizationCompaniesFilter);
     // Return
     res.json(companies);
     next();

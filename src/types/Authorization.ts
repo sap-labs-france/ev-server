@@ -1,3 +1,5 @@
+import DynamicAuthorizationDataSource from '../authorization/DynamicAuthorizationDataSource';
+
 export interface AuthorizationDefinition {
   superAdmin: {
     grants: Grant[];
@@ -33,7 +35,8 @@ export interface AuthorizationResult {
 export interface AuthorizationFilter {
   filters: Record<string, any>;
   projectFields: string[];
-  authorized?: boolean;
+  authorized: boolean;
+  dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
 }
 
 export interface Grant {

@@ -106,7 +106,6 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
-    // TODO: Should have Provider data in the authorizationFilter
     const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
       tenant, userToken, { ID: companyID });
     if (!authorizationFilter.authorized) {
@@ -137,10 +136,9 @@ export default class UtilsService {
       });
     }
     // Add actions
-    // TODO: Pass the data from Data Provider as extraFilters
-    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(company, authAction);
+    const authorized = AuthorizationService.canPerfomAction(company, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -203,7 +201,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(user, authAction);
+    const authorized = AuthorizationService.canPerfomAction(user, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -266,7 +264,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(site, authAction);
+    const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -481,7 +479,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(siteArea, authAction);
+    const authorized = AuthorizationService.canPerfomAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
