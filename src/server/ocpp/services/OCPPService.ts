@@ -1338,7 +1338,9 @@ export default class OCPPService {
         }
       }
       // Signed Data
-      OCPPUtils.updateSignedData(transaction, meterValue);
+      if (OCPPUtils.updateSignedData(transaction, meterValue)) {
+        continue;
+      }
       // SoC
       if (meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE) {
         // Set the first SoC and keep it

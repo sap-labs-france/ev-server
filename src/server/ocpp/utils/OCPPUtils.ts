@@ -1851,16 +1851,19 @@ export default class OCPPUtils {
     return resetResult;
   }
 
-  public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): void {
+  public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): boolean {
     if (meterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
       if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
         // Set the first Signed Data and keep it
         transaction.signedData = meterValue.value as string;
+        return true;
       } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
         // Set the last Signed Data (used in the last consumption)
         transaction.currentSignedData = meterValue.value as string;
+        return true;
       }
     }
+    return false;
   }
 
   private static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
