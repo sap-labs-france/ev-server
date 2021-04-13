@@ -105,7 +105,7 @@ export default class OCPPUtils {
             action: action,
             module: MODULE_NAME,
             method: 'processOCPITransaction',
-            message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction thought OCPI protocol due to missing OCPI Token`
+            message: `User '${Utils.buildUserFullName(user)}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} a Transaction through OCPI protocol due to missing OCPI Token`
           });
         }
         // Retrieve Authorization ID
@@ -134,7 +134,7 @@ export default class OCPPUtils {
             user: user,
             action: action,
             module: MODULE_NAME, method: 'processOCPITransaction',
-            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction thought OCPI protocol due to missing Authorization`
+            message: `User '${user.id}' with Tag ID '${transaction.tagID}' cannot ${transactionAction} Transaction through OCPI protocol due to missing Authorization`
           });
         }
         await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
