@@ -165,7 +165,7 @@ export default class ChargingStationService {
         delete chargingStation.templateHashTechnical;
       // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-        (!filteredRequest.manualConfiguration && !Utils.isEmptyArray(chargingStation.chargePoints))) {
+        (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);

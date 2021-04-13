@@ -506,7 +506,7 @@ export default class OCPPService {
         if (user.authorizationID) {
           // Public Charging Station
           if (chargingStation.public) {
-            // Keep Romaing Auth ID
+            // Keep Roaming Auth ID
             authorize.authorizationId = user.authorizationID;
           } else {
             throw new BackendError({
