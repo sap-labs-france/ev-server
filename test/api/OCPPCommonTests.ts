@@ -658,7 +658,7 @@ export default class OCPPCommonTests {
     });
   }
 
-  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false) {
+  public async testTransactionMetrics(withSoC = false, checkNewMeterValues = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
@@ -669,7 +669,6 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
-      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -678,7 +677,6 @@ export default class OCPPCommonTests {
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
         'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
-        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
