@@ -377,7 +377,7 @@ export default class OCPPCommonTests {
       this.transactionStartTime
     );
     if (validTransaction) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(startTransactionResponse).to.be.transactionValid;
       const transactionId = startTransactionResponse.transactionId;
       await this.validateStartedTransaction(

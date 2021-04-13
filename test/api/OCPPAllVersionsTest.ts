@@ -25,7 +25,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function() {
+describe('OCPP tests (all versions)', function () {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -1149,7 +1149,7 @@ describe('OCPP tests (all versions)', function() {
           });
 
           it('Transaction must have the right consumption metrics, pricing and inactivity', async () => {
-            await testData.ocppCommonTests.testTransactionMetrics(false,true);
+            await testData.ocppCommonTests.testTransactionMetrics(false, true);
           });
 
           it('Start user should not be able to delete his transaction', async () => {
