@@ -989,7 +989,7 @@ export default class Authorizations {
         // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
         const transactionConnector: Connector = transaction?.connectorId ?
           Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
-        // Check Authorization in Charging Statiom
+        // Check Authorization in Charging Station
         if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
           for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
             if (remoteAuthorization.tagId === tag.ocpiToken.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {

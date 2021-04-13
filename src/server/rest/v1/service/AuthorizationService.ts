@@ -49,7 +49,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest, action: ServerAction): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -63,9 +63,15 @@ export default class AuthorizationService {
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Not an Admin user?
     if (userToken.role !== UserRole.ADMIN) {
-      // Check assigned Site
-      await AuthorizationService.checkAssignedSites(
-        tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      if (action === ServerAction.SITE_UPDATE) {
+        // Check assigned Site
+        await AuthorizationService.checkAssignedSiteAdmins(
+          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      } else {
+        // Check assigned Site
+        await AuthorizationService.checkAssignedSites(
+          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
+      }
     }
     return authorizationFilters;
   }
@@ -150,7 +156,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -169,7 +175,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -229,8 +235,17 @@ export default class AuthorizationService {
           const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant.id, siteArea.siteID);
           // Check if any of the Assets we want to unassign are missing
           for (const assetID of filteredRequest.assetIDs) {
-            if (!assetIDs.includes(assetID)) {
-              foundInvalidAssetID = true;
+            switch (action) {
+              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
+                if (assetIDs.includes(assetID)) {
+                  foundInvalidAssetID = true;
+                }
+                break;
+              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
+                if (!assetIDs.includes(assetID)) {
+                  foundInvalidAssetID = true;
+                }
+                break;
             }
           }
           if (!foundInvalidAssetID) {
@@ -264,8 +279,17 @@ export default class AuthorizationService {
           const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
           // Check if any of the Charging Stations we want to unassign are missing
           for (const chargingStationID of filteredRequest.chargingStationIDs) {
-            if (!chargingStationIDs.includes(chargingStationID)) {
-              foundInvalidChargingStationID = true;
+            switch (action) {
+              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
+                if (chargingStationIDs.includes(chargingStationID)) {
+                  foundInvalidChargingStationID = true;
+                }
+                break;
+              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
+                if (!chargingStationIDs.includes(chargingStationID)) {
+                  foundInvalidChargingStationID = true;
+                }
+                break;
             }
           }
           if (!foundInvalidChargingStationID) {
@@ -367,7 +391,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, filteredRequest, authorizationFilters);
     return authorizationFilters;
   }
@@ -407,7 +431,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -431,7 +455,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -448,7 +472,7 @@ export default class AuthorizationService {
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdmins(
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
       tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
@@ -754,7 +778,7 @@ export default class AuthorizationService {
     }
   }
 
-  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
+  private static async checkAssignedSiteAdminsAndOwners(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
@@ -765,6 +789,32 @@ export default class AuthorizationService {
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filterß
           authorizationFilters.filters.siteIDs = allSites;
+          // Check if filter is provided
+          if (filteredRequest?.SiteID) {
+            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
+            // Override
+            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
+              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
+          }
+        }
+        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
+          authorizationFilters.authorized = true;
+        }
+      } else {
+        authorizationFilters.authorized = true;
+      }
+    }
+  }
+
+  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
+      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
+    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get Site IDs from Site Admin & Site Owner flag
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
+          // Force the filterß
+          authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (filteredRequest?.SiteID) {
             const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');

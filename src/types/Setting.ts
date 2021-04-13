@@ -350,12 +350,6 @@ export interface CryptoSettings extends Setting {
   crypto: CryptoSetting;
 }
 
-export interface CryptoSetting {
-  key: string;
-  keyProperties: CryptoKeyProperties;
-  formerKey?: string;
-  formerKeyProperties?: CryptoKeyProperties;
-}
 export interface CryptoKeyProperties {
   blockCypher: string;
   blockSize: number;
