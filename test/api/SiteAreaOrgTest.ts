@@ -357,7 +357,7 @@ describe('Site Area tests', function() {
           Factory.siteArea.build(),
           false
         );
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
       it('Should not be able to read consumption without site Area ID', async () => {
