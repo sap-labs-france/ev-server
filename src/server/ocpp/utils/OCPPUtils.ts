@@ -690,13 +690,13 @@ export default class OCPPUtils {
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
       user: User, alternateUser: User, tagId: string): void {
     // Handle Signed Data
-    for (const meterValue of (stopTransaction.transactionData as OCPPMeterValue[])) {
-      if (meterValue.sampledValue) {
-        for (const sampledValue of meterValue.sampledValue) {
-          this.updateSignedData(transaction, sampledValue, sampledValue.value);
-        }
-      }
-    }
+    // for (const meterValue of (stopTransaction.transactionData as OCPPMeterValue[])) {
+    //   if (meterValue.sampledValue) {
+    //     for (const sampledValue of meterValue.sampledValue) {
+    //       this.updateSignedData(transaction, sampledValue, sampledValue.value);
+    //     }
+    //   }
+    // }
     // Set final data
     transaction.stop = {
       meterStop: stopTransaction.meterStop,
