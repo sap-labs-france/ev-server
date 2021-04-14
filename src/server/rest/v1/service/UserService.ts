@@ -1338,36 +1338,44 @@ export default class UserService {
   }
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'id' + Constants.CSV_SEPARATOR;
-      csv += 'name' + Constants.CSV_SEPARATOR;
-      csv += 'firstName' + Constants.CSV_SEPARATOR;
-      csv += 'locale' + Constants.CSV_SEPARATOR;
-      csv += 'role' + Constants.CSV_SEPARATOR;
-      csv += 'status' + Constants.CSV_SEPARATOR;
-      csv += 'email' + Constants.CSV_SEPARATOR;
-      csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
-      csv += 'createdOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedBy' + Constants.CR_LF;
+      const headerArray = [
+        'id',
+        'name',
+        'firstName',
+        'locale',
+        'role',
+        'status',
+        'email',
+        'eulaAcceptedOn',
+        'createdOn',
+        'changedOn',
+        'changedBy'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const user of users) {
-      csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
-      csv += user.name + Constants.CSV_SEPARATOR;
-      csv += user.firstName + Constants.CSV_SEPARATOR;
-      csv += user.locale + Constants.CSV_SEPARATOR;
-      csv += user.role + Constants.CSV_SEPARATOR;
-      csv += user.status + Constants.CSV_SEPARATOR;
-      csv += user.email + Constants.CSV_SEPARATOR;
-      csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + Constants.CR_LF;
-    }
-    return csv;
+    const rows = users.map((user) => {
+      const row = [
+        Cypher.hash(user.id),
+        user.name,
+        user.firstName,
+        user.locale,
+        user.role,
+        user.status,
+        user.email,
+        moment(user.eulaAcceptedOn).format('YYYY-MM-DD'),
+        moment(user.createdOn).format('YYYY-MM-DD'),
+        moment(user.lastChangedOn).format('YYYY-MM-DD'),
+        (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
+      ].map((value) => {
+        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+      }); 
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {

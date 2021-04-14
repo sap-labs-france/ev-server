@@ -889,48 +889,56 @@ export default class TransactionService {
   }
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'id' + Constants.CSV_SEPARATOR;
-      csv += 'chargingStationID' + Constants.CSV_SEPARATOR;
-      csv += 'connector' + Constants.CSV_SEPARATOR;
-      csv += 'userID' + Constants.CSV_SEPARATOR;
-      csv += 'user' + Constants.CSV_SEPARATOR;
-      csv += 'tagID' + Constants.CSV_SEPARATOR;
-      csv += 'tagDescription' + Constants.CSV_SEPARATOR;
-      csv += 'timezone' + Constants.CSV_SEPARATOR;
-      csv += 'startDate' + Constants.CSV_SEPARATOR;
-      csv += 'startTime' + Constants.CSV_SEPARATOR;
-      csv += 'endDate' + Constants.CSV_SEPARATOR;
-      csv += 'endTime' + Constants.CSV_SEPARATOR;
-      csv += 'totalConsumption' + Constants.CSV_SEPARATOR;
-      csv += 'totalDuration' + Constants.CSV_SEPARATOR;
-      csv += 'totalInactivity' + Constants.CSV_SEPARATOR;
-      csv += 'price' + Constants.CSV_SEPARATOR;
-      csv += 'priceUnit' + Constants.CR_LF;
+      const headerArray = [
+        'id',
+        'chargingStationID',
+        'connector',
+        'userID',
+        'user',
+        'tagID',
+        'tagDescription',
+        'timezone',
+        'startDate',
+        'startTime',
+        'endDate',
+        'endTime',
+        'totalConsumption',
+        'totalDuration',
+        'totalInactivity',
+        'price',
+        'priceUnit'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const transaction of transactions) {
-      csv += transaction.id + Constants.CSV_SEPARATOR;
-      csv += transaction.chargeBoxID + Constants.CSV_SEPARATOR;
-      csv += transaction.connectorId + Constants.CSV_SEPARATOR;
-      csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
-      csv += transaction.tagID + Constants.CSV_SEPARATOR;
-      csv += (transaction.tag?.description || '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? transaction.stop.roundedPrice : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? transaction.stop.priceUnit : '') + Constants.CR_LF;
-    }
-    return csv;
+    const rows = transactions.map((transaction) => {
+      const row = [
+        transaction.id,
+        transaction.chargeBoxID,
+        transaction.connectorId,
+        transaction.user ? Cypher.hash(transaction.user.id) : '',
+        transaction.user ? Utils.buildUserFullName(transaction.user, false) : '',
+        transaction.tagID,
+        transaction.tag?.description || '',
+        transaction.timezone || 'N/A (UTC by default)',
+        (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD'),
+        (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss'),
+        (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : ''),
+        (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : ''),
+        transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '',
+        transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '',
+        transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '',
+        transaction.stop ? transaction.stop.roundedPrice : '',
+        transaction.stop ? transaction.stop.priceUnit : ''
+      ].map((value) => {
+        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+      }); 
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async deleteTransactions(action: ServerAction, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
