@@ -2,6 +2,7 @@ import { HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest,
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -20,6 +21,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationRequestOCPPParameters: Schema;
   private chargingStationUpdateParameters: Schema;
   private chargingStationLimitPower: Schema;
+  private chargingStationNotificationsGet: Schema;
 
 
   private constructor() {
@@ -35,6 +37,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationRequestOCPPParameters = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-ocpp-request-parameters.json`, 'utf8'));
     this.chargingStationUpdateParameters = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-update-parameters.json`, 'utf8'));
     this.chargingStationLimitPower = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-limit-power.json`, 'utf8'));
+    this.chargingStationNotificationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-notifications.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -108,6 +111,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationLimitPowerReq(data: any): HttpChargingStationLimitPowerRequest {
     // Validate schema
     this.validate(this.chargingStationLimitPower, data);
+    return data;
+  }
+
+  public validateChargingStationNotificationsGetReq(data: any): HttpDatabaseRequest {
+    // Validate schema
+    this.validate(this.chargingStationNotificationsGet, data);
     return data;
   }
 }

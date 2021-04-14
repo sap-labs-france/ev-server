@@ -476,6 +476,8 @@ export enum ServerRoute {
   REST_CHARGING_STATIONS_TRANSACTIONS = 'charging-stations/:id/transactions',
   REST_CHARGING_STATIONS_IN_ERROR = 'charging-stations/status/in-error',
   REST_CHARGING_STATIONS_EXPORT = 'charging-stations/action/export',
+  REST_CHARGING_STATIONS_BOOT_NOTIFICATIONS = 'charging-stations/notifications/boot',
+  REST_CHARGING_STATIONS_STATUS_NOTIFICATIONS = 'charging-stations/notifications/status',
 
   REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'charging-stations/smartcharging/connection/check',
   REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'charging-stations/smartcharging/trigger',

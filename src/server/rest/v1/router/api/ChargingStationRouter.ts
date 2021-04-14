@@ -45,6 +45,8 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationLimitPower();
     this.buildRouteChargingStationCheckSmartCharging();
     this.buildRouteChargingStationTriggerSmartCharging();
+    this.buildRouteChargingStationGetBootNotifications();
+    this.buildRouteChargingStationGetStatusNotifications();
     return this.router;
   }
 
@@ -255,6 +257,18 @@ export default class ChargingStationRouter {
     this.router.delete(`/${ServerRoute.REST_CHARGING_PROFILE}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleDeleteChargingProfile.bind(this), ServerAction.CHARGING_PROFILE_DELETE, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationGetBootNotifications(): void {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_BOOT_NOTIFICATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleGetBootNotifications.bind(this), ServerAction.BOOT_NOTIFICATION, req, res, next);
+    });
+  }
+
+  protected buildRouteChargingStationGetStatusNotifications(): void {
+    this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_STATUS_NOTIFICATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(ChargingStationService.handleGetStatusNotifications.bind(this), ServerAction.STATUS_NOTIFICATIONS, req, res, next);
     });
   }
 }

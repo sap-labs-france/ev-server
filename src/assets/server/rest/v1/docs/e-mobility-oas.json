@@ -3199,6 +3199,104 @@
         }
       }
     },
+    "/api/charging-stations/notifications/boot": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Stations boot notifications",
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the boot notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "####",
+                      "chargePointVendor": "####",
+                      "chargePointModel": "####",
+                      "chargePointSerialNumber": "####",
+                      "chargeBoxSerialNumber": "####",
+                      "firmwareVersion": "####",
+                      "ocppVersion": "####",
+                      "endpoint": "####",
+                      "timestamp": "2018-01-02T08:21:47.584Z",
+                      "chargeBoxID": "####",
+                      "__v": 0,
+                      "createdBy": null,
+                      "lastChangedBy": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/charging-stations/notifications/status": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Stations status notifications",
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the status notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "####",
+                      "chargeBoxID": "####",
+                      "connectorId": 2,
+                      "timestamp": "2019-03-25T10:45:42.000Z",
+                      "status": "####",
+                      "errorCode": "####",
+                      "info": null,
+                      "vendorId": null,
+                      "vendorErrorCode": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/charging-profiles": {
       "get": {
         "security": [
