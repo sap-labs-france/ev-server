@@ -136,9 +136,9 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(company, authAction);
+    const authorized = AuthorizationService.canPerfomAction(company, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -201,7 +201,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(user, authAction);
+    const authorized = AuthorizationService.canPerfomAction(user, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -264,7 +264,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(site, authAction);
+    const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -479,7 +479,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(siteArea, authAction);
+    const authorized = AuthorizationService.canPerfomAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
