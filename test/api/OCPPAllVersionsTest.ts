@@ -25,7 +25,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function () {
+describe('OCPP tests (all versions)', function() {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
