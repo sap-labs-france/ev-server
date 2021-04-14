@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { Car, CarType } from '../../../../types/Car';
-import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import User, { UserRole, UserStatus } from '../../../../types/User';
@@ -1075,7 +1075,7 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (siteArea.voltage !== 230 && siteArea.voltage !== 110) {
+    if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
