@@ -506,7 +506,7 @@ export default class OCPPService {
         if (user.authorizationID) {
           // Public Charging Station
           if (chargingStation.public) {
-            // Keep Romaing Auth ID
+            // Keep Roaming Auth ID
             authorize.authorizationId = user.authorizationID;
           } else {
             throw new BackendError({
@@ -1338,16 +1338,8 @@ export default class OCPPService {
         }
       }
       // Signed Data
-      if (meterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
-        if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
-          // Set the first Signed Data and keep it
-          transaction.signedData = meterValue.value as string;
-          continue;
-        } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
-          // Set the last Signed Data (used in the last consumption)
-          transaction.currentSignedData = meterValue.value as string;
-          continue;
-        }
+      if (OCPPUtils.updateSignedData(transaction, meterValue)) {
+        continue;
       }
       // SoC
       if (meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE) {

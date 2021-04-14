@@ -165,7 +165,7 @@ export default class ChargingStationService {
         delete chargingStation.templateHashTechnical;
       // Manual config -> Auto Config || Auto Config with no Charge Point
       } else if ((chargingStation.manualConfiguration && !filteredRequest.manualConfiguration) ||
-        (!filteredRequest.manualConfiguration && !Utils.isEmptyArray(chargingStation.chargePoints))) {
+        (!filteredRequest.manualConfiguration && Utils.isEmptyArray(chargingStation.chargePoints))) {
         // If charging station is not configured manually anymore, the template will be applied again
         chargingStation.manualConfiguration = filteredRequest.manualConfiguration;
         const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
@@ -1611,9 +1611,31 @@ export default class ChargingStationService {
         i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
         chargingStation.maximumPower,
         chargingStation.powerLimitUnit
+<<<<<<< HEAD
       ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value);
       return row;
     }).join(Constants.CR_LF);
+=======
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      return row;
+    }).join(Constants.CR_LF);
+    // Build createdOn cell
+    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
+      if (chargingStation.createdOn) {
+        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
+      }
+      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
+
+    };
+    // Build coordinates cell
+    const getCoordinatesCell = (chargingStation: ChargingStation) => {
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
+      }
+      return ['', ''];
+
+    };
+>>>>>>> master-qa
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 

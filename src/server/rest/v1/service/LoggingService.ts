@@ -7,7 +7,6 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import I18nManager from '../../../../utils/I18nManager';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';

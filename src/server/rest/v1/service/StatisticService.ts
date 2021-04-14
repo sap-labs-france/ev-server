@@ -637,10 +637,9 @@ export default class StatisticService {
       const getPricingCell = (transaction: any) => {
         if (transaction._id.unit) {
           return [number.toString(), transaction._id.unit];
-        } else {
-          return [number.toString(), ' '];
         }
-      }
+        return [number.toString(), ' '];
+      };
       return [headers, rows].join(Constants.CR_LF);
     }
   }

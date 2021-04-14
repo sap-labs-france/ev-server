@@ -1,14 +1,14 @@
-import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
 import chai, { expect } from 'chai';
 
-import { Car } from '../types/Car';
+import { Car } from '../../src/types/Car';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
-import User from '../types/User';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 
