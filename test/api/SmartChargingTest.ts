@@ -1,12 +1,12 @@
 import Asset, { AssetType } from '../../src/types/Asset';
 import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
 import { SapSmartChargingSetting, SettingDB, SmartChargingSetting, SmartChargingSettingsType } from '../../src/types/Setting';
-import Transaction, { CSPhasesUsed } from '../types/Transaction';
+import Transaction, { CSPhasesUsed } from '../../src/types/Transaction';
 import chai, { assert, expect } from 'chai';
 
 import AssetStorage from '../../src//storage/mongodb/AssetStorage';
 import CentralServerService from './client/CentralServerService';
-import { ChargingProfile } from '../types/ChargingProfile';
+import { ChargingProfile } from '../../src/types/ChargingProfile';
 import ChargingStationContext from './context/ChargingStationContext';
 import ChargingStationStorage from '../../src/storage/mongodb/ChargingStationStorage';
 import Constants from '../../src/utils/Constants';

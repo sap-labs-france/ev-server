@@ -9,7 +9,7 @@ import Factory from '../factories/Factory';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../types/Tag';
+import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';

@@ -1,13 +1,13 @@
 import chai, { expect } from 'chai';
 
-import Asset from '../types/Asset';
+import Asset from '../../src/types/Asset';
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { HTTPAuthError } from '../../src/types/HTTPError';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
+import Site from '../../src/types/Site';
+import SiteArea from '../../src/types/SiteArea';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';

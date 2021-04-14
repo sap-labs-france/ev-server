@@ -6,7 +6,7 @@ import ContextDefinition from './ContextDefinition';
 import { RefundStatus } from '../../../src/types/Refund';
 import TenantContext from './TenantContext';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
-import User from '../../types/User';
+import User from '../../../src/types/User';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
