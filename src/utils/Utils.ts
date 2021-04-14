@@ -824,10 +824,11 @@ export default class Utils {
         }
       }
     }
+    const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
+    const amperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId) * numberOfConnectors;
     // Default
-    if (amperageLimit === 0) {
-      const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
-      amperageLimit = StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId) * numberOfConnectors;
+    if (amperageLimit < amperageLimitMin) {
+      amperageLimit = amperageLimitMin;
     }
     return amperageLimit;
   }
