@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps, Voltage } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
