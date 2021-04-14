@@ -825,11 +825,10 @@ export default class Utils {
         }
       }
     }
-    const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
-    const amperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId) * numberOfConnectors;
-    // Default
-    if (amperageLimit < amperageLimitMin) {
-      amperageLimit = amperageLimitMin;
+    const amperageMax = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    // Check and default
+    if (amperageLimit === 0 || amperageLimit > amperageMax) {
+      amperageLimit = amperageMax;
     }
     return amperageLimit;
   }
