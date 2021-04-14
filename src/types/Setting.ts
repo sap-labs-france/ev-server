@@ -227,7 +227,7 @@ export enum BillingSettingsType {
   STRIPE = 'stripe'
 }
 
-export interface BillingSettings extends Setting{
+export interface BillingSettings extends Setting {
   identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
   stripe?: StripeBillingSetting;
