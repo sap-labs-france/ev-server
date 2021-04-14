@@ -936,13 +936,13 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOCPITransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
       { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransaction(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOICPTransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
       { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
@@ -987,7 +987,7 @@ export default class TransactionStorage {
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number,
+  public static async getLastTransactionFromChargingStation(tenantID: string, chargeBoxID: string, connectorId: number,
       params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');

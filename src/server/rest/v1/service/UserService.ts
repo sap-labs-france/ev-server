@@ -56,7 +56,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!await Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -65,7 +65,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!await Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -76,7 +76,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -127,7 +127,7 @@ export default class UserService {
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Check auth
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!Authorizations.canAssignUsersSites(req.user)) {
+      if (!await Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -135,7 +135,7 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -158,7 +158,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -231,7 +231,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
     // Check auth
-    if (!Authorizations.canDeleteUser(req.user, userID)) {
+    if (!await Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -449,7 +449,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -611,7 +611,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -667,7 +667,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -709,7 +709,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -756,7 +756,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!await Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -768,7 +768,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -832,7 +832,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListUsersInErrors(req.user)) {
+    if (!await Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -867,7 +867,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -876,7 +876,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportUsers(req.user)) {
+    if (!await Authorizations.canImportUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -905,162 +905,177 @@ export default class UserService {
       inSuccess: 0,
       inError: 0
     };
-    // Delete all previously imported users
-    await UserStorage.deleteImportedUsers(req.user.tenantID);
-    // Get the stream
-    const busboy = new Busboy({ headers: req.headers });
-    req.pipe(busboy);
-    // Handle closed socket
-    let connectionClosed = false;
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    req.socket.on('close', async () => {
-      if (!connectionClosed) {
-        connectionClosed = true;
-        // Release the lock
-        await LockingManager.release(importUsersLock);
-      }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-      if (mimetype === 'text/csv') {
-        const converter = csvToJson({
-          trim: true,
-          delimiter: Constants.CSV_SEPARATOR,
-          output: 'json',
-          quote: 'on',
-        });
-        void converter.subscribe(async (user: ImportedUser) => {
-          // Check connection
-          if (connectionClosed) {
-            throw new Error('HTTP connection has been closed');
-          }
-          // Check the format of the first entry
-          if (!result.inSuccess && !result.inError) {
-            // Check header
-            const userKeys = Object.keys(user);
-            if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
-              if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
-                res.end();
-              }
-              throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
-            }
-          }
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error: CSVError) => {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleImportUsers',
-            action: action,
-            user: req.user.id,
-            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-          if (!res.headersSent) {
-            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-            res.end();
-          }
-        // Completed
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async () => {
-          // Consider the connection closed
+    try {
+      // Delete all previously imported users
+      await UserStorage.deleteImportedUsers(req.user.tenantID);
+      // Get the stream
+      const busboy = new Busboy({ headers: req.headers });
+      req.pipe(busboy);
+      // Handle closed socket
+      let connectionClosed = false;
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      req.socket.on('close', async () => {
+        if (!connectionClosed) {
           connectionClosed = true;
-          // Insert batched
-          if (usersToBeImported.length > 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+        }
+      });
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+        if (mimetype === 'text/csv') {
+          const converter = csvToJson({
+            trim: true,
+            delimiter: Constants.CSV_SEPARATOR,
+            output: 'json',
+            quote: 'on',
+          });
+          void converter.subscribe(async (user: ImportedUser) => {
+            // Check connection
+            if (connectionClosed) {
+              throw new Error('HTTP connection has been closed');
+            }
+            // Check the format of the first entry
+            if (!result.inSuccess && !result.inError) {
+              // Check header
+              const userKeys = Object.keys(user);
+              if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
+                if (!res.headersSent) {
+                  res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                  res.end();
+                }
+                throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
+              }
+            }
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async (error: CSVError) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          // Completed
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async () => {
+            // Consider the connection closed
+            connectionClosed = true;
+            // Insert batched
+            if (usersToBeImported.length > 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+            await Logging.logActionsResponse(
+              req.user.tenantID, action,
+              MODULE_NAME, 'handleImportUsers', result,
+              `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+              `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+              `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+              `No User have been uploaded in ${executionDurationSecs}s`, req.user
+            );
+            // Create and Save async task
+            await AsyncTaskManager.createAndSaveAsyncTasks({
+              name: AsyncTasks.USERS_IMPORT,
+              action: ServerAction.USERS_IMPORT,
+              type: AsyncTaskType.TASK,
+              tenantID: req.tenant.id,
+              module: MODULE_NAME,
+              method: 'handleImportUsers',
+            });
+            // Respond
+            res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+            next();
+          });
+          // Start processing the file
+          void file.pipe(converter);
+        } else if (mimetype === 'application/json') {
+          const parser = JSONStream.parse('users.*');
+          // TODO: Handle the end of the process to send the data like the CSV
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('data', async (user: ImportedUser) => {
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          });
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('error', async (error) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Invalid Json file '${filename}'`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          });
+          file.pipe(parser);
+        } else {
           // Release the lock
           await LockingManager.release(importUsersLock);
           // Log
-          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-          await Logging.logActionsResponse(
-            req.user.tenantID, action,
-            MODULE_NAME, 'handleImportUsers', result,
-            `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-            `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
-            `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-            `No User have been uploaded in ${executionDurationSecs}s`, req.user
-          );
-          // Create and Save async task
-          await AsyncTaskManager.createAndSaveAsyncTasks({
-            name: AsyncTasks.USERS_IMPORT,
-            action: ServerAction.USERS_IMPORT,
-            type: AsyncTaskType.TASK,
-            tenantID: req.tenant.id,
-            module: MODULE_NAME,
-            method: 'handleImportUsers',
-          });
-          // Respond
-          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-          next();
-        });
-        // Start processing the file
-        void file.pipe(converter);
-      } else if (mimetype === 'application/json') {
-        const parser = JSONStream.parse('users.*');
-        // TODO: Handle the end of the process to send the data like the CSV
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('data', async (user: ImportedUser) => {
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        });
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('error', async (error) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: `Invalid Json file '${filename}'`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            message: `Invalid file format '${mimetype}'`
           });
           if (!res.headersSent) {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
-        });
-        file.pipe(parser);
-      } else {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleImportUsers',
-          action: action,
-          user: req.user.id,
-          message: `Invalid file format '${mimetype}'`
-        });
-        if (!res.headersSent) {
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
         }
-      }
-    });
+      });
+    } catch (error) {
+      // Release the lock
+      await LockingManager.release(importUsersLock);
+      throw error;
+    }
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateUser(req.user)) {
+    if (!await Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1199,7 +1214,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
+    if (!await Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1242,7 +1257,7 @@ export default class UserService {
       });
     }
     // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/LucasBrazi06/ev-dashboard/issues/1542
+    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/sap-labs-france/ev-dashboard/issues/1542
     // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber: string;
@@ -1338,41 +1353,47 @@ export default class UserService {
   }
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'id' + Constants.CSV_SEPARATOR;
-      csv += 'name' + Constants.CSV_SEPARATOR;
-      csv += 'firstName' + Constants.CSV_SEPARATOR;
-      csv += 'locale' + Constants.CSV_SEPARATOR;
-      csv += 'role' + Constants.CSV_SEPARATOR;
-      csv += 'status' + Constants.CSV_SEPARATOR;
-      csv += 'email' + Constants.CSV_SEPARATOR;
-      csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
-      csv += 'createdOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedBy' + Constants.CR_LF;
+      const headerArray = [
+        'id',
+        'name',
+        'firstName',
+        'locale',
+        'role',
+        'status',
+        'email',
+        'eulaAcceptedOn',
+        'createdOn',
+        'changedOn',
+        'changedBy'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const user of users) {
-      csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
-      csv += user.name + Constants.CSV_SEPARATOR;
-      csv += user.firstName + Constants.CSV_SEPARATOR;
-      csv += user.locale + Constants.CSV_SEPARATOR;
-      csv += user.role + Constants.CSV_SEPARATOR;
-      csv += user.status + Constants.CSV_SEPARATOR;
-      csv += user.email + Constants.CSV_SEPARATOR;
-      csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + Constants.CR_LF;
-    }
-    return csv;
+    const rows = users.map((user) => {
+      const row = [
+        Cypher.hash(user.id),
+        user.name,
+        user.firstName,
+        user.locale,
+        user.role,
+        user.status,
+        user.email,
+        moment(user.eulaAcceptedOn).format('YYYY-MM-DD'),
+        moment(user.createdOn).format('YYYY-MM-DD'),
+        moment(user.lastChangedOn).format('YYYY-MM-DD'),
+        (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!await Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1421,7 +1442,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
   }

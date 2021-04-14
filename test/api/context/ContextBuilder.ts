@@ -4,7 +4,7 @@ import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import BillingContext from './BillingContext';
 import CentralServerService from '../client/CentralServerService';
-import ChargingStation from '../../types/ChargingStation';
+import ChargingStation from '../../../src/types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
@@ -19,7 +19,8 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
-import Tag from '../../types/Tag';
+import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../src/types/Tag';
 import TagStorage from '../../../src/storage/mongodb/TagStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
@@ -165,7 +166,7 @@ export default class ContextBuilder {
     if (tenantContextDef.componentSettings) {
       console.log(`Settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings, null, ' ')}`);
       const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
-      expect(allSettings.status).to.equal(200);
+      expect(allSettings.status).to.equal(StatusCodes.OK);
       for (const componentSettingKey in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {

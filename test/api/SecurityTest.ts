@@ -8,7 +8,8 @@ import ContextDefinition from './context/ContextDefinition';
 import Logging from '../../src/utils/Logging';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ServerAction } from '../../src/types/Server';
-import Tenant from '../types/Tenant';
+import { StatusCodes } from 'http-status-codes';
+import Tenant from '../../src/types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import config from '../config';
@@ -79,7 +80,7 @@ describe('Security tests', function() {
     // Reset components before leaving
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, initialTenant);
-    expect(res.status).to.equal(200);
+    expect(res.status).to.equal(StatusCodes.OK);
   });
 
   describe('Success cases (tenant utall)', () => {
@@ -94,7 +95,7 @@ describe('Security tests', function() {
         detailedMessages: 'repeatPassword=MyDummyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing ":") is anonymized', async () => {
@@ -108,7 +109,7 @@ describe('Security tests', function() {
         detailedMessages: 'firstName:MyName'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing ",") is anonymized', async () => {
@@ -122,7 +123,7 @@ describe('Security tests', function() {
         detailedMessages: 'name,MyName'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing ";") is anonymized', async () => {
@@ -136,7 +137,7 @@ describe('Security tests', function() {
         detailedMessages: 'password;MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing spaces and =) is anonymized', async () => {
@@ -150,7 +151,7 @@ describe('Security tests', function() {
         detailedMessages: 'password = MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing spaces and :) is anonymized', async () => {
@@ -164,7 +165,7 @@ describe('Security tests', function() {
         detailedMessages: 'password: MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing spaces and ,) is anonymized', async () => {
@@ -178,7 +179,7 @@ describe('Security tests', function() {
         detailedMessages: 'password, MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data string (containing spaces and ;) is anonymized', async () => {
@@ -192,7 +193,7 @@ describe('Security tests', function() {
         detailedMessages: 'password ; MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data query string is anonymized', async () => {
@@ -206,7 +207,7 @@ describe('Security tests', function() {
         detailedMessages: 'name=MyPass&firstName=MyPass'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that client_id field is anonymized', async () => {
@@ -220,7 +221,7 @@ describe('Security tests', function() {
         detailedMessages: 'client_id=clientIDForTest'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that client_secret field is anonymized', async () => {
@@ -234,7 +235,7 @@ describe('Security tests', function() {
         detailedMessages: 'client_secret=clientSecretForTest'
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that client_id and client_secret are anonymized in object', async () => {
@@ -251,7 +252,7 @@ describe('Security tests', function() {
         }
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with string fields', async () => {
@@ -281,7 +282,7 @@ describe('Security tests', function() {
         }
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in object with query string fields', async () => {
@@ -299,7 +300,7 @@ describe('Security tests', function() {
         }
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
     it('Check that sensitive data is anonymized in array with strings', async () => {
@@ -330,7 +331,7 @@ describe('Security tests', function() {
         ]
       });
       const read = await testData.centralService.logsApi.readById(logId.toString());
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       checkSensitiveDataIsObfuscated(JSON.parse(read.data.detailedMessages));
     });
   });

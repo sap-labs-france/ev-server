@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps, Voltage } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
@@ -52,6 +52,17 @@ export default class Utils {
       }
     }
     return connectors;
+  }
+
+  public static convertAddressToOneLine(address: Address): string {
+    const oneLineAddress: string[] = [];
+    if (address?.address1) {
+      oneLineAddress.push(address.address1);
+    }
+    if (address?.address2) {
+      oneLineAddress.push(address.address2);
+    }
+    return oneLineAddress.join(' ');
   }
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
@@ -651,7 +662,7 @@ export default class Utils {
     return 1;
   }
 
-  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): Voltage {
     if (chargingStation) {
       // Check at charging station level
       if (chargingStation.voltage) {
@@ -690,7 +701,8 @@ export default class Utils {
         }
       }
     }
-    return 0;
+    // Return a sensible default value to avoid divide by zero
+    return Voltage.VOLTAGE_230;
   }
 
   public static getChargingStationCurrentType(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): CurrentType {
@@ -812,6 +824,12 @@ export default class Utils {
           amperageLimit += connector.amperageLimit;
         }
       }
+    }
+    const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
+    const amperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId) * numberOfConnectors;
+    // Default
+    if (amperageLimit < amperageLimitMin) {
+      amperageLimit = amperageLimitMin;
     }
     return amperageLimit;
   }
@@ -1098,7 +1116,6 @@ export default class Utils {
   }
 
   public static async hashPasswordBcrypt(password: string): Promise<string> {
-    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (error, salt) => {
@@ -1116,7 +1133,6 @@ export default class Utils {
   }
 
   public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
-    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {

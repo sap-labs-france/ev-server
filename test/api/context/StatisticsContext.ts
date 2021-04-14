@@ -6,7 +6,7 @@ import ContextDefinition from './ContextDefinition';
 import { RefundStatus } from '../../../src/types/Refund';
 import TenantContext from './TenantContext';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
-import User from '../../types/User';
+import User from '../../../src/types/User';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
@@ -101,7 +101,6 @@ export default class StatisticsContext {
       status: RefundStatus.APPROVED,
     };
     await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
-    // eslint-disable-next-line no-undef
     console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 

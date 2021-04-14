@@ -6,10 +6,10 @@ import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import { PricingSettingsType } from '../../src/types/Setting';
-import Tag from '../types/Tag';
+import { StatusCodes } from 'http-status-codes';
+import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import Utils from '../../src/utils/Utils';
@@ -270,7 +270,7 @@ export default class OCPPCommonTests {
     response = await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
-    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.status).to.equal(StatusCodes.OK);
     expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check
     expect(foundChargingStation.data.connectors).to.not.be.null;
@@ -296,7 +296,7 @@ export default class OCPPCommonTests {
     response = await this.chargingStationContext.sendHeartbeat();
     // Check the connectors
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
-    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.status).to.equal(StatusCodes.OK);
     expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check Connector 1
     expect(foundChargingStation.data.connectors[0]).to.include({
@@ -353,7 +353,7 @@ export default class OCPPCommonTests {
   public async testChargingStationRegistrationWithInvalidIdentifier() {
     try {
       await this.chargingStationContext.sendBootNotification();
-      fail('BootNotification should failed');
+      fail('BootNotification should fail');
     } catch (error) {
       expect(error).to.be.not.null;
     }
@@ -377,7 +377,7 @@ export default class OCPPCommonTests {
       this.transactionStartTime
     );
     if (validTransaction) {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(startTransactionResponse).to.be.transactionValid;
       const transactionId = startTransactionResponse.transactionId;
       await this.validateStartedTransaction(
@@ -389,7 +389,7 @@ export default class OCPPCommonTests {
       expect(this.newTransaction).to.not.be.null;
 
       const chargingStationResponse = await this.chargingStationContext.readChargingStation(this.transactionStartUserService);
-      expect(chargingStationResponse.status).eq(200);
+      expect(chargingStationResponse.status).eq(StatusCodes.OK);
       expect(chargingStationResponse.data).not.null;
       const connector = chargingStationResponse.data.connectors[this.chargingStationConnector1.connectorId - 1];
       expect(connector).not.null;
@@ -448,7 +448,7 @@ export default class OCPPCommonTests {
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
       }
     });
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
@@ -459,7 +459,7 @@ export default class OCPPCommonTests {
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
       }
     });
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
 
@@ -610,7 +610,7 @@ export default class OCPPCommonTests {
     }
   }
 
-  public async testStopTransaction(withSoC = false) {
+  public async testStopTransaction(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -634,6 +634,7 @@ export default class OCPPCommonTests {
     const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
     expect(this.totalPrice).equal(totalTransactionPrice);
     expect(transactionValidation.data).to.deep['containSubset']({
+      'signedData': (withSignedData ? this.transactionStartSignedData : ''),
       'stop': {
         'meterStop': this.energyActiveImportEndMeterValue,
         'totalConsumptionWh': this.transactionTotalConsumptionWh,
@@ -646,6 +647,7 @@ export default class OCPPCommonTests {
         'roundedPrice': Utils.truncTo(this.totalPrice, 2),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
+        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'stateOfCharge': (withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0),
         'user': {
           'id': this.transactionStopUser.id,
@@ -656,11 +658,11 @@ export default class OCPPCommonTests {
     });
   }
 
-  public async testTransactionMetrics(withSoC = false, withSignedData = false, checkNewMeterValues = false) {
+  public async testTransactionMetrics(withSoC = false, checkNewMeterValues = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
-    expect(response.status).to.equal(200);
+    expect(response.status).to.equal(StatusCodes.OK);
     const totalTransactionPrice = Utils.computeSimplePrice(this.pricekWh, this.transactionTotalConsumptionWh);
     expect(this.totalPrice).equal(totalTransactionPrice);
     // Check Headers
@@ -747,13 +749,13 @@ export default class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
     if (noAuthorization) {
-      expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+      expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }
     // Remove from transactions to be deleted
     this.chargingStationContext.removeTransaction(this.newTransaction.id);
-    expect(response.status).to.equal(200);
+    expect(response.status).to.equal(StatusCodes.OK);
     expect(response.data).to.have.property('status');
     expect(response.data.status).to.be.eql('Success');
     this.newTransaction = null;
@@ -780,7 +782,7 @@ export default class OCPPCommonTests {
     await this.chargingStationContext.sendHeartbeat();
     // Now we can test the connector status!
     const foundChargingStation = await this.chargingStationContext.readChargingStation();
-    expect(foundChargingStation.status).to.equal(200);
+    expect(foundChargingStation.status).to.equal(StatusCodes.OK);
     expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     // Check Connector1
     expect(foundChargingStation.data.connectors).to.not.be.null;
@@ -1095,7 +1097,7 @@ export default class OCPPCommonTests {
     expect(stopTransactionResponse).to.have.property('idTagInfo');
     expect(stopTransactionResponse.idTagInfo.status).to.equal(OCPPStatus.ACCEPTED);
     const transaction = await this.centralUserService.transactionApi.readById(transactionId);
-    expect(transaction.status).to.equal(200);
+    expect(transaction.status).to.equal(StatusCodes.OK);
     expect(transaction.data).to.deep['containSubset']({
       id: transactionId,
       meterStart: meterStart,
@@ -1150,7 +1152,7 @@ export default class OCPPCommonTests {
 
   private async basicTransactionValidation(transactionId: number, connectorId: number, meterStart: number, timestamp: Date) {
     const transactionResponse = await this.centralUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.deep['containSubset']({
       'id': transactionId,
       'timestamp': timestamp,

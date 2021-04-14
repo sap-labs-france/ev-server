@@ -254,7 +254,6 @@ export default class MongoDBStorage {
     // Tenants
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
       { fields: { subdomain: 1 }, options: { unique: true } },
-      { fields: { name: 1 }, options: { unique: true } }
     ]);
     // Users
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
