@@ -201,6 +201,7 @@ export interface ChargePoint {
 }
 
 export enum Voltage {
+  VOLTAGE_400 = 400,
   VOLTAGE_230 = 230,
   VOLTAGE_110 = 110,
 }
