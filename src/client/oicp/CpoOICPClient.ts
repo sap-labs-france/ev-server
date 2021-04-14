@@ -691,7 +691,7 @@ export default class CpoOICPClient extends OICPClient {
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
-        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`,
+        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction through OICP protocol due to missing Authorization`,
         detailedMessages: {
           response: authorizeResponse
         }
@@ -701,7 +701,7 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
-        message: `User with Authorization '${tagID}' authorized thought OICP protocol`,
+        message: `User with Authorization '${tagID}' authorized through OICP protocol`,
         module: MODULE_NAME, method: 'authorizeStart',
         detailedMessages: { authorizeResponse }
       });
@@ -777,7 +777,7 @@ export default class CpoOICPClient extends OICPClient {
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
-        message: `User '${user.id}' cannot ${TransactionAction.STOP} Transaction thought OICP protocol due to missing Authorization`,
+        message: `User '${user.id}' cannot ${TransactionAction.STOP} Transaction through OICP protocol due to missing Authorization`,
         detailedMessages: {
           response: authorizeResponse
         }
