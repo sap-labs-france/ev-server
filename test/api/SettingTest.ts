@@ -13,7 +13,6 @@ import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../src/types/Tenant';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
-// import TestData from './client/utils/TestData';
 import Utils from '../../src/utils/Utils';
 import _ from 'lodash';
 import chaiSubset from 'chai-subset';

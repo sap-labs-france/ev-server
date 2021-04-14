@@ -1,10 +1,9 @@
-import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
-
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import RegistrationToken from '../types/RegistrationToken';
+import { HTTPError } from '../../src/types/HTTPError';
+import RegistrationToken from '../../src/types/RegistrationToken';
 import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
 import faker from 'faker';
