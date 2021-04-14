@@ -650,19 +650,17 @@ export default class StatisticService {
           year && year !== '0' ? year : '',
           transaction._id.month > 0 ? transaction._id.month : '',
           dataType === 'Pricing' ? getPricingCell(transaction) : number.toString()
-        ].map((value) => {
-          return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-        }); 
+        ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
         return row;
       }).join(Constants.CR_LF);
       // Build pricing cell
       const getPricingCell = (transaction: any) => {
         if (transaction._id.unit) {
           return [number.toString(), transaction._id.unit];
-        } else {
-          return [number.toString(), ' '];
         }
-      }
+        return [number.toString(), ' '];
+
+      };
       return [headers, rows].join(Constants.CR_LF);
     }
   }

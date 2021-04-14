@@ -55,7 +55,7 @@ export default class LoggingService {
   }
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
-    let headers = null;
+    const headers = null;
     // Header
     if (writeHeader) {
       const headerArray = [
@@ -70,7 +70,7 @@ export default class LoggingService {
         'source',
         'host',
         'process'
-      ]
+      ];
     }
     // Content
     const rows = loggings.map((log) => {
@@ -86,9 +86,7 @@ export default class LoggingService {
         log.source,
         log.host,
         log.process
-      ].map((value) => {
-        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-      }); 
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
