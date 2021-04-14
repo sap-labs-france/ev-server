@@ -1022,7 +1022,7 @@ export default class ChargingStationService {
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
-      }, req.user.locale, writeHeader);
+      }, writeHeader);
       // Send OCPP Params
       res.write(dataToExport);
       writeHeader = false;
@@ -1524,80 +1524,102 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, userLocale: string, writeHeader = true): string {
-    let csv = '';
+  private static convertOCPPParamsToCSV(ocppParams: OCPPParams, writeHeader = true): string {
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
-      csv += 'name' + Constants.CSV_SEPARATOR;
-      csv += 'value' + Constants.CSV_SEPARATOR;
-      csv += 'siteArea' + Constants.CSV_SEPARATOR;
-      csv += 'site' + Constants.CR_LF;
+      const headerArray = [
+        'chargingStation',
+        'name',
+        'value',
+        'siteArea',
+        'site'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const param of ocppParams.params) {
-      csv += ocppParams.chargingStationName + Constants.CSV_SEPARATOR;
-      csv += param.key + Constants.CSV_SEPARATOR;
-      csv += Utils.replaceSpecialCharsInCSVValueParam(param.value) + Constants.CSV_SEPARATOR;
-      csv += ocppParams.siteAreaName + Constants.CSV_SEPARATOR;
-      csv += ocppParams.siteName + Constants.CR_LF;
-    }
-    return csv;
+    const rows = ocppParams.params.map((param) => {
+      const row = [
+        ocppParams.chargingStationName,
+        param.key,
+        Utils.replaceSpecialCharsInCSVValueParam(param.value),
+        ocppParams.siteAreaName,
+        ocppParams.siteName,
+      ].map((value) => {
+        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+      }); 
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      csv = 'name' + Constants.CSV_SEPARATOR;
-      csv += 'createdOn' + Constants.CSV_SEPARATOR;
-      csv += 'numberOfConnectors' + Constants.CSV_SEPARATOR;
-      csv += 'siteArea' + Constants.CSV_SEPARATOR;
-      csv += 'latitude' + Constants.CSV_SEPARATOR;
-      csv += 'longitude' + Constants.CSV_SEPARATOR;
-      csv += 'chargePointSerialNumber' + Constants.CSV_SEPARATOR;
-      csv += 'model' + Constants.CSV_SEPARATOR;
-      csv += 'chargeBoxSerialNumber' + Constants.CSV_SEPARATOR;
-      csv += 'vendor' + Constants.CSV_SEPARATOR;
-      csv += 'firmwareVersion' + Constants.CSV_SEPARATOR;
-      csv += 'ocppVersion' + Constants.CSV_SEPARATOR;
-      csv += 'ocppProtocol' + Constants.CSV_SEPARATOR;
-      csv += 'lastSeen' + Constants.CSV_SEPARATOR;
-      csv += 'lastReboot' + Constants.CSV_SEPARATOR;
-      csv += 'maxPower' + Constants.CSV_SEPARATOR;
-      csv += 'powerLimitUnit' + Constants.CR_LF;
+      const headerArray = [
+        'name',
+        'createdOn',
+        'numberOfConnectors',
+        'siteArea',
+        'latitude',
+        'longitude',
+        'chargePointSerialNumber',
+        'model',
+        'chargeBoxSerialNumber',
+        'vendor',
+        'firmwareVersion',
+        'ocppVersion',
+        'ocppProtocol',
+        'lastSeen',
+        'lastReboot',
+        'maxPower',
+        'powerLimitUnit'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const chargingStation of chargingStations) {
-      csv += chargingStation.id + Constants.CSV_SEPARATOR;
+    const rows = chargingStations.map((chargingStation) => {
+      const row = [
+        chargingStation.id,
+        getCreatedOnCell(chargingStation, i18nManager),
+        chargingStation.connectors ? chargingStation.connectors.length : '0',
+        chargingStation?.siteArea?.name ? chargingStation.siteArea.name : '',
+        getCoordinatesCell(chargingStation),
+        chargingStation.chargePointSerialNumber,
+        chargingStation.chargePointModel,
+        chargingStation.chargeBoxSerialNumber,
+        chargingStation.chargePointVendor,
+        chargingStation.firmwareVersion,
+        chargingStation.ocppVersion,
+        chargingStation.ocppProtocol,
+        i18nManager.formatDateTime(chargingStation.lastSeen, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastSeen, 'LT'),
+        i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
+        chargingStation.maximumPower,
+        chargingStation.powerLimitUnit
+      ].map((value) => {
+        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+      }); 
+      return row;
+    }).join(Constants.CR_LF);
+    // Build createdOn cell
+    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
       if (chargingStation.createdOn) {
-        csv += i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT') + Constants.CSV_SEPARATOR;
+        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
       } else {
-        csv += i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime') + Constants.CSV_SEPARATOR;
+        return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
       }
-      csv += (chargingStation.connectors ? chargingStation.connectors.length : '0') + Constants.CSV_SEPARATOR;
-      csv += (chargingStation?.siteArea?.name ? chargingStation.siteArea.name : '') + Constants.CSV_SEPARATOR;
-      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        csv += chargingStation.coordinates[1] + Constants.CSV_SEPARATOR;
-        csv += chargingStation.coordinates[0] + Constants.CSV_SEPARATOR;
-      } else {
-        csv += '' + Constants.CSV_SEPARATOR;
-        csv += '' + Constants.CSV_SEPARATOR;
-      }
-      csv += chargingStation.chargePointSerialNumber + Constants.CSV_SEPARATOR;
-      csv += chargingStation.chargePointModel + Constants.CSV_SEPARATOR;
-      csv += chargingStation.chargeBoxSerialNumber + Constants.CSV_SEPARATOR;
-      csv += chargingStation.chargePointVendor + Constants.CSV_SEPARATOR;
-      csv += chargingStation.firmwareVersion + Constants.CSV_SEPARATOR;
-      csv += chargingStation.ocppVersion + Constants.CSV_SEPARATOR;
-      csv += chargingStation.ocppProtocol + Constants.CSV_SEPARATOR;
-      csv += i18nManager.formatDateTime(chargingStation.lastSeen, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastSeen, 'LT') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT') + Constants.CSV_SEPARATOR;
-      csv += chargingStation.maximumPower + Constants.CSV_SEPARATOR;
-      csv += chargingStation.powerLimitUnit + Constants.CR_LF;
     }
-    return csv;
+    // Build coordinates cell
+    const getCoordinatesCell = (chargingStation: ChargingStation) => {
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        return [chargingStation.coordinates[1], chargingStation.coordinates[0]]
+      } else {
+        return ['', '']
+      }
+    }
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getChargingStationsForQrCode(req: Request): Promise<DataResult<ChargingStation>> {
