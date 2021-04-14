@@ -1,15 +1,17 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, Entity } from '../types/Authorization';
 
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
+import Tenant from '../types/Tenant';
+import UserToken from '../types/UserToken';
 
 export default abstract class DynamicAuthorizationFilter {
-  protected tenantID: string;
-  protected userID: string;
+  protected tenant: Tenant;
+  protected userToken: UserToken;
   private dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> = new Map();
 
-  public constructor(tenantID: string, userID: string) {
-    this.tenantID = tenantID;
-    this.userID = userID;
+  public constructor(tenant: Tenant, user: UserToken) {
+    this.tenant = tenant;
+    this.userToken = user;
   }
 
   public getDataSources(): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>[] {

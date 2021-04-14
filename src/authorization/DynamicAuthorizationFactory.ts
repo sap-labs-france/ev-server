@@ -4,25 +4,27 @@ import AssignedSitesCompaniesDynamicAuthorizationDataSource from './dynamic-data
 import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesCompaniesDynamicAuthorizationFilter';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
+import Tenant from '../types/Tenant';
+import UserToken from '../types/UserToken';
 
 export default class DynamicAuthorizationFactory {
-  public static async getDynamicFilter(tenantID: string, userID: string,
+  public static async getDynamicFilter(tenant: Tenant, userToken: UserToken,
       filter: DynamicAuthorizationFilterName,
       existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>):
       Promise<DynamicAuthorizationFilter> {
     let dynamicFilter: DynamicAuthorizationFilter;
     switch (filter) {
       case DynamicAuthorizationFilterName.ASSIGNED_SITES_COMPANIES:
-        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenantID, userID);
+        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenant, userToken);
     }
     // Init Data Source
     if (dynamicFilter) {
-      await DynamicAuthorizationFactory.initFilterDataSources(tenantID, userID, dynamicFilter, existingDataSources);
+      await DynamicAuthorizationFactory.initFilterDataSources(tenant, userToken, dynamicFilter, existingDataSources);
     }
     return dynamicFilter;
   }
 
-  private static async initFilterDataSources(tenantID: string, userID: string,
+  private static async initFilterDataSources(tenant: Tenant, user: UserToken,
       dynamicFilter: DynamicAuthorizationFilter,
       existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>): Promise<void> {
     // Get Data Source
@@ -32,7 +34,7 @@ export default class DynamicAuthorizationFactory {
       if (!dataSource) {
         // Create the data source
         dataSource = DynamicAuthorizationFactory.getDynamicDataSource(
-          tenantID, userID, dataSourceName);
+          tenant, user, dataSourceName);
         // Load data
         await dataSource.loadData();
         // Add
@@ -43,11 +45,11 @@ export default class DynamicAuthorizationFactory {
     }
   }
 
-  private static getDynamicDataSource(tenantID: string, userID: string,
+  private static getDynamicDataSource(tenant: Tenant, user: UserToken,
       dataSource: DynamicAuthorizationDataSourceName): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData> {
     switch (dataSource) {
       case DynamicAuthorizationDataSourceName.ASSIGNED_SITES_COMPANIES:
-        return new AssignedSitesCompaniesDynamicAuthorizationDataSource(tenantID, userID);
+        return new AssignedSitesCompaniesDynamicAuthorizationDataSource(tenant, user);
     }
   }
 }

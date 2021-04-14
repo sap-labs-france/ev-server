@@ -22,9 +22,9 @@ export default class AssignedSitesCompaniesDynamicAuthorizationDataSource
 
   private async getAssignedSitesCompanyIDs(): Promise<string[]> {
     // Get the Company IDs of the assigned Sites
-    const sites = await SiteStorage.getSites(this.tenantID,
+    const sites = await SiteStorage.getSites(this.tenant.id,
       {
-        userID: this.userID,
+        userID: this.userToken.id,
         issuer: true,
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['companyID']

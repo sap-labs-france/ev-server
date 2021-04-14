@@ -1,13 +1,16 @@
 import { DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName } from '../types/Authorization';
 
+import Tenant from '../types/Tenant';
+import UserToken from '../types/UserToken';
+
 export default abstract class DynamicAuthorizationDataSource<T extends DynamicAuthorizationDataSourceData> {
-  protected tenantID: string;
-  protected userID: string;
+  protected tenant: Tenant;
+  protected userToken: UserToken;
   private dataSourceData: T;
 
-  public constructor(tenantID: string, userID: string) {
-    this.tenantID = tenantID;
-    this.userID = userID;
+  public constructor(tenant: Tenant, user: UserToken) {
+    this.tenant = tenant;
+    this.userToken = user;
   }
 
   public setData(dataSourceData: T): void {

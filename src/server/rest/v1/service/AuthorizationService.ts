@@ -861,7 +861,7 @@ export default class AuthorizationService {
         // Reset to false
         authorizationFilters.authorized = false;
         // Get the filter
-        const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant.id, userToken.id, filter, authorizationFilters.dataSources);
+        const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant, userToken, filter, authorizationFilters.dataSources);
         if (!dynamicFilter) {
           // Filter not found -> Not authorized (all auth filter MUST work)
           throw new AppAuthError({
