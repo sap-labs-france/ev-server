@@ -4,9 +4,11 @@ import AbbChargingStationVendorIntegration from './abb/AbbChargingStationVendorI
 import AtessChargingStationVendorIntegration from './atess/AtessChargingStationVendorIntegration';
 import CIRCONTROLChargingStationVendorIntegration from './circontrol/CIRCONTROLChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
+import DBTCEVChargingStationVendorIntegration from './dbtcev/DBTCEVChargingStationVendorIntegration';
 import DefaultChargingStationVendorIntegration from './default/DefaultChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationVendorIntegration';
+import EVMeterChargingStationVendorIntegration from './evmeter/EVMeterChargingStationVendorIntegration';
 import EbeeChargingStationVendorIntegration from './ebee/EbeeChargingStationVendorIntegration';
 import EnPlusChargingStationVendorIntegration from './enplus/EnPlusChargingStationVendorIntegration';
 import ExadysChargingStationVendorIntegration from './exadys/ExadysChargingStationVendorIntegration';
@@ -27,11 +29,17 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.ABB:
         chargingStationVendorImpl = new AbbChargingStationVendorIntegration(chargingStation);
         break;
+      case ChargerVendor.DBTCEV:
+        chargingStationVendorImpl = new DBTCEVChargingStationVendorIntegration(chargingStation);
+        break;
       case ChargerVendor.SCHNEIDER:
         chargingStationVendorImpl = new SchneiderChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.EVBOX:
         chargingStationVendorImpl = new EVBOXChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.EVMETER:
+        chargingStationVendorImpl = new EVMeterChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.INNOGY:
         chargingStationVendorImpl = new InnogyChargingStationVendorIntegration(chargingStation);
