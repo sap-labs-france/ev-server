@@ -55,36 +55,43 @@ export default class LoggingService {
   }
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'date' + Constants.CSV_SEPARATOR;
-      csv += 'time' + Constants.CSV_SEPARATOR;
-      csv += 'level' + Constants.CSV_SEPARATOR;
-      csv += 'type' + Constants.CSV_SEPARATOR;
-      csv += 'action' + Constants.CSV_SEPARATOR;
-      csv += 'message' + Constants.CSV_SEPARATOR;
-      csv += 'method' + Constants.CSV_SEPARATOR;
-      csv += 'module' + Constants.CSV_SEPARATOR;
-      csv += 'source' + Constants.CSV_SEPARATOR;
-      csv += 'host' + Constants.CSV_SEPARATOR;
-      csv += 'process' + Constants.CR_LF;
+      const headerArray = [
+        'date',
+        'time',
+        'level',
+        'type',
+        'action',
+        'message',
+        'method',
+        'module',
+        'source',
+        'host',
+        'process'
+      ]
     }
     // Content
-    for (const log of loggings) {
-      csv += moment(log.timestamp).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(log.timestamp).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
-      csv += log.level + Constants.CSV_SEPARATOR;
-      csv += log.type + Constants.CSV_SEPARATOR;
-      csv += log.action + Constants.CSV_SEPARATOR;
-      csv += log.message + Constants.CSV_SEPARATOR;
-      csv += log.method + Constants.CSV_SEPARATOR;
-      csv += log.module + Constants.CSV_SEPARATOR;
-      csv += log.source + Constants.CSV_SEPARATOR;
-      csv += log.host + Constants.CSV_SEPARATOR;
-      csv += log.process + Constants.CR_LF;
-    }
-    return csv;
+    const rows = loggings.map((log) => {
+      const row = [
+        moment(log.timestamp).format('YYYY-MM-DD'),
+        moment(log.timestamp).format('HH:mm:ss'),
+        log.level,
+        log.type,
+        log.action,
+        log.message,
+        log.method,
+        log.module,
+        log.source,
+        log.host,
+        log.process
+      ].map((value) => {
+        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+      }); 
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getLogs(req: Request): Promise<DataResult<Log>> {

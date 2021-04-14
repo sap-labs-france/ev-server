@@ -476,37 +476,38 @@ export default class StatisticService {
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
-    let csv: string;
+    // Build header row
+    let headers: string;
     if (dataCategory === 'C') {
-      csv = 'chargingStation' + Constants.CSV_SEPARATOR;
+      headers = 'chargingStation' + Constants.CSV_SEPARATOR;
     } else {
-      csv = 'user' + Constants.CSV_SEPARATOR;
+      headers = 'user' + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += 'year' + Constants.CSV_SEPARATOR;
+      headers += 'year' + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += 'month' + Constants.CSV_SEPARATOR;
+        headers += 'month' + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += 'consumption' + Constants.CR_LF;
+        headers += 'consumption' + Constants.CR_LF;
         break;
       case 'Usage':
-        csv += 'usage' + Constants.CR_LF;
+        headers += 'usage' + Constants.CR_LF;
         break;
       case 'Inactivity':
-        csv += 'inactivity' + Constants.CR_LF;
+        headers += 'inactivity' + Constants.CR_LF;
         break;
       case 'Transactions':
-        csv += 'numberOfSessions' + Constants.CR_LF;
+        headers += 'numberOfSessions' + Constants.CR_LF;
         break;
       case 'Pricing':
-        csv += 'price' + Constants.CSV_SEPARATOR;
-        csv += 'priceUnit' + Constants.CR_LF;
+        headers += 'price' + Constants.CSV_SEPARATOR;
+        headers += 'priceUnit' + Constants.CR_LF;
         break;
       default:
-        return csv;
+        return headers;
     }
     let index: number;
     let transaction: any;
@@ -637,28 +638,32 @@ export default class StatisticService {
           return 0;
         });
       }
-
       // Now build the export file
       let number: number;
-      for (transaction of transactions) {
-        csv += (dataCategory === 'C') ? transaction._id.chargeBox + Constants.CSV_SEPARATOR : Utils.buildUserFullName(transaction.user, false) + Constants.CSV_SEPARATOR;
-        csv += (year && year !== '0') ? year + Constants.CSV_SEPARATOR : '';
-        csv += (transaction._id.month > 0) ? transaction._id.month + Constants.CSV_SEPARATOR : '';
+      const rows = transactions.map((transaction) => {
         number = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
-        if (dataType === 'Pricing') {
-          if (transaction._id.unit) {
-            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + Constants.CR_LF;
-          } else {
-            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + Constants.CR_LF;
-          }
+        const row = [
+          dataCategory === 'C' ? transaction._id.chargeBox : Utils.buildUserFullName(transaction.user, false),
+          year && year !== '0' ? year : '',
+          transaction._id.month > 0 ? transaction._id.month : '',
+          dataType === 'Pricing' ? getPricingCell(transaction) : number.toString()
+        ].map((value) => {
+          return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
+        }); 
+        return row;
+      }).join(Constants.CR_LF);
+      // Build pricing cell
+      const getPricingCell = (transaction: any) => {
+        if (transaction._id.unit) {
+          return [number.toString(), transaction._id.unit];
         } else {
-          csv += number.toString() + Constants.CR_LF;
+          return [number.toString(), ' '];
         }
       }
+      return [headers, rows].join(Constants.CR_LF);
     }
-    return csv;
   }
 }
