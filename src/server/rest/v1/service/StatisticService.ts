@@ -659,7 +659,6 @@ export default class StatisticService {
           return [number.toString(), transaction._id.unit];
         }
         return [number.toString(), ' '];
-
       };
       return [headers, rows].join(Constants.CR_LF);
     }

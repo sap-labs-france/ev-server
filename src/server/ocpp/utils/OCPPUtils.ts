@@ -2161,11 +2161,7 @@ export default class OCPPUtils {
       const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
       // Check connector amperage limit
       const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
-      if (connectorAmperageLimit) {
-        connector.amperageLimit = connectorAmperageLimit;
-      }
-    } else {
-      delete connector.amperageLimit;
+      connector.amperageLimit = connectorAmperageLimit;
     }
   }
 
@@ -2181,6 +2177,7 @@ export default class OCPPUtils {
     } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit < connectorAmperageLimitMin) {
       return connectorAmperageLimitMin;
     }
+    return connectorAmperageLimitMin;
   }
 
   private static async setConnectorPhaseAssignment(tenantID: string, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
