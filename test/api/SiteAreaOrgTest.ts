@@ -1,13 +1,13 @@
 import chai, { expect } from 'chai';
 
-import Asset from '../types/Asset';
+import Asset from '../../src/types/Asset';
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { HTTPAuthError } from '../../src/types/HTTPError';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
+import Site from '../../src/types/Site';
+import SiteArea from '../../src/types/SiteArea';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
@@ -32,6 +32,7 @@ class TestData {
   public siteAreaWithSiteAdmin: SiteArea;
   public siteAreaWithoutSiteAdmin: SiteArea;
   public createdSiteAreas: any[] = [];
+  public createdSites: any[] = [];
   public createdUsers: any[] = [];
 }
 
@@ -63,6 +64,7 @@ async function createSiteWithoutSiteAdmin() {
     testData.userService.siteApi,
     siteData
   );
+  testData.createdSites.push(testData.siteWithoutSiteAdmin);
 }
 
 /**
@@ -75,6 +77,7 @@ async function createSiteWithSiteAdmin() {
     Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
   );
   await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteWithSiteAdmin);
+  testData.createdSites.push(testData.siteWithSiteAdmin);
 }
 
 /**
@@ -121,6 +124,15 @@ describe('Site Area tests', function() {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.siteAreaApi,
           siteArea,
+          false
+        );
+      });
+      testData.createdSiteAreas = [];
+      // Delete any created site
+      testData.createdSites.forEach(async (site) => {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteApi,
+          site,
           false
         );
       });
@@ -290,16 +302,19 @@ describe('Site Area tests', function() {
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteWithSiteAdmin.id })
         );
+        testData.createdSiteAreas.push(testData.siteAreaWithSiteAdmin);
         await createSiteWithoutSiteAdmin();
         testData.siteAreaWithoutSiteAdmin = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteWithoutSiteAdmin.id })
         );
+        testData.createdSiteAreas.push(testData.siteAreaWithoutSiteAdmin);
         // Create the entity
         testData.newSiteArea = await testData.userService.createEntity(
           testData.userService.siteAreaApi,
           Factory.siteArea.build({ siteID: testData.siteContext.getSite().id })
         );
+        testData.createdSiteAreas.push(testData.newSiteArea);
         testData.testAsset = await testData.userService.createEntity(
           testData.userService.assetApi,
           Factory.asset.build({

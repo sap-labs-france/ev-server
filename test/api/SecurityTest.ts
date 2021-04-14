@@ -9,7 +9,7 @@ import Logging from '../../src/utils/Logging';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ServerAction } from '../../src/types/Server';
 import { StatusCodes } from 'http-status-codes';
-import Tenant from '../types/Tenant';
+import Tenant from '../../src/types/Tenant';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import config from '../config';
