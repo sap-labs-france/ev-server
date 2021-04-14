@@ -40,13 +40,11 @@
     },
     "RefundStatus": {
       "type": "string",
-      "sanitize": "mongo",
-      "enum": ["submitted", "notSubmitted", "cancelled", "approved"]
+      "sanitize": "mongo"
     },
     "InactivityStatus": {
       "type": "string",
-      "sanitize": "mongo",
-      "enum": ["I", "W", "E"]
+      "sanitize": "mongo"
     },
     "MinimalPrice": {
       "type": "number",
