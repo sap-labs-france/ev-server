@@ -1546,9 +1546,7 @@ export default class ChargingStationService {
         Utils.replaceSpecialCharsInCSVValueParam(param.value),
         ocppParams.siteAreaName,
         ocppParams.siteName,
-      ].map((value) => {
-        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-      }); 
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1599,27 +1597,25 @@ export default class ChargingStationService {
         i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
         chargingStation.maximumPower,
         chargingStation.powerLimitUnit
-      ].map((value) => {
-        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-      }); 
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     // Build createdOn cell
     const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
       if (chargingStation.createdOn) {
         return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
-      } else {
-        return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
       }
-    }
+      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
+
+    };
     // Build coordinates cell
     const getCoordinatesCell = (chargingStation: ChargingStation) => {
       if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        return [chargingStation.coordinates[1], chargingStation.coordinates[0]]
-      } else {
-        return ['', '']
+        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
       }
-    }
+      return ['', ''];
+
+    };
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 

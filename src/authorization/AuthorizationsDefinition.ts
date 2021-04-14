@@ -201,7 +201,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT], attributes: ['*'] },
       {
         resource: Entity.TRANSACTION, action: [Action.READ], attributes: ['*'],
         condition: {
