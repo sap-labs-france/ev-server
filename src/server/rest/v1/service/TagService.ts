@@ -518,7 +518,8 @@ export default class TagService {
       });
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       busboy.on('file', async (fieldname: string, file: any, filename: string, encoding: string, mimetype: string) => {
-        if (mimetype === 'text/csv') {
+        // if (mimetype === 'text/csv') {
+        if (filename.slice(-4) === '.csv') {
           const converter = csvToJson({
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,
