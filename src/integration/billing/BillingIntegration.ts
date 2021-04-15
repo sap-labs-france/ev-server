@@ -89,8 +89,8 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-    this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSettings(this.tenantID, this.settings);
+    billingSettings.billing.usersLastSynchronizedOn = new Date();
+    await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
     // Result
     return actionsDone;
   }
