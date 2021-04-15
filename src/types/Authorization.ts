@@ -173,6 +173,9 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+}
+
+export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
 }

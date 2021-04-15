@@ -81,8 +81,6 @@ export default class AuthorizationService {
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
     // Add canCreate flag to root
     sites.canCreate = await Authorizations.canCreateSite(userToken);
-    sites.canAssignUsers = await Authorizations.canAssignUsersSites(userToken);
-    sites.canUnassignUsers = await Authorizations.canUnassignUsersSites(userToken);
     // Enrich
     for (const site of sites.result) {
       await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, siteAdminIDs);
@@ -104,6 +102,8 @@ export default class AuthorizationService {
       site.canRead = await Authorizations.canReadSite(userToken);
       site.canDelete = await Authorizations.canDeleteSite(userToken);
       site.canUpdate = await Authorizations.canUpdateSite(userToken) && isSiteAdmin;
+      site.canAssignUsers = await Authorizations.canAssignUsersSites(userToken);
+      site.canUnassignUsers = await Authorizations.canUnassignUsersSites(userToken) && isSiteAdmin;
     }
   }
 
