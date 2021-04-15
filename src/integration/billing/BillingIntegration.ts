@@ -1,9 +1,9 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingSetting, BillingSettings } from '../../types/Setting';
 /* eslint-disable @typescript-eslint/member-ordering */
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
-import { BillingSetting } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -18,15 +18,15 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingIntegration';
 
-export default abstract class BillingIntegration<T extends BillingSetting> {
+export default abstract class BillingIntegration {
 
   // TO BE REMOVED - flag to switch ON/OFF some STRIPE integration logic not yet finalized!
   protected readonly __liveMode: boolean = false;
 
   protected readonly tenantID: string; // Assuming UUID or other string format ID
-  protected settings: T;
+  protected settings: BillingSettings;
 
-  protected constructor(tenantID: string, settings: T) {
+  protected constructor(tenantID: string, settings: BillingSettings) {
     this.tenantID = tenantID;
     this.settings = settings;
   }
@@ -89,7 +89,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     );
     // Update last synchronization
     const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-    billingSettings.stripe.usersLastSynchronizedOn = new Date();
+    billingSettings.billing.usersLastSynchronizedOn = new Date();
     await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
     // Result
     return actionsDone;
@@ -196,88 +196,13 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       inSuccess: 0,
       inError: 0
     };
-    // Check LIVE MODE
-    if (!this.__liveMode) {
-      await Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        message: 'Live Mode is OFF - operation has been aborted'
-      });
-      return actionsDone;
-    }
-    // Check billing settings consistency
-    await this.checkConnection();
-    // Let's make sure the billing data is consistent
-    let billingUser: BillingUser = null;
-    if (user) {
-      billingUser = await this.checkUser(user);
-    }
-    // Fetch the list of updated invoice
-    const invoiceIDs: string[] = await this.getUpdatedInvoiceIDsInBilling(billingUser);
-    if (invoiceIDs?.length > 0) {
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        user: user,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        message: `${invoiceIDs.length} billing invoice(s) are going to be synchronized`
-      });
-      for (const invoiceID of invoiceIDs) {
-        try {
-          // Let's replicate invoice data as a Billing Invoice
-          const billingInvoice = await this.synchronizeAsBillingInvoice(invoiceID, true /* checkUserExists */);
-          // Make sure we get the actual user - the one the invoice refers to
-          const userInInvoice = await UserStorage.getUser(this.tenantID, billingInvoice.userID);
-          // Update user billing data
-          const billingData = {
-            ...userInInvoice.billingData,
-            invoicesLastSynchronizedOn: new Date()
-          };
-          // Update the invoicesLastSynchronizedOn property of the user
-          userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
-          await UserStorage.saveUserBillingData(this.tenantID, billingInvoice.userID, billingData);
-          // Ok
-          actionsDone.inSuccess++;
-          await Logging.logDebug({
-            tenantID: this.tenantID,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-            module: MODULE_NAME, method: 'synchronizeInvoices',
-            message: `Invoice with ID '${invoiceID}' has been replicated in e-Mobility`,
-            detailedMessages: { billingInvoice, userInInvoice }
-          });
-        } catch (error) {
-          actionsDone.inError++;
-          await Logging.logError({
-            tenantID: this.tenantID,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-            module: MODULE_NAME, method: 'synchronizeInvoices',
-            message: `Unable to process the invoice with ID '${invoiceID}'`,
-            detailedMessages: { error: error.message, stack: error.stack, invoiceID }
-          });
-        }
-      }
-    }
-    // Log
-    await Logging.logActionsResponse(this.tenantID, ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-      MODULE_NAME, 'synchronizeInvoices', actionsDone,
-      '{{inSuccess}} invoice(s) were successfully synchronized',
-      '{{inError}} invoice(s) failed to be synchronized',
-      '{{inSuccess}} invoice(s) were successfully synchronized and {{inError}} failed to be synchronized',
-      'All the invoices are up to date'
-    );
-    if (!user) {
-      // Update global last synchronization timestamp
-      const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-      billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
-      await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
-    }
+    await Logging.logWarning({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+      module: MODULE_NAME, method: 'synchronizeInvoices',
+      message: 'Method is deprecated - operation skipped'
+    });
     return actionsDone;
   }
 
@@ -489,8 +414,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   abstract isUserSynchronized(user: User): Promise<boolean>;
 
   abstract getTaxes(): Promise<BillingTax[]>;
-
-  abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
   abstract synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists: boolean): Promise<BillingInvoice>;
 
