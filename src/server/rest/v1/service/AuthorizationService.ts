@@ -74,7 +74,7 @@ export default class AuthorizationService {
       authorizationFilters, authorizationContext, { SiteID: filteredRequest.ID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 

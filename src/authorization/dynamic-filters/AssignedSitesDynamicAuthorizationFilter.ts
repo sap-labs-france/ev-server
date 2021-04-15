@@ -1,7 +1,6 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
 
 import AssignedSitesDynamicAuthorizationDataSource from '../dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
-// import AssignedSitesCompaniesDynamicAuthorizationDataSource from '../dynamic-data-source/AssignedSitesCompaniesDynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
 import Utils from '../../utils/Utils';
 

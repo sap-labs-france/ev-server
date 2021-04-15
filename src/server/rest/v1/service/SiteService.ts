@@ -413,7 +413,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
-    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
