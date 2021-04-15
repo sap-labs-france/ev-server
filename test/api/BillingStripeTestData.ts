@@ -72,7 +72,7 @@ export default class StripeIntegrationTestData {
     const billingSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
-    const billingImpl = new StripeBillingIntegration(this.getTenantID(), billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }
@@ -81,7 +81,7 @@ export default class StripeIntegrationTestData {
     const billingSettings = this.getLocalSettings(false);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
-    const billingImpl = new StripeBillingIntegration(this.getTenantID(), billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }

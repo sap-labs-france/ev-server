@@ -1,9 +1,9 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import { BillingSetting, BillingSettings } from '../../types/Setting';
 /* eslint-disable @typescript-eslint/member-ordering */
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
+import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -20,8 +20,8 @@ const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration {
 
-  // TO BE REMOVED - flag to switch ON/OFF some STRIPE integration logic not yet finalized!
-  protected readonly __liveMode: boolean = false;
+  // Production Mode is set to true when the STRIPE account is a live one!
+  protected productionMode = false;
 
   protected readonly tenantID: string; // Assuming UUID or other string format ID
   protected settings: BillingSettings;
@@ -60,7 +60,7 @@ export default abstract class BillingIntegration {
         message: `${users.length} new user(s) are going to be synchronized`
       });
       // Check LIVE MODE
-      if (!this.__liveMode) {
+      if (!this.productionMode) {
         await Logging.logWarning({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
@@ -292,7 +292,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.__liveMode) {
+    if (this.productionMode) {
       // Check Billing Data (only in Live Mode)
       if (!transaction.user.billingData) {
         throw new BackendError({
@@ -325,7 +325,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.__liveMode) {
+    if (this.productionMode) {
       // Check Billing Data (only in Live Mode)
       const billingUser = transaction.user;
       if (!billingUser.billingData || !billingUser.billingData.customerID) {

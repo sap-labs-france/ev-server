@@ -55,8 +55,8 @@ class TestData {
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, billingSettings.stripe.secretKey);
-    const billingImpl = new StripeBillingIntegration(tenantId, billingSettings);
-    expect(this.billingImpl).to.not.be.null;
+    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    expect(billingImpl).to.not.be.null;
     return billingImpl;
   }
 
@@ -66,8 +66,8 @@ class TestData {
     assert(!!tenantId, 'Tenant ID cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
-    const billingImpl = new StripeBillingIntegration(tenantId, billingSettings);
-    expect(this.billingImpl).to.not.be.null;
+    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    expect(billingImpl).to.not.be.null;
     return billingImpl;
   }
 
@@ -280,7 +280,7 @@ describe('Billing Service', function() {
       });
 
       xit('should synchronize 1 invoice after a transaction', async () => {
-        // TODO - Synchronize Invoices is for now disabled - c.f.: __liveMode!
+        // Synchronize Invoices is now deprecated
         await testData.userService.billingApi.synchronizeInvoices({});
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
