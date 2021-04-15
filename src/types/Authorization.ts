@@ -173,6 +173,8 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+  canAssignUsers?: boolean;
+  canUnassignUsers?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
