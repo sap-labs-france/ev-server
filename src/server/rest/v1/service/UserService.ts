@@ -905,157 +905,172 @@ export default class UserService {
       inSuccess: 0,
       inError: 0
     };
-    // Delete all previously imported users
-    await UserStorage.deleteImportedUsers(req.user.tenantID);
-    // Get the stream
-    const busboy = new Busboy({ headers: req.headers });
-    req.pipe(busboy);
-    // Handle closed socket
-    let connectionClosed = false;
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    req.socket.on('close', async () => {
-      if (!connectionClosed) {
-        connectionClosed = true;
-        // Release the lock
-        await LockingManager.release(importUsersLock);
-      }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-      if (mimetype === 'text/csv') {
-        const converter = csvToJson({
-          trim: true,
-          delimiter: Constants.CSV_SEPARATOR,
-          output: 'json',
-          quote: 'on',
-        });
-        void converter.subscribe(async (user: ImportedUser) => {
-          // Check connection
-          if (connectionClosed) {
-            throw new Error('HTTP connection has been closed');
-          }
-          // Check the format of the first entry
-          if (!result.inSuccess && !result.inError) {
-            // Check header
-            const userKeys = Object.keys(user);
-            if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
-              if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
-                res.end();
-              }
-              throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
-            }
-          }
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error: CSVError) => {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleImportUsers',
-            action: action,
-            user: req.user.id,
-            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-          if (!res.headersSent) {
-            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-            res.end();
-          }
-        // Completed
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async () => {
-          // Consider the connection closed
+    try {
+      // Delete all previously imported users
+      await UserStorage.deleteImportedUsers(req.user.tenantID);
+      // Get the stream
+      const busboy = new Busboy({ headers: req.headers });
+      req.pipe(busboy);
+      // Handle closed socket
+      let connectionClosed = false;
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      req.socket.on('close', async () => {
+        if (!connectionClosed) {
           connectionClosed = true;
-          // Insert batched
-          if (usersToBeImported.length > 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+        }
+      });
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+        if (mimetype === 'text/csv') {
+          const converter = csvToJson({
+            trim: true,
+            delimiter: Constants.CSV_SEPARATOR,
+            output: 'json',
+            quote: 'on',
+          });
+          void converter.subscribe(async (user: ImportedUser) => {
+            // Check connection
+            if (connectionClosed) {
+              throw new Error('HTTP connection has been closed');
+            }
+            // Check the format of the first entry
+            if (!result.inSuccess && !result.inError) {
+              // Check header
+              const userKeys = Object.keys(user);
+              if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
+                if (!res.headersSent) {
+                  res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                  res.end();
+                }
+                throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
+              }
+            }
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async (error: CSVError) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          // Completed
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async () => {
+            // Consider the connection closed
+            connectionClosed = true;
+            // Insert batched
+            if (usersToBeImported.length > 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+            await Logging.logActionsResponse(
+              req.user.tenantID, action,
+              MODULE_NAME, 'handleImportUsers', result,
+              `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+              `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+              `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+              `No User have been uploaded in ${executionDurationSecs}s`, req.user
+            );
+            // Create and Save async task
+            await AsyncTaskManager.createAndSaveAsyncTasks({
+              name: AsyncTasks.USERS_IMPORT,
+              action: ServerAction.USERS_IMPORT,
+              type: AsyncTaskType.TASK,
+              tenantID: req.tenant.id,
+              module: MODULE_NAME,
+              method: 'handleImportUsers',
+            });
+            // Respond
+            res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+            next();
+          });
+          // Start processing the file
+          void file.pipe(converter);
+        } else if (mimetype === 'application/json') {
+          const parser = JSONStream.parse('users.*');
+          // TODO: Handle the end of the process to send the data like the CSV
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('data', async (user: ImportedUser) => {
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          });
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('error', async (error) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Invalid Json file '${filename}'`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          });
+          file.pipe(parser);
+        } else {
           // Release the lock
           await LockingManager.release(importUsersLock);
           // Log
-          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-          await Logging.logActionsResponse(
-            req.user.tenantID, action,
-            MODULE_NAME, 'handleImportUsers', result,
-            `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-            `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
-            `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-            `No User have been uploaded in ${executionDurationSecs}s`, req.user
-          );
-          // Create and Save async task
-          await AsyncTaskManager.createAndSaveAsyncTasks({
-            name: AsyncTasks.USERS_IMPORT,
-            action: ServerAction.USERS_IMPORT,
-            type: AsyncTaskType.TASK,
-            tenantID: req.tenant.id,
-            module: MODULE_NAME,
-            method: 'handleImportUsers',
-          });
-          // Respond
-          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-          next();
-        });
-        // Start processing the file
-        void file.pipe(converter);
-      } else if (mimetype === 'application/json') {
-        const parser = JSONStream.parse('users.*');
-        // TODO: Handle the end of the process to send the data like the CSV
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('data', async (user: ImportedUser) => {
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        });
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('error', async (error) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: `Invalid Json file '${filename}'`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            message: `Invalid file format '${mimetype}'`
           });
           if (!res.headersSent) {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
-        });
-        file.pipe(parser);
-      } else {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleImportUsers',
-          action: action,
-          user: req.user.id,
-          message: `Invalid file format '${mimetype}'`
-        });
-        if (!res.headersSent) {
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
         }
-      }
-    });
+      });
+    } catch (error) {
+      // Release the lock
+      await LockingManager.release(importUsersLock);
+      throw error;
+    }
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -1370,9 +1385,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => {
-        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-      }); 
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);

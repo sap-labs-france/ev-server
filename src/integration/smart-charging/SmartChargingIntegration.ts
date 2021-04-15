@@ -10,6 +10,7 @@ import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import { SmartChargingSetting } from '../../types/Setting';
 import Utils from '../../utils/Utils';
+import { Voltage } from '../../types/ChargingStation';
 
 const MODULE_NAME = 'SmartChargingIntegration';
 
@@ -90,7 +91,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         message: `Maximum Power is not set in Site Area '${siteArea.name}'`
       });
     }
-    if (siteArea.voltage !== 230 && siteArea.voltage !== 110) {
+    if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.SMART_CHARGING,

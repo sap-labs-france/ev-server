@@ -1,5 +1,4 @@
 import CrudApi from './utils/CrudApi';
-import { expect } from 'chai';
 
 export default class StatisticsApi extends CrudApi {
 
