@@ -25,8 +25,7 @@ export default class TagStorage {
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),
       ocpiToken: tag.ocpiToken,
-      description: tag.description,
-      deleted: Utils.objectHasProperty(tag, 'deleted') ? tag.deleted : false
+      description: tag.description
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);

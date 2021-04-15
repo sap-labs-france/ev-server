@@ -305,7 +305,6 @@ export default class Constants {
     'role': 0,
     'password': 0,
     'locale': 0,
-    'deleted': 0,
     'passwordWrongNbrTrials': 0,
     'passwordBlockedUntil': 0,
     'passwordResetHash': 0,

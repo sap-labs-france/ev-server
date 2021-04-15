@@ -241,8 +241,7 @@ export default class UserStorage {
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
         sendAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAccountVerificationNotification) : false,
         sendAdminAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAdminAccountVerificationNotification) : false,
-      },
-      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
+      }
     };
     if (userToSave.address) {
       userMDB.address = {
@@ -557,8 +556,6 @@ export default class UserStorage {
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
@@ -846,8 +843,6 @@ export default class UserStorage {
     }
     // Issuer
     filters.issuer = true;
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Roles
     if (params.roles) {
       filters.role = { '$in': params.roles };
@@ -933,6 +928,9 @@ export default class UserStorage {
     // Delete Tags
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete connections
+    await global.database.getCollection<any>(tenantID, 'connections')
+      .deleteMany({ 'userId': Utils.convertToObjectID(id) });
     // Delete User
     await global.database.getCollection<any>(tenantID, 'users')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });

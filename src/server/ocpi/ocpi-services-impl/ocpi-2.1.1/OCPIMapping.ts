@@ -143,14 +143,13 @@ export default class OCPIMapping {
     // Convert Sites to Locations
     for (const tag of tags.result) {
       const user = await UserStorage.getUser(tenant.id, tag.userID);
-      const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
         type: OCPITokenType.RFID,
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
-        valid: valid,
+        valid: !Utils.isNullOrUndefined(user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });

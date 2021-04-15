@@ -27,6 +27,7 @@ import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TagValidator from '../validator/TagValidation';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -241,6 +242,17 @@ export default class TagService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
+    const nbrTransactions = await TransactionStorage.getTransactions(req.user.tenantID,{ tagIDs:[filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (nbrTransactions.count > 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        message: `Tag with ID '${filteredRequest.id}' has been used in previous transactions`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
         action: action

@@ -1,4 +1,4 @@
-import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter, CarMaker } from '../../types/Car';
+import { Car, CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTable, CarCatalogConverter, CarMaker, CarType } from '../../types/Car';
 import global, { FilterParams, Image } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -570,11 +570,12 @@ export default class CarStorage {
   }
 
   public static async getCar(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-    params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+    params: { withUsers?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenantID, {
       carIDs: [id],
       withUsers: params.withUsers,
       userIDs: params.userIDs,
+      type: params.type
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
@@ -610,7 +611,7 @@ export default class CarStorage {
   public static async getCars(tenantID: string,
     params: {
       search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]
+      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]; type?: CarType;
     } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
@@ -637,6 +638,9 @@ export default class CarStorage {
     }
     if (params.vin) {
       filters.vin = params.vin;
+    }
+    if (params.type) {
+      filters.type = params.type;
     }
     // Car
     if (!Utils.isEmptyArray(params.carIDs)) {
@@ -820,14 +824,15 @@ export default class CarStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCarUser', uniqueTimerID, { id });
   }
 
-  public static async deleteCarUsersByCarID(tenantID: string, carID: string): Promise<void> {
+  public static async deleteCarUsersByCarID(tenantID: string, carID: string): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteCarUserByCarID');
     // Delete singular site area
-    await global.database.getCollection(tenantID, 'carusers')
+    const result = await global.database.getCollection(tenantID, 'carusers')
       .deleteMany({ 'carID': Utils.convertToObjectID(carID) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
+    return result.deletedCount;
   }
 
   public static async deleteCar(tenantID: string, carID: string): Promise<void> {

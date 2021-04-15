@@ -93,7 +93,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (!localToken.user || localToken.user.deleted || localToken.user.issuer) {
+    if (!localToken.user || localToken.user.issuer) {
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     let chargingStation: ChargingStation;

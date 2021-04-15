@@ -11,7 +11,6 @@ export interface OCPIAuthorizationInfo {
 export enum OCPIAllowed {
   ALLOWED = 'ALLOWED',
   BLOCKED = 'BLOCKED',
-  EXPIRED = 'EXPIRED',
   NO_CREDIT = 'NO_CREDIT',
   NOT_ALLOWED = 'NOT_ALLOWED',
 }

@@ -50,9 +50,6 @@ export default class ImportUsersTask extends SchedulerTask {
                 if (!foundUser.issuer) {
                   throw new Error('User is not local to the organization');
                 }
-                if (foundUser.deleted) {
-                  throw new Error('User is deleted');
-                }
                 if (foundUser.status !== UserStatus.PENDING) {
                   throw new Error('User account is no longer pending');
                 }
@@ -72,7 +69,6 @@ export default class ImportUsersTask extends SchedulerTask {
                 email: importedUser.email,
                 locale: null, // Defaults to the browser locale
                 issuer: true,
-                deleted: false,
                 role: UserRole.BASIC,
                 status: UserStatus.ACTIVE,
                 createdBy: { id: importedUser.importedBy },
