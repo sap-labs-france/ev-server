@@ -879,7 +879,13 @@ export default class TransactionService {
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
-      }, [
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields
+      },
+      [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
