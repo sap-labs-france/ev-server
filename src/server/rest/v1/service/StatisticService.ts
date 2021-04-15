@@ -7,7 +7,6 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
-import I18nManager from '../../../../utils/I18nManager';
 import { ServerAction } from '../../../../types/Server';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
@@ -26,7 +25,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -55,7 +54,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -84,7 +83,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -113,7 +112,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -142,7 +141,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -171,7 +170,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -200,7 +199,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -229,7 +228,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -258,7 +257,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -287,7 +286,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -316,7 +315,7 @@ export default class StatisticService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleExportStatistics');
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -474,41 +473,41 @@ export default class StatisticService {
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false);
-    const i18nManager = I18nManager.getInstanceForLocale(loggedUser.locale);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
-    let csv: string;
+    // Build header row
+    let headers: string;
     if (dataCategory === 'C') {
-      csv = i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
+      headers = 'chargingStation' + Constants.CSV_SEPARATOR;
     } else {
-      csv = i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
+      headers = 'user' + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += i18nManager.translate('general.year') + Constants.CSV_SEPARATOR;
+      headers += 'year' + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += i18nManager.translate('general.month') + Constants.CSV_SEPARATOR;
+        headers += 'month' + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += i18nManager.translate('statistics.consumption') + '\r\n';
+        headers += 'consumption' + Constants.CR_LF;
         break;
       case 'Usage':
-        csv += i18nManager.translate('statistics.usage') + '\r\n';
+        headers += 'usage' + Constants.CR_LF;
         break;
       case 'Inactivity':
-        csv += i18nManager.translate('statistics.inactivity') + '\r\n';
+        headers += 'inactivity' + Constants.CR_LF;
         break;
       case 'Transactions':
-        csv += i18nManager.translate('statistics.numberOfSessions') + '\r\n';
+        headers += 'numberOfSessions' + Constants.CR_LF;
         break;
       case 'Pricing':
-        csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
-        csv += i18nManager.translate('general.priceUnit') + '\r\n';
+        headers += 'price' + Constants.CSV_SEPARATOR;
+        headers += 'priceUnit' + Constants.CR_LF;
         break;
       default:
-        return csv;
+        return headers;
     }
     let index: number;
     let transaction: any;
@@ -639,28 +638,29 @@ export default class StatisticService {
           return 0;
         });
       }
-
       // Now build the export file
       let number: number;
-      for (transaction of transactions) {
-        csv += (dataCategory === 'C') ? transaction._id.chargeBox + Constants.CSV_SEPARATOR : Utils.buildUserFullName(transaction.user, false) + Constants.CSV_SEPARATOR;
-        csv += (year && year !== '0') ? year + Constants.CSV_SEPARATOR : '';
-        csv += (transaction._id.month > 0) ? transaction._id.month + Constants.CSV_SEPARATOR : '';
+      const rows = transactions.map((transaction) => {
         number = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
-        if (dataType === 'Pricing') {
-          if (transaction._id.unit) {
-            csv += number.toString() + Constants.CSV_SEPARATOR + transaction._id.unit + '\r\n';
-          } else {
-            csv += number.toString() + Constants.CSV_SEPARATOR + ' ' + '\r\n';
-          }
-        } else {
-          csv += number.toString() + '\r\n';
+        const row = [
+          dataCategory === 'C' ? transaction._id.chargeBox : Utils.buildUserFullName(transaction.user, false),
+          year && year !== '0' ? year : '',
+          transaction._id.month > 0 ? transaction._id.month : '',
+          dataType === 'Pricing' ? getPricingCell(transaction) : number.toString()
+        ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+        return row;
+      }).join(Constants.CR_LF);
+      // Build pricing cell
+      const getPricingCell = (transaction: any) => {
+        if (transaction._id.unit) {
+          return [number.toString(), transaction._id.unit];
         }
-      }
+        return [number.toString(), ' '];
+      };
+      return [headers, rows].join(Constants.CR_LF);
     }
-    return csv;
   }
 }

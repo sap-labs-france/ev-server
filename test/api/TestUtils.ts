@@ -1,10 +1,12 @@
+import Constants from '../../src/utils/Constants';
+
 export default class TestUtils {
   static async sleep(ms) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   public static convertExportFileToRawArray(fileData: string): Array<string> {
-    let fileArray = fileData.split('\r\n');
+    let fileArray = fileData.split(Constants.CR_LF);
     fileArray = fileArray.filter((record: string) => record.length > 0);
     return fileArray;
   }

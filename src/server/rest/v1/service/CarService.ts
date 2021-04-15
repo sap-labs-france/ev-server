@@ -1,10 +1,12 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
+import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import CarFactory from '../../../../integration/car/CarFactory';
@@ -32,7 +34,7 @@ export default class CarService {
         Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Check auth
-    if (!Authorizations.canListCarCatalogs(req.user)) {
+    if (!await Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -68,7 +70,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Check auth
-    if (!Authorizations.canReadCarCatalog(req.user)) {
+    if (!await Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -127,7 +129,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Check auth
-    if (!Authorizations.canReadCarCatalog(req.user)) {
+    if (!await Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -155,7 +157,7 @@ export default class CarService {
         Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
     // Check auth
-    if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
+    if (!await Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -163,18 +165,9 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const carDatabaseImpl = await CarFactory.getCarImpl();
-    if (!carDatabaseImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.MISSING_SETTINGS,
-        message: 'Car service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeCarCatalogs'
-      });
-    }
     // Get the lock
-    const carLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
-    if (!carLock) {
+    const syncCarCatalogsLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    if (!syncCarCatalogsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: action,
@@ -185,13 +178,21 @@ export default class CarService {
       });
     }
     try {
-      const result = await carDatabaseImpl.synchronizeCarCatalogs();
-      res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-      next();
+      // Create and Save async task
+      await AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.SYNCHRONIZE_CAR_CATALOGS,
+        action,
+        type: AsyncTaskType.TASK,
+        module: MODULE_NAME,
+        method: 'handleSynchronizeCarCatalogs',
+      });
     } finally {
       // Release the lock
-      await LockingManager.release(carLock);
+      await LockingManager.release(syncCarCatalogsLock);
     }
+    // Return result
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -201,7 +202,7 @@ export default class CarService {
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
     // Check auth
-    if (!Authorizations.canReadCarCatalog(req.user)) {
+    if (!await Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -227,7 +228,7 @@ export default class CarService {
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canCreateCar(req.user)) {
+    if (!await Authorizations.canCreateCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -332,7 +333,7 @@ export default class CarService {
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canUpdateCar(req.user)) {
+    if (!await Authorizations.canUpdateCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -416,7 +417,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS,
       MODULE_NAME, 'handleGetCars');
     // Check auth
-    if (!Authorizations.canListCars(req.user)) {
+    if (!await Authorizations.canListCars(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -427,9 +428,9 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
     }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
@@ -455,7 +456,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR,
       MODULE_NAME, 'handleGetCar');
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!await Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -467,7 +468,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canReadUser(req.user, req.user.id)) {
+    if (await Authorizations.canReadUser(req.user, req.user.id)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
@@ -495,7 +496,7 @@ export default class CarService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
       MODULE_NAME, 'handleGetCarUsers');
     // Check auth
-    if (!Authorizations.canListUsersCars(req.user)) {
+    if (!await Authorizations.canListUsersCars(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -523,7 +524,7 @@ export default class CarService {
     // Filter
     const carId = CarSecurity.filterCarRequest(req.query).ID;
     // Check auth
-    if (!Authorizations.canDeleteCar(req.user)) {
+    if (!await Authorizations.canDeleteCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -586,7 +587,7 @@ export default class CarService {
   }
 
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
-    car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
+      car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
     if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];
@@ -613,10 +614,10 @@ export default class CarService {
       for (const userToCheck of usersToCheck) {
         // Check the user
         const foundUser = users.result.find((user) => user.id === userToCheck.user.id);
-        UtilsService.assertObjectExists(action, foundUser, `User '${userToCheck.user.id}' does not exist`,
+        UtilsService.assertObjectExists(action, foundUser, `User ID '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
-        if (!Authorizations.canReadUser(loggedUser, foundUser.id)) {
+        if (!await Authorizations.canReadUser(loggedUser, foundUser.id)) {
           throw new AppAuthError({
             errorCode: HTTPAuthError.FORBIDDEN,
             user: loggedUser,

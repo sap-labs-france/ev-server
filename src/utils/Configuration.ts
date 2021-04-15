@@ -1,6 +1,7 @@
 import { AppEnv, getAppEnv } from 'cfenv';
 import { CloudCredentials, CloudCredentialsKey } from '../types/Cloud';
 
+import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
@@ -38,7 +39,8 @@ export default class Configuration {
   private static config: ConfigurationData;
   private static appEnv: AppEnv;
 
-  private constructor() { }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
 
   // Crypto config
   public static getCryptoConfig(): CryptoConfiguration {
@@ -54,6 +56,12 @@ export default class Configuration {
   public static getSchedulerConfig(): SchedulerConfiguration {
     // Read conf
     return Configuration.getConfig().Scheduler;
+  }
+
+  // Async task config
+  public static getAsyncTaskConfig(): AsyncTaskConfiguration {
+    // Read conf
+    return Configuration.getConfig().AsyncTask;
   }
 
   // Firebase config
@@ -391,7 +399,7 @@ export default class Configuration {
     return Configuration.getConfig().Migration;
   }
 
-  static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
+  public static getChargingStationTemplatesConfig(): ChargingStationTemplatesConfiguration {
     // Read conf and set defaults values
     if (Configuration.isUndefined(Configuration.getConfig().ChargingStationTemplates)) {
       Configuration.getConfig().ChargingStationTemplates = {} as ChargingStationTemplatesConfiguration;
@@ -402,7 +410,7 @@ export default class Configuration {
     return Configuration.getConfig().ChargingStationTemplates;
   }
 
-  static getAxiosConfig(): AxiosConfiguration {
+  public static getAxiosConfig(): AxiosConfiguration {
     // Read conf and set defaults values
     if (Configuration.isUndefined(Configuration.getConfig().Axios)) {
       Configuration.getConfig().Axios = {} as AxiosConfiguration;

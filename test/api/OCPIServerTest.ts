@@ -6,6 +6,7 @@ import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
 import OCPIService from './ocpi/OCPIService';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
@@ -57,7 +58,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
       // Create
       response = await testData.cpoService.getVersions();
       // Check status
-      expect(response.status).to.be.eql(200);
+      expect(response.status).to.be.eql(StatusCodes.OK);
     });
 
     // Check Response Object
@@ -109,7 +110,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
       // Create
       response = await testData.emspService.getVersions();
       // Check status
-      expect(response.status).to.be.eql(200);
+      expect(response.status).to.be.eql(StatusCodes.OK);
     });
 
     // Check Response Object
@@ -161,7 +162,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
       // Create
       response = await testData.cpoService.getImplementation2_1_1();
       // Check status
-      expect(response.status).to.be.eql(200);
+      expect(response.status).to.be.eql(StatusCodes.OK);
     });
 
     // Check Response Object
@@ -199,8 +200,8 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
 
 
   /**
-  * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
-  */
+   * Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint
+   */
   describe('Test Invalid Endpoint /ocpi/cpo/2.1.1/invalidEndpoint', () => {
     let response;
 
@@ -255,14 +256,14 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
   });
 
   /**
-  * Test /ocpi/cpo/2.1.1/locations
-  */
+   * Test /ocpi/cpo/2.1.1/locations
+   */
   describe('Test /ocpi/cpo/2.1.1/locations', () => {
     let response;
 
     /**
-      * Access without paging
-      */
+     * Access without paging
+     */
     describe('Access without paging', () => {
 
       // Check call
@@ -270,7 +271,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         // Get locations
         response = await testData.cpoService.getLocations2_1_1();
         // Check status
-        expect(response.status).to.be.eql(200);
+        expect(response.status).to.be.eql(StatusCodes.OK);
       });
 
       // Check Response Object
@@ -377,7 +378,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         // Create
         response = await testData.cpoService.getLocations2_1_1();
 
-        if (response.status !== 200) {
+        if (response.status !== StatusCodes.OK) {
           this.skip();
         }
       });
@@ -388,7 +389,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
           // Call
           const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
           // Check status
-          expect(locationResponse.status).to.be.eql(200);
+          expect(locationResponse.status).to.be.eql(StatusCodes.OK);
           expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
         }
       });
@@ -400,7 +401,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
             // Call
             const evseResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
             // Check status
-            expect(evseResponse.status).to.be.eql(200);
+            expect(evseResponse.status).to.be.eql(StatusCodes.OK);
             expect(testData.cpoService.validateEvseEntity(evseResponse.data.data));
           }
         }
@@ -414,7 +415,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
               // Call
               const connectorResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
               // Check status
-              expect(connectorResponse.status).to.be.eql(200);
+              expect(connectorResponse.status).to.be.eql(StatusCodes.OK);
               expect(testData.cpoService.validateConnectorEntity(connectorResponse.data.data));
             }
           }
@@ -431,10 +432,10 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
         // Check status
-        expect(locationResponse.status).to.be.eql(500);
+        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Site ID \'5abeba9e4bae1457eb565e67\' not found');
+        expect(locationResponse.data).to.have.property('status_message', 'Location ID \'5abeba9e4bae1457eb565e67\' not found');
       });
 
       // Invalid evse uid
@@ -442,10 +443,10 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite');
         // Check status
-        expect(locationResponse.status).to.be.eql(500);
+        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Charging Station ID not found \'NonExistingSite\' on Location ID \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE UID not found \'NonExistingSite\' in Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
 
       // Invalid connector id
@@ -453,20 +454,20 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0');
         // Check status
-        expect(locationResponse.status).to.be.eql(500);
+        expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE Connector ID \'0\' not found on Charging Station ID \'cs-15-ut-site-withoutACL\' and Location ID \'5ce249a2372f0b1c8caf9294\'');
       });
     });
   });
 
   /**
- * Test single access to location/evse/connector:
- *    - /ocpi/cpo/2.1.1/locations/{locationId}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
- *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
- */
+   * Test single access to location/evse/connector:
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
+   *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
+   */
   describe('Test registration process /ocpi/cpo/2.1.1/credentials/...', () => {
     let response;
     /**
@@ -516,7 +517,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
       //   response = await testData.ocpiService.postCredentials2_1_1(credential);
 
       //   // Check status
-      //   expect(response.status).to.be.eql(200);
+      //   expect(response.status).to.be.eql(StatusCodes.OK);
       //   testData.ocpiService.checkOCPIResponseStructure(response.data);
       //   expect(response.data.status_code).to.be.eql(1000);
       //   testData.ocpiService.validateCredentialEntity(response.data.data);
@@ -538,7 +539,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
       //   // Call
       //   const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
       //   // Check status
-      //   expect(locationResponse.status).to.be.eql(500);
+      //   expect(locationResponse.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       //   expect(locationResponse.data).to.have.property('timestamp');
       //   expect(locationResponse.data).to.have.property('status_code', 3000);
       //   expect(locationResponse.data).to.have.property('status_message', 'Site id \'5abeba9e4bae1457eb565e67\' not found');

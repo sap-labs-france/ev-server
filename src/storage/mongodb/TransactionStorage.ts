@@ -262,22 +262,22 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-    params: {
-      transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
-      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
-      ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
-      ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-      statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
-    },
-    dbParams: DbParams, projectFields?: string[]):
-    Promise<{
-      count: number; result: Transaction[]; stats: {
-        totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
-        countRefundTransactions?: number; countPendingTransactions?: number; countRefundedReports?: number; totalDurationSecs?: number;
-        totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number;
-      };
-    }> {
+      params: {
+        transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+        chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
+        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
+        ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
+        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
+        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
+      },
+      dbParams: DbParams, projectFields?: string[]):
+      Promise<{
+        count: number; result: Transaction[]; stats: {
+          totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
+          countRefundTransactions?: number; countPendingTransactions?: number; countRefundedReports?: number; totalDurationSecs?: number;
+          totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number;
+        };
+      }> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactions');
     // Check
@@ -660,8 +660,8 @@ export default class TransactionStorage {
   }
 
   public static async getRefundReports(tenantID: string,
-    params: { ownerID?: string; siteAdminIDs?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
+      params: { ownerID?: string; siteAdminIDs?: string[] },
+      dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[] }> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactions');
     // Check
@@ -791,15 +791,21 @@ export default class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID: string,
-    params: {
-      search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
-      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-      withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
-    }, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
+      params: {
+        search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
+        siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
+        withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
+      }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
     // Check
     await DatabaseUtils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneObject(dbParams);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filters
     const match: any = { stop: { $exists: true } };
     // Filter?
@@ -912,6 +918,21 @@ export default class TransactionStorage {
     // Set to null
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -929,20 +950,22 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
-    projectFields?: string[]): Promise<Transaction> {
+      projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
       transactionIDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+  public static async getOCPITransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
+      { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransaction(tenantID: string, sessionID: string): Promise<Transaction> {
-    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+  public static async getOICPTransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
+      { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
@@ -985,8 +1008,8 @@ export default class TransactionStorage {
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number,
-    params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
+  public static async getLastTransactionFromChargingStation(tenantID: string, chargeBoxID: string, connectorId: number,
+      params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');
     // Check
@@ -1070,7 +1093,7 @@ export default class TransactionStorage {
   }
 
   public static async getNotStartedTransactions(tenantID: string,
-    params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
+      params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotStartedTransactions');
     // Check Tenant

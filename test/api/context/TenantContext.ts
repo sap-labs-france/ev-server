@@ -7,12 +7,14 @@ import Factory from '../../factories/Factory';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
-import RegistrationToken from '../../types/RegistrationToken';
-import SiteArea from '../../types/SiteArea';
+import RegistrationToken from '../../../src/types/RegistrationToken';
+import SiteArea from '../../../src/types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
-import Tenant from '../../types/Tenant';
+import { StatusCodes } from 'http-status-codes';
+import Tenant from '../../../src/types/Tenant';
 import Utils from '../../../src/utils/Utils';
+import { Voltage } from '../../../src/types/ChargingStation';
 import config from '../../config';
 import { expect } from 'chai';
 import faker from 'faker';
@@ -209,6 +211,7 @@ export default class TenantContext {
   /**
    * Add default context user
    * Do not user for newly created users
+   *
    * @param {*} users
    * @memberof TenantContext
    */
@@ -296,7 +299,7 @@ export default class TenantContext {
     createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
-    expect(createdChargingStation.voltage).to.eql(230);
+    expect(createdChargingStation.voltage).to.eql(Voltage.VOLTAGE_230);
     if (siteArea) {
       expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
     }
@@ -382,7 +385,7 @@ export default class TenantContext {
     createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
-    expect(createdChargingStation.voltage).to.eql(230);
+    expect(createdChargingStation.voltage).to.eql(Voltage.VOLTAGE_230);
     if (siteArea) {
       expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
     }
@@ -474,7 +477,7 @@ export default class TenantContext {
     createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     // Charging Station
-    expect(createdChargingStation.voltage).to.eql(230);
+    expect(createdChargingStation.voltage).to.eql(Voltage.VOLTAGE_230);
     if (siteArea) {
       expect(createdChargingStation.siteID).to.eql(siteArea.siteID);
     }
@@ -536,7 +539,7 @@ export default class TenantContext {
       description: `Test Token for site area ${siteAreaID}`,
       siteAreaID: siteAreaID
     });
-    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.status).eq(StatusCodes.OK);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
     return registrationTokenResponse.data.id;
@@ -544,7 +547,7 @@ export default class TenantContext {
 
   async getRegistrationToken(siteAreaID: string): Promise<RegistrationToken> {
     const registrationTokenResponse = await this.centralAdminServerService.registrationApi.readAll({ SiteAreaID: siteAreaID });
-    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.status).eq(StatusCodes.OK);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
     if (registrationTokenResponse.data.result.length !== 0) {

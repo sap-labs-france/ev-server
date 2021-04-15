@@ -107,12 +107,12 @@ export default class UserStorage {
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
-    const userMDB = await UserStorage.getUsers(tenantID,
-      {
-        userIDs: [id],
-        ...params
-      }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
+    const userMDB = await UserStorage.getUsers(tenantID, {
+      userIDs: [id],
+      withImage: params.withImage,
+      siteIDs: params.siteIDs,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
 
@@ -342,10 +342,10 @@ export default class UserStorage {
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
-    params: {
-      password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
-      passwordBlockedUntil?: Date;
-    }): Promise<void> {
+      params: {
+        password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+        passwordBlockedUntil?: Date;
+      }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserPassword');
     // Check Tenant
@@ -385,7 +385,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
+      params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserMobileToken');
     // Check Tenant
@@ -399,7 +399,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobilePhone(tenantID: string, userID: string,
-    params: { mobile?: string; phone?: string; }): Promise<void> {
+      params: { mobile?: string; phone?: string; }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserMobilePhone');
     // Check Tenant
@@ -426,7 +426,7 @@ export default class UserStorage {
   }
 
   public static async saveUserEULA(tenantID: string, userID: string,
-    params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+      params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserRole');
     // Check Tenant
@@ -440,7 +440,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAccountVerification(tenantID: string, userID: string,
-    params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
+      params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserAccountVerification');
     // Check Tenant
@@ -454,7 +454,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-    params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -488,6 +488,7 @@ export default class UserStorage {
     const updatedUserMDB: any = {
       billingData: {
         customerID: billingData.customerID,
+        liveMode: Utils.convertToBoolean(billingData.liveMode),
         hasSynchroError: billingData.hasSynchroError,
         invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
         lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
@@ -526,14 +527,14 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: {
-      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
-      userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-      statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-      notifications?: any; noLoginSince?: Date;
-    },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+      params: {
+        notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
+        includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
+        userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
+        notifications?: any; noLoginSince?: Date;
+      },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUsers');
     // Check Tenant
@@ -725,8 +726,8 @@ export default class UserStorage {
   }
 
   public static async getImportedUsers(tenantID: string,
-    params: { status?: ImportStatus; search?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
+      params: { status?: ImportStatus; search?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsers');
     // Check Tenant
@@ -816,8 +817,8 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: { search?: string; roles?: string[]; errorTypes?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
+      params: { search?: string; roles?: string[]; errorTypes?: string[] },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUsers');
     // Check Tenant
@@ -939,8 +940,8 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenantID: string,
-    params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
+      params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserSites');
     // Check Tenant
@@ -1057,6 +1058,11 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
+        sendUserAccountInactivity: true,
+        sendPreparingSessionNotStarted: true,
+        sendSessionNotStarted: true,
+        sendBillingNewInvoice: true,
+        // Admin
         sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
@@ -1064,16 +1070,12 @@ export default class UserStorage {
         sendOcpiPatchStatusError: false,
         sendOicpPatchStatusError: false,
         sendSmtpError: false,
-        sendUserAccountInactivity: false,
-        sendPreparingSessionNotStarted: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
-        sendSessionNotStarted: false,
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,
-        sendBillingNewInvoice: false,
-        sendAccountVerificationNotification: true,
+        sendAccountVerificationNotification: false,
         sendAdminAccountVerificationNotification: false,
       },
       role: UserRole.BASIC,

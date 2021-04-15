@@ -603,7 +603,8 @@ export default class CarStorage {
     const carsMDB = await CarStorage.getCars(tenantID, {
       licensePlate: licensePlate,
       vin: vin,
-      ...params
+      withUsers: params.withUsers,
+      userIDs: params.userIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
   }
@@ -611,7 +612,7 @@ export default class CarStorage {
   public static async getCars(tenantID: string,
     params: {
       search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[]; type?: CarType;
+      withUsers?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType;
     } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug

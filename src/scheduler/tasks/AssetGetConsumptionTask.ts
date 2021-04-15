@@ -50,6 +50,10 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, siteAreaLimitConsumption);
               // Create Consumptions
               for (const consumption of assetConsumptions) {
+                // Check if last consumption already exists
+                if (asset.lastConsumption?.timestamp && moment(consumption.lastConsumption.timestamp).diff(moment(asset.lastConsumption.timestamp), 'seconds') < 50) {
+                  continue;
+                }
                 // Create Consumption to save
                 const consumptionToSave: Consumption = {
                   startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),

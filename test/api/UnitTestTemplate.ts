@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
-import { OCPPStatus } from '../types/ocpp/OCPPClient';
+import { OCPPStatus } from '../../src/types/ocpp/OCPPClient';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
@@ -63,6 +63,9 @@ describe('Template for Dev Unit Test', function() {
   });
 });
 
+/**
+ * @param ms
+ */
 async function timeout(ms) {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }

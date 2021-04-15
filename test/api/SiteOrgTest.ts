@@ -5,6 +5,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -26,6 +27,9 @@ class TestData {
 
 const testData: TestData = new TestData();
 
+/**
+ * @param userRole
+ */
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -39,6 +43,9 @@ function login(userRole) {
   }
 }
 
+/**
+ *
+ */
 async function createSite() {
   // Create a site
   testData.newSite = await testData.userService.createEntity(
@@ -48,12 +55,20 @@ async function createSite() {
   testData.createdSites.push(testData.newSite);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignUserToSite(userRole, site): Promise<any> {
   // Assign the user to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
   return testData.userService.siteApi.addUsersToSite(site.id, [userContext.id]);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignSiteAdmin(userRole, site) {
   // Assign the user as admin to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -61,6 +76,10 @@ async function assignSiteAdmin(userRole, site) {
   await testData.userService.siteApi.assignSiteAdmin(site.id, userContext.id);
 }
 
+/**
+ * @param userRole
+ * @param site
+ */
 async function assignSiteOwner(userRole, site) {
   // Assign the user as owner to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -214,7 +233,7 @@ describe('Site tests', function() {
           Factory.site.build(),
           false
         );
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
     });
@@ -312,7 +331,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[0]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }
@@ -327,7 +346,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[1]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }
@@ -341,7 +360,7 @@ describe('Site tests', function() {
           testData.userService.siteApi,
           testData.createdSites[2]
         );
-        expect(updateResult.status).to.eq(200);
+        expect(updateResult.status).to.eq(StatusCodes.OK);
       });
 
       it('Should not be able to update a site for which he is site owner', async () => {
@@ -353,7 +372,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[3]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }

@@ -39,21 +39,21 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 }
               ]).toArray();
             if (transactionsMDB.length > 0) {
-              Logging.logInfo({
+              await Logging.logInfo({
                 tenantID: tenant.id,
                 action: ServerAction.OCPI_PUSH_CDRS,
                 module: MODULE_NAME, method: 'processTenant',
                 message: `${transactionsMDB.length} Transaction's CDRs are going to be pushed to OCPI`,
               });
               for (const transactionMDB of transactionsMDB) {
-                // Get the lock
-                const ocpiTransactionLock = await LockingHelper.createOCPIPushCpoCdrLock(tenant.id, transactionMDB._id);
+                // Get the lock: Used to avoid collision with manual push or end of transaction push
+                const ocpiTransactionLock = await LockingHelper.createOCPIPushCdrLock(tenant.id, transactionMDB._id);
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
                     const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
                     if (!transaction) {
-                      Logging.logError({
+                      await Logging.logError({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -62,7 +62,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     if (transaction.ocpiData && transaction.ocpiData.cdr) {
-                      Logging.logInfo({
+                      await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -73,7 +73,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     // Get Charging Station
                     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
                     if (!chargingStation) {
-                      Logging.logError({
+                      await Logging.logError({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_PUSH_CDRS,
                         module: MODULE_NAME, method: 'processTenant',
@@ -86,7 +86,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     // Save
                     await TransactionStorage.saveTransaction(tenant.id, transaction);
                     // Ok
-                    Logging.logInfo({
+                    await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,
                       actionOnUser: (transaction.user ? transaction.user : null),
@@ -95,7 +95,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       detailedMessages: { cdr: transaction.ocpiData.cdr }
                     });
                   } catch (error) {
-                    Logging.logInfo({
+                    await Logging.logInfo({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
@@ -115,7 +115,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
         }
       }
     } catch (error) {
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PULL_CDRS, error);
     }
   }
 }

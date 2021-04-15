@@ -227,7 +227,7 @@ export enum BillingSettingsType {
   STRIPE = 'stripe'
 }
 
-export interface BillingSettings extends Setting{
+export interface BillingSettings extends Setting {
   identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
   stripe?: StripeBillingSetting;
@@ -277,11 +277,13 @@ export interface AssetConnectionSetting {
   type: AssetConnectionType;
   schneiderConnection?: AssetSchneiderConnectionType;
   greencomConnection?: AssetGreencomConnectionType;
+  iothinkConnection?: AssetIothinkConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
-  GREENCOM = 'greencom'
+  GREENCOM = 'greencom',
+  IOTHINK = 'iothink'
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -296,6 +298,10 @@ export interface AssetGreencomConnectionType {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AssetIothinkConnectionType extends AssetUserPasswordConnectionType {
 }
 
 export enum CarConnectorSettingsType {
@@ -344,12 +350,6 @@ export interface CryptoSettings extends Setting {
   crypto: CryptoSetting;
 }
 
-export interface CryptoSetting {
-  key: string;
-  keyProperties: CryptoKeyProperties;
-  formerKey?: string;
-  formerKeyProperties?: CryptoKeyProperties;
-}
 export interface CryptoKeyProperties {
   blockCypher: string;
   blockSize: number;

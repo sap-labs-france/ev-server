@@ -1,5 +1,4 @@
 import BaseApi from './utils/BaseApi';
-import { ServerAction } from '../../../src/types/Server';
 import { ServerRoute } from '../../../src/types/Server';
 import User from '../../../src/types/User';
 

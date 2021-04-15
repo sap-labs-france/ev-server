@@ -1,3 +1,5 @@
+import DynamicAuthorizationDataSource from '../authorization/DynamicAuthorizationDataSource';
+
 export interface AuthorizationDefinition {
   superAdmin: {
     grants: Grant[];
@@ -24,10 +26,17 @@ export interface AuthorizationDefinition {
     $extend?: any;
   };
 }
+
+export interface AuthorizationResult {
+  authorized: boolean;
+  fields: string[];
+}
+
 export interface AuthorizationFilter {
   filters: Record<string, any>;
   projectFields: string[];
-  authorized?: boolean;
+  authorized: boolean;
+  dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>;
 }
 
 export interface Grant {
@@ -65,6 +74,8 @@ export enum Entity {
   SETTINGS = 'Settings',
   TOKENS = 'Tokens',
   TOKEN = 'Token',
+  ASYNC_TASK = 'AsyncTask',
+  ASYNC_TASKS = 'AsyncTasks',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   OICP_ENDPOINT = 'OicpEndpoint',
@@ -154,6 +165,7 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
+  filters?: DynamicAuthorizationFilterName[];
 }
 
 export interface AuthorizationActions {
@@ -161,4 +173,18 @@ export interface AuthorizationActions {
   canCreate?: boolean;
   canUpdate?: boolean;
   canDelete?: boolean;
+}
+
+export enum DynamicAuthorizationFilterName {
+  ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
+}
+
+export enum DynamicAuthorizationDataSourceName {
+  ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
+}
+
+export interface DynamicAuthorizationDataSourceData {}
+
+export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  companyIDs?: string[];
 }

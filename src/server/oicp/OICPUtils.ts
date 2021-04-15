@@ -4,28 +4,25 @@ import User, { UserStatus } from '../../types/User';
 
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPEvseID } from '../../types/oicp/OICPEvse';
 import { OICPSession } from '../../types/oicp/OICPSession';
 import { OICPStatusCode } from '../../types/oicp/OICPStatusCode';
-import { OicpSetting } from '../../types/Setting';
 import RoamingUtils from '../../utils/RoamingUtils';
 import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import sanitize from 'mongo-sanitize';
 
 export default class OICPUtils {
 
   /**
    * Return OICP Success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -42,6 +39,7 @@ export default class OICPUtils {
 
   /**
    * Return OICP no success Body Response
+   *
    * @param {Partial<OICPSession>} session
    * @param {*} data
    */
@@ -59,7 +57,8 @@ export default class OICPUtils {
 
   /**
    * Return OICP Error Body Response
-   * @param {*} error
+   *
+   * @param {Error} error
    */
   public static toErrorResponse(error: Error): OICPAcknowledgment {
     return {
@@ -83,7 +82,7 @@ export default class OICPUtils {
     if (chargingStations && chargingStations.result) {
       for (const cs of chargingStations.result) {
         cs.connectors.forEach((conn) => {
-          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs, conn)) {
+          if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, cs.id, conn.connectorId)) {
             chargingStation = cs;
             connector = conn;
           }
@@ -155,7 +154,7 @@ export default class OICPUtils {
   }
 
   public static async getOICPIdentificationFromAuthorization(tenantID: string,
-    transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
+      transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenantID, {
@@ -168,7 +167,7 @@ export default class OICPUtils {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const oicpTransaction = await TransactionStorage.getOICPTransaction(tenantID, authorization.authorizationId);
+          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenantID, authorization.authorizationId);
           // OICP SessionID not used yet
           if (!oicpTransaction) {
             sessionId = authorization.authorizationId;

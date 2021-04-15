@@ -56,7 +56,7 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',
@@ -70,7 +70,7 @@ export default class MongoDBStorage {
       { fields: { 'address.coordinates': '2dsphere' } },
     ]);
     // Users Import
-    await this.handleIndexesInCollection(tenantID, 'usersImport', [
+    await this.handleIndexesInCollection(tenantID, 'importedusers', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
     await this.handleIndexesInCollection(tenantID, 'eulas');
@@ -104,7 +104,7 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1, issuer: 1 } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -159,7 +159,7 @@ export default class MongoDBStorage {
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
     ]);
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database done',
@@ -254,7 +254,6 @@ export default class MongoDBStorage {
     // Tenants
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
       { fields: { subdomain: 1 }, options: { unique: true } },
-      { fields: { name: 1 }, options: { unique: true } }
     ]);
     // Users
     await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
@@ -302,7 +301,7 @@ export default class MongoDBStorage {
   }
 
   private async handleIndexesInCollection(tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
+      name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({

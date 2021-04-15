@@ -37,7 +37,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
 
   private async processOICPEndpoint(tenant: Tenant, oicpEndpoint: OICPEndpoint, config: OICPPushEvseStatusTaskConfig): Promise<void> {
     // Get the lock
-    const oicpLock = await LockingHelper.createOICPPatchCpoEvseStatusesLock(tenant.id, oicpEndpoint);
+    const oicpLock = await LockingHelper.createOICPPatchEvseStatusesLock(tenant.id, oicpEndpoint);
     if (oicpLock) {
       try {
         // Check if OICP endpoint is registered
@@ -46,7 +46,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOICPEndpoint',
             action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the oicpendpoint.`
+            message: `The OICP Endpoint ${oicpEndpoint.name} is not registered. Skipping the OICP endpoint.`
           });
           return;
         }

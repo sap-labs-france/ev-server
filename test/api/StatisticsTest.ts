@@ -3,9 +3,9 @@ import chai, { expect } from 'chai';
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import StatisticsApi from './client/StatisticsApi';
 import StatisticsContext from './context/StatisticsContext';
+import { StatusCodes } from 'http-status-codes';
 import TestUtils from './TestUtils';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
@@ -90,73 +90,73 @@ describe('Statistics tests', function() {
 
       it('Is not authorized to access consumption data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access usage data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access inactivity data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access sessions data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access pricing data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to export data to file', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Transactions', DataCategory: 'C', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(HTTPAuthError.FORBIDDEN);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.FORBIDDEN);
         expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
@@ -170,7 +170,7 @@ describe('Statistics tests', function() {
 
       it('Should see annual consumption data for all users', async () => {
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -180,7 +180,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfUsers * expectedConsumption);
         }
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -194,7 +194,7 @@ describe('Statistics tests', function() {
       it('Should see overall usage data for another user', async () => {
         const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationUsage({ UserID: user.id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for all years and user ${user.name} (basic user) on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -204,7 +204,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfYears * expectedUsage);
         }
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserUsage({ UserID: user.id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for all years and user ${user.name} (basic user) on data per user should not be empty`
         ).not.to.be.empty;
@@ -220,7 +220,7 @@ describe('Statistics tests', function() {
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -230,7 +230,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfUsers * expectedInactivity);
         }
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
         ).not.to.be.empty;
@@ -249,7 +249,7 @@ describe('Statistics tests', function() {
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({
           ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
         });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
           ` and ${chargingStationContext2.getChargingStation().id} on data per charging station should not be empty`
@@ -262,7 +262,7 @@ describe('Statistics tests', function() {
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserTransactions({
           ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
         });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
           ` and ${chargingStationContext2.getChargingStation().id} on data per user should not be empty`
@@ -277,7 +277,7 @@ describe('Statistics tests', function() {
       it('Should see annual pricing data for another user', async () => {
         const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationPricing({ Year: firstYear, UserID: user.id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and user ${user.name} (basic user) on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -287,7 +287,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * expectedPricing);
         }
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserPricing({ Year: firstYear, UserID: user.id });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and user ${user.name} (basic user) on data per user should not be empty`
         ).not.to.be.empty;
@@ -300,7 +300,7 @@ describe('Statistics tests', function() {
 
       it('Should be able to export annual consumption data to file', async () => {
         let adminUserListResponse = await adminUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -309,7 +309,7 @@ describe('Statistics tests', function() {
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
         adminUserListResponse = await adminUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'U', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -325,7 +325,7 @@ describe('Statistics tests', function() {
 
       it('Should see overall consumption data only for own user', async () => {
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationConsumption({});
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per charging station should not be empty'
         ).not.to.be.empty;
@@ -335,7 +335,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfYears * expectedConsumption);
         }
         basicUserListResponse = await basicUserServerService.statisticsApi.readUserConsumption({});
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per user should not be empty'
         ).not.to.be.empty;
@@ -348,7 +348,7 @@ describe('Statistics tests', function() {
 
       it('Should see annual usage data only for own user', async () => {
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationUsage({ Year: firstYear });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -358,7 +358,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * expectedUsage);
         }
         basicUserListResponse = await basicUserServerService.statisticsApi.readUserUsage({ Year: firstYear });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -374,7 +374,7 @@ describe('Statistics tests', function() {
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -384,7 +384,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(expectedInactivity);
         }
         basicUserListResponse = await basicUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
         ).not.to.be.empty;
@@ -398,7 +398,7 @@ describe('Statistics tests', function() {
       it('Should see annual sessions data of a specific site only for own user', async () => {
         const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, SiteID: siteContext.getSite().id });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and site ${siteContext.getSite().name} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -408,7 +408,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * expectedTransactions);
         }
         basicUserListResponse = await basicUserServerService.statisticsApi.readUserTransactions({ Year: firstYear, SiteID: siteContext.getSite().id });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and site ${siteContext.getSite().name} on data per user should not be empty`
         ).not.to.be.empty;
@@ -421,7 +421,7 @@ describe('Statistics tests', function() {
 
       it('Should see overall pricing data only for own user', async () => {
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationPricing({});
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per charging station should not be empty'
         ).not.to.be.empty;
@@ -431,7 +431,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfYears * expectedPricing);
         }
         basicUserListResponse = await basicUserServerService.statisticsApi.readUserPricing({});
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per user should not be empty'
         ).not.to.be.empty;
@@ -444,7 +444,7 @@ describe('Statistics tests', function() {
 
       it('Should be able to export own overall usage data to file', async () => {
         let basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ DataType: 'Usage', DataCategory: 'C', DataScope: 'total' });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per charging station should not be empty'
         ).not.to.be.empty;
@@ -453,7 +453,7 @@ describe('Statistics tests', function() {
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
         basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ DataType: 'Usage', DataCategory: 'U', DataScope: 'total' });
-        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           'Query response for all years on data per user should not be empty'
         ).not.to.be.empty;
@@ -469,7 +469,7 @@ describe('Statistics tests', function() {
 
       it('Should see annual consumption data for all users', async () => {
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationConsumption({ Year: firstYear });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -479,7 +479,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfUsers * expectedConsumption);
         }
         demoUserListResponse = await demoUserServerService.statisticsApi.readUserConsumption({ Year: firstYear });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -495,7 +495,7 @@ describe('Statistics tests', function() {
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationUsage({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -505,7 +505,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfUsers * expectedUsage);
         }
         demoUserListResponse = await demoUserServerService.statisticsApi.readUserUsage({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
         ).not.to.be.empty;
@@ -519,7 +519,7 @@ describe('Statistics tests', function() {
       it('Should see overall inactivity data for another user', async () => {
         const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationInactivity({ UserID: user.id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for all years and user ${user.name} (basic user) on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -529,7 +529,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfYears * expectedInactivity);
         }
         demoUserListResponse = await demoUserServerService.statisticsApi.readUserInactivity({ UserID: user.id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for all years and user ${user.name} (basic user) on data per user should not be empty`
         ).not.to.be.empty;
@@ -543,7 +543,7 @@ describe('Statistics tests', function() {
       it('Should see annual sessions data for another user', async () => {
         const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, UserID: user.id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and user ${user.name} (admin user) on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -553,7 +553,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * expectedTransactions);
         }
         demoUserListResponse = await demoUserServerService.statisticsApi.readUserTransactions({ Year: firstYear, UserID: user.id });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and user ${user.name} (admin user) on data per user should not be empty`
         ).not.to.be.empty;
@@ -566,7 +566,7 @@ describe('Statistics tests', function() {
 
       it('Should see annual pricing data for all users', async () => {
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationPricing({ Year: firstYear });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -576,7 +576,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfChargers * numberOfUsers * expectedPricing);
         }
         demoUserListResponse = await demoUserServerService.statisticsApi.readUserPricing({ Year: firstYear });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -589,7 +589,7 @@ describe('Statistics tests', function() {
 
       it('Should be able to export annual pricing data to file for all users', async () => {
         let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'C', DataScope: 'total' });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
@@ -598,7 +598,7 @@ describe('Statistics tests', function() {
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
         demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
-        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
@@ -614,6 +614,9 @@ describe('Statistics tests', function() {
 
 });
 
+/**
+ * @param ms
+ */
 async function timeout(ms) {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }

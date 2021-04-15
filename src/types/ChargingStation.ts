@@ -55,9 +55,11 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
   distanceMeters?: number;
-  ocpiData?: {
-    evse?: OCPIEvse;
-  };
+  ocpiData?: ChargingStationOcpiData;
+}
+
+export interface ChargingStationOcpiData {
+  evses?: OCPIEvse[];
 }
 
 export interface ChargingStationQRCode {
@@ -83,6 +85,7 @@ export interface TemplateUpdate {
 }
 
 export interface TemplateUpdateResult {
+  chargingStationUpdated: boolean;
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
   ocppStandardUpdated: boolean;
@@ -195,6 +198,7 @@ export interface ChargePoint {
 }
 
 export enum Voltage {
+  VOLTAGE_400 = 400,
   VOLTAGE_230 = 230,
   VOLTAGE_110 = 110,
 }
@@ -289,10 +293,12 @@ export type OCPPParams = {
 
 export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
+  DBTCEV = 'DBT-CEV',
   EBEE = 'Ebee',
   ENPLUS = 'EN+',
   EXADYS = 'EXADYS',
   EVBOX = 'EV-BOX',
+  EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
   IES = 'IES',

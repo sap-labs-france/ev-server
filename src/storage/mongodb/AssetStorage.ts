@@ -14,7 +14,7 @@ const MODULE_NAME = 'AssetStorage';
 
 export default class AssetStorage {
   public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withSiteArea?: boolean} = {}, projectFields?: string[]): Promise<Asset> {
+      params: { withSiteArea?: boolean } = {}, projectFields?: string[]): Promise<Asset> {
     const assetsMDB = await AssetStorage.getAssets(tenantID, {
       assetIDs: [id],
       withSiteArea: params.withSiteArea
@@ -98,9 +98,9 @@ export default class AssetStorage {
   }
 
   public static async getAssets(tenantID: string,
-    params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; dynamicOnly?: boolean } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+      params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; withSiteArea?: boolean;
+        withNoSiteArea?: boolean; dynamicOnly?: boolean; issuer?: boolean; } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssets');
     // Check Tenant
@@ -129,9 +129,14 @@ export default class AssetStorage {
         $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id))
       };
     }
+    // Issuer
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
+      filters.issuer = params.issuer;
+    }
+    // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Dynamic Asset
@@ -140,7 +145,6 @@ export default class AssetStorage {
     }
     // Limit on Asset for Basic Users
     if (!Utils.isEmptyArray(params.assetIDs)) {
-      // Build filter
       filters._id = {
         $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID))
       };
@@ -217,8 +221,8 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-    params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
+      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');
     // Check Tenant

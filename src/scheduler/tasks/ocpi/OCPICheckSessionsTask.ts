@@ -30,27 +30,27 @@ export default class OCPICheckSessionsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
+      await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
     }
   }
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoSessionsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckSessionsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
         if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_SESSIONS,
-            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the ocpiendpoint.`
+            message: `The OCPI endpoint '${ocpiEndpoint.name}' is not registered. Skipping the OCPI endpoint.`
           });
           return;
         }
         if (!ocpiEndpoint.backgroundPatchJob) {
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'processOCPIEndpoint',
             action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -58,7 +58,7 @@ export default class OCPICheckSessionsTask extends SchedulerTask {
           });
           return;
         }
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -67,7 +67,7 @@ export default class OCPICheckSessionsTask extends SchedulerTask {
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
         const result = await ocpiClient.checkSessions();
-        Logging.logInfo({
+        await Logging.logInfo({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_SESSIONS,
@@ -76,7 +76,7 @@ export default class OCPICheckSessionsTask extends SchedulerTask {
         });
       } catch (error) {
         // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_CHECK_SESSIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(ocpiLock);

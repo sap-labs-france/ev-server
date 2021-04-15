@@ -120,7 +120,7 @@ export default class TransactionService {
         continue;
       }
       // Check auth
-      if (!Authorizations.canRefundTransaction(req.user, transaction)) {
+      if (!await Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -133,7 +133,7 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
     if (!refundConnector) {
@@ -178,7 +178,7 @@ export default class TransactionService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -219,7 +219,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+      const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
           // Post CDR
@@ -253,7 +253,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const oicpLock = await LockingHelper.createOICPPushCpoCdrLock(req.user.tenantID, transaction.id);
+      const oicpLock = await LockingHelper.createOICPPushCdrLock(req.user.tenantID, transaction.id);
       if (oicpLock) {
         try {
           // Post CDR
@@ -284,7 +284,7 @@ export default class TransactionService {
       });
     }
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCpoCdrLock(req.user.tenantID, transaction.id);
+    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
     if (ocpiLock) {
       try {
         // Post CDR
@@ -311,7 +311,7 @@ export default class TransactionService {
 
   public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -332,7 +332,7 @@ export default class TransactionService {
     }
     // Get the user
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tag.id);
@@ -343,7 +343,7 @@ export default class TransactionService {
 
   public static async handleRebuildTransactionConsumptions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -356,7 +356,7 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
     const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
@@ -367,7 +367,7 @@ export default class TransactionService {
 
   public static async handleAssignTransactionsToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -398,11 +398,11 @@ export default class TransactionService {
     }
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
-    UtilsService.assertObjectExists(action, tag, `Tag with ID '${filteredRequest.TagID}' does not exist`,
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     if (!user.issuer) {
       throw new AppError({
@@ -432,7 +432,7 @@ export default class TransactionService {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
-    if (!Authorizations.canDeleteTransaction(req.user)) {
+    if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -443,7 +443,7 @@ export default class TransactionService {
     }
     // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${transactionId}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionId}' does not exist`,
       MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
@@ -455,7 +455,7 @@ export default class TransactionService {
     // Filter
     const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
     // Check auth
-    if (!Authorizations.canDeleteTransaction(req.user)) {
+    if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -476,7 +476,7 @@ export default class TransactionService {
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
-    if (!Authorizations.canUpdateTransaction(req.user)) {
+    if (!await Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -487,18 +487,18 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID ${transactionId} does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check User
     let user: User;
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
-      UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
+      UtilsService.assertObjectExists(action, user, `User ID '${transaction.userID}' does not exist`,
         MODULE_NAME, 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
@@ -547,14 +547,14 @@ export default class TransactionService {
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (Authorizations.canListCars(req.user)) {
+      if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
           'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
           'carCatalog.vehicleModelVersion', 'carCatalog.image',
         ];
       }
-      if (Authorizations.canUpdateCar(req.user)) {
+      if (await Authorizations.canUpdateCar(req.user)) {
         projectFields = [
           ...projectFields,
           'car.licensePlate',
@@ -563,10 +563,10 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
-    if (!Authorizations.canReadTransaction(req.user, transaction)) {
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -576,7 +576,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -642,10 +642,10 @@ export default class TransactionService {
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description'
     ]);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
     // Check Transaction
-    if (!Authorizations.canReadTransaction(req.user, transaction)) {
+    if (!await Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -655,7 +655,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -743,7 +743,7 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetRefundReports');
     // Check Transaction
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -753,7 +753,7 @@ export default class TransactionService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
@@ -820,7 +820,7 @@ export default class TransactionService {
 
   public static async handleExportTransactionOcpiCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -835,7 +835,7 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID, ['id', 'ocpiData']);
-    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Check
     if (!transaction?.ocpiData) {
@@ -855,7 +855,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListTransactionsInError(req.user)) {
+    if (!await Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -879,7 +879,13 @@ export default class TransactionService {
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
-      }, [
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields
+      },
+      [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
@@ -889,49 +895,54 @@ export default class TransactionService {
   }
 
   public static convertToCSV(req: Request, transactions: Transaction[], writeHeader = true): string {
-    let csv = '';
-    const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = i18nManager.translate('users.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.chargingStation') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.connector') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.userID') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('users.user') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('tags.id') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('tags.description') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('chargers.timezone') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.startDate') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.startTime') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.endDate') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.endTime') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalConsumption') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalDuration') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('transactions.totalInactivity') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.price') + Constants.CSV_SEPARATOR;
-      csv += i18nManager.translate('general.priceUnit') + '\r\n';
+      const headerArray = [
+        'id',
+        'chargingStationID',
+        'connector',
+        'userID',
+        'user',
+        'tagID',
+        'tagDescription',
+        'timezone',
+        'startDate',
+        'startTime',
+        'endDate',
+        'endTime',
+        'totalConsumption',
+        'totalDuration',
+        'totalInactivity',
+        'price',
+        'priceUnit'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const transaction of transactions) {
-      csv += transaction.id + Constants.CSV_SEPARATOR;
-      csv += transaction.chargeBoxID + Constants.CSV_SEPARATOR;
-      csv += transaction.connectorId + Constants.CSV_SEPARATOR;
-      csv += (transaction.user ? Cypher.hash(transaction.user.id) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.user ? Utils.buildUserFullName(transaction.user, false) : '') + Constants.CSV_SEPARATOR;
-      csv += transaction.tagID + Constants.CSV_SEPARATOR;
-      csv += (transaction.tag?.description || '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone || 'N/A (UTC by default)') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? transaction.stop.roundedPrice : '') + Constants.CSV_SEPARATOR;
-      csv += (transaction.stop ? transaction.stop.priceUnit : '') + '\r\n';
-    }
-    return csv;
+    const rows = transactions.map((transaction) => {
+      const row = [
+        transaction.id,
+        transaction.chargeBoxID,
+        transaction.connectorId,
+        transaction.user ? Cypher.hash(transaction.user.id) : '',
+        transaction.user ? Utils.buildUserFullName(transaction.user, false) : '',
+        transaction.tagID,
+        transaction.tag?.description || '',
+        transaction.timezone || 'N/A (UTC by default)',
+        (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('YYYY-MM-DD'),
+        (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss'),
+        (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : ''),
+        (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : ''),
+        transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '',
+        transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '',
+        transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '',
+        transaction.stop ? transaction.stop.roundedPrice : '',
+        transaction.stop ? transaction.stop.priceUnit : ''
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async deleteTransactions(action: ServerAction, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
@@ -1014,9 +1025,9 @@ export default class TransactionService {
   }
 
   private static async getTransactions(req: Request, action: ServerAction,
-    params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
+      params: { completedTransactions?: boolean, withTag?: boolean } = {}, projectFields): Promise<DataResult<Transaction>> {
     // Check Transactions
-    if (!Authorizations.canListTransactions(req.user)) {
+    if (!await Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1025,7 +1036,7 @@ export default class TransactionService {
       });
     }
     // Check Users
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       if (projectFields) {
         projectFields = [
           ...projectFields,
@@ -1036,13 +1047,13 @@ export default class TransactionService {
     }
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (Authorizations.canListCars(req.user)) {
+      if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
           'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
         ];
       }
-      if (Authorizations.canUpdateCar(req.user)) {
+      if (await Authorizations.canUpdateCar(req.user)) {
         projectFields = [
           ...projectFields,
           'car.licensePlate',
@@ -1063,8 +1074,9 @@ export default class TransactionService {
       extrafilters.stop = { $exists: false };
     }
     // Check projection
-    if (!Utils.isEmptyArray(filteredRequest.ProjectFields)) {
-      projectFields = projectFields.filter((projectField) => filteredRequest.ProjectFields.includes(projectField));
+    const httpProjectFields = UtilsService.httpFilterProjectToArray(filteredRequest.ProjectFields);
+    if (!Utils.isEmptyArray(httpProjectFields)) {
+      projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,

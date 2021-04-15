@@ -14,7 +14,7 @@ export default class CrudApi {
    * Creates an instance of CrudApi.
    * Only deals with secure connection
    *
-   * @param {*} this._authenticatedApi The authenticated API to perform the requests
+   * @param {*} authenticatedApi The authenticated API to perform the requests
    * @memberof CrudApi
    */
   public constructor(authenticatedApi: AuthenticatedBaseApi) {

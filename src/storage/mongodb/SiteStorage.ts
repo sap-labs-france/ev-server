@@ -17,10 +17,11 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
+      params: { withCompany?: boolean, withImage?: boolean; } = {}, projectFields?: string[]): Promise<Site> {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       siteIDs: [id],
-      ...params,
+      withCompany: params.withCompany,
+      withImage: params.withImage,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return sitesMDB.count === 1 ? sitesMDB.result[0] : null;
   }
@@ -90,8 +91,8 @@ export default class SiteStorage {
   }
 
   public static async getSiteUsers(tenantID: string,
-    params: { search?: string; siteIDs: string[]; siteOwnerOnly?: boolean },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
+      params: { search?: string; siteIDs: string[]; siteOwnerOnly?: boolean },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSitesUsers');
     // Check Tenant
@@ -303,13 +304,13 @@ export default class SiteStorage {
   }
 
   public static async getSites(tenantID: string,
-    params: {
-      search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean;
-      withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
-      locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
+      params: {
+        search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
+        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean; name?: string;
+        withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
+        locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSites');
     // Check Tenant
@@ -342,6 +343,10 @@ export default class SiteStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Site Name
+    if (params.name) {
+      filters.name = params.name;
     }
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {

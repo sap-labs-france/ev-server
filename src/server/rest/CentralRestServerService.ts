@@ -26,9 +26,7 @@ import UserService from './v1/service/UserService';
 import UtilsService from './v1/service/UtilsService';
 
 class RequestMapper {
-  // eslint-disable-next-line no-undef
   private static instances = new Map<string, RequestMapper>();
-  // eslint-disable-next-line no-undef
   private paths = new Map<string, number>();
   private actions = new Array<(action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>>();
 
@@ -92,8 +90,8 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_PULL_LOCATIONS]: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_SESSIONS]: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PULL_TOKENS]: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
-          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
-          [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_EVSE_STATUSES]: OCPIEndpointService.handlePushEVSEStatusesOcpiEndpoint.bind(this),
+          [ServerAction.OCPI_ENDPOINT_SEND_TOKENS]: OCPIEndpointService.handlePushTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINT_CREATE]: OICPEndpointService.handleCreateOicpEndpoint.bind(this),
           [ServerAction.OICP_ENDPOINT_PING]: OICPEndpointService.handlePingOicpEndpoint.bind(this),
@@ -340,7 +338,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -354,7 +352,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }

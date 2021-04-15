@@ -4,6 +4,7 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -24,6 +25,9 @@ class TestData {
 
 const testData = new TestData();
 
+/**
+ * @param userRole
+ */
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -36,6 +40,9 @@ function login(userRole) {
   }
 }
 
+/**
+ *
+ */
 async function loginAsAdminAndCreateCompanyWithASite() {
   login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
   // Create a company
@@ -61,6 +68,9 @@ async function loginAsAdminAndCreateCompanyWithASite() {
   testData.createdCompanies.push(testData.newCompany);
 }
 
+/**
+ *
+ */
 async function loginAsAdminAndRemoveUsersFromSite() {
   login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, []);
@@ -254,7 +264,7 @@ describe('Company Org tests', function() {
           testData.newCompany
         );
       } catch (error) {
-        expect(error.actual).to.equal(403);
+        expect(error.actual).to.equal(StatusCodes.FORBIDDEN);
       }
     });
   });

@@ -1,7 +1,9 @@
+import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
 import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
@@ -130,9 +132,20 @@ export default class Bootstrap {
         // Init the Scheduler
         // -------------------------------------------------------------------------
         await SchedulerManager.init();
+        // -------------------------------------------------------------------------
+        // Init the Async Task
+        // -------------------------------------------------------------------------
+        await AsyncTaskManager.init();
+        // -------------------------------------------------------------------------
         // Locks remain in storage if server crashes
         // Delete acquired database locks with same hostname
+        // -------------------------------------------------------------------------
         await LockingManager.cleanupLocks(Configuration.isCloudFoundry() || Utils.isDevelopmentEnv());
+        // -------------------------------------------------------------------------
+        // Populate at startup the DB with shared data
+        // -------------------------------------------------------------------------
+        // 1 - Charging station templates
+        await ChargingStationStorage.updateChargingStationTemplatesFromFile();
       }
     } catch (error) {
       // Log
@@ -150,6 +163,9 @@ export default class Bootstrap {
 
   private static startServerWorkers(serverName: string): void {
     Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
+    /**
+     * @param worker
+     */
     function onlineCb(worker: cluster.Worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
@@ -162,6 +178,11 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
+    /**
+     * @param worker
+     * @param code
+     * @param signal
+     */
     function exitCb(worker: cluster.Worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
@@ -229,7 +250,6 @@ export default class Bootstrap {
         }
         // Start it
         await Bootstrap.centralRestServer.start();
-        // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
         if (this.centralSystemRestConfig.socketIO) {
           // Start database Socket IO notifications
           await this.centralRestServer.startSocketIO();
@@ -262,7 +282,7 @@ export default class Bootstrap {
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
-              // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
+              // FIXME: Issue with cluster, see https://github.com/sap-labs-france/ev-server/issues/1097
               await Bootstrap.JsonCentralSystemServer.start();
               break;
             // Not Found

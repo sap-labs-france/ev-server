@@ -3,6 +3,7 @@ import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPP
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Logging from '../../../utils/Logging';
+import Schema from '../../../types/validator/Schema';
 import SchemaValidator from '../../rest/v1/validator/SchemaValidator';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
@@ -14,21 +15,21 @@ const MODULE_NAME = 'OCPPValidation';
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation | null = null;
 
-  private _bootNotificationRequest: any;
-  private _authorizeRequest: any;
-  private _statusNotificationRequest: any;
-  private _startTransactionRequest: any;
-  private _stopTransactionRequest16: any;
-  private _stopTransactionRequest15: any;
+  private bootNotificationRequest: Schema;
+  private authorizeRequest: Schema;
+  private statusNotificationRequest: Schema;
+  private startTransactionRequest: Schema;
+  private stopTransactionRequest16: Schema;
+  private stopTransactionRequest15: Schema;
 
   private constructor() {
     super('OCPPValidation');
-    this._bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
-    this._authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
-    this._statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
-    this._startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
-    this._stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
-    this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
+    this.bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
+    this.authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
+    this.statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
+    this.startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
+    this.stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
+    this.stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
   }
 
   static getInstance(): OCPPValidation {
@@ -46,27 +47,27 @@ export default class OCPPValidation extends SchemaValidator {
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(this._statusNotificationRequest, statusNotification);
+    this.validate(this.statusNotificationRequest, statusNotification);
   }
 
   validateAuthorize(authorize: OCPPAuthorizeRequestExtended): void {
-    this.validate(this._authorizeRequest, authorize);
+    this.validate(this.authorizeRequest, authorize);
   }
 
   validateBootNotification(bootNotification: OCPPBootNotificationRequestExtended): void {
-    this.validate(this._bootNotificationRequest, bootNotification);
+    this.validate(this.bootNotificationRequest, bootNotification);
   }
 
   validateDiagnosticsStatusNotification(chargingStation: ChargingStation,
-    diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
+      diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended): void {
   }
 
   validateFirmwareStatusNotification(chargingStation: ChargingStation,
-    firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
+      firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): void {
   }
 
   validateStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequestExtended): void {
-    this.validate(this._startTransactionRequest, startTransaction);
+    this.validate(this.startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!Utils.getConnectorFromID(chargingStation, startTransaction.connectorId)) {
       throw new BackendError({
@@ -83,9 +84,9 @@ export default class OCPPValidation extends SchemaValidator {
 
   validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended): void {
     if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
-      this.validate(this._stopTransactionRequest16, stopTransaction);
+      this.validate(this.stopTransactionRequest16, stopTransaction);
     } else {
-      this.validate(this._stopTransactionRequest15, stopTransaction);
+      this.validate(this.stopTransactionRequest15, stopTransaction);
     }
   }
 
