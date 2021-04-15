@@ -321,7 +321,7 @@ export default class SiteService {
       authorizationSitesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter, filteredRequest);
     // Return
     res.json(sites);
     next();

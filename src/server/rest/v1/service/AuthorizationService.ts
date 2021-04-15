@@ -78,17 +78,19 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
+  public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
     // Add canCreate flag to root
     sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE, authorizationFilter);
 
     // Enrich
     for (const site of sites.result) {
-      await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
+      await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter, filteredRequest);
     }
   }
 
-  public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter): Promise<void> {
+  public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
     // todo: remove when assign actions are in place
     // Get Site Admins
     const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
@@ -99,9 +101,10 @@ export default class AuthorizationService {
       site.canDelete = false;
     } else {
       const isSiteAdmin = siteAdminIDs.includes(site.id) || (userToken.role === UserRole.ADMIN);
-      site.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.READ, authorizationFilter);
-      site.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.DELETE, authorizationFilter);
-      site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.UPDATE, authorizationFilter);
+      filteredRequest.SiteID = site.id;
+      site.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.READ, authorizationFilter, filteredRequest);
+      site.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, filteredRequest);
+      site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, filteredRequest);
       // todo: change when assign actions are in place
       site.canAssignUsers = await Authorizations.canAssignUsersSites(userToken);
       site.canUnassignUsers = await Authorizations.canUnassignUsersSites(userToken) && isSiteAdmin;
@@ -871,7 +874,7 @@ export default class AuthorizationService {
       return false;
     }
     // Check Dynamic Auth
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.LIST, Entity.COMPANIES,
+    await AuthorizationService.processDynamicFilters(tenant, userToken, action, entity,
       authorizationFilters, authorizationContext, filteredRequest);
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(

@@ -183,11 +183,13 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   ASSIGNED_SITES = 'AssignedSites',
+  SITES_ADMIN = 'SitesAdmin',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   ASSIGNED_SITES = 'AssignedSites',
+  SITES_ADMIN = 'SitesAdmin',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -197,5 +199,9 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
 }
 
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }

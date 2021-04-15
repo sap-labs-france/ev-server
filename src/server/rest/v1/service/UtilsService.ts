@@ -252,7 +252,7 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
+    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter, { SiteID: siteID });
     // Check
     const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {
