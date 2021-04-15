@@ -1529,14 +1529,13 @@ export default class ChargingStationService {
     let headers = null;
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'chargingStation',
         'name',
         'value',
         'siteArea',
         'site'
-      ];
-      headers = headerArray.join(Constants.CSV_SEPARATOR);
+      ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = ocppParams.params.map((param) => {
@@ -1553,11 +1552,25 @@ export default class ChargingStationService {
   }
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
+    // Build createdOn cell
+    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
+      if (chargingStation.createdOn) {
+        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
+      }
+      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
+    };
+    // Build coordinates cell
+    const getCoordinatesCell = (chargingStation: ChargingStation) => {
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
+      }
+      return ['', ''];
+    };
     let headers = null;
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'name',
         'createdOn',
         'numberOfConnectors',
@@ -1575,8 +1588,7 @@ export default class ChargingStationService {
         'lastReboot',
         'maxPower',
         'powerLimitUnit'
-      ];
-      headers = headerArray.join(Constants.CSV_SEPARATOR);
+      ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = chargingStations.map((chargingStation) => {
@@ -1600,22 +1612,6 @@ export default class ChargingStationService {
       ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
-    // Build createdOn cell
-    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
-      if (chargingStation.createdOn) {
-        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
-      }
-      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
-
-    };
-    // Build coordinates cell
-    const getCoordinatesCell = (chargingStation: ChargingStation) => {
-      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
-      }
-      return ['', ''];
-
-    };
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
