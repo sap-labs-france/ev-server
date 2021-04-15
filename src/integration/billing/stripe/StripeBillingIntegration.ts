@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingSettings, StripeBillingSetting } from '../../../types/Setting';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -15,7 +16,6 @@ import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import Stripe from 'stripe';
-import { StripeBillingSetting } from '../../../types/Setting';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -24,13 +24,13 @@ import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
 const MODULE_NAME = 'StripeBillingIntegration';
-export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
+export default class StripeBillingIntegration extends BillingIntegration {
 
   private static readonly STRIPE_MAX_LIST = 100;
   private axiosInstance: AxiosInstance;
   private stripe: Stripe;
 
-  constructor(tenantId: string, settings: StripeBillingSetting) {
+  constructor(tenantId: string, settings: BillingSettings) {
     super(tenantId, settings);
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
   }
@@ -61,7 +61,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     // Initialize Stripe
     if (!this.stripe) {
       // STRIPE not yet initialized - let's do it!
-      if (!this.settings.secretKey) {
+      if (!this.settings.stripe.secretKey) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
@@ -70,7 +70,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       try {
-        this.settings.secretKey = await Cypher.decrypt(this.tenantID, this.settings.secretKey);
+        this.settings.stripe.secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -81,7 +81,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       // Try to connect
-      this.stripe = new Stripe(this.settings.secretKey, {
+      this.stripe = new Stripe(this.settings.stripe.secretKey, {
         apiVersion: '2020-08-27',
       });
       // Let's check if the connection is working properly
@@ -237,54 +237,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return stripeInvoice;
   }
 
-  // ----------------------------------------------------------
-  // TODO - get rid of this logic and use webhooks instead!
-  // ----------------------------------------------------------
-  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
-    let createdSince: number;
-    // Check Stripe
-    await this.checkConnection();
-    if (billingUser) {
-      // Start sync from last invoices sync
-      createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? moment(billingUser.billingData.invoicesLastSynchronizedOn).unix() : 0;
-    } else {
-      // Start sync from last global sync
-      createdSince = this.settings.invoicesLastSynchronizedOn ? moment(this.settings.invoicesLastSynchronizedOn).unix() : 0;
-    }
-    const collectedInvoiceIDs: string[] = [];
-    const queryRange: Stripe.RangeQueryParam = { gt: createdSince };
-    const request: Stripe.EventListParams = {
-      created: queryRange,
-      limit: StripeBillingIntegration.STRIPE_MAX_LIST,
-      type: 'invoice.*',
-    };
-    // Loop until all invoices are read
-    do {
-      const events: Stripe.ApiList<Stripe.Event> = await this.stripe.events.list(request);
-      for (const evt of events.data) {
-        // c.f.: https://stripe.com/docs/api/events/object
-        const invoice: Stripe.Invoice = evt.data.object as Stripe.Invoice; // TODO - to be clarified how to determine the object type?
-        if (invoice.object === 'invoice' && invoice.id) {
-          if (!collectedInvoiceIDs.includes(invoice.id)) {
-            if (billingUser) {
-              // Collect specific user's invoices
-              if (billingUser.billingData.customerID === invoice.customer) {
-                collectedInvoiceIDs.push(invoice.id);
-              }
-            } else {
-              // Collect every invoices
-              collectedInvoiceIDs.push(invoice.id);
-            }
-          }
-        }
-      }
-      if (request['has_more']) {
-        request['starting_after'] = collectedInvoiceIDs[collectedInvoiceIDs.length - 1];
-      }
-    } while (request['has_more']);
-    return collectedInvoiceIDs;
-  }
-
   private async _createStripeInvoice(customerID: string, userID: string, idempotencyKey?: string | number): Promise<Stripe.Invoice> {
     // Let's create the STRIPE invoice
     const stripeInvoice: Stripe.Invoice = await this.stripe.invoices.create({
@@ -363,8 +315,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   }
 
   private getTaxRateIds(): Array<string> {
-    if (this.settings.taxID) {
-      return [this.settings.taxID] ;
+    if (this.settings.billing.taxID) {
+      return [this.settings.billing.taxID] ;
     }
     return []; // No tax rates so far!
   }
@@ -942,7 +894,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
     let operationResult: BillingOperationResult;
-    if (this.settings.immediateBillingAllowed) {
+    if (this.settings.billing.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
       operationResult = await this._chargeStripeInvoice(stripeInvoice.id);
       if (!operationResult?.succeeded && operationResult?.error) {

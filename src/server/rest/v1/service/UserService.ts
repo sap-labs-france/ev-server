@@ -923,7 +923,7 @@ export default class UserService {
       });
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-        if (mimetype === 'text/csv') {
+        if (filename.slice(-4) === '.csv') {
           const converter = csvToJson({
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,

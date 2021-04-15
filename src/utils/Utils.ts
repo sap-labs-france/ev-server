@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps, Voltage } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
@@ -825,11 +825,10 @@ export default class Utils {
         }
       }
     }
-    const numberOfConnectors = chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length;
-    const amperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorId) * numberOfConnectors;
-    // Default
-    if (amperageLimit < amperageLimitMin) {
-      amperageLimit = amperageLimitMin;
+    const amperageMax = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    // Check and default
+    if (amperageLimit === 0 || amperageLimit > amperageMax) {
+      amperageLimit = amperageMax;
     }
     return amperageLimit;
   }
