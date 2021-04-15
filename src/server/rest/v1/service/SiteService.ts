@@ -281,7 +281,8 @@ export default class SiteService {
         withImage: true,
       }, true);
     // Add authorizations
-    await AuthorizationService.addSiteAuthorizations(req.tenant, req.user, site);
+    // todo: add back
+    // await AuthorizationService.addSiteAuthorizations(req.tenant, req.user, site);
     // Return
     res.json(site);
     next();
@@ -294,9 +295,9 @@ export default class SiteService {
     // Filter request
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Check dynamic auth
-    const authorizationSiteFilters = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
+    const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteFilters.authorized) {
+    if (!authorizationSitesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -313,7 +314,7 @@ export default class SiteService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...authorizationSiteFilters.filters
+        ...authorizationSitesFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -321,10 +322,10 @@ export default class SiteService {
         sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteFilters.projectFields
+      authorizationSitesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return
     res.json(sites);
     next();
