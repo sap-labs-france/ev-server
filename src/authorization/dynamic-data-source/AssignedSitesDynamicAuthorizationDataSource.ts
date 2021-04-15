@@ -21,7 +21,7 @@ export default class AssignedSitesDynamicAuthorizationDataSource
   }
 
   private async getAssignedSiteIDs(): Promise<string[]> {
-    // Get the Company IDs of the assigned Sites
+    // Get the Site IDs of the assigned Sites
     const sites = await SiteStorage.getSites(this.tenant.id,
       {
         userID: this.userToken.id,

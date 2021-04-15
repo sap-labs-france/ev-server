@@ -272,7 +272,6 @@ export default class SiteService {
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Filter request
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
-    // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
@@ -280,9 +279,6 @@ export default class SiteService {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
       }, true);
-    // Add authorizations
-    // todo: add back
-    // await AuthorizationService.addSiteAuthorizations(req.tenant, req.user, site);
     // Return
     res.json(site);
     next();

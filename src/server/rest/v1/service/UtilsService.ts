@@ -216,21 +216,11 @@ export default class UtilsService {
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
-    // Check static auth for reading site
-    if (!await Authorizations.canReadSite(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        value: siteID
-      });
-    }
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      tenant, userToken, { ID: siteID }, action);
+      tenant, userToken, { ID: siteID });
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -262,7 +252,7 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
+    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter);
     // Check
     const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {

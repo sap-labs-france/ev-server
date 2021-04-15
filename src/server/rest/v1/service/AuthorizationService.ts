@@ -48,31 +48,33 @@ export default class AuthorizationService {
     }
   }
 
-  public static async checkAndGetSiteAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteRequest, action: ServerAction): Promise<AuthorizationFilter> {
+  public static async checkAndGetSiteAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'issuer', 'image', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'public'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canReadSite(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
+      });
+    }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.SITE,
+      authorizationFilters, authorizationContext, { SiteID: filteredRequest.ID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
       authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Not an Admin user?
-    if (userToken.role !== UserRole.ADMIN) {
-      if (action === ServerAction.SITE_UPDATE) {
-        // Check assigned Site
-        await AuthorizationService.checkAssignedSiteAdmins(
-          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
-      } else {
-        // Check assigned Site
-        await AuthorizationService.checkAssignedSites(
-          tenant, userToken, { SiteID: filteredRequest.ID }, authorizationFilters);
-      }
-    }
     return authorizationFilters;
   }
 

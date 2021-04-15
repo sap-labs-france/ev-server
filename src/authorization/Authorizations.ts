@@ -370,12 +370,12 @@ export default class Authorizations {
       { user: userID, owner: loggedUser.id });
   }
 
-  public static async canListSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
+  public static async canListSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITES, Action.LIST, authContext);
   }
 
-  public static async canReadSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ);
+  public static async canReadSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.READ, authContext);
   }
 
   public static async canCreateSite(loggedUser: UserToken): Promise<boolean> {
