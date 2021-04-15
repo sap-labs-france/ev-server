@@ -103,7 +103,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (localToken.user?.deleted || localToken.user?.issuer) {
+    if (!Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Get the Charging Station
@@ -145,7 +145,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (connector.status !== ChargePointStatus.AVAILABLE &&
-        connector.status !== ChargePointStatus.PREPARING) {
+      connector.status !== ChargePointStatus.PREPARING) {
       await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
@@ -189,7 +189,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     // Called Async as the response to the eMSP is sent asynchronously and this request has to finish before the command returns
-    void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
+    void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => { });
     // Ok
     return this.buildOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
@@ -276,15 +276,15 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {
     if (!stopSession ||
-        !stopSession.response_url ||
-        !stopSession.session_id) {
+      !stopSession.response_url ||
+      !stopSession.session_id) {
       return false;
     }
     return true;
   }
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+    connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -308,7 +308,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number,
-      stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+    stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -333,9 +333,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   private async sendCommandResponse(tenant: Tenant, action: ServerAction, responseUrl: string, responseType: OCPICommandResponseType, ocpiEndpoint: OCPIEndpoint) {
     // Build payload
     const payload: OCPICommandResponse =
-      {
-        result: responseType
-      };
+    {
+      result: responseType
+    };
     // Log
     await Logging.logDebug({
       tenantID: tenant.id,
