@@ -243,7 +243,7 @@ export default class UserService {
     // Check user
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
-      UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
     // OCPI User
     if (!user.issuer) {
       // Delete all tags

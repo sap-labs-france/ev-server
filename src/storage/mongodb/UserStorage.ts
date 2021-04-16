@@ -920,16 +920,16 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteUser');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    // Delete User Image
+    await global.database.getCollection<any>(tenantID, 'userimages')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
-    // Delete Image
-    await global.database.getCollection<any>(tenantID, 'userimages')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
-    // Delete connections
+    // Delete Connections
     await global.database.getCollection<any>(tenantID, 'connections')
       .deleteMany({ 'userId': Utils.convertToObjectID(id) });
     // Delete User

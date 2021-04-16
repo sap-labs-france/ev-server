@@ -3,7 +3,6 @@ import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -21,6 +20,7 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -249,8 +249,9 @@ export default class TagService {
         action: action
       });
     }
-    const nbrTransactions = await TransactionStorage.getTransactions(req.user.tenantID,{ tagIDs:[filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_MAX_LIMIT);
-    if (nbrTransactions.count > 0) {
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+      { tagIDs:[filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_COUNT_ONLY);
+    if (transactions.count > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
