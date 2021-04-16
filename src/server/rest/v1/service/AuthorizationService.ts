@@ -422,7 +422,7 @@ export default class AuthorizationService {
       filters: {},
       dataSources: new Map(),
       projectFields: [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'deleted', 'plateID',
+        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
         'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
@@ -465,7 +465,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'deleted', 'user.id', 'user.name', 'user.firstName', 'user.email'],
+      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
     // Filter projected fields

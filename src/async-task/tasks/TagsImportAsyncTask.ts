@@ -50,9 +50,6 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 if (!foundTag.issuer) {
                   throw new Error('Tag is not local to the organization');
                 }
-                if (foundTag.deleted) {
-                  throw new Error('Tag is deleted');
-                }
                 if (foundTag.userID) {
                   throw new Error('Tag is already assigned to an user');
                 }
@@ -71,7 +68,6 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 id: importedTag.id,
                 description: importedTag.description,
                 issuer: true,
-                deleted: false,
                 active: false,
                 createdBy: { id: importedTag.importedBy },
                 createdOn: importedTag.importedOn,

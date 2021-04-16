@@ -151,7 +151,7 @@ export default class OCPIUtilsService {
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
-        valid: !tag.user?.deleted,
+        valid: !Utils.isNullOrUndefined(tag.user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });

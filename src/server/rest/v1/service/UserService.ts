@@ -1,11 +1,11 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
-import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
@@ -14,9 +14,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
-import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
@@ -37,7 +35,6 @@ import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
@@ -175,17 +172,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -258,17 +244,6 @@ export default class UserService {
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       // Delete all tags
@@ -327,58 +302,6 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(
-      req.user.tenantID, { userIDs: [userID] }, Constants.DB_PARAMS_COUNT_ONLY);
-    // Delete user
-    if (userTransactions.count > 0) {
-      // Logically
-      user.deleted = true;
-      // Anonymize user
-      user.name = Constants.ANONYMIZED_VALUE;
-      user.firstName = '';
-      user.email = user.id;
-      user.costCenter = '';
-      user.iNumber = '';
-      user.mobile = '';
-      user.phone = '';
-      user.address = {} as Address;
-      // Save
-      await UserStorage.saveUser(req.user.tenantID, user);
-      await UserStorage.saveUserPassword(req.user.tenantID, user.id,
-        {
-          password: '',
-          passwordWrongNbrTrials: 0,
-          passwordResetHash: '',
-          passwordBlockedUntil: null
-        });
-      await UserStorage.saveUserAdminData(req.user.tenantID, user.id,
-        { plateID: '', notificationsActive: false, notifications: null });
-      await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-        { mobileToken: null, mobileOs: null, mobileLastChangedOn: null });
-      await UserStorage.saveUserEULA(req.user.tenantID, user.id,
-        { eulaAcceptedHash: null, eulaAcceptedVersion: null, eulaAcceptedOn: null });
-      await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
-      await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
-        { verificationToken: null, verifiedAt: null });
-      // Disable/Delete Tags
-      const tags = (await TagStorage.getTags(req.user.tenantID,
-        { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-      for (const tag of tags) {
-        if (tag.transactionsCount > 0) {
-          tag.active = false;
-          tag.deleted = true;
-          tag.lastChangedOn = new Date();
-          tag.lastChangedBy = { id: req.user.id };
-          tag.userID = user.id;
-          await TagStorage.saveTag(req.user.tenantID, tag);
-        } else {
-          await TagStorage.deleteTag(req.user.tenantID, tag.id);
-        }
-      }
-    } else {
-      // Physically
-      await UserStorage.deleteUser(req.user.tenantID, user.id);
-    }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -428,8 +351,33 @@ export default class UserService {
         });
       }
     }
-    // Delete Connections
-    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+    // Delete cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (carUsers.count > 0) {
+        for (const carUser of carUsers.result) {
+          // Owner ?
+          if (carUser.owner) {
+            // Private ?
+            const car = await CarStorage.getCar(req.tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            if (car) {
+              // Delete All Users Car
+              await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
+              // Delete Car
+              await CarStorage.deleteCar(req.user.tenantID, car.id);
+            } else {
+              // Delete User Car
+              await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+            }
+          } else {
+            // Delete User Car
+            await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+          }
+        }
+      }
+    }
+    // Delete User
+    await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -466,17 +414,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -628,17 +565,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
       mobileToken: filteredRequest.mobileToken,
@@ -689,17 +615,6 @@ export default class UserService {
     );
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     res.json(user);
     next();
   }
@@ -726,17 +641,6 @@ export default class UserService {
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
     // Ok
@@ -1230,17 +1134,6 @@ export default class UserService {
     const user = await UserStorage.getUser(req.user.tenantID, id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${id}' does not exist`,
       MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        message: 'User is logically deleted',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // Get the settings
     const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
     if (!pricingSetting || !pricingSetting.convergentCharging) {
@@ -1385,7 +1278,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
