@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.4.61",
+  "version": "2.4.62",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
