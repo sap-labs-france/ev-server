@@ -646,33 +646,54 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Check Transaction
     this.checkStartTransaction(transaction);
-
+    // Check Start Transaction Prerequisites
+    const customerID: string = transaction.user?.billingData?.customerID;
     if (this.productionMode) {
-      // Check that the customer STRIPE exists
-      const customerID: string = transaction.user?.billingData?.customerID;
-      const customer = await this.getStripeCustomer(customerID);
-      if (!customer) {
-        throw new BackendError({
-          message: `Stripe customer ID of the transaction user is invalid - ${customerID}`,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-    } else {
+      // Check whether the customer exists or not
+      const customer = await this.checkStripeCustomer(customerID);
+      // Check whether the customer has a default payment method
+      this.checkStripePaymentMethod(customer);
+    }
+    // Well ... when in test mode we may allow to start the transaction
+    if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
       await Logging.logWarning({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
-        message: 'Live Mode is OFF - Start transaction might have been started with NO customer data'
+        message: 'Live Mode is OFF - transaction has been started with NO customer data'
       });
     }
     return {
       withBillingActive: true
     };
+  }
+
+  private async checkStripeCustomer(customerID: string): Promise<Stripe.Customer> {
+    const customer = await this.getStripeCustomer(customerID);
+    if (!customer) {
+      throw new BackendError({
+        message: `Customer not found - ${customerID}`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    return customer;
+  }
+
+  private checkStripePaymentMethod(customer: Stripe.Customer): void {
+    if (!customer.default_source) {
+      throw new BackendError({
+        message: `Customer has no default payment method - ${customer.id}`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
