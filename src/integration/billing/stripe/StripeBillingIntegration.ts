@@ -634,6 +634,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
+
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      return {
+        isTransactionBillingActivated: false
+      };
+    }
+
     // Check Stripe
     await this.checkConnection();
     // Check Transaction
@@ -663,7 +670,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      cancelTransaction: false
+      isTransactionBillingActivated: true
     };
   }
 
@@ -680,7 +687,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      cancelTransaction: false
+      isTransactionBillingActivated: true
     };
   }
 
@@ -740,6 +747,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+    if (!transaction.billingData.isTransactionBillingActivated) {
+      // --------------------------------------------------------------------
+      // The billing feature has been activated after the startTransaction
+      // --------------------------------------------------------------------
+      return {
+        status: BillingStatus.UNBILLED
+      };
+    }
     // Check Stripe
     await this.checkConnection();
     // Check object

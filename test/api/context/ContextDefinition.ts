@@ -179,6 +179,7 @@ export default class ContextDefinition {
         content: {
           type: BillingSettingsType.STRIPE,
           billing: {
+            isTransactionBillingActivated: true,
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             taxID: ''
@@ -307,6 +308,7 @@ export default class ContextDefinition {
         content: {
           type: BillingSettingsType.STRIPE,
           billing: {
+            isTransactionBillingActivated: true,
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             taxID: ''

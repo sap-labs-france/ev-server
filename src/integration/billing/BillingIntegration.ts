@@ -282,16 +282,6 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Charging Station
-    if (transaction?.billingData?.invoiceID) {
-      throw new BackendError({
-        message: 'Transaction has already billing data',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'checkStopTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
     if (this.productionMode) {
       // Check Billing Data (only in Live Mode)
       if (!transaction.user.billingData) {

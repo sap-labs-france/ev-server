@@ -301,8 +301,9 @@ export default class SettingStorage {
       billingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
       // Billing Common Properties
       if (config.billing) {
-        const { immediateBillingAllowed, periodicBillingAllowed, taxID, usersLastSynchronizedOn } = config.billing;
+        const { isTransactionBillingActivated, immediateBillingAllowed, periodicBillingAllowed, taxID, usersLastSynchronizedOn } = config.billing;
         billingSettings.billing = {
+          isTransactionBillingActivated,
           immediateBillingAllowed,
           periodicBillingAllowed,
           usersLastSynchronizedOn,

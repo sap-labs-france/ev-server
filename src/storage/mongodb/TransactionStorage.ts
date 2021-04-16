@@ -168,11 +168,14 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        status: transactionToSave.billingData.status,
-        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
-        invoiceStatus: transactionToSave.billingData.invoiceStatus,
-        invoiceItem: transactionToSave.billingData.invoiceItem,
+        isTransactionBillingActivated: transactionToSave.billingData.isTransactionBillingActivated,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        stop: {
+          status: transactionToSave.billingData.stop?.status,
+          invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
+          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
+        },
       };
     }
     if (transactionToSave.ocpiData) {
