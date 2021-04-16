@@ -168,7 +168,7 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        isTransactionBillingActivated: transactionToSave.billingData.isTransactionBillingActivated,
+        withBillingActive: transactionToSave.billingData.withBillingActive,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
         stop: {
           status: transactionToSave.billingData.stop?.status,
@@ -1285,8 +1285,9 @@ export default class TransactionStorage {
             $match: {
               $or: [
                 { 'billingData': { $exists: false } },
-                { 'billingData.invoiceID': { $exists: false } },
-                { 'billingData.invoiceID': { $eq: null } }
+                { 'billingData.stop': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $eq: null } }
               ]
             }
           },

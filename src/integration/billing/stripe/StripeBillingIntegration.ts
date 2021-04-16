@@ -637,7 +637,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
     if (!this.settings.billing.isTransactionBillingActivated) {
       return {
-        isTransactionBillingActivated: false
+        // Keeps track whether the billing was activated or not on start transaction
+        withBillingActive: false
       };
     }
 
@@ -670,7 +671,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      isTransactionBillingActivated: true
+      withBillingActive: true
     };
   }
 
@@ -687,7 +688,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     return {
-      isTransactionBillingActivated: true
+      // Just propagate the initial state
+      withBillingActive: transaction.billingData?.withBillingActive
     };
   }
 
@@ -747,10 +749,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
-    if (!transaction.billingData.isTransactionBillingActivated) {
-      // --------------------------------------------------------------------
-      // The billing feature has been activated after the startTransaction
-      // --------------------------------------------------------------------
+    // Check whether the billing was activated on start transaction
+    if (!transaction.billingData.withBillingActive) {
       return {
         status: BillingStatus.UNBILLED
       };

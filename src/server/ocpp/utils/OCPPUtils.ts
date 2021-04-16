@@ -327,7 +327,7 @@ export default class OCPPUtils {
             const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction);
             // Update
             transaction.billingData = {
-              isTransactionBillingActivated: billingDataTransactionStart.isTransactionBillingActivated,
+              withBillingActive: billingDataTransactionStart.withBillingActive,
               lastUpdate: new Date()
             };
           } catch (error) {

@@ -3,17 +3,17 @@ import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
-  isTransactionBillingActivated?: boolean;
+  withBillingActive?: boolean;
   lastUpdate?: Date;
   stop?: BillingDataTransactionStop;
 }
 
 export interface BillingDataTransactionStart {
-  isTransactionBillingActivated: boolean;
+  withBillingActive: boolean;
 }
 
 export interface BillingDataTransactionUpdate {
-  isTransactionBillingActivated: boolean;
+  withBillingActive: boolean;
 }
 
 export enum BillingStatus {
