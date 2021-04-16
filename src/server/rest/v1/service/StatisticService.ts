@@ -639,7 +639,7 @@ export default class StatisticService {
           year && year !== '0' ? year : '',
           transaction._id.month > 0 ? transaction._id.month : '',
           dataType === 'Pricing' ? StatisticService.getPricingCell(transaction, numberOfTransaction) : numberOfTransaction.toString()
-        ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+        ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
         return row;
       }).join(Constants.CR_LF);
       return [headers, rows].join(Constants.CR_LF);
