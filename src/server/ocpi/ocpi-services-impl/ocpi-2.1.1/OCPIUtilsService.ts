@@ -1,6 +1,6 @@
-import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationOptions, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
@@ -151,7 +151,7 @@ export default class OCPIUtilsService {
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
-        valid: !tag.user?.deleted,
+        valid: !Utils.isNullOrUndefined(tag.user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
@@ -636,6 +636,10 @@ export default class OCPIUtilsService {
 
   public static convertConnector2OCPIConnector(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, countryId: string, partyId: string): OCPIConnector {
     let type: OCPIConnectorType, format: OCPIConnectorFormat;
+    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
+    const voltage: OCPIVoltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
+    const amperage = OCPIUtilsService.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
+    const ocpiNumberOfConnectedPhases = OCPIUtilsService.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     switch (connector.type) {
       case ConnectorType.CHADEMO:
         type = OCPIConnectorType.CHADEMO;
@@ -643,17 +647,18 @@ export default class OCPIUtilsService {
         break;
       case ConnectorType.TYPE_2:
         type = OCPIConnectorType.IEC_62196_T2;
-        format = OCPIConnectorFormat.SOCKET;
+        // Type 2 connector with more than 32A (per phase or not) needs attached cable
+        if (amperage > 32) {
+          format = OCPIConnectorFormat.CABLE;
+        } else {
+          format = OCPIConnectorFormat.SOCKET;
+        }
         break;
       case ConnectorType.COMBO_CCS:
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
     }
-    const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
-    const voltage = OCPIUtilsService.getChargingStationOCPIVoltage(chargingStation, chargePoint, connector.connectorId);
-    const amperage = OCPIUtilsService.getChargingStationOCPIAmperage(chargingStation, chargePoint, connector.connectorId);
-    const ocpiNumberOfConnectedPhases = OCPIUtilsService.getChargingStationOCPINumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
       standard: type,
@@ -762,12 +767,12 @@ export default class OCPIUtilsService {
   }
 
   // FIXME: We should probably only have charging station output characteristics everywhere
-  private static getChargingStationOCPIVoltage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): number {
+  private static getChargingStationOCPIVoltage(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId: number): OCPIVoltage {
     switch (Utils.getChargingStationCurrentType(chargingStation, chargePoint, connectorId)) {
       case CurrentType.AC:
         return Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
       case CurrentType.DC:
-        return 400;
+        return Voltage.VOLTAGE_400;
       default:
         return null;
     }
@@ -854,9 +859,9 @@ export default class OCPIUtilsService {
         endedAt: new Date(session.last_updated),
         consumptionWh: transaction.currentConsumptionWh,
         instantWatts: Math.floor(transaction.currentInstantWatts),
-        instantAmps: Math.floor(transaction.currentInstantWatts / 230),
+        instantAmps: Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
         cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
-        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / 230),
+        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / Voltage.VOLTAGE_230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :

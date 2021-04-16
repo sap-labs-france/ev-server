@@ -482,8 +482,7 @@ export default class Logging {
         })
       );
     } catch (error) {
-      // FIXME
-      // Error Message: Converting circular structure to JSON
+      // FIXME: Error Message: Converting circular structure to JSON
       // Temporary FIX: Utils.cloneObject() removed
       await Logging.logSecurityDebug({
         tenantID: tenantID,

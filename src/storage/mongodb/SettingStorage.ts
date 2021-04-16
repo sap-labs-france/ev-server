@@ -262,8 +262,7 @@ export default class SettingStorage {
   public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
     const settings = await SettingStorage.getBillingSettings(tenantID);
     if (settings.type === BillingSettingsType.STRIPE) {
-      if (!billingSettingsToSave.stripe.secretKey ||
-          (!billingSettingsToSave.stripe.immediateBillingAllowed && billingSettingsToSave.stripe.periodicBillingAllowed && !billingSettingsToSave.stripe.advanceBillingAllowed)) {
+      if (!billingSettingsToSave.stripe.secretKey) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -280,6 +279,7 @@ export default class SettingStorage {
       backupSensitiveData: billingSettingsToSave.backupSensitiveData,
       lastChangedOn: new Date(),
       content: {
+        billing: billingSettingsToSave.billing,
         stripe: billingSettingsToSave.stripe
       },
     } as SettingDB;
@@ -299,33 +299,24 @@ export default class SettingStorage {
       billingSettings.id = settings.result[0].id;
       billingSettings.sensitiveData = settings.result[0].sensitiveData;
       billingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
-      // Currency
-      const pricingSettings = await SettingStorage.getPricingSettings(tenantID);
-      let currency = 'EUR';
-      if (pricingSettings) {
-        if (pricingSettings.simple) {
-          currency = pricingSettings.simple.currency;
-        } else if (pricingSettings.convergentCharging) {
-          if (pricingSettings.convergentCharging['currency']) {
-            currency = pricingSettings.convergentCharging['currency'];
-          }
-        }
+      // Billing Common Properties
+      if (config.billing) {
+        const { immediateBillingAllowed, periodicBillingAllowed, taxID, usersLastSynchronizedOn } = config.billing;
+        billingSettings.billing = {
+          immediateBillingAllowed,
+          periodicBillingAllowed,
+          usersLastSynchronizedOn,
+          taxID,
+        };
       }
-      // Billing type
+      // Billing Concrete Implementation Properties
       if (config.stripe) {
         billingSettings.type = BillingSettingsType.STRIPE;
+        const { url, publicKey, secretKey } = config.stripe;
         billingSettings.stripe = {
-          url: config.stripe.url ? config.stripe.url : '',
-          publicKey: config.stripe.publicKey ? config.stripe.publicKey : '',
-          secretKey: config.stripe.secretKey ? config.stripe.secretKey : '',
-          currency: currency,
-          noCardAllowed: config.stripe.noCardAllowed ? config.stripe.noCardAllowed : false,
-          advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
-          immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
-          periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
-          usersLastSynchronizedOn: config.stripe.usersLastSynchronizedOn ? config.stripe.usersLastSynchronizedOn : new Date(0),
-          invoicesLastSynchronizedOn: config.stripe.invoicesLastSynchronizedOn ? config.stripe.invoicesLastSynchronizedOn : new Date(0),
-          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null
+          url,
+          publicKey,
+          secretKey,
         };
       }
       return billingSettings;

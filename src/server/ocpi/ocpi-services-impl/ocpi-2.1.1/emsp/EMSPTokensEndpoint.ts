@@ -127,9 +127,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
     let allowedStatus: OCPIAllowed;
-    if (tag.user.deleted) {
-      allowedStatus = OCPIAllowed.EXPIRED;
-    } else if (!tag.issuer) {
+    if (!tag.issuer) {
       allowedStatus = OCPIAllowed.NOT_ALLOWED;
     } else {
       switch (tag.user.status) {

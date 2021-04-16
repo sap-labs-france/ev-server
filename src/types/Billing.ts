@@ -23,13 +23,6 @@ export enum BillingStatus {
   BILLED = 'billed',
 }
 
-export enum BillingMethod {
-  IMMEDIATE = 'immediate',
-  PERIODIC = 'periodic',
-  ADVANCE = 'advance',
-}
-
-
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;
@@ -105,9 +98,9 @@ export interface BillingSessionData {
 }
 
 export interface BillingPricingData {
-  quantity: number,
-  amount: number,
-  currency: string
+  quantity: number;
+  amount: number;
+  currency: string;
 }
 
 export enum BillingInvoiceStatus {

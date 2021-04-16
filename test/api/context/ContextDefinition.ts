@@ -1,6 +1,7 @@
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
 
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import { Voltage } from '../../../src/types/ChargingStation';
 import faker from 'faker';
 
 export interface TenantDefinition {
@@ -177,16 +178,15 @@ export default class ContextDefinition {
       billing: {
         content: {
           type: BillingSettingsType.STRIPE,
+          billing: {
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            taxID: ''
+          },
           stripe: {
-            currency: 'EUR',
             url: '',
             secretKey: '',
             publicKey: '',
-            noCardAllowed: true,
-            immediateBillingAllowed: true,
-            periodicBillingAllowed: true,
-            advanceBillingAllowed: true,
-            taxID: ''
           }
         }
       }
@@ -306,16 +306,15 @@ export default class ContextDefinition {
       billing: {
         content: {
           type: BillingSettingsType.STRIPE,
+          billing: {
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            taxID: ''
+          },
           stripe: {
-            currency: 'EUR',
             url: '',
             secretKey: '',
             publicKey: '',
-            noCardAllowed: true,
-            immediateBillingAllowed: true,
-            periodicBillingAllowed: true,
-            advanceBillingAllowed: true,
-            taxID: ''
           }
         }
       },
@@ -625,7 +624,7 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}`,
       numberOfPhases: 3,
       maximumPower: 100000,
-      voltage: 230,
+      voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With smart charging single phased
@@ -633,7 +632,7 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_SINGLE_PHASED}`,
       numberOfPhases: 1,
       maximumPower: 100000,
-      voltage: 230,
+      voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With smart charging DC
@@ -641,7 +640,7 @@ export default class ContextDefinition {
       name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC}`,
       numberOfPhases: 3,
       maximumPower: 200000,
-      voltage: 230,
+      voltage: Voltage.VOLTAGE_230,
       siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     }
   ];
