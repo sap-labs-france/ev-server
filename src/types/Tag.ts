@@ -13,7 +13,6 @@ export default interface Tag extends CreatedUpdatedProps {
   ocpiToken?: OCPIToken;
   user?: User;
   default?: boolean
-  deleted?: boolean
 }
 
 export interface ImportedTag {
