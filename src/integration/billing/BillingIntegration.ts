@@ -338,43 +338,6 @@ export default abstract class BillingIntegration {
     }
   }
 
-  private async checkUser(user: User): Promise<BillingUser> {
-    // Check the user data
-    if (!user?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in e-Mobility',
-        detailedMessages: { user }
-      });
-    }
-    // Check billing user data
-    const billingUser = await this.getUser(user);
-    if (!billingUser?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in billing system',
-        detailedMessages: { user, billingUser }
-      });
-    }
-    if (user.billingData.customerID !== billingUser.billingData.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'Billing data is inconsistent',
-        detailedMessages: { user, billingUser }
-      });
-    }
-    return billingUser;
-  }
-
   abstract checkConnection(): Promise<void>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
