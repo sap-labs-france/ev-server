@@ -311,8 +311,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
   }
 
-  public static async canListUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.LIST);
+  public static async canListUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.LIST, authContext);
   }
 
   public static async canListUsers(loggedUser: UserToken): Promise<boolean> {

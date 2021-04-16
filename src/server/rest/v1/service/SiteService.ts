@@ -195,30 +195,21 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
-    // Check auth
-    if (!await Authorizations.canListUsersSites(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleGetUsers'
-      });
-    }
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteID, MODULE_NAME, 'handleGetUsers', req.user);
-    // Check Site
+    // Check Site - is this needed? it works without.
     try {
       await UtilsService.checkAndGetSiteAuthorization(
-        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action, {});
+        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action, {}, true);
     } catch (error) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Check auth
-    const authorizationSiteUsersFilters = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
+    // Check dynamic auth for reading Users
+    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    if (!authorizationSiteUsersFilters.authorized) {
+    if (!authorizationSiteUsersFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
@@ -227,7 +218,7 @@ export default class SiteService {
       {
         search: filteredRequest.Search,
         siteIDs: [ filteredRequest.SiteID ],
-        ...authorizationSiteUsersFilters.filters
+        ...authorizationSiteUsersFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -235,7 +226,7 @@ export default class SiteService {
         sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      authorizationSiteUsersFilters.projectFields
+      authorizationSiteUsersFilter.projectFields
     );
     res.json(users);
     next();

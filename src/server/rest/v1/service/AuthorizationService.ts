@@ -125,22 +125,33 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetSiteUsersAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetSiteUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [ ],
+      authorized: false,
     };
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canListUsersSites(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorizationFilters',
+      });
+    }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.USERS_SITES,
+      authorizationFilters, authorizationContext, { SiteID: filteredRequest.SiteID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, filteredRequest, authorizationFilters);
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
