@@ -29,19 +29,19 @@ export default class AxiosFactory {
       // Create
       axiosInstance = axios.create(instanceConfiguration.axiosConfig);
       // Add a Request interceptor
-      axiosInstance.interceptors.request.use((request: AxiosRequestConfig) => {
-        void Logging.logAxiosRequest(tenantID, request);
+      axiosInstance.interceptors.request.use(async (request: AxiosRequestConfig) => {
+        await Logging.logAxiosRequest(tenantID, request);
         return request;
       }, async (error: AxiosError) => {
-        void Logging.logAxiosError(tenantID, error);
+        await Logging.logAxiosError(tenantID, error);
         return Promise.reject(error);
       });
       // Add a Response interceptor
-      axiosInstance.interceptors.response.use((response: AxiosResponse) => {
-        void Logging.logAxiosResponse(tenantID, response);
+      axiosInstance.interceptors.response.use(async (response: AxiosResponse) => {
+        await Logging.logAxiosResponse(tenantID, response);
         return response;
       }, async (error: AxiosError) => {
-        void Logging.logAxiosError(tenantID, error);
+        await Logging.logAxiosError(tenantID, error);
         return Promise.reject(error);
       });
       // Add

@@ -178,16 +178,15 @@ export default class ContextDefinition {
       billing: {
         content: {
           type: BillingSettingsType.STRIPE,
+          billing: {
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            taxID: ''
+          },
           stripe: {
-            currency: 'EUR',
             url: '',
             secretKey: '',
             publicKey: '',
-            noCardAllowed: true,
-            immediateBillingAllowed: true,
-            periodicBillingAllowed: true,
-            advanceBillingAllowed: true,
-            taxID: ''
           }
         }
       }
@@ -307,16 +306,15 @@ export default class ContextDefinition {
       billing: {
         content: {
           type: BillingSettingsType.STRIPE,
+          billing: {
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            taxID: ''
+          },
           stripe: {
-            currency: 'EUR',
             url: '',
             secretKey: '',
             publicKey: '',
-            noCardAllowed: true,
-            immediateBillingAllowed: true,
-            periodicBillingAllowed: true,
-            advanceBillingAllowed: true,
-            taxID: ''
           }
         }
       },
