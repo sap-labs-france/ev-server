@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
-import { BillingSettings, StripeBillingSetting } from '../../../types/Setting';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import BillingIntegration from '../BillingIntegration';
+import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -35,12 +35,28 @@ export default class StripeBillingIntegration extends BillingIntegration {
     this.axiosInstance = AxiosFactory.getAxiosInstance(this.tenantID);
   }
 
-  public static checkSettingsConsistency(settings: StripeBillingSetting): boolean {
-    if (settings.url && settings.secretKey && settings.publicKey) {
-      return true;
+  public static getInstance(tenantID: string, settings: BillingSettings): StripeBillingIntegration {
+    if (settings.stripe?.url && settings.stripe?.secretKey && settings.stripe?.publicKey) {
+      return new StripeBillingIntegration(tenantID, settings);
     }
     // STRIPE prerequisites are not met
-    return false ;
+    return null;
+  }
+
+  private static async isConnectedToALiveAccount(stripeFacade: Stripe): Promise<boolean> {
+    try {
+      // TODO - find a way to avoid that call
+      const list = await stripeFacade.customers.list({ limit: 1 });
+      return !!list.data?.[0]?.livemode;
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'isConnectedToALiveAccount',
+        action: ServerAction.CHECK_CONNECTION,
+        message: 'Failed to connect to Stripe',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
   }
 
   public async getStripeInstance(): Promise<Stripe> {
@@ -49,26 +65,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return this.stripe;
   }
 
-  // public alterStripeSettings(someSettings: Partial<StripeBillingSetting>): void {
-  //   // TODO - To be removed - only used by automated tests!
-  //   this.settings = {
-  //     ...this.settings,
-  //     ...someSettings // overrides default settings to test different scenarios - e.g.: VAT 20%
-  //   };
-  // }
-
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async checkConnection(): Promise<void> {
     // Initialize Stripe
     if (!this.stripe) {
-      // STRIPE not yet initialized - let's do it!
-      if (!this.settings.stripe.secretKey) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
-          message: 'No secret key provided for connection to Stripe'
-        });
-      }
       try {
         this.settings.stripe.secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
       } catch (error) {
@@ -93,31 +93,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           message: 'Failed to connect to Stripe'
         });
       }
-      // Validate the connection
-      let isKeyValid = false;
-      try {
-        // TODO - Get one customer - to be clarified - Is this call necessary?
-        const list = await this.stripe.customers.list({ limit: 1 });
-        if (('object' in list) && (list.object === 'list')) {
-          isKeyValid = true;
-        }
-      } catch (error) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe',
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-      if (!isKeyValid) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe - Invalid Key',
-        });
-      }
+      this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
     }
   }
 
@@ -663,7 +639,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Transaction
     this.checkStartTransaction(transaction);
 
-    if (this.__liveMode) {
+    if (this.productionMode) {
       // Check that the customer STRIPE exists
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
@@ -775,7 +751,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (customer) {
         const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
         return billingDataTransactionStop;
-      } else if (this.__liveMode) {
+      } else if (this.productionMode) {
         // This should not happen - the startTransaction should have been rejected
         throw new Error(`Unexpected situation - No STRIPE customer - Transaction ID '${transaction.id}'`);
       }

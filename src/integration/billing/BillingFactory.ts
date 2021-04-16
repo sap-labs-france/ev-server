@@ -1,4 +1,4 @@
-import { BillingSetting, BillingSettings, BillingSettingsType } from '../../types/Setting';
+import { BillingSettings, BillingSettingsType } from '../../types/Setting';
 
 import BillingIntegration from './BillingIntegration';
 import Logging from '../../utils/Logging';
@@ -25,10 +25,7 @@ export default class BillingFactory {
         let billingIntegrationImpl = null;
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            if (StripeBillingIntegration.checkSettingsConsistency(settings.stripe)) {
-              // Only call the constructor when the prerequisites are met
-              billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings);
-            }
+            billingIntegrationImpl = StripeBillingIntegration.getInstance(tenantID, settings);
             break;
         }
         return billingIntegrationImpl;
