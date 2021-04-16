@@ -1,8 +1,7 @@
 import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
-import { BillingSetting, BillingSettings, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
-import BillingIntegration from '../../src/integration/billing/BillingIntegration';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -14,6 +13,7 @@ import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
+import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
@@ -44,10 +44,29 @@ class TestData {
   public chargingStationContext: ChargingStationContext;
   public createdUsers: User[] = [];
   // Dynamic User for testing billing against an empty STRIPE account
-  public dynamicUser: User;
   // Billing Implementation - STRIPE?
-  public billingImpl: BillingIntegration;
+  public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
+
+  public async assignPaymentMethod(user: User, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
+    // Assign a source using test tokens (instead of test card numbers)
+    // c.f.: https://stripe.com/docs/testing#cards
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    const customerID = user.billingData?.customerID;
+    expect(customerID).to.not.be.null;
+    // TODO - rethink that part - the concrete billing implementation should be called instead
+    const source = await stripeInstance.customers.createSource(customerID, {
+      source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
+    });
+    expect(source).to.not.be.null;
+    // TODO - rethink that part - the concrete billing implementation should be called instead
+    const customer = await stripeInstance.customers.update(customerID, {
+      default_source: source.id
+    });
+    expect(customer).to.not.be.null;
+    return source;
+  }
 
   public async setBillingSystemValidCredentials() : Promise<StripeBillingIntegration> {
     const billingSettings = this.getLocalSettings(false);
@@ -207,6 +226,7 @@ describe('Billing Service', function() {
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        await testData.assignPaymentMethod(testData.userContext, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
@@ -435,11 +455,12 @@ describe('Billing Service', function() {
           testData.tenantContext.getTenant().subdomain,
           testData.userContext
         );
-        await testData.userService.billingApi.synchronizeInvoices({});
+        // await testData.userService.billingApi.synchronizeInvoices({});
+        await testData.assignPaymentMethod(testData.userContext, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(basicUser.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
-        await testData.userService.billingApi.synchronizeInvoices({});
+        // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(basicUser.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });

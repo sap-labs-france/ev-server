@@ -685,7 +685,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (!customer.default_source) {
+    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
       throw new BackendError({
         message: `Customer has no default payment method - ${customer.id}`,
         source: Constants.CENTRAL_SERVER,
