@@ -41,8 +41,10 @@ export interface SettingDBContent {
   | CarConnectorSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
+  // pricing?: PricingSetting;  //TODO - reorg pricing similar to billing
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
+  billing?: BillingSetting;
   stripe?: StripeBillingSetting;
   sac?: SacAnalyticsSetting;
   links?: SettingLink[];
@@ -230,24 +232,21 @@ export enum BillingSettingsType {
 export interface BillingSettings extends Setting {
   identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
+  billing: BillingSetting;
   stripe?: StripeBillingSetting;
 }
 
 export interface BillingSetting {
+  immediateBillingAllowed: boolean;
+  periodicBillingAllowed: boolean;
+  taxID: string;
   usersLastSynchronizedOn?: Date;
-  invoicesLastSynchronizedOn?: Date
 }
 
-export interface StripeBillingSetting extends BillingSetting {
+export interface StripeBillingSetting {
   url: string;
   secretKey: string;
   publicKey: string;
-  noCardAllowed: boolean;
-  immediateBillingAllowed: boolean;
-  periodicBillingAllowed: boolean;
-  advanceBillingAllowed: boolean;
-  currency: string;
-  taxID: string;
 }
 
 export enum BillingContentType {
@@ -338,7 +337,6 @@ export interface CarConnectorMercedesConnectionType {
   clientId: string;
   clientSecret: string;
 }
-
 
 export enum CryptoSettingsType {
   CRYPTO = 'crypto'

@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.4.61",
+  "version": "2.4.62",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
@@ -95,7 +95,7 @@
     "npm-check": "npm-check",
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'build/types/**/*.ts{,x}'",
     "xmake:download-node-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/org/nodejs/download/node/node-headers/14.15.4/node-headers-14.15.4.tar.gz -P ${WORKSPACE}/gen/tmp/",
-    "xmake:download-libvibs-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/lovell/sharp/libvips/8.10.5/libvips-8.10.5-linux-x64.tar.gz -P ~/.npm/_libvips/"
+    "xmake:download-libvibs-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/lovell/sharp/libvips/8.10.6/libvips-8.10.6-linux-x64.tar.br -P ${WORKSPACE}/gen/tmp/libvips/v8.10.6/"
   },
   "dependencies": {
     "JSONStream": "^1.3.5",

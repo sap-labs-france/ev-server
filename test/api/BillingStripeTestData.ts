@@ -1,5 +1,5 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
-import { BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSettings, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -10,6 +10,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
+import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
@@ -68,50 +69,57 @@ export default class StripeIntegrationTestData {
   }
 
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(immediateBilling);
-    await this.saveBillingSettings(stripeSettings);
-    stripeSettings.secretKey = await Cypher.encrypt(this.getTenantID(), stripeSettings.secretKey);
-    const billingImpl = new StripeBillingIntegration(this.getTenantID(), stripeSettings);
+    const billingSettings = this.getLocalSettings(immediateBilling);
+    await this.saveBillingSettings(billingSettings);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
+    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(false);
-    stripeSettings.secretKey = await Cypher.encrypt(this.getTenantID(), 'sk_test_' + 'invalid_credentials');
-    await this.saveBillingSettings(stripeSettings);
-    const billingImpl = new StripeBillingIntegration(this.getTenantID(), stripeSettings);
+    const billingSettings = this.getLocalSettings(false);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), 'sk_test_' + 'invalid_credentials');
+    await this.saveBillingSettings(billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
     expect(this.billingImpl).to.not.be.null;
     return billingImpl;
   }
 
-  public getLocalSettings(immediateBilling: boolean): StripeBillingSetting {
-    const settings: StripeBillingSetting = {
-      url: config.get('billing.url'),
-      publicKey: config.get('billing.publicKey'),
-      secretKey: config.get('billing.secretKey'),
-      noCardAllowed: config.get('billing.noCardAllowed'),
-      advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
-      currency: config.get('billing.currency'),
+  public getLocalSettings(immediateBilling: boolean): BillingSettings {
+    const billingProperties = {
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
+    };
+    const stripeProperties = {
+      url: config.get('stripe.url'),
+      publicKey: config.get('stripe.publicKey'),
+      secretKey: config.get('stripe.secretKey'),
+    };
+    const settings: BillingSettings = {
+      identifier: TenantComponents.BILLING,
+      type: BillingSettingsType.STRIPE,
+      billing: billingProperties,
+      stripe: stripeProperties,
     };
 
     // ---------------------------------------------------------
     // Our test needs the immediate billing to be switched off!
     // Because we want to check the DRAFT state of the invoice
-    settings.immediateBillingAllowed = immediateBilling;
+    settings.billing.immediateBillingAllowed = immediateBilling;
     // ---------------------------------------------------------
     return settings;
   }
 
-  public async saveBillingSettings(stripeSettings: StripeBillingSetting) : Promise<void> {
+  public async saveBillingSettings(billingSettings: BillingSettings) : Promise<void> {
+    // TODO - rethink that part
     const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
     componentSetting.content.type = BillingSettingsType.STRIPE;
-    componentSetting.content.stripe = stripeSettings;
+    componentSetting.content.billing = billingSettings.billing;
+    componentSetting.content.stripe = billingSettings.stripe;
     componentSetting.sensitiveData = ['content.stripe.secretKey'];
     await this.adminUserService.settingApi.update(componentSetting);
   }
@@ -119,10 +127,9 @@ export default class StripeIntegrationTestData {
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getLocalSettings(false);
     // Check that the mandatory settings are properly provided
-    return (!!billingSettings.publicKey
-      && !!billingSettings.secretKey
-      && !!billingSettings.url
-      && !!billingSettings.currency);
+    return (!!billingSettings.stripe.publicKey
+      && !!billingSettings.stripe.secretKey
+      && !!billingSettings.stripe.url);
   }
 
   public async assignPaymentMethod(stripe_test_token: string) : Promise<Stripe.CustomerSource> {
