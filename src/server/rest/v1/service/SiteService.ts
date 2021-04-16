@@ -145,16 +145,6 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
-    // Check static auth
-    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
-    if (!await Authorizations.canAssignUsersSites(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: authAction, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleAssignUsersToSite'
-      });
-    }
     // Filter request
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check mandatory fields

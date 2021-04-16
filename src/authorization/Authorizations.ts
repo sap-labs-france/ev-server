@@ -303,12 +303,12 @@ export default class Authorizations {
 
   }
 
-  public static async canAssignUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.ASSIGN);
+  public static async canAssignUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.ASSIGN, authContext);
   }
 
-  public static async canUnassignUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
+  public static async canUnassignUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.UNASSIGN, authContext);
   }
 
   public static async canListUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {

@@ -269,6 +269,17 @@ export default class UtilsService {
 
   public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'handleAssignUsersToSite', userToken);
+    if (Utils.isEmptyArray(userIDs)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The User\'s IDs must be provided',
+        module: MODULE_NAME, method: 'handleAssignUsersToSite',
+        user: userToken
+      });
+    }
     // Check dynamic auth for assignment
     const authorizationFilter = await AuthorizationService.checkAssignSiteUsersAuthorizationFilters(
       tenant, action, userToken, { siteID: site.id, userIDs });
