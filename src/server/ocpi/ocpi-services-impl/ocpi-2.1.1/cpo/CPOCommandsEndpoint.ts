@@ -145,7 +145,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (connector.status !== ChargePointStatus.AVAILABLE &&
-      connector.status !== ChargePointStatus.PREPARING) {
+        connector.status !== ChargePointStatus.PREPARING) {
       await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_STOP_SESSION,
@@ -276,15 +276,15 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   private validateStopSession(stopSession: OCPIStopSession): boolean {
     if (!stopSession ||
-      !stopSession.response_url ||
-      !stopSession.session_id) {
+        !stopSession.response_url ||
+        !stopSession.session_id) {
       return false;
     }
     return true;
   }
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
-    connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+      connector: Connector, startSession: OCPIStartSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -308,7 +308,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number,
-    stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
+      stopSession: OCPIStopSession, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
@@ -332,8 +332,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   private async sendCommandResponse(tenant: Tenant, action: ServerAction, responseUrl: string, responseType: OCPICommandResponseType, ocpiEndpoint: OCPIEndpoint) {
     // Build payload
-    const payload: OCPICommandResponse =
-    {
+    const payload: OCPICommandResponse = {
       result: responseType
     };
     // Log
