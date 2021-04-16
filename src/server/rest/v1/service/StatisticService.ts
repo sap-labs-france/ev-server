@@ -470,39 +470,48 @@ export default class StatisticService {
     return transactions;
   }
 
-  static convertToCSV(transactionStats: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
-    // Build header row
-    const getYearAndMonthCells = (year: number | string, dataScope?: string) : string => {
-      if (year && year !== '0') {
-        const year = 'year';
-        if (dataScope && dataScope === 'month') {
-          return [year, 'month'].join(Constants.CSV_SEPARATOR);
-        }
-        return year;
-      }
+  static getPricingCell(transaction: any, numberOfTransaction: number): string[] {
+    if (transaction._id.unit) {
+      return [numberOfTransaction.toString(), transaction._id.unit];
     }
+    return [numberOfTransaction.toString(), ' '];
+  }
 
-    const getdataTypeCells = (dataType: string) : string => {
-      switch (dataType) {
-        case 'Consumption':
-          return 'consumption';
-        case 'Usage':
-          return 'usage';
-        case 'Inactivity':
-          return 'inactivity'
-        case 'Transactions':
-          return 'numberOfSessions';
-        case 'Pricing':
-          return ['price', 'priceUnit'].join(Constants.CSV_SEPARATOR);
-        default:
-          return '';
+  // Build header row
+  static getYearAndMonthCells(year: number | string, dataScope?: string) : string {
+    if (year && year !== '0') {
+      const yearHeader = 'year';
+      if (dataScope && dataScope === 'month') {
+        return [yearHeader, 'month'].join(Constants.CSV_SEPARATOR);
       }
+      return yearHeader;
     }
+  }
+
+  // Build dataType cells
+  static getdataTypeCells = (dataType: string) : string => {
+    switch (dataType) {
+      case 'Consumption':
+        return 'consumption';
+      case 'Usage':
+        return 'usage';
+      case 'Inactivity':
+        return 'inactivity';
+      case 'Transactions':
+        return 'numberOfSessions';
+      case 'Pricing':
+        return ['price', 'priceUnit'].join(Constants.CSV_SEPARATOR);
+      default:
+        return '';
+    }
+  };
+
+  static convertToCSV(transactionStats: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
     const headers = [
       dataCategory === 'C' ? 'chargingStation' : 'user',
-      getYearAndMonthCells(year, dataScope),
-      getdataTypeCells(dataType)
-    ]
+      StatisticService.getYearAndMonthCells(year, dataScope),
+      StatisticService.getdataTypeCells(dataType)
+    ];
     let index: number;
     const transactions = [];
     if (transactionStats && transactionStats.length > 0) {
@@ -619,9 +628,9 @@ export default class StatisticService {
         });
       }
       // Now build the export file
-      let number: number;
+      let numberOfTransaction: number;
       const rows = transactions.map((transaction) => {
-        number = Utils.truncTo(transaction.total, 2);
+        numberOfTransaction = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
@@ -629,17 +638,10 @@ export default class StatisticService {
           dataCategory === 'C' ? transaction._id.chargeBox : Utils.buildUserFullName(transaction.user, false),
           year && year !== '0' ? year : '',
           transaction._id.month > 0 ? transaction._id.month : '',
-          dataType === 'Pricing' ? getPricingCell(transaction) : number.toString()
-        ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+          dataType === 'Pricing' ? StatisticService.getPricingCell(transaction, numberOfTransaction) : numberOfTransaction.toString()
+        ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
         return row;
       }).join(Constants.CR_LF);
-      // Build pricing cell
-      const getPricingCell = (transaction: any) => {
-        if (transaction._id.unit) {
-          return [number.toString(), transaction._id.unit];
-        }
-        return [number.toString(), ' '];
-      };
       return [headers, rows].join(Constants.CR_LF);
     }
   }
