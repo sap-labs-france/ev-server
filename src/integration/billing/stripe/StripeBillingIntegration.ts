@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -93,7 +94,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
           message: 'Failed to connect to Stripe'
         });
       }
-      this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
+      // TODO - rethink that part - this is slow and useless!
+      // this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
     }
   }
 
@@ -648,7 +650,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     this.checkStartTransaction(transaction);
     // Check Start Transaction Prerequisites
     const customerID: string = transaction.user?.billingData?.customerID;
-    if (this.productionMode) {
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
       // Check whether the customer exists or not
       const customer = await this.checkStripeCustomer(customerID);
       // Check whether the customer has a default payment method
@@ -685,14 +687,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
-      throw new BackendError({
-        message: `Customer has no default payment method - ${customer.id}`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'startTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_DEFAULT_PAYMENT_METHOD)) {
+      if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+        throw new BackendError({
+          message: `Customer has no default payment method - ${customer.id}`,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'startTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
     }
   }
 
@@ -787,9 +791,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (customer) {
         const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
         return billingDataTransactionStop;
-      } else if (this.productionMode) {
-        // This should not happen - the startTransaction should have been rejected
-        throw new Error(`Unexpected situation - No STRIPE customer - Transaction ID '${transaction.id}'`);
       }
     } catch (error) {
       await Logging.logError({

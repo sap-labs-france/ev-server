@@ -20,7 +20,6 @@ export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
 }
-
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;

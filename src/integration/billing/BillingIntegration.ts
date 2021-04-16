@@ -1,4 +1,5 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 /* eslint-disable @typescript-eslint/member-ordering */
 import User, { UserStatus } from '../../types/User';
 
@@ -60,7 +61,16 @@ export default abstract class BillingIntegration {
         message: `${users.length} new user(s) are going to be synchronized`
       });
       // Check LIVE MODE
-      if (!this.productionMode) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+        for (const user of users) {
+          // Synchronize user
+          if (await this.synchronizeUser(user)) {
+            actionsDone.inSuccess++;
+          } else {
+            actionsDone.inError++;
+          }
+        }
+      } else {
         await Logging.logWarning({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
@@ -68,15 +78,6 @@ export default abstract class BillingIntegration {
           module: MODULE_NAME, method: 'synchronizeUsers',
           message: 'Live Mode is OFF - operation has been aborted'
         });
-      } else {
-        for (const user of users) {
-        // Synchronize user
-          if (await this.synchronizeUser(user)) {
-            actionsDone.inSuccess++;
-          } else {
-            actionsDone.inError++;
-          }
-        }
       }
     }
     // Log
@@ -282,9 +283,9 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.productionMode) {
-      // Check Billing Data (only in Live Mode)
-      if (!transaction.user.billingData) {
+    // Check Billing Data
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
           message: 'User has no Billing Data',
           source: Constants.CENTRAL_SERVER,
@@ -293,14 +294,6 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStopTransaction',
-        message: 'Live Mode is OFF - checkStopTransaction is being performed without checking billing data'
-      });
     }
   }
 
@@ -315,26 +308,17 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.productionMode) {
-      // Check Billing Data (only in Live Mode)
-      const billingUser = transaction.user;
-      if (!billingUser.billingData || !billingUser.billingData.customerID) {
+    // Check Billing Data (only in Live Mode)
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
-          message: 'Transaction user has no billing method or no customer in Stripe',
+          message: 'User has no billing data or no customer in Stripe',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'checkStartTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStartTransaction',
-        message: 'Live Mode is OFF - checkStartTransaction is being performed without checking billing data'
-      });
     }
   }
 
