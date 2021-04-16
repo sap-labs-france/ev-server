@@ -22,36 +22,35 @@ export default class CleanUpLogicallyDeletedUsersTask extends MigrationTask {
 
   async migrateTenant(tenant: Tenant): Promise<void> {
     // Get logically deleted users
-    const userCollection = global.database.getCollection<any>(tenant.id, 'users');
-    const users = await userCollection.find({
+    const deletedUsersMDB = await global.database.getCollection<any>(tenant.id, 'users').find({
       deleted : true
     }).toArray();
-
-    let counter = 0, userID: string;
-    for (const user of users) {
-      userID = user._id.toString();
+    let counter = 0;
+    for (const deletedUserMDB of deletedUsersMDB) {
+      const userID = deletedUserMDB._id.toString();
       const carUsers = await CarStorage.getCarUsers(tenant.id, { userIDs : [userID] }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (carUsers.count > 0) {
+      if (!Utils.isEmptyArray(carUsers.result)) {
         for (const carUser of carUsers.result) {
-          // Owner ?
+          // Owner?
           if (carUser.owner) {
-            // Private ?
-            const car = await CarStorage.getCar(tenant.id, carUser.carID, { type: CarType.PRIVATE });
-            if (car) {
-              // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(tenant.id, car.id);
-              // Delete Car
-              await CarStorage.deleteCar(tenant.id, car.id);
+            // Get the Private Cars of the Deleted User
+            const privateCar = await CarStorage.getCar(tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            if (privateCar) {
+              // Delete All Private Cars assignment
+              await CarStorage.deleteCarUsersByCarID(tenant.id, privateCar.id);
+              // Delete Private Car
+              await CarStorage.deleteCar(tenant.id, privateCar.id);
             } else {
-              // Delete User Car
+              // Delete Car assignment
               await CarStorage.deleteCarUser(tenant.id, carUser.id);
             }
           } else {
-            // Delete User Car
+            // Delete Car assignment
             await CarStorage.deleteCarUser(tenant.id, carUser.id);
           }
         }
       }
+      // Delete the User physically
       await UserStorage.deleteUser(tenant.id, userID);
       counter++;
     }
