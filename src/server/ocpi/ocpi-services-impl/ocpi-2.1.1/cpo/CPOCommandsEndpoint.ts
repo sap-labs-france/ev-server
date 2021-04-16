@@ -103,7 +103,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    if (localToken.user?.deleted || localToken.user?.issuer) {
+    if (!Utils.isNullOrUndefined(localToken.user) || localToken.user?.issuer) {
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Get the Charging Station
@@ -189,7 +189,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     // Save Auth
     await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     // Called Async as the response to the eMSP is sent asynchronously and this request has to finish before the command returns
-    void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => {});
+    void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => { });
     // Ok
     return this.buildOCPIResponse(OCPICommandResponseType.ACCEPTED);
   }
@@ -332,10 +332,9 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
 
   private async sendCommandResponse(tenant: Tenant, action: ServerAction, responseUrl: string, responseType: OCPICommandResponseType, ocpiEndpoint: OCPIEndpoint) {
     // Build payload
-    const payload: OCPICommandResponse =
-      {
-        result: responseType
-      };
+    const payload: OCPICommandResponse = {
+      result: responseType
+    };
     // Log
     await Logging.logDebug({
       tenantID: tenant.id,

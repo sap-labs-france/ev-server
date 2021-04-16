@@ -2157,23 +2157,20 @@ export default class OCPPUtils {
   }
 
   private static checkAndSetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): void {
-    if (chargingStation.capabilities?.supportStaticLimitation) {
-      const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-      // Check connector amperage limit
-      const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
-      if (connectorAmperageLimit) {
-        connector.amperageLimit = connectorAmperageLimit;
-      }
-    } else {
-      delete connector.amperageLimit;
+    const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+    // Check connector amperage limit
+    const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
+    if (connectorAmperageLimit) {
+      // Reset
+      connector.amperageLimit = connectorAmperageLimit;
     }
+    // Keep
   }
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
-    const numberOfConnectors = chargingStation?.connectors.length ?? 1;
-    const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
+    const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases;
     if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
       return connectorAmperageLimitMax;
     } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {

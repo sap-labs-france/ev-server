@@ -880,7 +880,13 @@ export default class TransactionService {
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
-      }, [
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields
+      },
+      [
         'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
         'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
       ]);
@@ -934,9 +940,7 @@ export default class TransactionService {
         transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '',
         transaction.stop ? transaction.stop.roundedPrice : '',
         transaction.stop ? transaction.stop.priceUnit : ''
-      ].map((value) => {
-        return typeof value === 'string' ? '"' + value.replace('"', '""') + '"': value;
-      }); 
+      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);

@@ -757,6 +757,21 @@ export default class Authorizations {
     return user.role === UserRole.DEMO;
   }
 
+  public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
+    // Check
+    const authDefinition = AuthorizationsDefinition.getInstance();
+    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
+    if (!result.authorized && Authorizations.getConfiguration().debug) {
+      void Logging.logSecurityInfo({
+        tenantID: loggedUser.tenantID, user: loggedUser,
+        action: ServerAction.AUTHORIZATIONS,
+        module: MODULE_NAME, method: 'canPerformAction',
+        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
+      });
+    }
+    return result;
+  }
+
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     // Get the Organization component
@@ -1053,20 +1068,5 @@ export default class Authorizations {
       });
     }
     return authorized;
-  }
-
-  private static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
-    // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
-    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
-    if (!result.authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
-        tenantID: loggedUser.tenantID, user: loggedUser,
-        action: ServerAction.AUTHORIZATIONS,
-        module: MODULE_NAME, method: 'canPerformAction',
-        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
-      });
-    }
-    return result;
   }
 }
