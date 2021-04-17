@@ -1,3 +1,4 @@
+import { StatsDataCategory, StatsDataScope, StatsDataType } from '../Statistic';
 
 export default interface HttpStatisticsRequest {
   Year?: number;
@@ -12,9 +13,9 @@ export default interface HttpStatisticsRequest {
   ChargeBoxIDs?: string[];
   UserID?: string;
   UserIDs?: string[];
-  DataType?: string;
-  DataCategory?: string;
-  DataScope?: string;
+  DataType?: StatsDataType;
+  DataCategory?: StatsDataCategory;
+  DataScope?: StatsDataScope;
 }
 
 export interface HttpMetricsStatisticsRequest {

@@ -464,6 +464,7 @@ export default class CarStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
+    // Execute
     const carMakersMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
         allowDiskUse: true
