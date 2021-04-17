@@ -168,11 +168,14 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        status: transactionToSave.billingData.status,
-        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
-        invoiceStatus: transactionToSave.billingData.invoiceStatus,
-        invoiceItem: transactionToSave.billingData.invoiceItem,
+        withBillingActive: transactionToSave.billingData.withBillingActive,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        stop: {
+          status: transactionToSave.billingData.stop?.status,
+          invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
+          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
+        },
       };
     }
     if (transactionToSave.ocpiData) {
@@ -1282,8 +1285,9 @@ export default class TransactionStorage {
             $match: {
               $or: [
                 { 'billingData': { $exists: false } },
-                { 'billingData.invoiceID': { $exists: false } },
-                { 'billingData.invoiceID': { $eq: null } }
+                { 'billingData.stop': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $eq: null } }
               ]
             }
           },

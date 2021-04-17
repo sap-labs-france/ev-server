@@ -885,42 +885,6 @@ export default class Logging {
     });
   }
 
-  // Console Log
-  private static _consoleLog(log): void {
-    let logFn;
-    // Set the function to log
-    switch (log.level) {
-      case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
-        logFn = console.debug;
-        break;
-      case LogLevel.ERROR:
-        // eslint-disable-next-line no-console
-        logFn = console.error;
-        break;
-      case LogLevel.WARNING:
-        // eslint-disable-next-line no-console
-        logFn = console.warn;
-        break;
-      case LogLevel.INFO:
-        // eslint-disable-next-line no-console
-        logFn = console.info;
-        break;
-      default:
-        // eslint-disable-next-line no-console
-        logFn = console.log;
-        break;
-    }
-
-    // Log
-    log.timestamp = new Date();
-    if (log.simpleMessage) {
-      logFn(log.timestamp.toISOString() + ' ' + log.simpleMessage);
-    } else {
-      logFn(log);
-    }
-  }
-
   // Log
   private static getCFLogLevel(logLevel): string {
     // Log level
