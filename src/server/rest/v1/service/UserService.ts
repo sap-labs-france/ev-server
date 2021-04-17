@@ -466,7 +466,7 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          await billingImpl.updateUser(user);
+          await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -1034,7 +1034,7 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.createUser(user);
+          await billingImpl.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,

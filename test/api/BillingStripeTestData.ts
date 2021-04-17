@@ -1,5 +1,6 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
-import { BillingSettings, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -64,6 +65,9 @@ export default class StripeIntegrationTestData {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
     this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
+    if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+      this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
+    }
     assert(this.billingUser, 'Billing user should not be null');
   }
 

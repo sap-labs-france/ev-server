@@ -49,19 +49,18 @@ export default abstract class BillingIntegration {
       inSuccess: 0,
       inError: 0
     };
-    // Sync e-Mobility Users with no billing data
-    const users: User[] = await this._getUsersWithNoBillingData();
-    if (users.length > 0) {
-      // Process them
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: `${users.length} new user(s) are going to be synchronized`
-      });
-      // Check LIVE MODE
-      if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+      // Sync e-Mobility Users with no billing data
+      const users: User[] = await this._getUsersWithNoBillingData();
+      if (users.length > 0) {
+        // Process them
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'synchronizeUsers',
+          message: `${users.length} new user(s) are going to be synchronized`
+        });
         for (const user of users) {
           // Synchronize user
           if (await this.synchronizeUser(user)) {
@@ -76,7 +75,7 @@ export default abstract class BillingIntegration {
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USERS,
           module: MODULE_NAME, method: 'synchronizeUsers',
-          message: 'Live Mode is OFF - operation has been aborted'
+          message: 'Feature is switched OFF - operation has been aborted'
         });
       }
     }
@@ -98,26 +97,36 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
-    try {
-      billingUser = await this._synchronizeUser(user);
-      await Logging.logInfo({
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+      try {
+        billingUser = await this._synchronizeUser(user);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
+        });
+        return billingUser;
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    } else {
+      await Logging.logWarning({
         tenantID: this.tenantID,
-        actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
-      });
-      return billingUser;
-    } catch (error) {
-      await Logging.logError({
-        tenantID: this.tenantID,
-        actionOnUser: user,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        message: 'Feature is switched OFF - operation has been aborted'
       });
     }
     return billingUser;
@@ -176,10 +185,9 @@ export default abstract class BillingIntegration {
       // Specific use-case - Trying to REPAIR inconsistencies
       // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
       // ----------------------------------------------------------------------------------------------
-      let exists;
       try {
-        exists = await this.getUser(user);
-        if (!exists) {
+        billingUser = await this.getUser(user);
+        if (!billingUser) {
           billingUser = await this.createUser(user);
         } else {
           billingUser = await this.updateUser(user);
