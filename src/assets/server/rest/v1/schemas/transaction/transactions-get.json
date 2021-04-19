@@ -40,10 +40,12 @@
     },
     "RefundStatus": {
       "type": "string",
+      "pattern": "^((submitted|notSubmitted|cancelled|approved)(\\||submitted|notSubmitted|cancelled|approved)*)?$",
       "sanitize": "mongo"
     },
     "InactivityStatus": {
       "type": "string",
+      "pattern": "^([IWE](\\|[IWE])*)?$",
       "sanitize": "mongo"
     },
     "MinimalPrice": {

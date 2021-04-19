@@ -5225,7 +5225,8 @@
         "description": "Pipe separated Inactivity Statuses (I, W, E)",
         "required": false,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^([IWE](\\|[IWE])*)?$"
         }
       },
       "chargingProfileID": {
@@ -5322,17 +5323,19 @@
       "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Pipe separated connector statuses",
+        "description": "Pipe separated connector statuses (Available, Preparing, Charging, Occupied, SuspendedEVSE, SuspendedEV, Finishing, Reserved, Unavailable, Faulted",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^((Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)(\\||Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)*)?$"
         }
       },
       "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Pipe separated connector types",
+        "description": "Pipe separated connector types (T2, CCS, C, T1, T3C, T1CCS, D, U)",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^((T2|CCS|C|T1|T3C|T1CCS|D|U)(\\||T2|CCS|C|T1|T3C|T1CCS|D|U)*)?$"
         }
       },
       "LocLongitude": {
@@ -5380,7 +5383,8 @@
         "name": "RefundStatus",
         "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^((submitted|notSubmitted|cancelled|approved)(\\||submitted|notSubmitted|cancelled|approved)*)?$"
         }
       },
       "tagID": {
