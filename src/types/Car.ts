@@ -112,7 +112,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
   euroNCAPChild?: number;
   euroNCAPVRU?: number;
   euroNCAPSA?: number;
-  relatedVehicleIDSuccesor?: number;
+  relatedVehicleIDSuccessor?: number;
   eVDBDetailURL?: string;
   imageURLs?: string[];
   images?: string[];

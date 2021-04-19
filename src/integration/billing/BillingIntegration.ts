@@ -1,5 +1,4 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-/* eslint-disable @typescript-eslint/member-ordering */
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -29,16 +28,6 @@ export default abstract class BillingIntegration {
   protected constructor(tenantID: string, settings: BillingSettings) {
     this.tenantID = tenantID;
     this.settings = settings;
-  }
-
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenantID,
-      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
-      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
-    if (newUsers.count > 0) {
-      return newUsers.result;
-    }
-    return [];
   }
 
   public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
@@ -153,40 +142,6 @@ export default abstract class BillingIntegration {
         message: `Failed to force the synchronization of user: '${user.id}' - '${user.email}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-    }
-    return billingUser;
-  }
-
-  private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
-    // Check if we need to create or update a STRIPE customer
-    let billingUser: BillingUser = null;
-    if (!forceMode) {
-      // ------------------
-      // Regular Situation
-      // ------------------
-      const exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
-      if (!exists) {
-        billingUser = await this.createUser(user);
-      } else {
-        billingUser = await this.updateUser(user);
-      }
-    } else {
-      // ----------------------------------------------------------------------------------------------
-      // Specific use-case - Trying to REPAIR inconsistencies
-      // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
-      // ----------------------------------------------------------------------------------------------
-      let exists;
-      try {
-        exists = await this.getUser(user);
-        if (!exists) {
-          billingUser = await this.createUser(user);
-        } else {
-          billingUser = await this.updateUser(user);
-        }
-      } catch (error) {
-        // Let's repair it
-        billingUser = await this.repairUser(user);
-      }
     }
     return billingUser;
   }
@@ -336,6 +291,50 @@ export default abstract class BillingIntegration {
         message: 'Live Mode is OFF - checkStartTransaction is being performed without checking billing data'
       });
     }
+  }
+
+  private async _getUsersWithNoBillingData(): Promise<User[]> {
+    const newUsers = await UserStorage.getUsers(this.tenantID,
+      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
+      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+    if (newUsers.count > 0) {
+      return newUsers.result;
+    }
+    return [];
+  }
+
+  private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
+    // Check if we need to create or update a STRIPE customer
+    let billingUser: BillingUser = null;
+    if (!forceMode) {
+      // ------------------
+      // Regular Situation
+      // ------------------
+      const exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
+      if (!exists) {
+        billingUser = await this.createUser(user);
+      } else {
+        billingUser = await this.updateUser(user);
+      }
+    } else {
+      // ----------------------------------------------------------------------------------------------
+      // Specific use-case - Trying to REPAIR inconsistencies
+      // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
+      // ----------------------------------------------------------------------------------------------
+      let exists;
+      try {
+        exists = await this.getUser(user);
+        if (!exists) {
+          billingUser = await this.createUser(user);
+        } else {
+          billingUser = await this.updateUser(user);
+        }
+      } catch (error) {
+        // Let's repair it
+        billingUser = await this.repairUser(user);
+      }
+    }
+    return billingUser;
   }
 
   private async checkUser(user: User): Promise<BillingUser> {
