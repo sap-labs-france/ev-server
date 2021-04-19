@@ -43,4 +43,31 @@ export default class SiteAreaApi extends CrudApi {
     }, '/client/api/SiteAreaConsumption');
   }
 
+  public async assignChargingStations(SiteAreaId, ChargingStationIDs) {
+    return super.create({
+      siteAreaID: SiteAreaId,
+      chargingStationIDs: ChargingStationIDs
+    }, '/client/api/AddChargingStationsToSiteArea');
+  }
+
+  public async removeChargingStations(SiteAreaId, ChargingStationIDs) {
+    return super.create({
+      siteAreaID: SiteAreaId,
+      chargingStationIDs: ChargingStationIDs
+    }, '/client/api/RemoveChargingStationsFromSiteArea');
+  }
+
+  public async assignAssets(SiteAreaId, ChargingStationIDs) {
+    return super.create({
+      siteAreaID: SiteAreaId,
+      assetIDs: ChargingStationIDs
+    }, '/client/api/AddAssetsToSiteArea');
+  }
+
+  public async removeAssets(SiteAreaId, ChargingStationIDs) {
+    return super.create({
+      siteAreaID: SiteAreaId,
+      assetIDs: ChargingStationIDs
+    }, '/client/api/RemoveAssetsFromSiteArea');
+  }
 }

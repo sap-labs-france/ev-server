@@ -26,9 +26,7 @@ import UserService from './v1/service/UserService';
 import UtilsService from './v1/service/UtilsService';
 
 class RequestMapper {
-  // eslint-disable-next-line no-undef
   private static instances = new Map<string, RequestMapper>();
-  // eslint-disable-next-line no-undef
   private paths = new Map<string, number>();
   private actions = new Array<(action: ServerAction, req: Request, res: Response, next: NextFunction) => void|Promise<void>>();
 
@@ -340,7 +338,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -354,7 +352,7 @@ export default class CentralRestServerService {
               break;
             default:
               // Delegate
-              UtilsService.handleUnknownAction(action, req, res, next);
+              await UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }

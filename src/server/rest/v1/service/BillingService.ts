@@ -28,7 +28,7 @@ const MODULE_NAME = 'BillingService';
 export default class BillingService {
 
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canCheckConnectionBilling(req.user)) {
+    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -71,7 +71,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
+    if (!await Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -124,7 +124,7 @@ export default class BillingService {
 
   public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -148,7 +148,7 @@ export default class BillingService {
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the lock
     const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
@@ -177,7 +177,7 @@ export default class BillingService {
 
   public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -201,7 +201,7 @@ export default class BillingService {
     }
     // Get user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
     const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
@@ -227,7 +227,7 @@ export default class BillingService {
   }
 
   public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canReadTaxesBilling(req.user)) {
+    if (!await Authorizations.canReadTaxesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -261,7 +261,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoices');
-    if (!Authorizations.canListInvoicesBilling(req.user)) {
+    if (!await Authorizations.canListInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -271,7 +271,7 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
@@ -292,7 +292,7 @@ export default class BillingService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [
-        'id', 'number', 'status', 'amount', 'createdOn', 'nbrOfItems', 'currency', 'downloadable',
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
       ]);
     // Return
@@ -301,7 +301,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
+    if (!await Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -317,7 +317,7 @@ export default class BillingService {
     if (!Authorizations.isAdmin(req.user)) {
       // Get the User
       user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-      UtilsService.assertObjectExists(action, user, `User '${req.user.id}' does not exist`,
+      UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Get the billing impl
@@ -362,7 +362,7 @@ export default class BillingService {
   }
 
   public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
+    if (!await Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -387,7 +387,7 @@ export default class BillingService {
     const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Get the Invoice lock
     let synchronizeAction: BillingUserSynchronizeAction = {
@@ -423,7 +423,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
     // Check Auth
-    if (!Authorizations.canCreateTransactionInvoice(req.user)) {
+    if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -447,18 +447,19 @@ export default class BillingService {
     // Get the Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
       Utils.convertToInt(filteredRequest.transactionID));
-    UtilsService.assertObjectExists(action, transaction, `Transaction '${filteredRequest.transactionID}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
       MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     // Create an invoice for the transaction
+    // ----------------------------------------------------------------------
+    // TODO - Rethink that part!
+    // Calling StopTransaction without calling startTransaction may have
+    // unpredictable side-effects.
+    // ----------------------------------------------------------------------
     const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // Update transaction
-    transaction.billingData = {
-      status: billingDataStop.status,
-      invoiceID: billingDataStop.invoiceID,
-      invoiceStatus: billingDataStop.invoiceStatus,
-      invoiceItem: billingDataStop.invoiceItem,
-      lastUpdate: new Date()
-    };
+    // Update transaction billing data
+    transaction.billingData.stop = billingDataStop;
+    transaction.billingData.lastUpdate = new Date();
+    // Save it
     await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
     // Ok
     await Logging.logInfo({
@@ -479,7 +480,7 @@ export default class BillingService {
       Action.BILLING_SETUP_PAYMENT_METHOD, Entity.BILLING, MODULE_NAME, 'handleSetupSetupPaymentMethod');
     // Filter
     const filteredRequest = BillingSecurity.filterSetupPaymentMethodRequest(req.body);
-    if (!Authorizations.canCreatePaymentMethod(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canCreatePaymentMethod(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -501,7 +502,7 @@ export default class BillingService {
     }
     // Get user - ACHTUNG user !== req.user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleSetupPaymentMethod', req.user);
     // Invoke the billing implementation
     const paymentMethodId: string = filteredRequest.paymentMethodId;
@@ -519,7 +520,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingGetPaymentMethods');
-    if (!Authorizations.canListPaymentMethod(req.user)) {
+    if (!await Authorizations.canListPaymentMethod(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -541,7 +542,7 @@ export default class BillingService {
     }
     // Get user - ACHTUNG user !== req.user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
@@ -559,7 +560,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.BILLING_PAYMENT_METHODS, Entity.BILLING, MODULE_NAME, 'handleBillingDeletePaymentMethod');
-    if (!Authorizations.canDeletePaymentMethod(req.user)) {
+    if (!await Authorizations.canDeletePaymentMethod(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -579,10 +580,9 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get user - TODO - userID should come from the filteredRequest not from the userToken
-    const userID = req.user.id;
+    const userID = filteredRequest.userID;
     const user: User = await UserStorage.getUser(req.user.tenantID, userID);
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
     await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
@@ -609,7 +609,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth
-    if (!Authorizations.canDownloadInvoiceBilling(req.user, billingInvoice.userID)) {
+    if (!await Authorizations.canDownloadInvoiceBilling(req.user, billingInvoice.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -671,7 +671,7 @@ export default class BillingService {
     // UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
     //   MODULE_NAME, 'handleDownloadInvoice', req.user);
     // // Check Auth
-    // // if (!Authorizations.canChargeInvoice(req.user, invoice.userID)) {
+    // // if (!await Authorizations.canChargeInvoice(req.user, invoice.userID)) {
     // //   throw new AppAuthError({
     // //     errorCode: HTTPAuthError.ERROR,
     // //     user: req.user,

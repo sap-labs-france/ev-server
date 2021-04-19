@@ -86,6 +86,10 @@
     "autoReconnectMaxRetries": 10,
     "autoReconnectTimeout": 60
   },
+  "AsyncTask": {
+    "active": true,
+    "nbrTasksInParallel": 4
+  },
   "Storage": {
     "implementation": "mongodb",
     "uri": null,

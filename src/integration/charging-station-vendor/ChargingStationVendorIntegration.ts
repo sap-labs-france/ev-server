@@ -95,7 +95,6 @@ export default abstract class ChargingStationVendorIntegration {
         detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, ocppLimitAmpValue: ocppLimitAmpValue }
       });
       // Change the OCPP Parameter
-      // TODO: Circular deps:
       result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenantID, chargingStation, {
         key: chargePoint.ocppParamForPowerLimitation,
         value: ocppLimitAmpValue.toString()
@@ -155,7 +154,7 @@ export default abstract class ChargingStationVendorIntegration {
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
       chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -233,7 +232,7 @@ export default abstract class ChargingStationVendorIntegration {
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
       chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
@@ -318,7 +317,7 @@ export default abstract class ChargingStationVendorIntegration {
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
       connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
     // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+    if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,

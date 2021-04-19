@@ -51,14 +51,15 @@
     "debug": false
   },
   "billing": {
-    "currency": "EUR",
+    "isTransactionBillingActivated": true,
+    "immediateBillingAllowed": true,
+    "periodicBillingAllowed": true,
+    "taxID": ""
+  },
+  "stripe": {
     "url": "",
     "publicKey": "",
-    "secretKey": "",
-    "noCardAllowed": true,
-    "advanceBillingAllowed": true,
-    "immediateBillingAllowed": true,
-    "periodicBillingAllowed": true
+    "secretKey": ""
   },
   "smartCharging": {
     "optimizerUrl": "",

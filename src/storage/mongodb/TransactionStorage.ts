@@ -168,11 +168,14 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        status: transactionToSave.billingData.status,
-        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
-        invoiceStatus: transactionToSave.billingData.invoiceStatus,
-        invoiceItem: transactionToSave.billingData.invoiceItem,
+        withBillingActive: transactionToSave.billingData.withBillingActive,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        stop: {
+          status: transactionToSave.billingData.stop?.status,
+          invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
+          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
+        },
       };
     }
     if (transactionToSave.ocpiData) {
@@ -795,11 +798,17 @@ export default class TransactionStorage {
         search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
         withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
-      }, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
+      }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
     // Check
     await DatabaseUtils.checkTenant(tenantID);
+    // Clone before updating the values
+    dbParams = Utils.cloneObject(dbParams);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filters
     const match: any = { stop: { $exists: true } };
     // Filter?
@@ -912,6 +921,21 @@ export default class TransactionStorage {
     // Set to null
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
     DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
+    // Sort
+    if (!dbParams.sort) {
+      dbParams.sort = { _id: 1 };
+    }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -936,13 +960,13 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOCPITransaction(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOCPITransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
       { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransaction(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOICPTransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
       { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
@@ -987,7 +1011,7 @@ export default class TransactionStorage {
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number,
+  public static async getLastTransactionFromChargingStation(tenantID: string, chargeBoxID: string, connectorId: number,
       params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');
@@ -1261,8 +1285,9 @@ export default class TransactionStorage {
             $match: {
               $or: [
                 { 'billingData': { $exists: false } },
-                { 'billingData.invoiceID': { $exists: false } },
-                { 'billingData.invoiceID': { $eq: null } }
+                { 'billingData.stop': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $exists: false } },
+                { 'billingData.stop.invoiceID': { $eq: null } }
               ]
             }
           },

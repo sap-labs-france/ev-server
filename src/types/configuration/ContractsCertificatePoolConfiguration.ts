@@ -2,6 +2,7 @@ export enum ContractCertificatePoolType {
   GIREVE = 'Gireve',
   HUBJECT = 'Hubject',
   ELAAD = 'Elaad',
+  VEDECOM = 'Vedecom',
 }
 
 interface ContractCertificatePool {

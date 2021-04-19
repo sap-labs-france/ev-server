@@ -453,43 +453,43 @@ export enum ServerRoute {
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
 
-  REST_CHARGING_STATIONS = 'chargingstations',
-  REST_CHARGING_STATION = 'chargingstations/:id',
+  REST_CHARGING_STATIONS = 'charging-stations',
+  REST_CHARGING_STATION = 'charging-stations/:id',
 
-  REST_CHARGING_STATIONS_RESET = 'chargingstations/:id/reset',
-  REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/:id/cache/clear',
-  REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'chargingstations/:id/configuration/retrieve',
-  REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'chargingstations/:id/configuration',
-  REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/:id/remote/start',
-  REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/:id/remote/stop',
-  REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/:id/connectors/:connectorId/unlock',
-  REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'chargingstations/:id/compositeschedule',
-  REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/:id/diagnostics',
-  REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/:id/firmware/update',
-  REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'chargingstations/:id/availability/change',
-  REST_CHARGING_STATIONS_INSTALL_CERTIFICATE = 'chargingstations/:id/certificates/install',
-  REST_CHARGING_STATIONS_DELETE_CERTIFICATE = 'chargingstations/:id/certificates/delete',
-  REST_CHARGING_STATIONS_GET_INSTALLED_CERTIFICATE_IDS = 'chargingstations/:id/certificates',
+  REST_CHARGING_STATIONS_RESET = 'charging-stations/:id/reset',
+  REST_CHARGING_STATIONS_CACHE_CLEAR = 'charging-stations/:id/cache/clear',
+  REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'charging-stations/:id/configuration/retrieve',
+  REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'charging-stations/:id/configuration',
+  REST_CHARGING_STATIONS_REMOTE_START = 'charging-stations/:id/remote/start',
+  REST_CHARGING_STATIONS_REMOTE_STOP = 'charging-stations/:id/remote/stop',
+  REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'charging-stations/:id/connectors/:connectorId/unlock',
+  REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'charging-stations/:id/compositeschedule',
+  REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'charging-stations/:id/diagnostics',
+  REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'charging-stations/:id/firmware/update',
+  REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
+  REST_CHARGING_STATIONS_INSTALL_CERTIFICATE = 'charging-stations/:id/certificates/install',
+  REST_CHARGING_STATIONS_DELETE_CERTIFICATE = 'charging-stations/:id/certificates/delete',
+  REST_CHARGING_STATIONS_GET_INSTALLED_CERTIFICATE_IDS = 'charging-stations/:id/certificates',
 
-  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/download',
-  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
-  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/qrcode/download',
+  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
+  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
+  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'charging-stations/qrcode/download',
 
-  REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
-  REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
-  REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters/export',
+  REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'charging-stations/:id/ocpp/parameters',
+  REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'charging-stations/ocpp/parameters',
+  REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS = 'charging-stations/ocpp/parameters/export',
 
-  REST_CHARGING_STATIONS_UPDATE_PARAMETERS = 'chargingstations/:id/parameters',
-  REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/:id/power/limit',
-  REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
-  REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',
-  REST_CHARGING_STATIONS_EXPORT = 'chargingstations/action/export',
+  REST_CHARGING_STATIONS_UPDATE_PARAMETERS = 'charging-stations/:id/parameters',
+  REST_CHARGING_STATIONS_POWER_LIMIT = 'charging-stations/:id/power/limit',
+  REST_CHARGING_STATIONS_TRANSACTIONS = 'charging-stations/:id/transactions',
+  REST_CHARGING_STATIONS_IN_ERROR = 'charging-stations/status/in-error',
+  REST_CHARGING_STATIONS_EXPORT = 'charging-stations/action/export',
 
-  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/connection/check',
-  REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'chargingstations/smartcharging/trigger',
+  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'charging-stations/smartcharging/connection/check',
+  REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'charging-stations/smartcharging/trigger',
 
-  REST_CHARGING_PROFILES = 'chargingprofiles',
-  REST_CHARGING_PROFILE = 'chargingprofiles/:id',
+  REST_CHARGING_PROFILES = 'charging-profiles',
+  REST_CHARGING_PROFILE = 'charging-profiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
   REST_TRANSACTION = 'transactions/:id',
@@ -505,6 +505,12 @@ export enum ServerRoute {
 
   REST_TENANTS = 'tenants',
 
-  // shouldn't we have this rest here ?? for the route building
-  // REST_BILLING_PAYMENT_METHODS = 'billing/paymentmethods'
+  // BILLING URLs for CRUD operations on PAYMENT METHODS
+  REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
+  REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
+
+  // BILLING URLs for Non-CRUD Operations on PAYMENT METHODS
+  REST_BILLING_PAYMENT_METHOD_SETUP = 'users/:userID/payment-methods/setup',
+  REST_BILLING_PAYMENT_METHOD_ATTACH = 'users/:userID/payment-methods/:paymentMethodID/attach',
+  REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 }

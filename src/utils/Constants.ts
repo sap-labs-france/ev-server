@@ -5,6 +5,8 @@ import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
 export default class Constants {
+  public static readonly ONE_BILLION = 1000000000;
+
   public static readonly BOOT_NOTIFICATION_WAIT_TIME = 60;
 
   public static readonly CSV_SEPARATOR = ',';
@@ -227,7 +229,7 @@ export default class Constants {
   public static readonly REST_RESPONSE_SUCCESS = Object.freeze({ status: 'Success' });
 
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
-  public static readonly DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS = 3000;
+  public static readonly DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS = 10000;
 
   public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
@@ -290,7 +292,7 @@ export default class Constants {
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token',
+    'Authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({
@@ -311,7 +313,6 @@ export default class Constants {
     'role': 0,
     'password': 0,
     'locale': 0,
-    'deleted': 0,
     'passwordWrongNbrTrials': 0,
     'passwordBlockedUntil': 0,
     'passwordResetHash': 0,
@@ -390,6 +391,16 @@ export default class Constants {
     measurand: OCPPMeasurand.STATE_OF_CHARGE,
     location: OCPPLocation.EV,
     format: OCPPValueFormat.RAW,
+  });
+
+  public static readonly OCPP_START_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_BEGIN,
+  });
+
+  public static readonly OCPP_STOP_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_END,
   });
 
   public static readonly OCPP_VOLTAGE_ATTRIBUTE: OCPPAttribute = Object.freeze({

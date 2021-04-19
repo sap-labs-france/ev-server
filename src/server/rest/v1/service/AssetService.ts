@@ -9,6 +9,7 @@ import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
 import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -34,7 +35,7 @@ export default class AssetService {
     UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
       'handleGetAssetConsumption', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
+    if (!await Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -47,7 +48,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.AssetID, {},
       [ 'id', 'name' ]
     );
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.AssetID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.AssetID}' does not exist`,
       MODULE_NAME, 'handleGetAssetConsumption', req.user);
     // Check dates
     if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
@@ -105,7 +106,7 @@ export default class AssetService {
       });
     }
     // Is authorized to check connection ?
-    if (!Authorizations.canCheckAssetConnection(req.user)) {
+    if (!await Authorizations.canCheckAssetConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -139,7 +140,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.RETRIEVE_CONSUMPTION, Entity.ASSET, MODULE_NAME, 'handleRetrieveConsumption');
     // Is authorized to check connection ?
-    if (!Authorizations.canRetrieveAssetConsumption(req.user)) {
+    if (!await Authorizations.canRetrieveAssetConsumption(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -152,7 +153,7 @@ export default class AssetService {
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
     // Get
     const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${assetID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${assetID}' does not exist`,
       MODULE_NAME, 'handleRetrieveConsumption', req.user);
     // Dynamic asset ?
     if (!asset.dynamicAsset) {
@@ -214,7 +215,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
     // Check auth
-    if (!Authorizations.canListAssetsInError(req.user)) {
+    if (!await Authorizations.canListAssetsInError(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -254,7 +255,7 @@ export default class AssetService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteAsset', req.user);
     // Check auth
-    if (!Authorizations.canDeleteAsset(req.user)) {
+    if (!await Authorizations.canDeleteAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -267,7 +268,7 @@ export default class AssetService {
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
@@ -294,7 +295,7 @@ export default class AssetService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user)) {
+    if (!await Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -306,7 +307,7 @@ export default class AssetService {
     // Get it
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
-    UtilsService.assertObjectExists(action, asset, `Asset with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetAsset', req.user);
     res.json(asset);
     next();
@@ -341,7 +342,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssets');
     // Check auth
-    if (!Authorizations.canListAssets(req.user)) {
+    if (!await Authorizations.canListAssets(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -351,6 +352,13 @@ export default class AssetService {
     }
     // Filter
     const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
+    // Get authorization filters
+    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationAssetsFilters.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the assets
     const assets = await AssetStorage.getAssets(req.user.tenantID,
       {
@@ -360,12 +368,10 @@ export default class AssetService {
         withSiteArea: filteredRequest.WithSiteArea,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         dynamicOnly: filteredRequest.DynamicOnly,
+        ...authorizationAssetsFilters.filters
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
-      ]
+      authorizationAssetsFilters.projectFields
     );
     res.json(assets);
     next();
@@ -376,7 +382,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
     // Check auth
-    if (!Authorizations.canCreateAsset(req.user)) {
+    if (!await Authorizations.canCreateAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -435,7 +441,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetUpdateRequest(req.body);
     // Check auth
-    if (!Authorizations.canUpdateAsset(req.user)) {
+    if (!await Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -454,7 +460,7 @@ export default class AssetService {
     // Check email
     const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(action, asset, `Site Area with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
     // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);

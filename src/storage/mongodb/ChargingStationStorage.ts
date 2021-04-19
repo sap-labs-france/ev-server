@@ -61,9 +61,8 @@ export default class ChargingStationStorage {
     try {
       chargingStationTemplates = JSON.parse(fs.readFileSync(Configuration.getChargingStationTemplatesConfig().templatesFilePath, 'utf8'));
     } catch (error) {
-      if (error.code === 'ENOENT') {
-        throw error;
-      }
+      await Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      return;
     }
     // Delete all previous templates
     await ChargingStationStorage.deleteChargingStationTemplates();
@@ -134,12 +133,13 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID,
-      params: { includeDeleted?: boolean, issuer?: boolean; } = {}, projectFields?: string[]): Promise<ChargingStation> {
+      params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[] } = {}, projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       chargingStationIDs: [id],
       withSite: true,
       includeDeleted: params.includeDeleted,
       issuer: params.issuer,
+      siteIDs: params.siteIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -1040,7 +1040,7 @@ export default class ChargingStationStorage {
         type: connector.type,
         voltage: Utils.convertToInt(connector.voltage),
         amperage: Utils.convertToInt(connector.amperage),
-        amperageLimit: connector.amperageLimit,
+        amperageLimit: Utils.convertToInt(connector.amperageLimit),
         currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
         userID: Utils.convertToObjectID(connector.userID),
         statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
@@ -1048,12 +1048,12 @@ export default class ChargingStationStorage {
         numberOfConnectedPhase: connector.numberOfConnectedPhase,
         currentType: connector.currentType,
         chargePointID: connector.chargePointID,
-        phaseAssignmentToGrid: connector.phaseAssignmentToGrid ?
+        phaseAssignmentToGrid: connector.phaseAssignmentToGrid &&
           {
             csPhaseL1: connector.phaseAssignmentToGrid.csPhaseL1,
             csPhaseL2: connector.phaseAssignmentToGrid.csPhaseL2,
             csPhaseL3: connector.phaseAssignmentToGrid.csPhaseL3,
-          } : null,
+          },
       };
       return filteredConnector;
     }

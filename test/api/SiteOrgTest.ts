@@ -5,6 +5,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './context/SiteContext';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -232,7 +233,7 @@ describe('Site tests', function() {
           Factory.site.build(),
           false
         );
-        expect(response.status).to.equal(500);
+        expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       });
 
     });
@@ -330,7 +331,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[0]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }
@@ -345,7 +346,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[1]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }
@@ -359,7 +360,7 @@ describe('Site tests', function() {
           testData.userService.siteApi,
           testData.createdSites[2]
         );
-        expect(updateResult.status).to.eq(200);
+        expect(updateResult.status).to.eq(StatusCodes.OK);
       });
 
       it('Should not be able to update a site for which he is site owner', async () => {
@@ -371,7 +372,7 @@ describe('Site tests', function() {
             testData.userService.siteApi,
             testData.createdSites[3]
           );
-          expect(updateResult.status).to.not.eq(200);
+          expect(updateResult.status).to.not.eq(StatusCodes.OK);
         } catch (error) {
           expect(error.actual).to.eq(403);
         }

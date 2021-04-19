@@ -1,13 +1,13 @@
 {
   "name": "ev-server",
-  "version": "2.4.57",
+  "version": "2.4.62",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LucasBrazi06/ev-server.git"
+    "url": "https://github.com/sap-labs-france/ev-server.git"
   },
   "license": "Apache-2.0",
   "licenses": [
@@ -18,7 +18,7 @@
   ],
   "description": "Backend for Electric Vehicle charging station",
   "author": "SAP E-Mobility Labs France <e-mobility@sap.com>",
-  "homepage": "https://github.com/LucasBrazi06/ev-server",
+  "homepage": "https://github.com/sap-labs-france/ev-server",
   "main": "dist/start.js",
   "scripts": {
     "git:sinit": "git submodule update --init --recursive --force",
@@ -95,7 +95,7 @@
     "npm-check": "npm-check",
     "import-sort": "npx import-sort-cli --write 'src/**/*.ts{,x}' 'test/**/*.ts{,x}' 'build/types/**/*.ts{,x}'",
     "xmake:download-node-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/org/nodejs/download/node/node-headers/14.15.4/node-headers-14.15.4.tar.gz -P ${WORKSPACE}/gen/tmp/",
-    "xmake:download-libvibs-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/lovell/sharp/libvips/8.10.5/libvips-8.10.5-linux-x64.tar.gz -P ~/.npm/_libvips/"
+    "xmake:download-libvibs-headers": "wget https://nexus.wdf.sap.corp:8443/nexus/service/local/repositories/3rd-party.releases.manual-uploads.hosted/content/lovell/sharp/libvips/8.10.6/libvips-8.10.6-linux-x64.tar.br -P ${WORKSPACE}/gen/tmp/libvips/v8.10.6/"
   },
   "dependencies": {
     "@peculiar/x509": "^1.2.2",
@@ -121,7 +121,6 @@
     "emailjs": "^3.4.0",
     "express": "^4.17.1",
     "express-sanitizer": "^1.0.5",
-    "file-type": "^16.3.0",
     "firebase-admin": "^9.5.0",
     "helmet": "^4.4.1",
     "hpp": "^0.2.3",
@@ -130,6 +129,7 @@
     "i18n-iso-countries": "^6.6.0",
     "i18n-js": "^3.8.0",
     "intl": "^1.2.5",
+    "jimp": "^0.16.1",
     "jsonwebtoken": "^8.5.1",
     "locale": "^0.1.0",
     "lodash": "^4.17.21",
@@ -149,8 +149,7 @@
     "pdfkit": "^0.11.0",
     "qrcode": "^1.4.4",
     "rfc2047": "^3.0.1",
-    "role-acl": "^3.3.7",
-    "sharp": "^0.27.2",
+    "role-acl": "^4.5.4",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^3.1.2",
     "socketio-jwt-auth": "^0.2.1",
@@ -170,6 +169,7 @@
     "utf-8-validate": "^5.0.4"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/basic-auth": "^1.1.3",
     "@types/bcryptjs": "^2.4.2",
     "@types/bluebird": "^3.5.33",
@@ -228,7 +228,7 @@
     "eslint": "^7.23.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.3.0",
-    "faker": "^5.5.1",
+    "faker": "^5.5.2",
     "json-schema-faker": "^0.5.0-rcv.34",
     "maildev": "^1.1.0",
     "mocha": "^8.3.2",

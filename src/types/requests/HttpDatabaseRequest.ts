@@ -1,11 +1,10 @@
-export default interface HttpDatabaseRequest {
+export interface HttpDatabaseProjectRequest {
+  ProjectFields?: string;
+}
+export default interface HttpDatabaseRequest extends HttpDatabaseProjectRequest {
   Skip?: number;
   Limit?: number;
   OnlyRecordCount?: boolean;
   SortFields: any;
-  ProjectFields?: any;
 }
 
-export interface HttpDatabaseProjectRequest {
-  ProjectFields?: any;
-}

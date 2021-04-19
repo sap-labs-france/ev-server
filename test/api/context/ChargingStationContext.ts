@@ -6,6 +6,7 @@ import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
 import faker from 'faker';
@@ -50,7 +51,7 @@ export default class ChargingStationContext {
     for (const transaction of this.transactionsStarted.values()) {
       if (transaction.transactionId) {
         const transactionResponse = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transaction.transactionId);
-        if (transactionResponse.status === 200) {
+        if (transactionResponse.status === StatusCodes.OK) {
           await this.tenantContext.getAdminCentralServerService().transactionApi.delete(transaction.transactionId);
         }
       }
@@ -434,8 +435,9 @@ export default class ChargingStationContext {
       connector.timestamp = new Date().toISOString();
     }
     const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
-    this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;
-    this.chargingStation.connectors[connector.connectorId - 1].errorCode = connector.errorCode;
+    const connectorId = connector.connectorId - 1;
+    this.chargingStation.connectors[connectorId].status = connector.status;
+    this.chargingStation.connectors[connectorId].errorCode = connector.errorCode;
     return response;
   }
 

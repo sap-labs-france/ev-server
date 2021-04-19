@@ -3,32 +3,23 @@ import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
-  status?: string;
-  invoiceID?: string;
-  invoiceStatus?: BillingInvoiceStatus;
-  invoiceItem?: BillingInvoiceItem;
+  withBillingActive?: boolean;
   lastUpdate?: Date;
+  stop?: BillingDataTransactionStop;
 }
 
 export interface BillingDataTransactionStart {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export interface BillingDataTransactionUpdate {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
 }
-
-export enum BillingMethod {
-  IMMEDIATE = 'immediate',
-  PERIODIC = 'periodic',
-  ADVANCE = 'advance',
-}
-
 
 export interface BillingDataTransactionStop {
   status?: string;
@@ -38,8 +29,9 @@ export interface BillingDataTransactionStop {
 }
 
 export interface BillingUserData {
-  customerID?: string;
-  lastChangedOn?: Date;
+  customerID: string;
+  liveMode: boolean;
+  lastChangedOn: Date;
   hasSynchroError?: boolean;
   invoicesLastSynchronizedOn?: Date;
 }
@@ -69,8 +61,10 @@ export interface BillingTax {
 export interface BillingInvoice {
   id: string;
   invoiceID: string;
+  liveMode: boolean;
   userID?: string;
   user?: User;
+  // eslint-disable-next-line id-blacklist
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;
@@ -78,23 +72,33 @@ export interface BillingInvoice {
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  nbrOfItems?: number;
   downloadable?: boolean
   downloadUrl?: string;
+  sessions?: BillingSessionData[];
+  lastError?: BillingError;
 }
 
 export interface BillingInvoiceItem {
   description: string;
-  pricingData: {
-    quantity: number,
-    amount: number,
-    currency: string
-  }
+  transactionID: number;
+  pricingData: BillingPricingData;
   taxes?: string[];
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+}
+
+export interface BillingSessionData {
+  transactionID: number;
+  description: string;
+  pricingData: BillingPricingData;
+}
+
+export interface BillingPricingData {
+  quantity: number;
+  amount: number;
+  currency: string;
 }
 
 export enum BillingInvoiceStatus {
@@ -130,6 +134,7 @@ export interface BillingPaymentMethod {
 export interface BillingError {
   // Billing Error should expose the information which is common to all payment platforms
   message: string
+  when: Date
   errorType: BillingErrorType, // SERVER or APPLICATION errors
   errorCode: BillingErrorCode, // More information about the root cause
   rootCause?: unknown; // The original error from the payment platform
@@ -147,4 +152,9 @@ export enum BillingErrorCode {
   UNEXPECTED_ERROR = 'unexpected',
   NO_PAYMENT_METHOD = 'no_payment_method',
   CARD_ERROR = 'card_error',
+}
+
+export interface BillingAdditionalData {
+  session?: BillingSessionData,
+  lastError?: BillingError,
 }

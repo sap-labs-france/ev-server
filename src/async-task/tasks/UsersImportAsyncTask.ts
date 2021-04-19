@@ -1,5 +1,5 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
@@ -49,9 +49,6 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 // Check tag is already in use
                 if (!foundUser.issuer) {
                   throw new Error('User is not local to the organization');
-                }
-                if (foundUser.deleted) {
-                  throw new Error('User is deleted');
                 }
                 if (foundUser.status !== UserStatus.PENDING) {
                   throw new Error('User account is already in use');

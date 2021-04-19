@@ -34,7 +34,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -45,7 +45,7 @@ export default class OCPIEndpointService {
     }
     // Get
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
     // Delete
     await OCPIEndpointStorage.deleteOcpiEndpoint(req.user.tenantID, ocpiEndpoint.id);
@@ -70,7 +70,7 @@ export default class OCPIEndpointService {
     const endpointID = OCPIEndpointSecurity.filterOcpiEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canReadOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -85,7 +85,7 @@ export default class OCPIEndpointService {
         'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
         'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
       ]);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${endpointID}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${endpointID}' does not exist`,
       MODULE_NAME, 'handleGetOcpiEndpoint', req.user);
     res.json(ocpiEndpoint);
     next();
@@ -96,7 +96,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.LIST, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGetOcpiEndpoints');
     // Check auth
-    if (!Authorizations.canListOcpiEndpoints(req.user)) {
+    if (!await Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -106,7 +106,7 @@ export default class OCPIEndpointService {
     }
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
@@ -136,7 +136,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.CREATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCreateOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -177,7 +177,7 @@ export default class OCPIEndpointService {
     // Check Mandatory fields
     UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -188,7 +188,7 @@ export default class OCPIEndpointService {
     }
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateOcpiEndpoint', req.user);
     // Update timestamp
     ocpiEndpoint.lastChangedBy = { 'id': req.user.id };
@@ -213,7 +213,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePingOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canPingOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -260,7 +260,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullLocationsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -273,7 +273,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
     // Get the lock
     const pullLocationsLock = await LockingHelper.createOCPIPullLocationsLock(req.tenant.id, ocpiEndpoint);
@@ -314,7 +314,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullSessionsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -327,7 +327,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -368,7 +368,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullTokensEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -381,7 +381,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -422,7 +422,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePullCdrsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -435,7 +435,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -476,7 +476,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckCdrsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -489,7 +489,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -530,7 +530,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckSessionsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -543,7 +543,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -584,7 +584,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleCheckLocationsEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -597,7 +597,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -638,7 +638,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -651,7 +651,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the lock
@@ -692,7 +692,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handlePushTokensOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -705,7 +705,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get the lock
     const pushTokensLock = await LockingHelper.createOCPIPushTokensLock(req.tenant.id, ocpiEndpoint);
@@ -746,7 +746,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.READ, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleUnregisterOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -759,7 +759,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
@@ -796,7 +796,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleRegisterOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -809,7 +809,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
     // Get OcpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
@@ -846,7 +846,7 @@ export default class OCPIEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OCPI,
       Action.UPDATE, Entity.OCPI_ENDPOINT, MODULE_NAME, 'handleGenerateLocalTokenOcpiEndpoint');
     // Check auth
-    if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
+    if (!await Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

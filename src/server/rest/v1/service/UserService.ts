@@ -1,12 +1,11 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
-import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
-import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
@@ -15,14 +14,11 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
-import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
-import I18nManager from '../../../../utils/I18nManager';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -30,6 +26,7 @@ import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -38,7 +35,6 @@ import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
@@ -57,7 +53,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canReadTag(req.user)) {
+    if (!await Authorizations.canReadTag(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -66,7 +62,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!await Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -77,7 +73,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -91,7 +87,7 @@ export default class UserService {
     // Check user
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
     // Handle Tag
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
@@ -128,7 +124,7 @@ export default class UserService {
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Check auth
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!Authorizations.canAssignUsersSites(req.user)) {
+      if (!await Authorizations.canAssignUsersSites(req.user)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -136,7 +132,7 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else if (!Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -159,7 +155,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -174,19 +170,8 @@ export default class UserService {
     // Get the User
     const user = await UserStorage.getUser(
       req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -199,9 +184,17 @@ export default class UserService {
       });
     }
     // Check auth
-    await AuthorizationService.checkAndAssignUserSitesAuthorizationFilters(
+    const authorizationUserSitesFilters = await AuthorizationService.checkAndAssignUserSitesAuthorizationFilters(
       req.tenant, action, req.user, filteredRequest);
-    // Get Sites
+    if (!authorizationUserSitesFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'handleAssignSitesToUser'
+      });
+    }
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
       await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
@@ -224,7 +217,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
     // Check auth
-    if (!Authorizations.canDeleteUser(req.user, userID)) {
+    if (!await Authorizations.canDeleteUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -250,18 +243,7 @@ export default class UserService {
     // Check user
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
     // OCPI User
     if (!user.issuer) {
       // Delete all tags
@@ -320,58 +302,6 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(
-      req.user.tenantID, { userIDs: [userID] }, Constants.DB_PARAMS_COUNT_ONLY);
-    // Delete user
-    if (userTransactions.count > 0) {
-      // Logically
-      user.deleted = true;
-      // Anonymize user
-      user.name = Constants.ANONYMIZED_VALUE;
-      user.firstName = '';
-      user.email = user.id;
-      user.costCenter = '';
-      user.iNumber = '';
-      user.mobile = '';
-      user.phone = '';
-      user.address = {} as Address;
-      // Save
-      await UserStorage.saveUser(req.user.tenantID, user);
-      await UserStorage.saveUserPassword(req.user.tenantID, user.id,
-        {
-          password: '',
-          passwordWrongNbrTrials: 0,
-          passwordResetHash: '',
-          passwordBlockedUntil: null
-        });
-      await UserStorage.saveUserAdminData(req.user.tenantID, user.id,
-        { plateID: '', notificationsActive: false, notifications: null });
-      await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-        { mobileToken: null, mobileOs: null, mobileLastChangedOn: null });
-      await UserStorage.saveUserEULA(req.user.tenantID, user.id,
-        { eulaAcceptedHash: null, eulaAcceptedVersion: null, eulaAcceptedOn: null });
-      await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
-      await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
-        { verificationToken: null, verifiedAt: null });
-      // Disable/Delete Tags
-      const tags = (await TagStorage.getTags(req.user.tenantID,
-        { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-      for (const tag of tags) {
-        if (tag.transactionsCount > 0) {
-          tag.active = false;
-          tag.deleted = true;
-          tag.lastChangedOn = new Date();
-          tag.lastChangedBy = { id: req.user.id };
-          tag.userID = user.id;
-          await TagStorage.saveTag(req.user.tenantID, tag);
-        } else {
-          await TagStorage.deleteTag(req.user.tenantID, tag.id);
-        }
-      }
-    } else {
-      // Physically
-      await UserStorage.deleteUser(req.user.tenantID, user.id);
-    }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -421,8 +351,33 @@ export default class UserService {
         });
       }
     }
-    // Delete Connections
-    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+    // Delete cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (carUsers.count > 0) {
+        for (const carUser of carUsers.result) {
+          // Owner ?
+          if (carUser.owner) {
+            // Private ?
+            const car = await CarStorage.getCar(req.tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            if (car) {
+              // Delete All Users Car
+              await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
+              // Delete Car
+              await CarStorage.deleteCar(req.user.tenantID, car.id);
+            } else {
+              // Delete User Car
+              await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+            }
+          } else {
+            // Delete User Car
+            await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+          }
+        }
+      }
+    }
+    // Delete User
+    await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -442,7 +397,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -457,19 +412,8 @@ export default class UserService {
     // Get User
     let user = await UserStorage.getUser(
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -604,7 +548,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -619,19 +563,8 @@ export default class UserService {
     // Get User
     const user = await UserStorage.getUser(
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
       mobileToken: filteredRequest.mobileToken,
@@ -660,7 +593,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -680,19 +613,8 @@ export default class UserService {
       },
       authorizationUserFilters.projectFields
     );
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     res.json(user);
     next();
   }
@@ -702,7 +624,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user, userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -717,19 +639,8 @@ export default class UserService {
     // Get the logged user
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${userID}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
     // Ok
@@ -749,7 +660,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Check auth
-    if (!Authorizations.canListUsersSites(req.user)) {
+    if (!await Authorizations.canListUsersSites(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -761,7 +672,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -825,7 +736,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListUsersInErrors(req.user)) {
+    if (!await Authorizations.canListUsersInErrors(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -860,7 +771,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     res.json(users);
     next();
@@ -869,7 +780,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canImportUsers(req.user)) {
+    if (!await Authorizations.canImportUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -898,162 +809,177 @@ export default class UserService {
       inSuccess: 0,
       inError: 0
     };
-    // Delete all previously imported users
-    await UserStorage.deleteImportedUsers(req.user.tenantID);
-    // Get the stream
-    const busboy = new Busboy({ headers: req.headers });
-    req.pipe(busboy);
-    // Handle closed socket
-    let connectionClosed = false;
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    req.socket.on('close', async () => {
-      if (!connectionClosed) {
-        connectionClosed = true;
-        // Release the lock
-        await LockingManager.release(importUsersLock);
-      }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-      if (mimetype === 'text/csv') {
-        const converter = csvToJson({
-          trim: true,
-          delimiter: Constants.CSV_SEPARATOR,
-          output: 'json',
-          quote: 'on',
-        });
-        void converter.subscribe(async (user: ImportedUser) => {
-          // Check connection
-          if (connectionClosed) {
-            throw new Error('HTTP connection has been closed');
-          }
-          // Check the format of the first entry
-          if (!result.inSuccess && !result.inError) {
-            // Check header
-            const userKeys = Object.keys(user);
-            if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
-              if (!res.headersSent) {
-                res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
-                res.end();
-              }
-              throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
-            }
-          }
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async (error: CSVError) => {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleImportUsers',
-            action: action,
-            user: req.user.id,
-            message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-          if (!res.headersSent) {
-            res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-            res.end();
-          }
-        // Completed
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        }, async () => {
-          // Consider the connection closed
+    try {
+      // Delete all previously imported users
+      await UserStorage.deleteImportedUsers(req.user.tenantID);
+      // Get the stream
+      const busboy = new Busboy({ headers: req.headers });
+      req.pipe(busboy);
+      // Handle closed socket
+      let connectionClosed = false;
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      req.socket.on('close', async () => {
+        if (!connectionClosed) {
           connectionClosed = true;
-          // Insert batched
-          if (usersToBeImported.length > 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
+          // Release the lock
+          await LockingManager.release(importUsersLock);
+        }
+      });
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+        if (filename.slice(-4) === '.csv') {
+          const converter = csvToJson({
+            trim: true,
+            delimiter: Constants.CSV_SEPARATOR,
+            output: 'json',
+            quote: 'on',
+          });
+          void converter.subscribe(async (user: ImportedUser) => {
+            // Check connection
+            if (connectionClosed) {
+              throw new Error('HTTP connection has been closed');
+            }
+            // Check the format of the first entry
+            if (!result.inSuccess && !result.inError) {
+              // Check header
+              const userKeys = Object.keys(user);
+              if (!UserRequiredImportProperties.every((property) => userKeys.includes(property))) {
+                if (!res.headersSent) {
+                  res.writeHead(HTTPError.INVALID_FILE_CSV_HEADER_FORMAT);
+                  res.end();
+                }
+                throw new Error(`Missing one of required properties: '${UserRequiredImportProperties.join(', ')}'`);
+              }
+            }
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async (error: CSVError) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Exception while parsing the CSV '${filename}': ${error.message}`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          // Completed
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          }, async () => {
+            // Consider the connection closed
+            connectionClosed = true;
+            // Insert batched
+            if (usersToBeImported.length > 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
+            await Logging.logActionsResponse(
+              req.user.tenantID, action,
+              MODULE_NAME, 'handleImportUsers', result,
+              `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
+              `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
+              `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
+              `No User have been uploaded in ${executionDurationSecs}s`, req.user
+            );
+            // Create and Save async task
+            await AsyncTaskManager.createAndSaveAsyncTasks({
+              name: AsyncTasks.USERS_IMPORT,
+              action: ServerAction.USERS_IMPORT,
+              type: AsyncTaskType.TASK,
+              tenantID: req.tenant.id,
+              module: MODULE_NAME,
+              method: 'handleImportUsers',
+            });
+            // Respond
+            res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+            next();
+          });
+          // Start processing the file
+          void file.pipe(converter);
+        } else if (mimetype === 'application/json') {
+          const parser = JSONStream.parse('users.*');
+          // TODO: Handle the end of the process to send the data like the CSV
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('data', async (user: ImportedUser) => {
+            // Set default value
+            user.importedBy = importedBy;
+            user.importedOn = importedOn;
+            // Import
+            const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
+            if (!importSuccess) {
+              result.inError++;
+            }
+            // Insert batched
+            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+              await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+            }
+          });
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          parser.on('error', async (error) => {
+            // Release the lock
+            await LockingManager.release(importUsersLock);
+            // Log
+            await Logging.logError({
+              tenantID: req.user.tenantID,
+              module: MODULE_NAME, method: 'handleImportUsers',
+              action: action,
+              user: req.user.id,
+              message: `Invalid Json file '${filename}'`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+            if (!res.headersSent) {
+              res.writeHead(HTTPError.INVALID_FILE_FORMAT);
+              res.end();
+            }
+          });
+          file.pipe(parser);
+        } else {
           // Release the lock
           await LockingManager.release(importUsersLock);
           // Log
-          const executionDurationSecs = Utils.truncTo((new Date().getTime() - startTime) / 1000, 2);
-          await Logging.logActionsResponse(
-            req.user.tenantID, action,
-            MODULE_NAME, 'handleImportUsers', result,
-            `{{inSuccess}} User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import`,
-            `{{inError}} User(s) failed to be uploaded in ${executionDurationSecs}s`,
-            `{{inSuccess}}  User(s) were successfully uploaded in ${executionDurationSecs}s and ready for asynchronous import and {{inError}} failed to be uploaded`,
-            `No User have been uploaded in ${executionDurationSecs}s`, req.user
-          );
-          // Create and Save async task
-          await AsyncTaskManager.createAndSaveAsyncTasks({
-            name: AsyncTasks.USERS_IMPORT,
-            action: ServerAction.USERS_IMPORT,
-            type: AsyncTaskType.TASK,
-            tenantID: req.tenant.id,
-            module: MODULE_NAME,
-            method: 'handleImportUsers',
-          });
-          // Respond
-          res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-          next();
-        });
-        // Start processing the file
-        void file.pipe(converter);
-      } else if (mimetype === 'application/json') {
-        const parser = JSONStream.parse('users.*');
-        // TODO: Handle the end of the process to send the data like the CSV
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('data', async (user: ImportedUser) => {
-          // Set default value
-          user.importedBy = importedBy;
-          user.importedOn = importedOn;
-          // Import
-          const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
-          if (!importSuccess) {
-            result.inError++;
-          }
-          // Insert batched
-          if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-            await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
-          }
-        });
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        parser.on('error', async (error) => {
           await Logging.logError({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleImportUsers',
             action: action,
             user: req.user.id,
-            message: `Invalid Json file '${filename}'`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            message: `Invalid file format '${mimetype}'`
           });
           if (!res.headersSent) {
             res.writeHead(HTTPError.INVALID_FILE_FORMAT);
             res.end();
           }
-        });
-        file.pipe(parser);
-      } else {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleImportUsers',
-          action: action,
-          user: req.user.id,
-          message: `Invalid file format '${mimetype}'`
-        });
-        if (!res.headersSent) {
-          res.writeHead(HTTPError.INVALID_FILE_FORMAT);
-          res.end();
         }
-      }
-    });
+      });
+    } catch (error) {
+      // Release the lock
+      await LockingManager.release(importUsersLock);
+      throw error;
+    }
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateUser(req.user)) {
+    if (!await Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1192,7 +1118,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
+    if (!await Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1206,19 +1132,8 @@ export default class UserService {
       req.tenant, req.user, { ID: id });
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User '${id}' does not exist`,
+    UtilsService.assertObjectExists(action, user, `User ID '${id}' does not exist`,
       MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        message: 'User is logically deleted',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // Get the settings
     const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
     if (!pricingSetting || !pricingSetting.convergentCharging) {
@@ -1235,7 +1150,7 @@ export default class UserService {
       });
     }
     // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/LucasBrazi06/ev-dashboard/issues/1542
+    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/sap-labs-france/ev-dashboard/issues/1542
     // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber: string;
@@ -1331,41 +1246,47 @@ export default class UserService {
   }
 
   private static convertToCSV(req: Request, users: User[], writeHeader = true): string {
-    let csv = '';
+    let headers = null;
     // Header
     if (writeHeader) {
-      csv = 'id' + Constants.CSV_SEPARATOR;
-      csv += 'name' + Constants.CSV_SEPARATOR;
-      csv += 'firstName' + Constants.CSV_SEPARATOR;
-      csv += 'locale' + Constants.CSV_SEPARATOR;
-      csv += 'role' + Constants.CSV_SEPARATOR;
-      csv += 'status' + Constants.CSV_SEPARATOR;
-      csv += 'email' + Constants.CSV_SEPARATOR;
-      csv += 'eulaAcceptedOn' + Constants.CSV_SEPARATOR;
-      csv += 'createdOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedOn' + Constants.CSV_SEPARATOR;
-      csv += 'changedBy' + Constants.CR_LF;
+      const headerArray = [
+        'id',
+        'name',
+        'firstName',
+        'locale',
+        'role',
+        'status',
+        'email',
+        'eulaAcceptedOn',
+        'createdOn',
+        'changedOn',
+        'changedBy'
+      ];
+      headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
     // Content
-    for (const user of users) {
-      csv += Cypher.hash(user.id) + Constants.CSV_SEPARATOR;
-      csv += user.name + Constants.CSV_SEPARATOR;
-      csv += user.firstName + Constants.CSV_SEPARATOR;
-      csv += user.locale + Constants.CSV_SEPARATOR;
-      csv += user.role + Constants.CSV_SEPARATOR;
-      csv += user.status + Constants.CSV_SEPARATOR;
-      csv += user.email + Constants.CSV_SEPARATOR;
-      csv += moment(user.eulaAcceptedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.createdOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += moment(user.lastChangedOn).format('YYYY-MM-DD') + Constants.CSV_SEPARATOR;
-      csv += (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '') + Constants.CR_LF;
-    }
-    return csv;
+    const rows = users.map((user) => {
+      const row = [
+        Cypher.hash(user.id),
+        user.name,
+        user.firstName,
+        user.locale,
+        user.role,
+        user.status,
+        user.email,
+        moment(user.eulaAcceptedOn).format('YYYY-MM-DD'),
+        moment(user.createdOn).format('YYYY-MM-DD'),
+        moment(user.lastChangedOn).format('YYYY-MM-DD'),
+        (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
+      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
+    if (!await Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1414,7 +1335,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
     // Return
     return users;
   }

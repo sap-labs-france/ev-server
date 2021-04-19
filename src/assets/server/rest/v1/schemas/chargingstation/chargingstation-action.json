@@ -31,7 +31,7 @@
           "sanitize": "mongo"
         },
         "connectorId": {
-          "$ref": "chargingstation.json#/definitions/connectorID"
+          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
         },
         "duration": {
           "type": "number",
