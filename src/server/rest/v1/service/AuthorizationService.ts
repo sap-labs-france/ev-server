@@ -194,7 +194,7 @@ export default class AuthorizationService {
         user: userToken,
         action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
         entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkAndAssignUserSitesAuthorizationFilters',
+        module: MODULE_NAME, method: 'checkAssignSiteUsersAuthorizationFilters',
       });
     }
     // Process dynamic filters
@@ -704,18 +704,6 @@ export default class AuthorizationService {
     return sites.result.map((site) => site.id);
   }
 
-  private static async getAssignedUsersIDs(tenantID: string, siteID: string): Promise<string[]> {
-    // Get the Users assigned to the Site
-    const users = await UserStorage.getUsers(tenantID,
-      {
-        siteIDs: [siteID],
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return users.result.map((user) => user.id);
-  }
-
   private static async getAssignedAssetIDs(tenantID: string, siteID: string): Promise<string[]> {
     // Get the Assets assigned to the Site
     const assets = await AssetStorage.getAssets(tenantID,
@@ -740,24 +728,6 @@ export default class AuthorizationService {
     );
     return chargingStations.result.map(
       (chargingStation) => chargingStation.id);
-  }
-
-  private static async getSiteAdminOwnerIDs(tenant: Tenant, userToken: UserToken): Promise<{ siteAdminIDs: string[]; siteOwnerIDs: string[]; }> {
-    const siteAdminIDs: string[] = [];
-    const siteOwnerIDs: string[] = [];
-    const userSites = await UserStorage.getUserSites(tenant.id, { userID: userToken.id }, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const userSite of userSites.result) {
-      if (userSite.siteAdmin) {
-        siteAdminIDs.push(userSite.siteID);
-      }
-      if (userSite.siteOwner) {
-        siteOwnerIDs.push(userSite.siteID);
-      }
-    }
-    return {
-      siteAdminIDs,
-      siteOwnerIDs
-    };
   }
 
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
@@ -797,32 +767,6 @@ export default class AuthorizationService {
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filterß
           authorizationFilters.filters.siteIDs = allSites;
-          // Check if filter is provided
-          if (filteredRequest?.SiteID) {
-            const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');
-            // Override
-            authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-              (filteredSiteID) => authorizationFilters.filters.siteIDs.includes(filteredSiteID));
-          }
-        }
-        if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
-          authorizationFilters.authorized = true;
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
-  }
-
-  private static async checkAssignedSiteAdmins(tenant: Tenant, userToken: UserToken,
-      filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
-    if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
-          // Force the filterß
-          authorizationFilters.filters.siteIDs = siteAdminSiteIDs;
           // Check if filter is provided
           if (filteredRequest?.SiteID) {
             const filteredSiteIDs: string[] = filteredRequest.SiteID.split('|');

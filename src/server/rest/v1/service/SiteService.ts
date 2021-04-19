@@ -116,7 +116,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
-        module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
+        module: MODULE_NAME, method: 'handleUpdateSiteOwner',
         user: req.user
       });
     }
@@ -132,7 +132,7 @@ export default class SiteService {
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
-      module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
+      module: MODULE_NAME, method: 'handleUpdateSiteOwner',
       message: `The User has been granted Site Owner on Site '${site.name}'`,
       action: action
     });

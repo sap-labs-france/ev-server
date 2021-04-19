@@ -94,7 +94,7 @@ export default class UtilsService {
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
-        method: 'handleGetChargingStation',
+        method: 'checkAndGetChargingStationAuthorization',
         user: userToken
       });
     }
@@ -260,13 +260,13 @@ export default class UtilsService {
   public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'handleAssignUsersToSite', userToken);
+    UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
     if (Utils.isEmptyArray(userIDs)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
-        module: MODULE_NAME, method: 'handleAssignUsersToSite',
+        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
         user: userToken
       });
     }
@@ -801,7 +801,7 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Profile ID is mandatory',
         module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid'
+        method: 'checkIfChargingProfileIsValid'
       });
     }
     if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
