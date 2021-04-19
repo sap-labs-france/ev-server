@@ -8,6 +8,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
+import { Voltage } from '../../../types/ChargingStation';
 
 const MODULE_NAME = 'EVDatabaseCarIntegration';
 
@@ -44,7 +45,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
           evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
           evsePhase: data.Charge_Standard_Table[chargeStandard].EVSE_Phase,
-          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? 400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
+          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           chargePhaseVolt: data.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
           chargePhaseAmp: data.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
           chargePhase: data.Charge_Standard_Table[chargeStandard].Charge_Phase,
@@ -198,7 +199,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         euroNCAPChild: data.EuroNCAP_Child,
         euroNCAPVRU: data.EuroNCAP_VRU,
         euroNCAPSA: data.EuroNCAP_SA,
-        relatedVehicleIDSuccesor: data.Related_Vehicle_ID_Succesor,
+        relatedVehicleIDSuccessor: data.Related_Vehicle_ID_Successor,
         eVDBDetailURL: data.EVDB_Detail_URL,
         imageURLs: data.Images ? (!Utils.isEmptyArray(data.Images) ? data.Images : [data.Images]) : [],
         images: [],
