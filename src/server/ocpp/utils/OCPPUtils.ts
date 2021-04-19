@@ -1,12 +1,12 @@
+import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
 import BackendError from '../../../exception/BackendError';
-import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -316,7 +316,6 @@ export default class OCPPUtils {
   }
 
   public static async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction): Promise<void> {
-    let billingDataStop: BillingDataTransactionStop;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       // Check
@@ -325,9 +324,10 @@ export default class OCPPUtils {
         case TransactionAction.START:
           try {
             // Delegate
-            await billingImpl.startTransaction(transaction);
+            const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction);
             // Update
             transaction.billingData = {
+              withBillingActive: billingDataTransactionStart.withBillingActive,
               lastUpdate: new Date()
             };
           } catch (error) {
@@ -365,12 +365,9 @@ export default class OCPPUtils {
         case TransactionAction.STOP:
           try {
             // Delegate
-            billingDataStop = await billingImpl.stopTransaction(transaction);
+            const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
             // Update
-            transaction.billingData.status = billingDataStop.status;
-            transaction.billingData.invoiceID = billingDataStop.invoiceID;
-            transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
-            transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
+            transaction.billingData.stop = billingDataStop;
             transaction.billingData.lastUpdate = new Date();
           } catch (error) {
             await Logging.logError({

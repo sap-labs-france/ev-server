@@ -237,6 +237,7 @@ export interface BillingSettings extends Setting {
 }
 
 export interface BillingSetting {
+  isTransactionBillingActivated: boolean;
   immediateBillingAllowed: boolean;
   periodicBillingAllowed: boolean;
   taxID: string;

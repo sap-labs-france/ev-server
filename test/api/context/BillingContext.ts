@@ -21,6 +21,7 @@ export default class BillingContext {
 
   private static getBillingSettings(): BillingSettings {
     const billingProperties = {
+      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')

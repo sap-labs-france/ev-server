@@ -16,15 +16,15 @@ export default class TestUtils {
     const objectArray = [];
     const fileArray = TestUtils.convertExportFileToRawArray(fileData);
     if (Array.isArray(fileArray) && fileArray.length > 0) {
-      const columns = fileArray[0].split('\t');
+      const columns = fileArray[0].split(Constants.CSV_SEPARATOR);
       for (let i = 1; i < fileArray.length; i++) {
-        const values = fileArray[i].split('\t');
+        const values = fileArray[i].split(Constants.CSV_SEPARATOR);
         jsonString = '{';
         for (let j = 0; j < columns.length; j++) {
           if (j > 0) {
             jsonString += ',';
           }
-          jsonString += `"${columns[j]}":"${values[j]}"`;
+          jsonString += `"${columns[j].replace(/^"|"$/g, '')}":"${values[j].replace(/^"|"$/g, '')}"`;
         }
         jsonString += '}';
         objectArray.push(JSON.parse(jsonString));

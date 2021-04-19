@@ -56,7 +56,7 @@ class TestData {
     assert(!!tenantId, 'Tenant ID cannot be null');
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, billingSettings.stripe.secretKey);
     const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
-    expect(billingImpl).to.not.be.null;
+    assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
@@ -67,12 +67,13 @@ class TestData {
     billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
-    expect(billingImpl).to.not.be.null;
+    assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
-  public getLocalSettings(immediateBilling: boolean): BillingSettings {
+  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
     const billingProperties = {
+      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
@@ -89,11 +90,11 @@ class TestData {
       stripe: stripeProperties,
     };
 
-    // ---------------------------------------------------------
+    // -----------------------------------------------------------------
     // Our test needs the immediate billing to be switched off!
     // Because we want to check the DRAFT state of the invoice
-    settings.billing.immediateBillingAllowed = immediateBilling;
-    // ---------------------------------------------------------
+    settings.billing.immediateBillingAllowed = immediateBillingAllowed;
+    // -----------------------------------------------------------------
     return settings;
   }
 
@@ -483,6 +484,7 @@ describe('Billing Service', function() {
         } as User;
         fakeUser.issuer = true;
         testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+        assert(testData.billingImpl, 'Billing implementation should not be null');
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
@@ -504,6 +506,7 @@ describe('Billing Service', function() {
         assert(!!testData.userService, 'User service cannot be null');
         // Force INVALID STRIPE credentials
         testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+        assert(testData.billingImpl, 'Billing implementation should not be null');
       });
 
       after(async () => {

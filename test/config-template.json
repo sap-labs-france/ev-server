@@ -51,6 +51,7 @@
     "debug": false
   },
   "billing": {
+    "isTransactionBillingActivated": true,
     "immediateBillingAllowed": true,
     "periodicBillingAllowed": true,
     "taxID": ""

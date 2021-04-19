@@ -174,6 +174,7 @@ export default class SettingSecurity {
           break;
         case BillingSettingsType.STRIPE:
           settings.content.billing = {
+            isTransactionBillingActivated : sanitize(request.content.billing.isTransactionBillingActivated),
             immediateBillingAllowed: sanitize(request.content.billing.immediateBillingAllowed),
             periodicBillingAllowed: sanitize(request.content.billing.periodicBillingAllowed),
             taxID: sanitize(request.content.billing.taxID)

@@ -252,15 +252,20 @@ const config = convict({
     }
   },
   billing: {
+    isTransactionBillingActivated: {
+      doc: 'Activates the billing of transactions feature',
+      format: Boolean,
+      default: true
+    },
     immediateBillingAllowed: {
       doc: 'Allow immediate billing',
       format: Boolean,
-      default: ''
+      default: true
     },
     periodicBillingAllowed: {
       doc: 'Allow periodic billing',
       format: Boolean,
-      default: ''
+      default: false
     },
     taxID: {
       doc: 'taxes to apply by default',
