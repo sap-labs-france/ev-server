@@ -156,6 +156,7 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,

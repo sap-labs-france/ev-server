@@ -16,6 +16,7 @@ import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
@@ -334,7 +335,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         );
       } catch (err) {
         console.log('⚠️  Webhook signature verification failed.');
-        // Return res.sendStatus(400);
+        // pragma return res.sendStatus(StatusCodes.BAD_REQUEST);
         return false; // ##CR - this is stupid
       }
     } else {
