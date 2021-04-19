@@ -832,7 +832,6 @@ export default class UserService {
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,
             output: 'json',
-            quote: 'on',
           });
           void converter.subscribe(async (user: ImportedUser) => {
             // Check connection
@@ -1343,10 +1342,11 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase(),
-        firstName: importedUser.firstName,
-        email: importedUser.email,
+        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
+        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
+        email: importedUser.email.replace(/^"|"$/g, ''),
       };
+
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties
