@@ -127,7 +127,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
-      { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'] },
+      {
+        resource: Entity.USERS_SITES, action: Action.LIST, attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+        ]
+      },
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
       {
@@ -187,7 +191,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       // },
       // -----------------------------------------------------------------------------------------------
-      { resource: Entity.SITES, action: Action.LIST,
+      {
+        resource: Entity.SITES, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['AssignedSites'] }
@@ -359,7 +364,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
         },
-        attributes: ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID']
+        attributes: [
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
+        ]
       },
       { resource: Entity.USERS_SITES, action: Action.UNASSIGN,
         condition: {
