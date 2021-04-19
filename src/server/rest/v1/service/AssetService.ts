@@ -270,6 +270,16 @@ export default class AssetService {
     // Found?
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
+    if (!asset.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Asset '${asset.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateAsset',
+        user: req.user,
+        action: action
+      });
+    }
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
     // Log
@@ -406,6 +416,7 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       siteID: siteArea ? siteArea.siteID : null,
+      issuer: true,
       assetType: filteredRequest.assetType,
       excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
@@ -462,6 +473,16 @@ export default class AssetService {
     // Check
     UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
+    if (!asset.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Asset '${asset.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateAsset',
+        user: req.user,
+        action: action
+      });
+    }
     // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);
     // Update
