@@ -347,9 +347,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
-  public static async canReadUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
-      { user: userID, owner: loggedUser.id });
+  public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.READ, authContext);
   }
 
   public static async canCreateUser(loggedUser: UserToken): Promise<boolean> {

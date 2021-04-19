@@ -153,18 +153,8 @@ export default class UtilsService {
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
-    // Check static auth for reading user
-    if (!await Authorizations.canReadUser(userToken, userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        value: userID
-      });
-    }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
       tenant, userToken, { ID: userID });
@@ -173,7 +163,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         value: userID
       });
     }
@@ -186,20 +176,20 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+      MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
     if (!user.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         user: userToken,
         action: action
       });
     }
     // Add actions
-    await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
+    await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     // Check
     const authorized = AuthorizationService.canPerfomAction(user, authAction);
     if (!authorized) {
@@ -207,7 +197,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         value: userID
       });
     }

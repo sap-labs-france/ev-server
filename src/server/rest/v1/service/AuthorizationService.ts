@@ -353,18 +353,24 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[]): Promise<void> {
+  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[], authorizationFilter: AuthorizationFilter): Promise<void> {
     // Enrich
     for (const user of users) {
-      await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
+      await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
   }
 
-  public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User): Promise<void> {
+  public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Enrich
-    user.canRead = await Authorizations.canReadUser(userToken, user.id);
-    user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
-    user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
+    if (!user.issuer) {
+      user.canRead = true;
+      user.canUpdate = false;
+      user.canDelete = false;
+    } else {
+      user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ, authorizationFilter);
+      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter);
+      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter);
+    }
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
@@ -413,18 +419,28 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-        'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-      ],
-      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+      projectFields: [],
+      authorized: false,
     };
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canReadUser(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.USER,
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorizationFilters',
+      });
+    }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.USER,
+      authorizationFilters, authorizationContext, { UserID: filteredRequest.ID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, null, authorizationFilters);
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 

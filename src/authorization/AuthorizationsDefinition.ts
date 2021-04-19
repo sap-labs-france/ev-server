@@ -8,10 +8,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE], attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+      },
+      {
+        resource: Entity.USER, action: Action.READ, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ]
       },
       { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
@@ -25,10 +31,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   admin: {
     grants: [
       { resource: Entity.USERS, action: [Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
-      { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
         condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } },
+      },
+      {
+        resource: Entity.USER, action: Action.READ, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ]
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
         'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
@@ -121,7 +133,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USER, action: [Action.READ, Action.UPDATE], attributes: ['*'],
+        resource: Entity.USER, action: Action.READ, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      },
+      {
+        resource: Entity.USER, action: Action.UPDATE, attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
@@ -310,7 +329,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     },
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
+      {
+        resource: Entity.USER, action: [Action.READ], attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ]
+      },
       {
         resource: Entity.USERS_SITES, action: Action.LIST,
         condition: {
@@ -371,7 +395,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     },
     grants: [
       { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
+      {
+        resource: Entity.USER, action: Action.READ, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ]
+      },
       {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }

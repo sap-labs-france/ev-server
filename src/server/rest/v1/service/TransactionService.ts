@@ -15,7 +15,6 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -576,7 +575,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -655,7 +654,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
