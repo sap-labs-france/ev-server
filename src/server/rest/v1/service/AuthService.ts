@@ -515,7 +515,7 @@ export default class AuthService {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       try {
-        await billingImpl.createUser(user);
+        await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',
