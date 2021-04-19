@@ -155,6 +155,7 @@ describe('Asset Test', function() {
           testData.userService.assetApi,
           testData.newAsset
         );
+        expect(createdAsset.issuer).to.equal(true);
         expect(createdAsset.siteID).to.equal(testData.createdSiteAreas[0].siteID);
       });
 

@@ -355,17 +355,16 @@ export default class UtilsService {
     // Check
     for (const asset of assets.result) {
       // External Asset
-      // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
-      // if (!asset.issuer) {
-      //   throw new AppError({
-      //     source: Constants.CENTRAL_SERVER,
-      //     errorCode: HTTPError.GENERAL_ERROR,
-      //     message: `Asset ID '${asset.id}' not issued by the organization`,
-      //     module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
-      //     user: userToken,
-      //     action: action
-      //   });
-      // }
+      if (!asset.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Asset ID '${asset.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
     }
     return assets.result;
   }
