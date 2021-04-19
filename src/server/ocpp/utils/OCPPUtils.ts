@@ -1,12 +1,12 @@
+import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
 import BackendError from '../../../exception/BackendError';
-import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -316,7 +316,6 @@ export default class OCPPUtils {
   }
 
   public static async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction): Promise<void> {
-    let billingDataStop: BillingDataTransactionStop;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       // Check
@@ -325,9 +324,10 @@ export default class OCPPUtils {
         case TransactionAction.START:
           try {
             // Delegate
-            await billingImpl.startTransaction(transaction);
+            const billingDataTransactionStart: BillingDataTransactionStart = await billingImpl.startTransaction(transaction);
             // Update
             transaction.billingData = {
+              withBillingActive: billingDataTransactionStart.withBillingActive,
               lastUpdate: new Date()
             };
           } catch (error) {
@@ -365,12 +365,9 @@ export default class OCPPUtils {
         case TransactionAction.STOP:
           try {
             // Delegate
-            billingDataStop = await billingImpl.stopTransaction(transaction);
+            const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
             // Update
-            transaction.billingData.status = billingDataStop.status;
-            transaction.billingData.invoiceID = billingDataStop.invoiceID;
-            transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
-            transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
+            transaction.billingData.stop = billingDataStop;
             transaction.billingData.lastUpdate = new Date();
           } catch (error) {
             await Logging.logError({
@@ -689,6 +686,11 @@ export default class OCPPUtils {
 
   public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
       user: User, alternateUser: User, tagId: string): void {
+    // Handle Signed Data
+    const stopMeterValues = this.createTransactionStopMeterValues(transaction, stopTransaction);
+    for (const meterValue of (stopMeterValues)) {
+      this.updateSignedData(transaction, meterValue);
+    }
     // Set final data
     transaction.stop = {
       meterStop: stopTransaction.meterStop,
@@ -721,6 +723,23 @@ export default class OCPPUtils {
       value: stopTransaction.meterStop,
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     });
+    // Add SignedData
+    if (transaction.signedData) {
+      stopMeterValues.push({
+        id:(id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.signedData,
+        attribute: Constants.OCPP_START_SIGNED_DATA_ATTRIBUTE
+      });
+    }
+    if (transaction.currentSignedData) {
+      stopMeterValues.push({
+        id:(id++).toString(),
+        ...meterValueBasedProps,
+        value: transaction.currentSignedData,
+        attribute: Constants.OCPP_STOP_SIGNED_DATA_ATTRIBUTE
+      });
+    }
     // Add SoC
     if (transaction.currentStateOfCharge > 0) {
       stopMeterValues.push({
@@ -1829,6 +1848,21 @@ export default class OCPPUtils {
     return resetResult;
   }
 
+  public static updateSignedData(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): boolean {
+    if (meterValue.attribute.format === OCPPValueFormat.SIGNED_DATA) {
+      if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+        // Set the first Signed Data and keep it
+        transaction.signedData = meterValue.value as string;
+        return true;
+      } else if (meterValue.attribute.context === OCPPReadingContext.TRANSACTION_END) {
+        // Set the last Signed Data (used in the last consumption)
+        transaction.currentSignedData = meterValue.value as string;
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
     const templateUpdate: TemplateUpdate = {
       chargingStationUpdate: false,
@@ -2120,23 +2154,20 @@ export default class OCPPUtils {
   }
 
   private static checkAndSetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): void {
-    if (chargingStation.capabilities?.supportStaticLimitation) {
-      const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
-      // Check connector amperage limit
-      const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
-      if (connectorAmperageLimit) {
-        connector.amperageLimit = connectorAmperageLimit;
-      }
-    } else {
-      delete connector.amperageLimit;
+    const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+    // Check connector amperage limit
+    const connectorAmperageLimit = OCPPUtils.checkAndGetConnectorAmperageLimit(chargingStation, connector, numberOfPhases);
+    if (connectorAmperageLimit) {
+      // Reset
+      connector.amperageLimit = connectorAmperageLimit;
     }
+    // Keep
   }
 
   private static checkAndGetConnectorAmperageLimit(chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): number {
     const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     const connectorAmperageLimitMax = Utils.getChargingStationAmperage(chargingStation, null, connector.connectorId);
-    const numberOfConnectors = chargingStation?.connectors.length ?? 1;
-    const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * numberOfConnectors;
+    const connectorAmperageLimitMin = StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases;
     if (!Utils.objectHasProperty(connector, 'amperageLimit') || (Utils.objectHasProperty(connector, 'amperageLimit') && Utils.isNullOrUndefined(connector.amperageLimit))) {
       return connectorAmperageLimitMax;
     } else if (Utils.objectHasProperty(connector, 'amperageLimit') && connector.amperageLimit > connectorAmperageLimitMax) {

@@ -3,7 +3,6 @@ import chai, { expect } from 'chai';
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import StatisticsApi from './client/StatisticsApi';
 import StatisticsContext from './context/StatisticsContext';
 import { StatusCodes } from 'http-status-codes';

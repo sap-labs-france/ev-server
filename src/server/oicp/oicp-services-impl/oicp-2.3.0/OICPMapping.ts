@@ -179,7 +179,7 @@ export default class OICPMapping {
       Amperage: amperage,
       Power: connector.power,
       PowerType: OICPMapping.convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase),
-      Voltage:voltage,
+      Voltage: voltage,
       ChargingModes: [
         OICPChargingMode.Mode_4 // No mapping yet
       ]

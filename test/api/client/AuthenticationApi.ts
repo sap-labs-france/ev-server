@@ -1,6 +1,5 @@
 import BaseApi from './utils/BaseApi';
-import { ServerAction , ServerRoute } from '../../../src/types/Server';
-
+import { ServerRoute } from '../../../src/types/Server';
 import User from '../../../src/types/User';
 
 export default class AuthenticationApi {

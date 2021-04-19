@@ -1,6 +1,6 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { Car, CarType } from '../../../../types/Car';
-import ChargingStation, { ChargePoint } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import User, { UserRole, UserStatus } from '../../../../types/User';
@@ -136,9 +136,9 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company);
+    await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(company, authAction);
+    const authorized = AuthorizationService.canPerfomAction(company, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -201,7 +201,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(user, authAction);
+    const authorized = AuthorizationService.canPerfomAction(user, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -264,7 +264,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(site, authAction);
+    const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -478,7 +478,7 @@ export default class UtilsService {
     // Add actions
     await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea);
     // Check
-    const authorized = AuthorizationService.canPerfomAuthorizationAction(siteArea, authAction);
+    const authorized = AuthorizationService.canPerfomAction(siteArea, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -888,9 +888,6 @@ export default class UtilsService {
       });
     }
     // Check Max Limitation of each Schedule
-    // const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, null, filteredRequest.connectorID);
-    // const numberOfConnectors = filteredRequest.connectorID === 0 ?
-    //   (chargePoint ? chargePoint.connectorIDs.length : chargingStation.connectors.length) : 1;
     const maxAmpLimit = Utils.getChargingStationAmperageLimit(chargingStation, chargePoint, filteredRequest.connectorID);
     for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       // Check Min
@@ -1074,7 +1071,7 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (siteArea.voltage !== 230 && siteArea.voltage !== 110) {
+    if (siteArea.voltage !== Voltage.VOLTAGE_230 && siteArea.voltage !== Voltage.VOLTAGE_110) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,

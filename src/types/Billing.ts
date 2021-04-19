@@ -3,32 +3,23 @@ import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
-  status?: string;
-  invoiceID?: string;
-  invoiceStatus?: BillingInvoiceStatus;
-  invoiceItem?: BillingInvoiceItem;
+  withBillingActive?: boolean;
   lastUpdate?: Date;
+  stop?: BillingDataTransactionStop;
 }
 
 export interface BillingDataTransactionStart {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export interface BillingDataTransactionUpdate {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
 }
-
-export enum BillingMethod {
-  IMMEDIATE = 'immediate',
-  PERIODIC = 'periodic',
-  ADVANCE = 'advance',
-}
-
 
 export interface BillingDataTransactionStop {
   status?: string;
@@ -105,9 +96,9 @@ export interface BillingSessionData {
 }
 
 export interface BillingPricingData {
-  quantity: number,
-  amount: number,
-  currency: string
+  quantity: number;
+  amount: number;
+  currency: string;
 }
 
 export enum BillingInvoiceStatus {

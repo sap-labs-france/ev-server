@@ -1,4 +1,4 @@
-import StatisticFilter, { StatsGroupBy } from '../../types/Statistic';
+import StatisticFilter, { ChargingStationStats, StatsGroupBy, UserStats } from '../../types/Statistic';
 
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
@@ -9,58 +9,58 @@ const MODULE_NAME = 'StatisticsStorage';
 
 export default class StatisticsStorage {
 
-  static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string): Promise<any[]> {
+  static async getChargingStationStats(tenantID: string, params: StatisticFilter, groupBy: string): Promise<ChargingStationStats[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Build filter
-    const match: any = {};
+    const filters: any = {};
     // Date provided?
-    if (filters.startDateTime || filters.endDateTime) {
-      match.timestamp = {};
+    if (params.startDateTime || params.endDateTime) {
+      filters.timestamp = {};
     }
     // Start date
-    if (filters.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(filters.startDateTime);
+    if (params.startDateTime) {
+      filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
-    if (filters.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(filters.endDateTime);
+    if (params.endDateTime) {
+      filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     // Check stop transaction
-    if (filters.stop) {
-      match.stop = filters.stop;
+    if (params.stop) {
+      filters.stop = params.stop;
     }
     // Site
-    if (!Utils.isEmptyArray(filters.siteIDs)) {
-      match.siteID = {
-        $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (!Utils.isEmptyArray(filters.siteAreaIDs)) {
-      match.siteAreaID = {
-        $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (!Utils.isEmptyArray(filters.chargeBoxIDs)) {
-      match.chargeBoxID = {
-        $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
+    if (!Utils.isEmptyArray(params.chargeBoxIDs)) {
+      filters.chargeBoxID = {
+        $in: params.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (!Utils.isEmptyArray(filters.userIDs)) {
-      match.userID = {
-        $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };
     }
     // Create Aggregation
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: match
+      $match: filters
     });
     // Group
     switch (groupBy) {
@@ -111,71 +111,77 @@ export default class StatisticsStorage {
         });
         break;
     }
+    // Replace root
+    aggregation.push({
+      $replaceRoot: {
+        newRoot: { month: '$_id.month', unit: '$_id.unit', chargeBox: '$_id.chargeBox', total: '$total' }
+      }
+    });
     // Sort
     aggregation.push({
-      $sort: { '_id.month': 1, '_id.unit': 1, '_id.chargeBox': 1 }
+      $sort: { 'month': 1, 'unit': 1, 'chargeBox': 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const chargingStationStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, transactionStatsMDB);
-    return transactionStatsMDB;
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getChargingStationStats', uniqueTimerID, chargingStationStatsMDB);
+    return chargingStationStatsMDB;
   }
 
-  static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string): Promise<any[]> {
+  static async getUserStats(tenantID: string, params: StatisticFilter, groupBy: string): Promise<UserStats[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserStats');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Build filter
-    const match: any = {};
+    const filters: any = {};
     // Date provided?
-    if (filters.startDateTime || filters.endDateTime) {
-      match.timestamp = {};
+    if (params.startDateTime || params.endDateTime) {
+      filters.timestamp = {};
     }
     // Start date
-    if (filters.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(filters.startDateTime);
+    if (params.startDateTime) {
+      filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
-    if (filters.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(filters.endDateTime);
+    if (params.endDateTime) {
+      filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     // Check stop tr
-    if (filters.stop) {
-      match.stop = filters.stop;
+    if (params.stop) {
+      filters.stop = params.stop;
     }
     // Filter on Site?
-    if (!Utils.isEmptyArray(filters.siteIDs)) {
-      match.siteID = {
-        $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      filters.siteID = {
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (!Utils.isEmptyArray(filters.siteAreaIDs)) {
-      match.siteAreaID = {
-        $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+    if (!Utils.isEmptyArray(params.siteAreaIDs)) {
+      filters.siteAreaID = {
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (!Utils.isEmptyArray(filters.chargeBoxIDs)) {
-      match.chargeBoxID = {
-        $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
+    if (!Utils.isEmptyArray(params.chargeBoxIDs)) {
+      filters.chargeBoxID = {
+        $in: params.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (!Utils.isEmptyArray(filters.userIDs)) {
-      match.userID = {
-        $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };
     }
     // Create Aggregation
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: match
+      $match: filters
     });
     // Group
     switch (groupBy) {
@@ -226,29 +232,31 @@ export default class StatisticsStorage {
         });
         break;
     }
-    // Resolve Users
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: '_id.userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
+    // Lookup for users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID, aggregation, localField: '_id.userID', foreignField: '_id',
+      asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    }, [ { $project: { _id: 1, name: 1, firstName: 1 } } ]);
     // Single Record
     aggregation.push({
       $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
     });
+    // Replace root
+    aggregation.push({
+      $replaceRoot: {
+        newRoot: { month: '$_id.month', unit: '$_id.unit', user: '$user', total: '$total' }
+      }
+    });
     // Sort
     aggregation.push({
-      $sort: { '_id.month': 1, '_id.unit': 1, '_id.chargeBox': 1 } // Instead of chargeBox userID ?
+      $sort: { 'month': 1, 'unit': 1, 'userID': 1 } // Instead of chargeBox userID ?
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const userStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, transactionStatsMDB);
-    return transactionStatsMDB;
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserStats', uniqueTimerID, userStatsMDB);
+    return userStatsMDB;
   }
 }

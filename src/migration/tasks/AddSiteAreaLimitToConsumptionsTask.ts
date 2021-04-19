@@ -1,8 +1,9 @@
+import { SiteAreaLimitSource, Voltage } from '../../types/ChargingStation';
+
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
-import { SiteAreaLimitSource } from '../../types/ChargingStation';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -42,7 +43,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         },
         {
           $set: {
-            limitSiteAreaAmps: limitSiteAreaWatts / 230,
+            limitSiteAreaAmps: limitSiteAreaWatts / Voltage.VOLTAGE_230,
             limitSiteAreaWatts: limitSiteAreaWatts,
             limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
           }
@@ -56,7 +57,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         },
         {
           $set: {
-            'voltage': 230,
+            'voltage': Voltage.VOLTAGE_230,
             'numberOfPhases': 3,
             'maximumPower': limitSiteAreaWatts,
           }

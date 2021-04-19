@@ -450,15 +450,16 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
       MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     // Create an invoice for the transaction
+    // ----------------------------------------------------------------------
+    // TODO - Rethink that part!
+    // Calling StopTransaction without calling startTransaction may have
+    // unpredictable side-effects.
+    // ----------------------------------------------------------------------
     const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // Update transaction
-    transaction.billingData = {
-      status: billingDataStop.status,
-      invoiceID: billingDataStop.invoiceID,
-      invoiceStatus: billingDataStop.invoiceStatus,
-      invoiceItem: billingDataStop.invoiceItem,
-      lastUpdate: new Date()
-    };
+    // Update transaction billing data
+    transaction.billingData.stop = billingDataStop;
+    transaction.billingData.lastUpdate = new Date();
+    // Save it
     await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
     // Ok
     await Logging.logInfo({
