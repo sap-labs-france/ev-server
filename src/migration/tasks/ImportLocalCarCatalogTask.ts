@@ -2,14 +2,13 @@ import { CarCatalog, CarCatalogChargeAlternativeTable, CarCatalogChargeOptionTab
 
 import CarStorage from '../../storage/mongodb/CarStorage';
 import Constants from '../../utils/Constants';
-import FileType from 'file-type';
+import Jimp from 'jimp';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import fs from 'fs';
 import global from '../../types/GlobalType';
-import sharp from 'sharp';
 
 const MODULE_NAME = 'ImportLocalCarCatalogTask';
 
@@ -190,9 +189,10 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
             videos: car.Videos,
           };
           let imageURLPath = `${global.appRoot}/assets/cars/img/${carCatalog.imageURLs[0]}`;
-          const base64ThumbImage = (await sharp(imageURLPath).resize(200, 150).toBuffer()).toString('base64');
-          let contentType = await FileType.fromFile(imageURLPath);
-          carCatalog.image = 'data:' + contentType.mime + ';base64,' + base64ThumbImage;
+          const thumbImage = (await Jimp.read(imageURLPath)).resize(200, 150);
+          const thumbImageMIME = thumbImage.getMIME();
+          const base64ThumbImage = await thumbImage.getBase64Async(thumbImageMIME);
+          carCatalog.image = 'data:' + thumbImageMIME + ';base64,' + base64ThumbImage;
           await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs').deleteOne({
             _id: carCatalog.id
           });
@@ -203,10 +203,10 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
           carCatalog.lastChangedOn = carCatalog.createdOn;
           for (const imageURL of carCatalog.imageURLs) {
             imageURLPath = `${global.appRoot}/assets/cars/img/${imageURL}`;
-            const image = fs.readFileSync(imageURLPath);
-            contentType = await FileType.fromFile(imageURLPath);
-            const base64Image = Buffer.from(image).toString('base64');
-            const encodedImage = 'data:' + contentType.mime + ';base64,' + base64Image;
+            const image = await Jimp.read(imageURLPath);
+            const imageMIME = image.getMIME();
+            const base64Image = await image.getBase64Async(imageMIME);
+            const encodedImage = 'data:' + imageMIME + ';base64,' + base64Image;
             // Save car catalog images
             await CarStorage.saveCarImage(carCatalog.id, encodedImage);
           }
