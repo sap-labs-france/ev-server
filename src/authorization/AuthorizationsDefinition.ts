@@ -42,24 +42,31 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ]
       },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
-        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-      ] },
+      {
+        resource: Entity.COMPANIES, action: Action.LIST, attributes: [
+          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
       { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.SITES, action: Action.LIST, attributes: [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
-      ] },
-      { resource: Entity.SITE, action: Action.READ, attributes: [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn'] },
+      {
+        resource: Entity.SITES, action: Action.LIST, attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
+        ]
+      },
+      {
+        resource: Entity.SITE, action: Action.READ, attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn'
+        ]
+      },
       { resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -190,7 +197,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ]
       },
-      { resource: Entity.SITE, action: Action.READ,
+      {
+        resource: Entity.SITE, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['AssignedSites'] }
@@ -198,7 +206,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        ] },
+        ]
+      },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
@@ -285,19 +294,28 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.COMPANIES, action: Action.LIST, attributes: [
-        'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
-      ] },
-      { resource: Entity.COMPANY, action: Action.READ, attributes: [
-        'id', 'name', 'issuer', 'logo', 'address'] },
-      { resource: Entity.SITES, action: Action.LIST, attributes: [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-      ] },
-      { resource: Entity.SITE, action: Action.READ, attributes: [
-        'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-        'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-      ] },
+      {
+        resource: Entity.COMPANIES, action: Action.LIST, attributes: [
+          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+        ]
+      },
+      {
+        resource: Entity.COMPANY, action: Action.READ, attributes: [
+          'id', 'name', 'issuer', 'logo', 'address'
+        ]
+      },
+      {
+        resource: Entity.SITES, action: Action.LIST, attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+        ]
+      },
+      {
+        resource: Entity.SITE, action: Action.READ, attributes: [
+          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+        ]
+      },
       { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
@@ -411,7 +429,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     ]
   },
 };
-
 
 const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
   dynamicAuthorizationFilters: (context: Record<string, any>, args: AuthorizationContext): boolean => {
