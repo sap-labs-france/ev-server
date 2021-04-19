@@ -296,7 +296,7 @@ export default class CarStorage {
       euroNCAPChild: Utils.convertToInt(carToSave.euroNCAPChild),
       euroNCAPVRU: Utils.convertToInt(carToSave.euroNCAPVRU),
       euroNCAPSA: Utils.convertToInt(carToSave.euroNCAPSA),
-      relatedVehicleIDSuccesor: Utils.convertToInt(carToSave.relatedVehicleIDSuccesor),
+      relatedVehicleIDSuccessor: Utils.convertToInt(carToSave.relatedVehicleIDSuccessor),
       eVDBDetailURL: carToSave.eVDBDetailURL,
       videos: carToSave.videos,
       hash: carToSave.hash,
