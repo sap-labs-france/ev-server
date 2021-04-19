@@ -49,23 +49,23 @@ class TestData {
   public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
-  public async assignPaymentMethod(user: User, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
+  public async assignPaymentMethod(user: BillingUser, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
     // Assign a source using test tokens (instead of test card numbers)
     // c.f.: https://stripe.com/docs/testing#cards
     const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
     const stripeInstance = await concreteImplementation.getStripeInstance();
     const customerID = user.billingData?.customerID;
-    expect(customerID).to.not.be.null;
+    assert(customerID, 'customerID should not be null');
     // TODO - rethink that part - the concrete billing implementation should be called instead
     const source = await stripeInstance.customers.createSource(customerID, {
       source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
     });
-    expect(source).to.not.be.null;
+    assert(source, 'Source should not be null');
     // TODO - rethink that part - the concrete billing implementation should be called instead
     const customer = await stripeInstance.customers.update(customerID, {
       default_source: source.id
     });
-    expect(customer).to.not.be.null;
+    assert(customer, 'Customer should not be null');
     return source;
   }
 
@@ -227,10 +227,11 @@ describe('Billing Service', function() {
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        await testData.assignPaymentMethod(testData.userContext, 'tok_fr');
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
+        assert(transactionID, 'transactionID should noy be null');
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
@@ -463,10 +464,11 @@ describe('Billing Service', function() {
           testData.userContext
         );
         // await testData.userService.billingApi.synchronizeInvoices({});
-        await testData.assignPaymentMethod(testData.userContext, 'tok_fr');
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(basicUser.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
+        assert(transactionID, 'transactionID should noy be null');
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(basicUser.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
