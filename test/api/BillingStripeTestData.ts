@@ -63,9 +63,8 @@ export default class StripeIntegrationTestData {
   public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    expect(this.billingImpl, 'Billing implementation should not ber null');
     this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
-    expect(this.billingUser, 'Billing user should not ber null');
+    assert(this.billingUser, 'Billing user should not be null');
   }
 
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<StripeBillingIntegration> {
@@ -73,21 +72,13 @@ export default class StripeIntegrationTestData {
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
     const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
-    expect(this.billingImpl).to.not.be.null;
+    assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
-  public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const billingSettings = this.getLocalSettings(false);
-    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), 'sk_test_' + 'invalid_credentials');
-    await this.saveBillingSettings(billingSettings);
-    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
-    expect(this.billingImpl).to.not.be.null;
-    return billingImpl;
-  }
-
-  public getLocalSettings(immediateBilling: boolean): BillingSettings {
+  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
     const billingProperties = {
+      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
@@ -104,11 +95,11 @@ export default class StripeIntegrationTestData {
       stripe: stripeProperties,
     };
 
-    // ---------------------------------------------------------
-    // Our test needs the immediate billing to be switched off!
+    // -----------------------------------------------------------------
+    // Our test may need the immediate billing to be switched off!
     // Because we want to check the DRAFT state of the invoice
-    settings.billing.immediateBillingAllowed = immediateBilling;
-    // ---------------------------------------------------------
+    settings.billing.immediateBillingAllowed = immediateBillingAllowed;
+    // -----------------------------------------------------------------
     return settings;
   }
 
@@ -177,10 +168,6 @@ export default class StripeIntegrationTestData {
       inclusive: false
     });
     expect(taxRate).to.not.be.null;
-    // concreteImplementation.alterStripeSettings({
-    //   taxID: taxRate?.id, // Default tax to apply when charging invoices
-    //   // immediateBillingAllowed: true // Activate immediate billing
-    // });
     return taxRate;
   }
 
