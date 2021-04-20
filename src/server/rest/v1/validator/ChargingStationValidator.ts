@@ -53,7 +53,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationsGetReq(data: any): HttpChargingStationsRequest {
     // Validate schema
     this.validate(this.chargingStationsGet, data);
-    if (Utils.containsGPSCoordinates([data.LocLongitude, data.LocLatitude])) {
+    if (data.LocLongitude && data.LocLatitude) {
       data.LocCoordinates = [
         Utils.convertToFloat(data.LocLongitude),
         Utils.convertToFloat(data.LocLatitude)

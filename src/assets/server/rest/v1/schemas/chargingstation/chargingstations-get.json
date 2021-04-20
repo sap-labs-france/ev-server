@@ -42,10 +42,12 @@
     },
     "LocLongitude": {
       "type": "number",
+      "format": "coordinates",
       "sanitize": "mongo"
     },
     "LocLatitude": {
       "type": "number",
+      "format": "coordinates",
       "sanitize": "mongo"
     },
     "LocMaxDistanceMeters": {
