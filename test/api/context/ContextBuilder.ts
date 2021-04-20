@@ -138,17 +138,7 @@ export default class ContextBuilder {
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
     console.log(`${buildTenant.id} (${buildTenant.name}) - Create tenant context`);
-    const userId = await UserStorage.saveUser(buildTenant.id, {
-      'id': ContextDefinition.TENANT_USER_LIST[0].id,
-      'issuer': true,
-      'name': 'Admin',
-      'firstName': 'User',
-      'email': config.get('admin.username'),
-      'locale': 'en-US',
-      'phone': '66666666666',
-      'mobile': '66666666666',
-      'plateID': '666-FB-69'
-    });
+    const userId = await UserStorage.saveUser(buildTenant.id, ContextDefinition.TENANT_USER_LIST[0]);
     await UserStorage.saveUserStatus(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].status);
     await UserStorage.saveUserRole(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].role);
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
