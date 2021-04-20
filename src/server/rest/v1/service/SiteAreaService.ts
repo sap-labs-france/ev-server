@@ -306,7 +306,7 @@ export default class SiteAreaService {
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site
     await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
