@@ -45,7 +45,7 @@ describe('Car Tests', function() {
 
     describe('Without any component (tenant utnothing)', () => {
       describe('Where admin user', () => {
-        before(async function() {
+        before(function() {
 
           testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
             email: config.get('admin.username'),
@@ -83,8 +83,7 @@ describe('Car Tests', function() {
     describe('With component Car (tenant utcar)', () => {
       describe('Where admin user', () => {
 
-        before(async function() {
-
+        before(function() {
           testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, {
             email: config.get('admin.username'),
             password: config.get('admin.password')
