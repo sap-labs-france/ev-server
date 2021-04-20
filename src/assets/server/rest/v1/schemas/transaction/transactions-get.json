@@ -3,14 +3,14 @@
   "type": "object",
   "properties": {
     "ChargeBoxID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation.json#/definitions/ids"
     },
     "Issuer": {
       "type": "boolean",
       "sanitize": "mongo"
     },
     "ConnectorID": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+      "$ref": "chargingstation.json#/definitions/connectorIDs"
     },
     "SiteAreaID": {
       "$ref": "common.json#/definitions/ids"
@@ -22,7 +22,7 @@
       "$ref": "common.json#/definitions/ids"
     },
     "TagID": {
-      "$ref": "tag.json#/definitions/id"
+      "$ref": "tag.json#/definitions/ids"
     },
     "StartDateTime": {
       "type": "string",
