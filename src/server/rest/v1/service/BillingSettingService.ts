@@ -50,8 +50,9 @@ export default class BillingSettingService {
     const settingID = req.params.id;
     const billingSettings: BillingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, settingID);
     if (billingSettings) {
-      _.set(billingSettings, 'sk-enc', billingSettings.stripe.secretKey);
-      _.set(billingSettings, 'sk-ori', await Cypher.decrypt(req.user.tenantID, billingSettings.stripe.secretKey));
+      // For trouble shooting only
+      // _.set(billingSettings, 'sk-enc', billingSettings.stripe.secretKey);
+      // _.set(billingSettings, 'sk-ori', await Cypher.decrypt(req.user.tenantID, billingSettings.stripe.secretKey));
       BillingSettingService.hashSensitiveData(req.user.tenantID, billingSettings);
       res.json(billingSettings);
     } else {
