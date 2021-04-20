@@ -172,21 +172,6 @@ describe('User tests', function() {
           testData.createdTags.push(testData.newTag);
         });
 
-        it('Should not be able to delete a badge that has already been used', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionValid;
-          const resDelete = await testData.userService.userApi.deleteTag(tagId);
-          expect(resDelete.status).to.equal(HTTPError.TAG_HAS_TRANSACTIONS);
-          const tag = (await testData.userService.userApi.readTag(tagId)).data;
-          expect(tag).to.not.be.null;
-        });
-
         it('Should be able to deactivate a badge', async () => {
           testData.newTag.active = false;
           const response = await testData.userService.userApi.updateTag(testData.newTag);

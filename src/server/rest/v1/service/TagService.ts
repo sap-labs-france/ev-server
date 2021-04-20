@@ -157,17 +157,6 @@ export default class TagService {
         action: action
       });
     }
-    // Has transactions
-    if (tag.transactionsCount > 0) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
-        message: `Cannot delete Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
-        module: MODULE_NAME, method: 'handleDeleteTag',
-        user: req.user,
-        action: action
-      });
-    }
     // Delete the Tag
     await TagStorage.deleteTag(req.user.tenantID, tag.id);
     // Check if default deleted?
@@ -254,7 +243,7 @@ export default class TagService {
     if (transactions.count > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
         message: `Tag with ID '${filteredRequest.id}' has been used in previous transactions`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
@@ -728,16 +717,6 @@ export default class TagService {
           user: loggedUser,
           module: MODULE_NAME, method: 'handleDeleteTags',
           message: `Tag ID '${tag.id}' not issued by the organization`,
-          action: action,
-          detailedMessages: { tag }
-        });
-      } else if (tag.transactionsCount > 0) {
-        result.inError++;
-        await Logging.logError({
-          tenantID: loggedUser.tenantID,
-          user: loggedUser,
-          module: MODULE_NAME, method: 'handleDeleteTags',
-          message: `Cannot delete Tag ID '${tag.id}' which has '${tag.transactionsCount}' transaction(s)`,
           action: action,
           detailedMessages: { tag }
         });
