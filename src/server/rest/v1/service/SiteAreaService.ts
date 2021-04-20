@@ -8,7 +8,6 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -214,21 +213,12 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreas');
-    // Check static auth
-    if (!await Authorizations.canListSiteAreas(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.SITE_AREAS,
-        module: MODULE_NAME, method: 'handleGetSiteAreas'
-      });
-    }
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
     // Check dynamic auth
-    const readSiteAreasAuthorizationFilters = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(
+    const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-    // Get the sites
+      // Get the SiteAreas
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         issuer: filteredRequest.Issuer,
@@ -239,7 +229,7 @@ export default class SiteAreaService {
         siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
-        ...readSiteAreasAuthorizationFilters.filters
+        ...authorizationSiteAreasFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -247,11 +237,11 @@ export default class SiteAreaService {
         sort: filteredRequest.SortFields,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      readSiteAreasAuthorizationFilters.projectFields
+      authorizationSiteAreasFilter.projectFields
     );
     // Add Auth flags
     await AuthorizationService.addSiteAreasAuthorizations(
-      req.tenant, req.user, siteAreas as SiteAreaDataResult);
+      req.tenant, req.user, siteAreas as SiteAreaDataResult,authorizationSiteAreasFilter, filteredRequest);
     // Return
     res.json(siteAreas);
     next();

@@ -41,7 +41,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
+        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+      ] },
       { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
       {
@@ -155,7 +158,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       // -----------------------------------------------------------------------------------------------
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSites'] }
+        },
+        attributes: [
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+        ] },
       { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*'] },
@@ -247,7 +258,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         'id', 'name', 'issuer', 'logo', 'address'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
+        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+      ] },
       { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_STATION, action: Action.READ, attributes: ['*'] },

@@ -571,65 +571,38 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [ ],
+      authorized: false,
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned SiteArea IDs
-      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteAreaIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteAreaIDs = siteAreaIDs;
-        // Check if filter is provided
-        if (Utils.objectHasProperty(filteredRequest, 'SiteAreaID') &&
-              !Utils.isNullOrUndefined(filteredRequest['SiteAreaID'])) {
-          const filteredSiteAreaIDs: string[] = filteredRequest['SiteAreaID'].split('|');
-          // Override
-          authorizationFilters.filters.siteAreaIDs = filteredSiteAreaIDs.filter(
-            (siteAreaID) => authorizationFilters.filters.siteAreaIDs.includes(siteAreaID));
-        }
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteAreaIDs)) {
-        authorizationFilters.authorized = true;
-      }
-    }
-
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.SITE_AREAS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
-  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult): Promise<void> {
-    // Get Site Admins
-    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
     // Add canCreate flag to root
-    siteAreas.canCreate = await Authorizations.canCreateSite(userToken);
+    siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREAS, Action.CREATE, authorizationFilter);
+
     // Enrich
     for (const siteArea of siteAreas.result) {
-      await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, siteAdminIDs);
+      await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter, filteredRequest);
     }
   }
 
-  public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, siteAdminIDs?: string[]): Promise<void> {
-    // Get Site Admins
-    if (Utils.isEmptyArray(siteAdminIDs)) {
-      siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-    }
+  public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
       siteArea.canUpdate = false;
       siteArea.canDelete = false;
     } else {
-      const isSiteAdmin = siteAdminIDs.includes(siteArea.siteID) || (userToken.role === UserRole.ADMIN);
-      siteArea.canRead = await Authorizations.canReadSiteArea(userToken);
-      siteArea.canUpdate = await Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
-      siteArea.canDelete = await Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
+      // todo: add id?
+      siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, filteredRequest);
+      siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, filteredRequest);
+      siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, filteredRequest);
     }
   }
 
@@ -891,7 +864,7 @@ export default class AuthorizationService {
       return false;
     }
     // Check Dynamic Auth
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.LIST, Entity.COMPANIES,
+    await AuthorizationService.processDynamicFilters(tenant, userToken, action, entity,
       authorizationFilters, authorizationContext, filteredRequest);
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
