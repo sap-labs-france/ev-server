@@ -78,10 +78,17 @@ export default class BillingSettingService {
     // Load previous settings
     const billingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, newBillingSettings.id);
     await BillingSettingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingSettings);
+    // Billing properties to preserve
+    const { isTransactionBillingActivated, usersLastSynchronizedOn } = billingSettings.billing;
+    // Billing properties to override
+    const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingSettings.billing;
     // Now populates the settings with the new values
     billingSettings.id = newBillingSettings.id;
     billingSettings.type = newBillingSettings.type;
-    billingSettings.billing = newBillingSettings.billing;
+    billingSettings.billing = {
+      isTransactionBillingActivated, usersLastSynchronizedOn,
+      immediateBillingAllowed, periodicBillingAllowed, taxID,
+    };
     billingSettings.stripe = newBillingSettings.stripe;
     // Update timestamp
     billingSettings.lastChangedBy = { 'id': req.user.id };
