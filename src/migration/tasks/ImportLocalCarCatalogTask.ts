@@ -7,6 +7,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
+import { Voltage } from '../../types/ChargingStation';
 import fs from 'fs';
 import global from '../../types/GlobalType';
 
@@ -28,7 +29,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
               evsePhaseVolt: car.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
               evsePhaseAmp: car.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
               evsePhase: car.Charge_Standard_Table[chargeStandard].EVSE_Phase,
-              evsePhaseVoltCalculated: car.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? 400 : car.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
+              evsePhaseVoltCalculated: car.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? Voltage.VOLTAGE_400 : car.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
               chargePhaseVolt: car.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
               chargePhaseAmp: car.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
               chargePhase: car.Charge_Standard_Table[chargeStandard].Charge_Phase,
@@ -182,7 +183,7 @@ export default class ImportLocalCarCatalogTask extends MigrationTask {
             euroNCAPChild: car.EuroNCAP_Child,
             euroNCAPVRU: car.EuroNCAP_VRU,
             euroNCAPSA: car.EuroNCAP_SA,
-            relatedVehicleIDSuccesor: car.Related_Vehicle_ID_Succesor,
+            relatedVehicleIDSuccessor: car.Related_Vehicle_ID_Successor,
             eVDBDetailURL: car.EVDB_Detail_URL,
             imageURLs: car.Images ? (!Utils.isEmptyArray(car.Images) ? car.Images : [car.Images]) : [],
             images: [],

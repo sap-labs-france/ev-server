@@ -466,7 +466,7 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          await billingImpl.updateUser(user);
+          await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -832,7 +832,6 @@ export default class UserService {
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,
             output: 'json',
-            quote: 'on',
           });
           void converter.subscribe(async (user: ImportedUser) => {
             // Check connection
@@ -1034,7 +1033,7 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.createUser(user);
+          await billingImpl.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -1343,10 +1342,11 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase(),
-        firstName: importedUser.firstName,
-        email: importedUser.email,
+        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
+        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
+        email: importedUser.email.replace(/^"|"$/g, ''),
       };
+
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties
