@@ -9,7 +9,6 @@ export enum Feature {
 }
 
 export default class FeatureToggles {
-
   // Comment out the features that you want to switch OFF
   static activeFeatures: Feature[] = [
     // Feature.BILLING_SYNC_USERS, // Let's avoid polluting the stripe accounts for now!
