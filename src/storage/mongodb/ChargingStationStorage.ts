@@ -256,7 +256,7 @@ export default class ChargingStationStorage {
     // Connector Status
     if (params.connectorStatuses) {
       filters['connectors.status'] = { $in: params.connectorStatuses };
-      filters.inactive = true;
+      filters.inactive = false;
       // Filter connectors array
       aggregation.push({
         '$addFields': {

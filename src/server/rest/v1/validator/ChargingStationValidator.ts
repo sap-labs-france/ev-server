@@ -4,11 +4,12 @@ import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
+import Utils from '../../../../utils/Utils';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class ChargingStationValidator extends SchemaValidator {
-  private static instance: ChargingStationValidator|null = null;
+  private static instance: ChargingStationValidator | null = null;
   private chargingStationsGet: Schema;
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
@@ -52,6 +53,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationsGetReq(data: any): HttpChargingStationsRequest {
     // Validate schema
     this.validate(this.chargingStationsGet, data);
+    if (Utils.containsGPSCoordinates([data.LocLongitude, data.LocLatitude])) {
+      data.LocCoordinates = [
+        Utils.convertToFloat(data.LocLongitude),
+        Utils.convertToFloat(data.LocLatitude)
+      ];
+    }
     return data;
   }
 
