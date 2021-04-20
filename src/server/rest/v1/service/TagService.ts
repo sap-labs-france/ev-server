@@ -157,22 +157,6 @@ export default class TagService {
         action: action
       });
     }
-    // Delete the Tag
-    await TagStorage.deleteTag(req.user.tenantID, tag.id);
-    // Check if default deleted?
-    if (tag.default) {
-      // Clear all default
-      await TagStorage.clearDefaultUserTag(req.user.tenantID, tag.userID);
-      // Make the next active Tag the new default one
-      const firstActiveTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, tag.userID, {
-        issuer: true,
-      });
-      if (firstActiveTag) {
-        // Set default
-        firstActiveTag.default = true;
-        await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
-      }
-    }
     // OCPI
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -198,6 +182,22 @@ export default class TagService {
           message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
+      }
+    }
+    // Delete the Tag
+    await TagStorage.deleteTag(req.user.tenantID, tag.id);
+    // Check if default deleted?
+    if (tag.default) {
+      // Clear all default
+      await TagStorage.clearDefaultUserTag(req.user.tenantID, tag.userID);
+      // Make the next active Tag the new default one
+      const firstActiveTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, tag.userID, {
+        issuer: true,
+      });
+      if (firstActiveTag) {
+        // Set default
+        firstActiveTag.default = true;
+        await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
       }
     }
     // Log
