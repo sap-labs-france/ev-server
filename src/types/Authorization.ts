@@ -177,12 +177,12 @@ export interface AuthorizationActions {
 
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
-  ASSIGNED_SITES = 'AssignedSites',
+  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
-  ASSIGNED_SITES = 'AssignedSites',
+  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -191,6 +191,6 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
   companyIDs?: string[];
 }
 
-export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
-  siteIDs?: string[];
+export interface AssignedSiteAreasDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteAreaIDs?: string[];
 }

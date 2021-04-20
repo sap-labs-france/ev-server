@@ -1,9 +1,9 @@
 import { DynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName, DynamicAuthorizationFilterName } from '../types/Authorization';
 
+import AssignedSiteAreasDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSiteAreasDynamicAuthorizationDataSource';
+import AssignedSiteAreasDynamicAuthorizationFilter from './dynamic-filters/AssignedSiteAreasDynamicAuthorizationFilter';
 import AssignedSitesCompaniesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesCompaniesDynamicAuthorizationDataSource';
 import AssignedSitesCompaniesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesCompaniesDynamicAuthorizationFilter';
-import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
-import AssignedSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesDynamicAuthorizationFilter';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
 import Tenant from '../types/Tenant';
@@ -19,8 +19,8 @@ export default class DynamicAuthorizationFactory {
       case DynamicAuthorizationFilterName.ASSIGNED_SITES_COMPANIES:
         dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenant, userToken);
         break;
-      case DynamicAuthorizationFilterName.ASSIGNED_SITES:
-        dynamicFilter = new AssignedSitesDynamicAuthorizationFilter(tenant, userToken);
+      case DynamicAuthorizationFilterName.ASSIGNED_SITE_AREAS:
+        dynamicFilter = new AssignedSiteAreasDynamicAuthorizationFilter(tenant, userToken);
         break;
     }
     // Init Data Source
@@ -56,8 +56,8 @@ export default class DynamicAuthorizationFactory {
     switch (dataSource) {
       case DynamicAuthorizationDataSourceName.ASSIGNED_SITES_COMPANIES:
         return new AssignedSitesCompaniesDynamicAuthorizationDataSource(tenant, user);
-      case DynamicAuthorizationDataSourceName.ASSIGNED_SITES:
-        return new AssignedSitesDynamicAuthorizationDataSource(tenant, user);
+      case DynamicAuthorizationDataSourceName.ASSIGNED_SITE_AREAS:
+        return new AssignedSiteAreasDynamicAuthorizationDataSource(tenant, user);
     }
   }
 }

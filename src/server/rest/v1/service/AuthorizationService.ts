@@ -548,22 +548,30 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
+
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authResult = await Authorizations.canReadSiteArea(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorizationFilters',
+      });
+    }
+
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.SITE,
+      authorizationFilters, authorizationContext, { SiteAreaID: filteredRequest.ID });
     // Filter projected fields
     authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteAreaIDs) && siteAreaIDs.includes(filteredRequest.ID)) {
-        authorizationFilters.authorized = true;
-      }
-    }
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
@@ -571,7 +579,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [ ],
+      projectFields: [],
       authorized: false,
     };
     // Check static & dynamic authorization
@@ -599,7 +607,7 @@ export default class AuthorizationService {
       siteArea.canUpdate = false;
       siteArea.canDelete = false;
     } else {
-      // todo: add id?
+      filteredRequest.SiteAreaID = siteArea.id;
       siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, filteredRequest);
       siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, filteredRequest);
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, filteredRequest);

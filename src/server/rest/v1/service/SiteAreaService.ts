@@ -168,8 +168,6 @@ export default class SiteAreaService {
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteArea');
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
-    // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
@@ -177,8 +175,6 @@ export default class SiteAreaService {
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
       }, true);
-    // Add authorizations
-    await AuthorizationService.addSiteAreaAuthorizations(req.tenant, req.user, siteArea);
     // Return
     res.json(siteArea);
     next();

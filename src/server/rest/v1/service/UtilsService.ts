@@ -430,16 +430,6 @@ export default class UtilsService {
 
   public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
-    // Check static auth for reading site area
-    if (!await Authorizations.canReadSiteArea(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'checkAndGetSiteAreaAuthorization',
-        value: siteAreaID
-      });
-    }
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // Get dynamic auth
@@ -476,7 +466,7 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea);
+    await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter, { ID: siteAreaID });
     // Check
     const authorized = AuthorizationService.canPerfomAction(siteArea, authAction);
     if (!authorized) {
