@@ -638,7 +638,20 @@ describe('Smart Charging Service', function() {
         testData.siteAreaContext.getSiteArea().maximumPower = 10000;
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          }
+        ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
@@ -717,7 +730,20 @@ describe('Smart Charging Service', function() {
       it('Test for sticky limit disabled - two cars charging with lower site area limit', async () => {
         const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          }
+        ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
