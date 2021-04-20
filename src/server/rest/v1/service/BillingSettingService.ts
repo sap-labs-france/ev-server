@@ -14,9 +14,21 @@ const MODULE_NAME = 'BillingSettingService';
 
 export default class BillingSettingService {
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleGetBillingSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
+    if (!await Authorizations.canListSettings(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleGetBillingSetting',
+      });
+    }
+    const billingSettings: BillingSettings = await BillingSettingStorage.getBillingSettings(req.user.tenantID, true);
+    if (billingSettings) {
+      res.json(billingSettings);
+    } else {
+      res.sendStatus(StatusCodes.NOT_FOUND);
+    }
     next();
   }
 
@@ -29,8 +41,13 @@ export default class BillingSettingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const billingSettings: BillingSettings = await BillingSettingStorage.getBillingSettings(req.user.tenantID, true);
-    res.json(billingSettings);
+    const settingID = req.params.id;
+    const billingSettings: BillingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, settingID, true);
+    if (billingSettings) {
+      res.json(billingSettings);
+    } else {
+      res.sendStatus(StatusCodes.NOT_FOUND);
+    }
     next();
   }
 
@@ -43,11 +60,11 @@ export default class BillingSettingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
-    res.json(StatusCodes.NOT_IMPLEMENTED);
+    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
     // const billingSettings: BillingSettings = null;
     // await BillingSettingStorage.saveBillingSettings(req.user.tenantID, billingSettings);
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    // res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
