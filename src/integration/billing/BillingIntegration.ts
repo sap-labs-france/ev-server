@@ -3,6 +3,7 @@ import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
+import BillingSettingStorage from '../../storage/mongodb/BillingSettingStorage';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
@@ -10,7 +11,6 @@ import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -77,9 +77,8 @@ export default abstract class BillingIntegration {
       'All the users are up to date'
     );
     // Update last synchronization
-    const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-    billingSettings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
+    this.settings.billing.usersLastSynchronizedOn = new Date();
+    await BillingSettingStorage.saveBillingSetting(this.tenantID, this.settings);
     // Result
     return actionsDone;
   }

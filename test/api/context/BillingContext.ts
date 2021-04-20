@@ -2,10 +2,10 @@ import { BillingSettings, BillingSettingsType } from '../../../src/types/Setting
 
 import BackendError from '../../../src/exception/BackendError';
 import BillingFactory from '../../../src/integration/billing/BillingFactory';
+import BillingSettingStorage from '../../../src/storage/mongodb/BillingSettingStorage';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import Cypher from '../../../src/utils/Cypher';
-import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import User from '../../../src/types/User';
@@ -67,11 +67,12 @@ export default class BillingContext {
 
   private async saveBillingSettings(billingSettings: BillingSettings) {
     // TODO - rethink that part
-    const tenantBillingSettings = await SettingStorage.getBillingSettings(this.tenantContext.getTenant().id);
+    const allBillingSettings = await BillingSettingStorage.getBillingSettings(this.tenantContext.getTenant().id);
+    const tenantBillingSettings = allBillingSettings[0];
     tenantBillingSettings.billing = billingSettings.billing;
     tenantBillingSettings.stripe = billingSettings.stripe;
     tenantBillingSettings.sensitiveData = ['content.stripe.secretKey'];
     tenantBillingSettings.stripe.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, billingSettings.stripe.secretKey);
-    await SettingStorage.saveBillingSettings(this.tenantContext.getTenant().id, tenantBillingSettings);
+    await BillingSettingStorage.saveBillingSetting(this.tenantContext.getTenant().id, tenantBillingSettings);
   }
 }
