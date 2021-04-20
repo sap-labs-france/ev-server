@@ -96,49 +96,4 @@ export default class BillingSettingService {
     res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
     next();
   }
-
-  private static async processSensitiveDataCallback(req: Request, setting: SettingDB, settingUpdate: Partial<BillingSettings>) {
-    // Process the sensitive data if any
-    // Preprocess the data to take care of updated values
-    if (settingUpdate.sensitiveData) {
-      if (!Array.isArray(settingUpdate.sensitiveData)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
-          module: MODULE_NAME,
-          method: 'handleUpdateSetting',
-          user: req.user
-        });
-      }
-      // Process sensitive properties
-      for (const property of settingUpdate.sensitiveData) {
-      // Get the sensitive property from the request
-        const valueInRequest = _.get(settingUpdate, property);
-        if (valueInRequest && valueInRequest.length > 0) {
-        // Get the sensitive property from the DB
-          const valueInDb = _.get(setting, property);
-          if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            if (valueInRequest !== hashedValueInDB) {
-            // Yes: Encrypt
-              _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
-            } else {
-            // No: Put back the encrypted value
-              _.set(settingUpdate, property, valueInDb);
-            }
-          } else {
-          // Value in db is empty then encrypt
-            _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
-          }
-        }
-      }
-    } else {
-      settingUpdate.sensitiveData = [];
-    }
-    // Update timestamp
-    setting.lastChangedBy = { 'id': req.user.id };
-    setting.lastChangedOn = new Date();
-  }
-
 }
