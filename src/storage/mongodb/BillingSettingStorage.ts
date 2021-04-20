@@ -69,18 +69,17 @@ export default class BillingSettingStorage {
     return null;
   }
 
-  public static async saveBillingSetting(tenantID: string, settingID: string, newSettings: Partial<BillingSettings>, encryptSensitiveData = false): Promise<string> {
+  public static async saveBillingSetting(tenantID: string, settingID: string, newBillingSettings: Partial<BillingSettings>, encryptSensitiveData = false): Promise<string> {
     // Load previous settings
     const settings = await SettingStorage.getSettings(tenantID, { settingID }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings?.result?.[0]?.content) {
       // Build internal structure
       const settingsToSave = settings.result[0];
       if (encryptSensitiveData) {
-        // TODO - MUST BE FIRST CONVERTED to the SETTING format
-        await BillingSettingStorage.processSensitiveData(tenantID, settingsToSave, newSettings);
+        await BillingSettingStorage.processSensitiveData(tenantID, settingsToSave, newBillingSettings);
       }
       const { isTransactionBillingActivated, usersLastSynchronizedOn } = settingsToSave.content.billing;
-      const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newSettings.billing;
+      const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingSettings.billing;
       // Common Properties
       settingsToSave.content.billing = {
         isTransactionBillingActivated,usersLastSynchronizedOn,
@@ -88,7 +87,7 @@ export default class BillingSettingStorage {
       };
       // STRIPE Properties
       if (settingsToSave.content.type === BillingSettingsType.STRIPE) {
-        settingsToSave.content.stripe = newSettings.stripe;
+        settingsToSave.content.stripe = newBillingSettings.stripe;
       }
       // Save
       return SettingStorage.saveSettings(tenantID, settingsToSave);

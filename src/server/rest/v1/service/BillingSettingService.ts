@@ -62,8 +62,8 @@ export default class BillingSettingService {
     // const newSettings = SettingSecurity.filterBillingSettingUpdateRequest(req);
     // TODO - sanitize it
     const settingID = req.params.id;
-    const newSettings = req.body;
-    UtilsService.assertIdIsProvided(action, newSettings.id, MODULE_NAME, 'handleUpdateSetting', req.user);
+    const newBillingSettings = req.body;
+    UtilsService.assertIdIsProvided(action, newBillingSettings.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -73,10 +73,10 @@ export default class BillingSettingService {
       });
     }
     // Update timestamp
-    newSettings.lastChangedBy = { 'id': req.user.id };
-    newSettings.lastChangedOn = new Date();
+    newBillingSettings.lastChangedBy = { 'id': req.user.id };
+    newBillingSettings.lastChangedOn = new Date();
     // Let's save it
-    const id = await BillingSettingStorage.saveBillingSetting(req.user.tenantID, settingID, newSettings as BillingSettings, true);
+    const id = await BillingSettingStorage.saveBillingSetting(req.user.tenantID, settingID, newBillingSettings as BillingSettings, true);
     if (!id) {
       res.sendStatus(StatusCodes.NOT_FOUND);
     } else {
