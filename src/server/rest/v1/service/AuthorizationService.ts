@@ -81,7 +81,7 @@ export default class AuthorizationService {
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter,
       filteredRequest: Record<string, any>): Promise<void> {
     // Add canCreate flag to root
-    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE, authorizationFilter);
+    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE, authorizationFilter);
 
     // Enrich
     for (const site of sites.result) {
