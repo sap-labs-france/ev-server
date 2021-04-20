@@ -47,7 +47,7 @@ export default class SettingRouter {
   }
 
   protected buildRouteActivateBillingSetting(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingSettingService.handleActivateBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
