@@ -241,10 +241,23 @@ describe('Billing Settings', function() {
         assert(response.data, 'Response data should not be null');
         const currentBillingSettings = response.data as BillingSettings ;
         assert(currentBillingSettings.id === billingSettings.id, 'ID should be the same');
-        // Check a single Billing settings
-        response = await testData.userService.billingApi.checkBillingSetting(settingID);
-        // assert(response.status === 200, 'Response status should be 200');
-        // assert(response.data, 'Response data should not be null');
+        // Pre-check a billing settings
+        const { id, identifier, type, stripe } = billingSettings;
+        response = await testData.userService.billingApi.checkBillingSettingConnection(settingID, {
+          id, identifier, type, stripe
+        });
+        assert(response.status === 200, 'Response status should be 200');
+        assert(response.data, 'Response data should not be null');
+        // Pre-check a WRONG billing settings
+        response = await testData.userService.billingApi.checkBillingSettingConnection(settingID, {
+          id, identifier, type,
+          stripe: {
+            url: stripe.url,
+            secretKey: 'sk_' + 'test_wrong_value',
+            publicKey: stripe.publicKey
+          }
+        });
+        assert(response.status === 500, 'Response status should be 500');
       });
 
     });
