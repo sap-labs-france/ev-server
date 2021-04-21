@@ -3,6 +3,11 @@
   "definitions": {
     "id": {
       "type": "string",
+      "pattern": "^[^|]*$",
+      "sanitize": "mongo"
+    },
+    "ids": {
+      "type": "string",
       "sanitize": "mongo"
     },
     "chargingProfile": {

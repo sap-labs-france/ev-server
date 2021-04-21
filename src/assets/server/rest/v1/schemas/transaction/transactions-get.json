@@ -1,0 +1,87 @@
+{
+  "title": "Get Transactions Request",
+  "type": "object",
+  "properties": {
+    "ChargeBoxID": {
+      "$ref": "chargingstation.json#/definitions/ids"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ConnectorID": {
+      "$ref": "chargingstation.json#/definitions/connectorIDs"
+    },
+    "SiteAreaID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "SiteID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "UserID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "TagID": {
+      "$ref": "tag.json#/definitions/ids"
+    },
+    "StartDateTime": {
+      "type": "string",
+      "format":"date-time",
+      "sanitize": "mongo"
+    },
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "RefundStatus": {
+      "type": "string",
+      "pattern": "^((submitted|notSubmitted|cancelled|approved)(\\||submitted|notSubmitted|cancelled|approved)*)?$",
+      "sanitize": "mongo"
+    },
+    "InactivityStatus": {
+      "type": "string",
+      "pattern": "^([IWE](\\|[IWE])*)?$",
+      "sanitize": "mongo"
+    },
+    "MinimalPrice": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "Statistics": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["refund", "history"]
+    },
+    "ReportIDs": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "Status": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": ["completed", "active"]
+    },
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  }
+}

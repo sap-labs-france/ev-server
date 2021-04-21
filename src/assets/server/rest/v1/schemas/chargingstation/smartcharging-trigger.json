@@ -1,0 +1,12 @@
+{
+  "title": "Trigger Smart Charging Request",
+  "type": "object",
+  "properties": {
+    "SiteAreaID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "SiteAreaID"
+  ]
+}
