@@ -781,20 +781,43 @@
               "application/json": {
                 "example": {
                   "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "firstTimestamp": "2017-06-07T07:09:20.000Z",
+                    "lastTimestamp": "2020-02-21T11:53:36.000Z",
+                    "totalConsumptionWattHours": 10701590.285,
+                    "totalDurationSecs": 8956090.273,
+                    "totalPrice": 1498.222641,
+                    "totalInactivitySecs": 4324778.908,
+                    "currency": "EUR",
+                    "count": 500
+                  },
                   "result": [
                     {
-                      "id": 1234567889,
                       "issuer": true,
-                      "siteID": "####",
-                      "siteAreaID": "####",
-                      "connectorId": 2,
-                      "tagID": "####",
-                      "userID": "####",
-                      "chargeBoxID": "####",
-                      "meterStart": 1122030,
-                      "timestamp": "2021-02-15T16:04:04.000Z",
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 7157518,
+                      "timestamp": "2021-03-05T16:37:56.000Z",
+                      "price": 0,
+                      "roundedPrice": 0,
+                      "priceUnit": "EUR",
                       "stateOfCharge": 0,
-                      "timezone": "Europe/Paris",
+                      "timezone": "###",
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 11640,
+                      "currentInactivityStatus": "E",
+                      "currentCumulatedPrice": 1.968,
+                      "currentInstantWatts": 0,
+                      "currentTotalConsumptionWh": 12793,
+                      "currentTotalDurationSecs": 21480,
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "id": 123456789,
                       "stop": {
                         "userID": "####",
                         "timestamp": "2021-02-15T16:05:38.000Z",
@@ -803,10 +826,12 @@
                         "stateOfCharge": 0,
                         "totalConsumptionWh": 16,
                         "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 1,
                         "inactivityStatus": "I",
                         "totalDurationSecs": 94,
                         "price": 0.002,
                         "priceUnit": "EUR",
+                        "roundedPrice": 0,
                         "user": {
                           "email": "####",
                           "firstName": "####",
@@ -814,8 +839,9 @@
                           "id": "####"
                         }
                       },
-                      "ocpi": false,
-                      "ocpiWithCdr": false,
+                      "billingData": {
+                        "invoiceID": "###"
+                      },
                       "user": {
                         "email": "####",
                         "firstName": "####",
@@ -826,9 +852,9 @@
                         "licensePlate": "####"
                       },
                       "carCatalog": {
-                        "vehicleMake": "Tesla",
-                        "vehicleModel": "Model 3",
-                        "vehicleModelVersion": "Long Range Dual Motor"
+                        "vehicleMake": "###",
+                        "vehicleModel": "###",
+                        "vehicleModelVersion": "###"
                       }
                     }
                   ]
@@ -1093,10 +1119,10 @@
                   "count": 1,
                   "result": [
                     {
-                      "chargeBoxSerialNumber": "####",
-                      "chargePointModel": "####",
-                      "chargePointSerialNumber": "####",
-                      "chargePointVendor": "####",
+                      "chargeBoxSerialNumber": "###",
+                      "chargePointModel": "###",
+                      "chargePointSerialNumber": "###",
+                      "chargePointVendor": "###",
                       "connectors": [
                         {
                           "connectorId": 1,
@@ -1104,25 +1130,12 @@
                           "currentStateOfCharge": 0,
                           "currentTotalInactivitySecs": 0,
                           "currentTotalConsumptionWh": 0,
-                          "currentTransactionDate": null,
                           "currentTagID": null,
                           "status": "Available",
                           "errorCode": "NoError",
-                          "info": "",
-                          "vendorErrorCode": "",
                           "power": 22080,
                           "type": "T2",
-                          "voltage": 0,
-                          "amperage": 96,
-                          "amperageLimit": 96,
-                          "currentTransactionID": 0,
-                          "userID": null,
-                          "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
-                          "currentInactivityStatus": "I",
-                          "numberOfConnectedPhase": null,
-                          "currentType": null,
-                          "chargePointID": 1,
-                          "phaseAssignmentToGrid": null
+                          "currentTransactionID": 0
                         },
                         {
                           "connectorId": 2,
@@ -1130,51 +1143,26 @@
                           "currentStateOfCharge": 0,
                           "currentTotalInactivitySecs": 0,
                           "currentTotalConsumptionWh": 0,
-                          "currentTransactionDate": null,
                           "currentTagID": null,
                           "status": "Available",
                           "errorCode": "NoError",
-                          "info": "",
-                          "vendorErrorCode": "",
                           "power": 22080,
                           "type": "T2",
-                          "voltage": 0,
-                          "amperage": 96,
-                          "amperageLimit": 96,
-                          "currentTransactionID": 0,
-                          "userID": null,
-                          "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
-                          "currentInactivityStatus": "I",
-                          "numberOfConnectedPhase": null,
-                          "currentType": null,
-                          "chargePointID": 1,
-                          "phaseAssignmentToGrid": null
+                          "currentTransactionID": 0
                         }
                       ],
-                      "endpoint": "####",
-                      "firmwareVersion": "3",
-                      "lastReboot": "2020-12-08T09:06:14.948Z",
-                      "ocppVersion": "1.5",
-                      "siteAreaID": "####",
-                      "chargingStationURL": "wss://####",
+                      "createdOn": "2020-06-19T14:30:01.191Z",
+                      "firmwareVersion": "###",
+                      "lastReboot": "2020-12-09T18:00:10.199Z",
+                      "ocppVersion": "1.6",
+                      "siteAreaID": "###",
                       "maximumPower": 44160,
-                      "ocppProtocol": "soap",
+                      "ocppProtocol": "json",
                       "powerLimitUnit": "A",
-                      "createdOn": "2019-03-20T07:41:57.583Z",
-                      "currentIPAddress": "####",
                       "coordinates": [
-                        7,
-                        43
+                        -0.390899731877199,
+                        49.20079707133
                       ],
-                      "capabilities": {
-                        "supportStaticLimitation": true,
-                        "supportChargingProfiles": true,
-                        "supportRemoteStartStopTransaction": true,
-                        "supportUnlockConnector": true,
-                        "supportReservation": false,
-                        "supportCreditCard": false,
-                        "supportRFIDCard": false
-                      },
                       "issuer": true,
                       "chargePoints": [
                         {
@@ -1195,23 +1183,30 @@
                           ]
                         }
                       ],
-                      "excludeFromSmartCharging": false,
                       "voltage": 230,
                       "public": false,
-                      "forceInactive": false,
-                      "lastSeen": "2020-12-20T22:34:37.468Z",
+                      "lastSeen": "2021-02-17T08:32:52.393Z",
+                      "siteID": "###",
                       "inactive": true,
                       "siteArea": {
-                        "name": "####",
-                        "siteID": "####",
-                        "smartCharging": true,
-                        "id": "####",
-                        "site": {
-                          "name": "####",
-                          "id": "####"
-                        }
+                        "name": "###",
+                        "siteID": "###",
+                        "address": {
+                          "address1": "###",
+                          "address2": "",
+                          "postalCode": "###",
+                          "city": "###",
+                          "department": "###",
+                          "region": "###",
+                          "country": "###",
+                          "coordinates": [
+                            -0.39091984844480976,
+                            49.20079970020356
+                          ]
+                        },
+                        "id": "###"
                       },
-                      "id": "####"
+                      "id": "###"
                     }
                   ]
                 }
@@ -2939,7 +2934,87 @@
         ],
         "responses": {
           "200": {
-            "description": "Return Charging Station transactions list"
+            "description": "Return Charging Station transactions list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "firstTimestamp": "2017-06-07T07:09:20.000Z",
+                    "lastTimestamp": "2020-02-21T11:53:36.000Z",
+                    "totalConsumptionWattHours": 10701590.285,
+                    "totalDurationSecs": 8956090.273,
+                    "totalPrice": 1498.222641,
+                    "totalInactivitySecs": 4324778.908,
+                    "currency": "EUR",
+                    "count": 500
+                  },
+                  "result": [
+                    {
+                      "issuer": true,
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 7157518,
+                      "timestamp": "2021-03-05T16:37:56.000Z",
+                      "stateOfCharge": 0,
+                      "timezone": "###",
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 11640,
+                      "currentInactivityStatus": "E",
+                      "currentInstantWatts": 0,
+                      "currentTotalConsumptionWh": 12793,
+                      "currentTotalDurationSecs": 21480,
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "id": 123456789,
+                      "stop": {
+                        "userID": "####",
+                        "timestamp": "2021-02-15T16:05:38.000Z",
+                        "tagID": "####",
+                        "meterStop": 1122046,
+                        "stateOfCharge": 0,
+                        "totalConsumptionWh": 16,
+                        "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 1,
+                        "inactivityStatus": "I",
+                        "totalDurationSecs": 94,
+                        "price": 0.002,
+                        "priceUnit": "EUR",
+                        "roundedPrice": 0,
+                        "user": {
+                          "email": "####",
+                          "firstName": "####",
+                          "name": "####",
+                          "id": "####"
+                        }
+                      },
+                      "billingData": {
+                        "invoiceID": "###"
+                      },
+                      "user": {
+                        "email": "####",
+                        "firstName": "####",
+                        "name": "####",
+                        "id": "####"
+                      },
+                      "car": {
+                        "licensePlate": "####"
+                      },
+                      "carCatalog": {
+                        "vehicleMake": "###",
+                        "vehicleModel": "###",
+                        "vehicleModelVersion": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
