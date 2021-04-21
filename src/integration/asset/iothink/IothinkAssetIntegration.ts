@@ -11,6 +11,7 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
+import { merge } from 'lodash';
 import moment from 'moment';
 
 const MODULE_NAME = 'IothinkAssetIntegration';
@@ -65,14 +66,32 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
+    // Replace value property in logs with tag reference
+    for (const dataSet of data.historics) {
+      dataSet.logs.forEach((log) => {
+        log[dataSet.tagReference] = log['value'];
+        delete log['value'];
+      });
+    }
+    // Create Map to merge the arrays
+    const map = new Map();
+    for (const dataSet of data.historics) {
+      dataSet.logs.forEach((item) => map.set(item.timestamp, { ...map.get(item.timestamp), ...item }));
+    }
+    const mergedResponse = Array.from(map.values());
+    mergedResponse.sort(function(a, b) {
+      return a.timestamp - b.timestamp;
+    });
+    console.log(mergedResponse);
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
-    if (!Utils.isEmptyArray(data.historics)) {
-      for (let i = 0; i < data.historics[0].logs.length; i++) {
+    if (!Utils.isEmptyArray(mergedResponse)) {
+      for (const mergedConsumption of mergedResponse) {
         const consumption = {} as AbstractCurrentConsumption;
-        consumption.currentInstantWatts = this.getPropertyValue(data.historics, IothinkProperty.POWER_ACTIVE, i) * energyDirection;
-        consumption.currentInstantWattsL1 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L1, i) * energyDirection;
-        consumption.currentInstantWattsL2 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L2, i) * energyDirection;
-        consumption.currentInstantWattsL3 = this.getPropertyValue(data.historics, IothinkProperty.POWER_L3, i) * energyDirection;
+        consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.ENERGY_ACTIVE) * energyDirection;
+        consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_ACTIVE) * energyDirection;
+        consumption.currentInstantWattsL1 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L1) * energyDirection;
+        consumption.currentInstantWattsL2 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L2) * energyDirection;
+        consumption.currentInstantWattsL3 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L3) * energyDirection;
         if (asset.siteArea?.voltage) {
           consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
           consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
@@ -80,23 +99,22 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
           consumption.currentInstantAmpsL3 = consumption.currentInstantWattsL3 / asset.siteArea.voltage;
         }
         consumption.lastConsumption = {
-          timestamp: moment(this.timestampReference).add(data.historics[0].logs[i].timestamp, 'seconds').toDate(),
+          timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
           value: consumption.currentInstantWatts / 60
         };
         consumptions.push(consumption);
       }
     }
+    console.log(consumptions);
     if (manualCall) {
       return !Utils.isEmptyArray(consumptions) ? [consumptions[consumptions.length - 1]] : [];
     }
     return consumptions;
   }
 
-  private getPropertyValue(data: any[], propertyName: string, index: number): number {
-    for (const measure of data) {
-      if (measure.tagReference === propertyName) {
-        return Utils.convertToFloat(Utils.createDecimal(measure.logs[index]?.value ? measure.logs[index].value : 0)) * 1000;
-      }
+  private getPropertyValue(data: any, propertyName: string): number {
+    if (typeof data[propertyName] !== 'undefined') {
+      return Utils.convertToFloat(Utils.createDecimal(data[propertyName]));
     }
     return 0;
   }
