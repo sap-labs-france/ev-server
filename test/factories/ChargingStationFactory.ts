@@ -1,3 +1,4 @@
+import ChargingStation from '../../src/types/ChargingStation';
 import { Factory } from 'rosie';
 import faker from 'faker';
 
@@ -30,19 +31,19 @@ const chargingStationDC = Factory.define('chargingStation')
   .attr('firmwareVersion', () => '3.3.' + faker.datatype.number(9).toString());
 
 export default class ChargingStationFactory {
-  static build(attributes?, options?) {
+  static build(attributes?, options?): ChargingStation {
     return chargingStationThreePhased.build(attributes, options);
   }
 
-  static buildChargingStationUnknown(attributes?, options?) {
+  static buildChargingStationUnknown(attributes?, options?): ChargingStation {
     return chargingStationUnknownThreePhased.build(attributes, options);
   }
 
-  static buildChargingStationSinglePhased(attributes?, options?) {
+  static buildChargingStationSinglePhased(attributes?, options?): ChargingStation {
     return chargingStationSinglePhased.build(attributes, options);
   }
 
-  static buildChargingStationDC(attributes?, options?) {
+  static buildChargingStationDC(attributes?, options?): ChargingStation {
     return chargingStationDC.build(attributes, options);
   }
 }

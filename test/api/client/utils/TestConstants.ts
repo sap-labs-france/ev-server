@@ -6,5 +6,4 @@ export default class TestConstants {
   public static readonly DEFAULT_ORDERING = [];
   public static readonly UNLIMITED = Number.MAX_SAFE_INTEGER;
   public static readonly ADVANCED_PAGING = { limit: TestConstants.UNLIMITED, skip: 0 };
-
 }
