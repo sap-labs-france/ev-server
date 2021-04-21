@@ -111,7 +111,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIds = TagSecurity.filterTagRequestByIDs(req.body);
+    const tagsIDs = TagSecurity.filterTagRequestByIDs(req.body);
     // Check auth
     if (!await Authorizations.canDeleteTag(req.user)) {
       throw new AppAuthError({
@@ -119,11 +119,11 @@ export default class TagService {
         user: req.user,
         action: Action.DELETE, entity: Entity.TAG,
         module: MODULE_NAME, method: 'handleDeleteTags',
-        value: tagsIds.toString()
+        value: tagsIDs.toString()
       });
     }
     // Delete
-    const result = await TagService.deleteTags(action, req.user, tagsIds);
+    const result = await TagService.deleteTags(action, req.user, tagsIDs);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -142,72 +142,8 @@ export default class TagService {
         value: filteredRequest.ID
       });
     }
-    // Get Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withNbrTransactions: true, withUser: true });
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDeleteTag', req.user);
-    // Only current organizations tags can be deleted
-    if (!tag.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleDeleteTag',
-        user: req.user,
-        action: action
-      });
-    }
-    // OCPI
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      try {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          await ocpiClient.pushToken({
-            uid: tag.id,
-            type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-            auth_id: tag.userID,
-            visual_number: tag.userID,
-            issuer: tenant.name,
-            valid: false,
-            whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-            last_updated: new Date()
-          });
-        }
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'handleDeleteTag',
-          action: action,
-          message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Delete the Tag
-    await TagStorage.deleteTag(req.user.tenantID, tag.id);
-    // Check if default deleted?
-    if (tag.default) {
-      // Clear all default
-      await TagStorage.clearDefaultUserTag(req.user.tenantID, tag.userID);
-      // Make the next active Tag the new default one
-      const firstActiveTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, tag.userID, {
-        issuer: true,
-      });
-      if (firstActiveTag) {
-        // Set default
-        firstActiveTag.default = true;
-        await TagStorage.saveTag(req.user.tenantID, firstActiveTag);
-      }
-    }
-    // Log
-    await Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleDeleteTag',
-      message: `Tag '${tag.id}' has been deleted successfully`,
-      action: action,
-      detailedMessages: { tag }
-    });
+    // Delete
+    await TagService.deleteTags(action, req.user, [filteredRequest.ID]);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
