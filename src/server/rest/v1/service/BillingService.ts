@@ -9,7 +9,6 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
-import BillingSettingStorage from '../../../../storage/mongodb/BillingSettingStorage';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import Constants from '../../../../utils/Constants';
@@ -755,7 +754,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const allBillingSettings: BillingSettings[] = await BillingSettingStorage.getBillingSettings(req.user.tenantID);
+    const allBillingSettings: BillingSettings[] = await BillingStorage.getBillingSettings(req.user.tenantID);
     if (allBillingSettings) {
       allBillingSettings.map((billingSettings) => BillingService.hashSensitiveData(req.user.tenantID, billingSettings));
       res.json(allBillingSettings);
@@ -775,7 +774,7 @@ export default class BillingService {
       });
     }
     const settingID = req.params.id;
-    const billingSettings: BillingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, settingID);
+    const billingSettings: BillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
     if (billingSettings) {
       // For trouble shooting only
       // _.set(billingSettings, 'sk-enc', billingSettings.stripe.secretKey);
@@ -803,7 +802,7 @@ export default class BillingService {
       });
     }
     // Load previous settings
-    const billingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
+    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
     await BillingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { isTransactionBillingActivated, usersLastSynchronizedOn } = billingSettings.billing;
@@ -821,7 +820,7 @@ export default class BillingService {
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
     // Let's save it
-    const id = await BillingSettingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    const id = await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
     if (!id) {
       res.sendStatus(StatusCodes.NOT_FOUND);
     } else {
@@ -833,10 +832,10 @@ export default class BillingService {
   public static async handleActivateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // TODO - sanitize
     const settingID = req.params.id;
-    const currentBillingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, settingID);
+    const currentBillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
     // TODO - check prerequisites - activation should not be possible when settings are inconsistent
     currentBillingSettings.billing.isTransactionBillingActivated = true;
-    const id = await BillingSettingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
+    const id = await BillingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
     if (!id) {
       res.sendStatus(StatusCodes.NOT_FOUND);
     } else {

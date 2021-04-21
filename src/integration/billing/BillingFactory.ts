@@ -1,7 +1,7 @@
 import { BillingSettings, BillingSettingsType } from '../../types/Setting';
 
 import BillingIntegration from './BillingIntegration';
-import BillingSettingStorage from '../../storage/mongodb/BillingSettingStorage';
+import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import StripeBillingIntegration from './stripe/StripeBillingIntegration';
@@ -20,7 +20,7 @@ export default class BillingFactory {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       // Get the billing's settings
-      const allSettings: BillingSettings[] = await BillingSettingStorage.getBillingSettings(tenantID);
+      const allSettings: BillingSettings[] = await BillingStorage.getBillingSettings(tenantID);
       const settings: BillingSettings = allSettings[0];
       if (settings) {
         let billingIntegrationImpl = null;

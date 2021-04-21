@@ -3,7 +3,6 @@ import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
-import BillingSettingStorage from '../../storage/mongodb/BillingSettingStorage';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
@@ -78,7 +77,7 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     this.settings.billing.usersLastSynchronizedOn = new Date();
-    await BillingSettingStorage.saveBillingSetting(this.tenantID, this.settings);
+    await BillingStorage.saveBillingSetting(this.tenantID, this.settings);
     // Result
     return actionsDone;
   }
