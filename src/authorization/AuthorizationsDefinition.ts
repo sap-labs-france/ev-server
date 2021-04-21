@@ -326,7 +326,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: [Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        }, },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,

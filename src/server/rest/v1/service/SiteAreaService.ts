@@ -291,8 +291,14 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
-    // Check static auth
-    if (!await Authorizations.canCreateSiteArea(req.user)) {
+    // Filter request
+    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
+    // Check request data is valid
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
+    // Check auth
+    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
+      req.tenant, req.user, filteredRequest, Action.CREATE);
+    if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -300,13 +306,9 @@ export default class SiteAreaService {
         module: MODULE_NAME, method: 'handleCreateSiteArea'
       });
     }
-    // Filter request
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
-    // Check request data is valid
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check Site
+    // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,
