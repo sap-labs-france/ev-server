@@ -64,9 +64,9 @@ export default class BillingSettingService {
   public static async handleUpdateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     // TODO - sanitize it
-    const newBillingSettings = req.body as BillingSettings;
-    newBillingSettings.id = req.params.id;
-    UtilsService.assertIdIsProvided(action, newBillingSettings.id, MODULE_NAME, 'handleUpdateSetting', req.user);
+    const newBillingProperties = req.body as Partial<BillingSettings>;
+    newBillingProperties.id = req.params.id;
+    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -76,20 +76,20 @@ export default class BillingSettingService {
       });
     }
     // Load previous settings
-    const billingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, newBillingSettings.id);
-    await BillingSettingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingSettings);
+    const billingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
+    await BillingSettingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { isTransactionBillingActivated, usersLastSynchronizedOn } = billingSettings.billing;
     // Billing properties to override
-    const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingSettings.billing;
+    const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
     // Now populates the settings with the new values
-    billingSettings.id = newBillingSettings.id;
-    billingSettings.type = newBillingSettings.type;
+    billingSettings.id = newBillingProperties.id;
+    billingSettings.type = newBillingProperties.type;
     billingSettings.billing = {
       isTransactionBillingActivated, usersLastSynchronizedOn,
       immediateBillingAllowed, periodicBillingAllowed, taxID,
     };
-    billingSettings.stripe = newBillingSettings.stripe;
+    billingSettings.stripe = newBillingProperties.stripe;
     // Update timestamp
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
@@ -103,27 +103,43 @@ export default class BillingSettingService {
     next();
   }
 
+  public static async handleActivateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO - sanitize
+    const settingID = req.params.id;
+    const currentBillingSettings = await BillingSettingStorage.getBillingSetting(req.user.tenantID, settingID);
+    // TODO - check prerequisites - activation should not be possible when settings are inconsistent
+    currentBillingSettings.billing.isTransactionBillingActivated = true;
+    const id = await BillingSettingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
+    if (!id) {
+      res.sendStatus(StatusCodes.NOT_FOUND);
+    } else {
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+    }
+    next();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public static async handleCheckBillingSettingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO - check connection settings before saving!
+    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
+    next();
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleCheckBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO - check the overall consistency - such as the taxID
     res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
     next();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public static async handleActivateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
-    next();
-  }
-
-  private static async alterSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingSettings: BillingSettings) {
-    // Process the sensitive data if any
-    // Preprocess the data to take care of updated values
+  private static async alterSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
+    // Process the sensitive data (if any)
     if (billingSettings.sensitiveData) {
       if (!Array.isArray(billingSettings.sensitiveData)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${newBillingSettings.id}' is not an array`,
+          message: `The property 'sensitiveData' for Setting with ID '${newBillingProperties.id}' is not an array`,
           module: MODULE_NAME,
           method: 'processSensitiveData',
         });
@@ -133,28 +149,28 @@ export default class BillingSettingService {
         // TODO - find a better way - HACK to be backward compatible with SettingDB
         const normalizedPropertyName = propertyName.replace('content.', '');
         // Get the sensitive property from the request
-        const valueInRequest = _.get(newBillingSettings, normalizedPropertyName);
+        const valueInRequest = _.get(newBillingProperties, normalizedPropertyName);
         if (valueInRequest && valueInRequest.length > 0) {
-        // Get the sensitive property from the DB
+          // Get the sensitive property from the DB
           const valueInDb = _.get(billingSettings, normalizedPropertyName);
           if (valueInDb && valueInDb.length > 0) {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
             // Yes: Encrypt
-              _.set(newBillingSettings, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
+              _.set(newBillingProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
             } else {
             // No: Put back the encrypted value
-              _.set(newBillingSettings, normalizedPropertyName, valueInDb);
+              _.set(newBillingProperties, normalizedPropertyName, valueInDb);
             }
           } else {
           // Value in db is empty then encrypt
-            _.set(newBillingSettings, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
+            _.set(newBillingProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
           }
         } else {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-            message: `The property '${propertyName}' for Setting with ID '${newBillingSettings.id}' is not set`,
+            message: `The property '${propertyName}' for Setting with ID '${newBillingProperties.id}' is not set`,
             module: MODULE_NAME,
             method: 'processSensitiveData',
           });
