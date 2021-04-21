@@ -1,4 +1,6 @@
 import AuthenticatedBaseApi from './AuthenticatedBaseApi';
+import SafeUrlAssembler from 'safe-url-assembler';
+import { ServerRoute } from '../../../../src/types/Server';
 import TestConstants from './TestConstants';
 
 /**
@@ -130,6 +132,17 @@ export default class CrudApi {
         ID: id
       }
     });
+  }
+
+  // Build URL targeting REST endpoints
+  protected buildRestEndpointUrl(urlPatternAsString: ServerRoute, params: {
+    // Just a flat list of key/value pairs!
+    [name: string]: string | number | null;
+  }): string {
+    const url = SafeUrlAssembler('/v1/api/')
+      .template(urlPatternAsString)
+      .param(params);
+    return url.toString();
   }
 
   // Build the paging in the Queryparam

@@ -193,6 +193,64 @@ class TestData {
 
 const testData: TestData = new TestData();
 
+describe('Billing Settings', function() {
+  // Do not run the tests when the settings are not properly set
+  this.pending = !testData.isBillingProperlyConfigured();
+  this.timeout(1000000);
+
+  describe('With component Billing (tenant utbilling)', () => {
+    before(async () => {
+      global.database = new MongoDBStorage(config.get('storage'));
+      await global.database.start();
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.adminUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.adminUserContext
+      );
+      expect(testData.userContext).to.not.be.null;
+      // testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      // testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      // testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    });
+
+    describe('As an admin', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('should be able to invoke Billing Settings endpoints', async () => {
+        // Get all Billing settings
+        let response = await testData.userService.billingApi.getBillingSettings();
+        assert(response.status === 200, 'Response status should be 200');
+        assert(response.data && response.data.length > 0, 'Response data should not be null');
+        const billingSettings = response.data[0] as BillingSettings ;
+        assert(billingSettings.billing, 'Billing Properties should not be null');
+        assert(billingSettings.type === BillingSettingsType.STRIPE, 'Billing Setting Type should not be set to STRIPE');
+        assert(billingSettings.stripe, 'Stripe Properties should not be null');
+        assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
+        assert(billingSettings.id, 'ID should not be null');
+        const settingID = billingSettings.id;
+        // Get a single Billing settings
+        response = await testData.userService.billingApi.getBillingSetting(settingID);
+        assert(response.data, 'Response data should not be null');
+        const currentBillingSettings = response.data as BillingSettings ;
+        assert(currentBillingSettings.id === billingSettings.id, 'ID should be the same');
+        // Check a single Billing settings
+        response = await testData.userService.billingApi.checkBillingSetting(settingID);
+        // assert(response.status === 200, 'Response status should be 200');
+        // assert(response.data, 'Response data should not be null');
+      });
+
+    });
+  });
+});
+
 describe('Billing Service', function() {
   // Do not run the tests when the settings are not properly set
   this.pending = !testData.isBillingProperlyConfigured();
