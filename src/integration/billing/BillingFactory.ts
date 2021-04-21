@@ -13,15 +13,25 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingFactory';
 
 export default class BillingFactory {
-  static async getBillingImpl(tenantID: string): Promise<BillingIntegration> {
+  static async getBillingImpl(tenantID: string, settings?: BillingSettings): Promise<BillingIntegration> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if billing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
-      // Get the billing's settings
-      const allSettings: BillingSettings[] = await BillingStorage.getBillingSettings(tenantID);
-      const settings: BillingSettings = allSettings[0];
+      if (!settings) {
+        // Get the billing's settings
+        const allSettings: BillingSettings[] = await BillingStorage.getBillingSettings(tenantID);
+        settings = allSettings[0];
+      } else {
+        // Specific situation to pre-check billing settings
+        await Logging.logDebug({
+          tenantID: tenant.id,
+          action: ServerAction.BILLING,
+          module: MODULE_NAME, method: 'getBillingImpl',
+          message: 'Now checking billing connectivity with settings not yet persisted'
+        });
+      }
       if (settings) {
         let billingIntegrationImpl = null;
         switch (settings.type) {

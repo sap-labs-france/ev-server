@@ -815,6 +815,7 @@ export default class BillingService {
       isTransactionBillingActivated, usersLastSynchronizedOn,
       immediateBillingAllowed, periodicBillingAllowed, taxID,
     };
+    // TODO - clarify how to avoid the hardcoded "stripe" property here
     billingSettings.stripe = newBillingProperties.stripe;
     // Update timestamp
     billingSettings.lastChangedBy = { 'id': req.user.id };
@@ -846,8 +847,44 @@ export default class BillingService {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleCheckBillingSettingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // TODO - check connection settings before saving!
-    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingConnection');
+    // -----------------------------------------------------------------------
+    // GOAL: Check the connection settings before (and without) saving them!
+    // -----------------------------------------------------------------------
+    const newBillingProperties = req.body as Partial<BillingSettings>;
+    newBillingProperties.id = req.params.id;
+    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleCheckBillingSettingConnection', req.user);
+    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleCheckBillingSettingConnection',
+      });
+    }
+    // Load current settings
+    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
+    await BillingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    // Apply new settings (not yet saved)
+    // TODO - clarify how to avoid the hardcoded "stripe" property here
+    billingSettings.stripe = newBillingProperties.stripe;
+    // Create the Billing Implementation Instance
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID, billingSettings);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    await billingImpl.checkConnection();
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 

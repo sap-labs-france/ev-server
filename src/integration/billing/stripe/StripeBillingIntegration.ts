@@ -78,7 +78,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe',
+          message: 'Failed to connect to Stripe - Key is inconsistent',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -92,11 +92,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe'
+          message: 'Failed to get a Stripe instance'
         });
       }
-      // TODO - rethink that part - this is slow and useless!
-      // this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
+      // Let's make sure the connection works as expected
+      this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
     }
   }
 
