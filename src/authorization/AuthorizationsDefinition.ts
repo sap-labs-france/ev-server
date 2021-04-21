@@ -56,7 +56,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ]
       },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+        Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'] },
       { resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
@@ -326,11 +327,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USERS_SITES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_SITES, action: [Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
-        }, },
+      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+        Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'],
+      condition: {
+        Fn: 'custom:dynamicAuthorizationFilters',
+        args: { filters: ['SitesAdmin'] }
+      }, },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,

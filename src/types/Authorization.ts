@@ -148,7 +148,11 @@ export enum Action {
   REGISTER = 'Register',
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
-  IMPORT = 'Import'
+  IMPORT = 'Import',
+  ASSIGN_ASSETS = 'AssignAssets',
+  UNASSIGN_ASSETS = 'UnassignAssets',
+  ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
+  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations'
 }
 
 export interface AuthorizationContext {
