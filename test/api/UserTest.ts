@@ -68,7 +68,7 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created user
       testData.createdUsers.forEach(async (user) => {
         await testData.centralUserService.deleteEntity(
