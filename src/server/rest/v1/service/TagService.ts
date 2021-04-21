@@ -646,7 +646,9 @@ export default class TagService {
           action: action,
           detailedMessages: { tag }
         });
-      } else if (!tag.issuer) {
+        continue;
+      }
+      if (!tag.issuer) {
         result.inError++;
         await Logging.logError({
           tenantID: loggedUser.tenantID,
@@ -656,50 +658,50 @@ export default class TagService {
           action: action,
           detailedMessages: { tag }
         });
-      } else {
-        // Delete the Tag
-        await TagStorage.deleteTag(loggedUser.tenantID, tag.id);
-        result.inSuccess++;
-        // Check if default deleted?
-        if (tag.default) {
-          // Clear all default
-          await TagStorage.clearDefaultUserTag(loggedUser.tenantID, tag.userID);
-          // Make the next active Tag the new default one
-          const firstActiveTag = await TagStorage.getFirstActiveUserTag(loggedUser.tenantID, tag.userID, {
-            issuer: true,
-          });
-          if (firstActiveTag) {
-            // Set default
-            firstActiveTag.default = true;
-            await TagStorage.saveTag(loggedUser.tenantID, firstActiveTag);
-          }
-        }
-        // OCPI
-        if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
-          try {
-            const tenant = await TenantStorage.getTenant(loggedUser.tenantID);
-            const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-            if (ocpiClient) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-                auth_id: tag.userID,
-                visual_number: tag.userID,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-                last_updated: new Date()
-              });
-            }
-          } catch (error) {
-            await Logging.logError({
-              tenantID: loggedUser.tenantID,
-              module: MODULE_NAME, method: 'handleDeleteTags',
-              action: action,
-              message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
-              detailedMessages: { error: error.message, stack: error.stack }
+        continue;
+      }
+      // OCPI
+      if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
+        try {
+          const tenant = await TenantStorage.getTenant(loggedUser.tenantID);
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          if (ocpiClient) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+              auth_id: tag.userID,
+              visual_number: tag.userID,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+              last_updated: new Date()
             });
           }
+        } catch (error) {
+          await Logging.logError({
+            tenantID: loggedUser.tenantID,
+            module: MODULE_NAME, method: 'handleDeleteTags',
+            action: action,
+            message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }
+      // Delete the Tag
+      await TagStorage.deleteTag(loggedUser.tenantID, tag.id);
+      result.inSuccess++;
+      // Check if the default Tag has been deleted?
+      if (tag.default) {
+        // Clear default User's Tags
+        await TagStorage.clearDefaultUserTag(loggedUser.tenantID, tag.userID);
+        // Make the first active User's Tag
+        const firstActiveTag = await TagStorage.getFirstActiveUserTag(loggedUser.tenantID, tag.userID, {
+          issuer: true,
+        });
+        // Set it default
+        if (firstActiveTag) {
+          firstActiveTag.default = true;
+          await TagStorage.saveTag(loggedUser.tenantID, firstActiveTag);
         }
       }
     }
