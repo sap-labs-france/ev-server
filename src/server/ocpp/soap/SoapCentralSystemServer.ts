@@ -2,7 +2,7 @@ import CentralSystemConfiguration from '../../../types/configuration/CentralSyst
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Constants from '../../../utils/Constants';
-import ExpressTools from '../../ExpressTools';
+import ExpressUtils from '../../ExpressUtils';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
@@ -27,9 +27,9 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication(null, centralSystemConfig.debug);
+    this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
     // Initialize the HTTP server
-    this.httpServer = ExpressTools.createHttpServer(this.centralSystemConfig, this.expressApplication);
+    this.httpServer = ExpressUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
   }
@@ -41,7 +41,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
-    ExpressTools.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
+    ExpressUtils.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
     const soapServer12 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_12)}`, centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
@@ -83,7 +83,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       });
     }
     // Post init
-    ExpressTools.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication);
   }
 
   readWsdl(filename: string): string {

@@ -1,0 +1,35 @@
+{
+  "title": "Get Charging Stations in error Request",
+  "type": "object",
+  "properties": {
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "SiteID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "SiteAreaID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": []
+}

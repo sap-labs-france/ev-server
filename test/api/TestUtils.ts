@@ -1,7 +1,7 @@
 import Constants from '../../src/utils/Constants';
 
 export default class TestUtils {
-  static async sleep(ms) {
+  static async sleep(ms: number): Promise<void> {
     return await new Promise((resolve) => setTimeout(resolve, ms));
   }
 

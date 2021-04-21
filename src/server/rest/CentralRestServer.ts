@@ -11,7 +11,7 @@ import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import ExpressTools from '../ExpressTools';
+import ExpressUtils from '../ExpressUtils';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
@@ -39,7 +39,7 @@ export default class CentralRestServer {
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication('2mb', centralSystemRestConfig.debug);
+    this.expressApplication = ExpressUtils.initApplication('2mb', centralSystemRestConfig.debug);
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
     // Authentication
@@ -60,9 +60,9 @@ export default class CentralRestServer {
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
     // Post init
-    ExpressTools.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
-    CentralRestServer.restHttpServer = ExpressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
+    CentralRestServer.restHttpServer = ExpressUtils.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   startSocketIO(): void {
@@ -175,7 +175,7 @@ export default class CentralRestServer {
 
   // Start the server
   start(): void {
-    ExpressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
+    ExpressUtils.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {

@@ -5,7 +5,6 @@ import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
 
 export default class ChargingStationApi extends CrudApi {
-
   private _baseApi;
 
   public constructor(authenticatedApi, baseApi) {
