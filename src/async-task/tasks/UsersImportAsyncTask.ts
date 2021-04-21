@@ -1,5 +1,5 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
-import { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
@@ -63,7 +63,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 continue;
               }
               // New User
-              const newUser = UserStorage.createNewUser();
+              const newUser = UserStorage.createNewUser() as User;
               // Set
               newUser.firstName = importedUser.firstName;
               newUser.name = importedUser.name;
