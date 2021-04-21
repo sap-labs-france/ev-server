@@ -3,7 +3,6 @@ import express, { NextFunction, Request, Response } from 'express';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
-import BillingSettingRouter from './api/BillingSettingRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
@@ -44,7 +43,6 @@ export default class GlobalRouter {
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
-        new BillingSettingRouter().buildRoutes(),
       ]);
   }
 
