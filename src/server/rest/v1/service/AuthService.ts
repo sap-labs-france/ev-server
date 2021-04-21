@@ -39,8 +39,6 @@ if (_centralSystemRestConfig) {
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: _centralSystemRestConfig.userTokenKey
-    // pragma issuer: 'evse-dashboard',
-    // audience: 'evse-dashboard'
   };
   // Use
   passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
@@ -515,7 +513,7 @@ export default class AuthService {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       try {
-        await billingImpl.createUser(user);
+        await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',

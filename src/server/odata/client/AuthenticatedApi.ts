@@ -1,4 +1,5 @@
 import BaseApi from './BaseApi';
+import UserToken from '../../../types/UserToken';
 import jwt from 'jsonwebtoken';
 
 export default class AuthenticatedApi extends BaseApi {
@@ -8,7 +9,7 @@ export default class AuthenticatedApi extends BaseApi {
   public token: string;
   public tenantID: string;
 
-  constructor(baseURL, username, password, tenant) {
+  constructor(baseURL: string, username: string, password: string, tenant: string) {
     super(baseURL);
     this.username = username;
     this.password = password;
@@ -17,21 +18,21 @@ export default class AuthenticatedApi extends BaseApi {
     this.tenantID = null;
   }
 
-  async getTenantID() {
+  async getTenantID(): Promise<string> {
     if (!this.tenantID) {
       await this.authenticate();
     }
     return this.tenantID;
   }
 
-  async authenticate() {
+  async authenticate(): Promise<void> {
     // Already logged?
     if (!this.token) {
       // No, try to log in
       const response = await this.login(this.username, this.password, true, this.tenant);
       // Keep the token
       this.token = response.data.token;
-      this.tenantID = (jwt.decode(this.token) as any).tenantID;
+      this.tenantID = (jwt.decode(this.token) as UserToken).tenantID;
     }
   }
 

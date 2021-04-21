@@ -17,13 +17,13 @@ export default class StatisticsApi extends CrudApi {
   }
 
   public static calculateNumberOfItemsPerMonth(record: { [x: string]: number }): number {
-    let number = 0;
+    let numberOfItems = 0;
     for (const key in record) {
       if (key !== 'month') {
-        number++;
+        numberOfItems++;
       }
     }
-    return number;
+    return numberOfItems;
   }
 
   public async readAllYears() {

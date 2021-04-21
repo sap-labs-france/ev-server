@@ -1,20 +1,21 @@
-import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
-import Authorizations from '../../../../authorization/Authorizations';
-import AppAuthError from '../../../../exception/AppAuthError';
-import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { Action, Entity } from '../../../../types/Authorization';
+import { NextFunction, Request, Response } from 'express';
+import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
+
+import AppAuthError from '../../../../exception/AppAuthError';
+import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../../types/Server';
-import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
+import StatisticSecurity from './security/StatisticSecurity';
+import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
-import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
-
+import moment from 'moment';
 
 const MODULE_NAME = 'StatisticService';
 
@@ -640,9 +641,9 @@ export default class StatisticService {
         });
       }
       // Now build the export file
-      let numberOfTransaction: number;
+      let numberOfTransactions: number;
       const rows = transactions.map((transaction) => {
-        numberOfTransaction = Utils.truncTo(transaction.total, 2);
+        numberOfTransactions = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
@@ -650,7 +651,7 @@ export default class StatisticService {
           dataCategory === StatsDataCategory.CHARGING_STATION ? transaction.chargeBox : Utils.buildUserFullName(transaction.user, false),
           year && year !== '0' ? year : '',
           transaction.month > 0 ? transaction.month : '',
-          dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransaction) : numberOfTransaction.toString()
+          dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransactions) : numberOfTransactions.toString()
         ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
         return row;
       }).join(Constants.CR_LF);
