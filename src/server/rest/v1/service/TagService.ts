@@ -175,8 +175,8 @@ export default class TagService {
       });
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { tagIDs:[filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_COUNT_ONLY);
-    if (transactions.count > 0) {
+      { tagIDs: [filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    if (!Utils.isEmptyArray(transactions.result)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_HAS_TRANSACTIONS,
@@ -634,7 +634,7 @@ export default class TagService {
     // Delete Tags
     for (const tagID of tagsIDs) {
       // Get Tag
-      const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withNbrTransactions: true, withUser: true });
+      const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withUser: true });
       // Not Found
       if (!tag) {
         result.inError++;
