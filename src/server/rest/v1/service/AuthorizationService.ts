@@ -590,6 +590,7 @@ export default class AuthorizationService {
       siteArea.canDelete = false;
     } else {
       filteredRequest.SiteAreaID = siteArea.id;
+      filteredRequest.SiteID = siteArea.siteID;
       siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, filteredRequest);
       siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, filteredRequest);
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, filteredRequest);

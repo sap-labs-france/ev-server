@@ -6,7 +6,6 @@ import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -338,7 +337,10 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Check Mandatory fields
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
-    // Check and Get Site Area
+    // Check Site auth
+    await UtilsService.checkAndGetSiteAuthorization(
+      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
+    // Check and Get SiteArea
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {
         withChargingStations: true,
@@ -380,7 +382,7 @@ export default class SiteAreaService {
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
-    // Update Site Area
+    // Save
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
