@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingProfilesUpdateRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -104,13 +104,6 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-
-  public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
-    // Validate schema
-    this.validate(this.chargingProfileCreate, data);
-    return data;
-  }
-
   public validateChargingStationRequestOCPPParametersReq(data: any): HttpChargingStationOcppParametersRequest {
     // Validate schema
     this.validate(this.chargingStationRequestOCPPParameters, data);
@@ -150,6 +143,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingProfilesGetReq(data: any): HttpChargingProfilesRequest {
     // Validate schema
     this.validate(this.chargingProfilesGet, data);
+    return data;
+  }
+
+  public validateChargingProfileCreateReq(data: ChargingProfile): ChargingProfile {
+    // Validate schema
+    this.validate(this.chargingProfileCreate, data);
     return data;
   }
 
