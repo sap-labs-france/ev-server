@@ -261,40 +261,6 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAssignSiteAreaChargingStationsAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: false,
-    };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS : Action.UNASSIGN_CHARGING_STATIONS;
-    const authResult = authAction === Action.ASSIGN_CHARGING_STATIONS ?
-      await Authorizations.canAssignSiteAreaChargingStations(userToken, authorizationContext) :
-      await Authorizations.canUnassignSiteAreaChargingStations(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: authAction,
-        entity: Entity.SITE_AREA,
-        module: MODULE_NAME, method: 'checkAssignSiteAreaChargingStationsAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, authAction, Entity.SITE_AREA,
-      authorizationFilters, authorizationContext, { SiteAreaID: filteredRequest.siteAreaID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
-    return authorizationFilters;
-  }
-
   public static async checkAndAssignUserSitesAuthorizationFilters(
       tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
