@@ -17,9 +17,9 @@ export default class BillingRouter {
     // -----------------------------------
     this.buildRouteBillingSetting();
     this.buildRouteUpdateBillingSetting();
-    this.buildRouteCheckBillingSettingConnection();
-    this.buildRouteCheckBillingSettingPrerequisites();
-    this.buildRouteActivateBillingSetting();
+    this.buildRouteCheckBillingConnection();
+    this.buildRouteCheckBillingPrerequisites();
+    this.buildRouteActivateBilling();
     // -----------------------------------
     // ROUTES for PAYMENT METHODS
     // -----------------------------------
@@ -34,8 +34,8 @@ export default class BillingRouter {
     return this.router;
   }
 
-  protected buildRouteCheckBillingSettingPrerequisites(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_CHECK_PREREQUISITES}`, (req: Request, res: Response, next: NextFunction) => {
+  protected buildRouteCheckBillingPrerequisites(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_CHECK_PREREQUISITES}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleCheckBillingSettingPrerequisites.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
@@ -52,20 +52,14 @@ export default class BillingRouter {
     });
   }
 
-  // protected buildRouteCheckBillingSetting(): void {
-  //   this.router.post(`/${ServerRoute.REST_BILLING_SETTING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
-  //     void RouterUtils.handleServerAction(BillingService.handleCheckBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
-  //   });
-  // }
-
-  protected buildRouteActivateBillingSetting(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
+  protected buildRouteActivateBilling(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleActivateBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
 
-  protected buildRouteCheckBillingSettingConnection(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_CHECK_CONNECTION}`, (req: Request, res: Response, next: NextFunction) => {
+  protected buildRouteCheckBillingConnection(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_CHECK_CONNECTION}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleCheckBillingSettingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
