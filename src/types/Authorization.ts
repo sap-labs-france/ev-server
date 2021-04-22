@@ -178,16 +178,33 @@ export interface AuthorizationActions {
   canDelete?: boolean;
 }
 
+export interface SiteAuthorizationActions extends AuthorizationActions {
+  canAssignUsers?: boolean;
+  canUnassignUsers?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
+  ASSIGNED_SITES = 'AssignedSites',
+  SITES_ADMIN = 'SitesAdmin',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
+  ASSIGNED_SITES = 'AssignedSites',
+  SITES_ADMIN = 'SitesAdmin',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
 
 export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   companyIDs?: string[];
+}
+
+export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
 }
