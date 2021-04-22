@@ -78,7 +78,7 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, {}); // TODO: CHECK IF WE SHOULD HAVE ASSIGN/UNASSIGN action instead of READ
+      req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, {});
     // Check and Get Charging Stations
     const chargingStations = await UtilsService.checkSiteAreaChargingStationsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.chargingStationIDs, action, {});
