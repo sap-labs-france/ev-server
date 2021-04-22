@@ -226,10 +226,9 @@ describe('Billing Settings', function() {
 
       it('should be able to invoke Billing Settings endpoints', async () => {
         // Get all Billing settings
-        let response = await testData.userService.billingApi.getBillingSettings();
+        let response = await testData.userService.billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
-        assert(response.data && response.data.length > 0, 'Response data should not be null');
-        const billingSettings = response.data[0] as BillingSettings ;
+        const billingSettings = response.data as BillingSettings ;
         assert(billingSettings.billing, 'Billing Properties should not be null');
         assert(billingSettings.type === BillingSettingsType.STRIPE, 'Billing Setting Type should not be set to STRIPE');
         assert(billingSettings.stripe, 'Stripe Properties should not be null');

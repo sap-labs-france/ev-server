@@ -15,15 +15,11 @@ export default class BillingRouter {
     // -----------------------------------
     // ROUTES for BILLING SETTINGS
     // -----------------------------------
-    this.buildRouteBillingSettings();
-    this.buildRouteCheckBillingSettingsPrerequisites();
     this.buildRouteBillingSetting();
-    // this.buildRouteCreateBillingSetting();
     this.buildRouteUpdateBillingSetting();
-    // this.buildRouteDeleteBillingSetting();
-    // this.buildRouteCheckBillingSetting();
-    this.buildRouteActivateBillingSetting();
     this.buildRouteCheckBillingSettingConnection();
+    this.buildRouteCheckBillingSettingPrerequisites();
+    this.buildRouteActivateBillingSetting();
     // -----------------------------------
     // ROUTES for PAYMENT METHODS
     // -----------------------------------
@@ -38,15 +34,9 @@ export default class BillingRouter {
     return this.router;
   }
 
-  protected buildRouteBillingSettings(): void {
-    this.router.get(`/${ServerRoute.REST_BILLING_SETTINGS}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleServerAction(BillingService.handleGetBillingSettings.bind(this), ServerAction.SETTINGS, req, res, next);
-    });
-  }
-
-  protected buildRouteCheckBillingSettingsPrerequisites(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_SETTINGS_CHECK_PREREQUISITES}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleServerAction(BillingService.handleCheckBillingSettingsPrerequisites.bind(this), ServerAction.SETTINGS, req, res, next);
+  protected buildRouteCheckBillingSettingPrerequisites(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_SETTING_CHECK_PREREQUISITES}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleCheckBillingSettingPrerequisites.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
 

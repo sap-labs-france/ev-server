@@ -507,10 +507,10 @@ export enum ServerRoute {
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 
   // BILLING SETTING URLs
-  REST_BILLING_SETTINGS = 'billing-settings',
-  REST_BILLING_SETTINGS_CHECK_PREREQUISITES = 'billing-settings/check-prerequisites',
-  REST_BILLING_SETTING = 'billing-settings/:id',
+  // REST_BILLING_SETTINGS = 'billing-settings',
+  REST_BILLING_SETTING = 'billing-setting',
   // REST_BILLING_SETTING_CHECK = 'billing-settings/:id/check',
-  REST_BILLING_SETTING_ACTIVATE = 'billing-settings/:id/activate',
-  REST_BILLING_SETTING_CHECK_CONNECTION = 'billing-settings/:id/check-connection',
+  REST_BILLING_SETTING_CHECK_CONNECTION = 'billing/check-connection',
+  REST_BILLING_SETTING_CHECK_PREREQUISITES = 'billing/check-prerequisites',
+  REST_BILLING_SETTING_ACTIVATE = 'billing/activate',
 }

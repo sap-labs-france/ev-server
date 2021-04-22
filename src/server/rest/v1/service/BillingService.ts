@@ -747,40 +747,17 @@ export default class BillingService {
   // ------------------------------------------------------------------------
   // BILLING SETTINGS HANDLERS
   // ------------------------------------------------------------------------
-  public static async handleGetBillingSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckBillingSettingPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.SETTING, MODULE_NAME, 'handleCheckBillingSettingsPrerequisites');
-    // Check auth
-    if (!await Authorizations.canListSettings(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleGetBillingSetting',
-      });
-    }
-    const allBillingSettings = await BillingStorage.getBillingSettings(req.user.tenantID);
-    if (allBillingSettings) {
-      allBillingSettings.map((billingSettings) => BillingService.hashSensitiveData(req.user.tenantID, billingSettings));
-      res.json(allBillingSettings);
-    } else {
-      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-    }
-    next();
-  }
-
-  public static async handleCheckBillingSettingsPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingsPrerequisites');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingPrerequisites');
     // Check auth
     if (!await Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
-        module: MODULE_NAME, method: 'handleCheckBillingSettingsPrerequisites',
+        module: MODULE_NAME, method: 'handleCheckBillingSettingPrerequisites',
       });
     }
     // -----------------------------------------------------
@@ -792,7 +769,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCheckBillingSettingsPrerequisites',
+        module: MODULE_NAME, method: 'handleCheckBillingSettingPrerequisites',
         action: action,
         user: req.user
       });
@@ -809,7 +786,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetBillingSetting');
     // Check auth
-    if (!await Authorizations.canReadSetting(req.user)) {
+    if (!await Authorizations.canReadBillingSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -817,8 +794,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const settingID = req.params.id;
-    const billingSettings: BillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
+    const billingSettings: BillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
     if (!billingSettings) {
       res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       next();
@@ -834,6 +810,10 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
+    // Filter
+    // TODO - sanitize it
+    const newBillingProperties = req.body as Partial<BillingSettings>;
+    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleUpdateBillingSetting', req.user);
     // Check auth
     if (!await Authorizations.canUpdateBillingSetting(req.user)) {
       throw new AppAuthError({
@@ -843,21 +823,8 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
-    // Filter
-    // TODO - sanitize it
-    const newBillingProperties = req.body as Partial<BillingSettings>;
-    newBillingProperties.id = req.params.id;
-    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleUpdateSetting', req.user);
-    if (!await Authorizations.canUpdateSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleUpdateBillingSetting',
-      });
-    }
     // Load previous settings
-    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
+    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
     if (billingSettings) {
       await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     }
@@ -898,12 +865,8 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleActivateBillingSetting');
-    // TODO - sanitize
-    const settingID = req.params.id;
-    const currentBillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
+    // Get current settings
+    const currentBillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
     // TODO - check prerequisites - activation should not be possible when settings are inconsistent
     currentBillingSettings.billing.isTransactionBillingActivated = true;
     await BillingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
@@ -920,8 +883,6 @@ export default class BillingService {
     // GOAL: Check the connection settings before (and without) saving them!
     // -----------------------------------------------------------------------
     const newBillingProperties = req.body as Partial<BillingSettings>;
-    newBillingProperties.id = req.params.id;
-    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleCheckBillingSettingConnection', req.user);
     // Check auth
     if (!await Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
@@ -932,7 +893,7 @@ export default class BillingService {
       });
     }
     // Load current settings
-    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
+    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
     if (billingSettings) {
       await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     }
@@ -940,48 +901,23 @@ export default class BillingService {
     // TODO - clarify how to avoid the hardcoded "stripe" property here
     billingSettings.stripe = newBillingProperties.stripe;
     // Create the Billing Implementation Instance
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID, billingSettings);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCheckBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingSettingConnection',
         action: action,
         user: req.user
       });
     }
-    await billingImpl.checkConnection();
+    // Let's validate the new settings
+    await billingImpl.preCheckConnection(billingSettings);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  // public static async handleCheckBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   // Check if component is active
-  //   UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-  //     Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingConnection');
-  //   // -----------------------------------------------------------------------
-  //   // GOAL: Check the setting consistency before an activation
-  //   // -----------------------------------------------------------------------
-  //   const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-  //   if (!billingImpl) {
-  //     throw new AppError({
-  //       source: Constants.CENTRAL_SERVER,
-  //       errorCode: HTTPError.GENERAL_ERROR,
-  //       message: 'Billing service is not configured',
-  //       module: MODULE_NAME, method: 'handleCheckBillingConnection',
-  //       action: action,
-  //       user: req.user
-  //     });
-  //   }
-  //   // Check the connection settings + the prerequisites (such as the taxID)
-  //   await billingImpl.checkConnection( true  /* checkPrerequisites */ );
-  //   // Ok
-  //   res.json(Constants.REST_RESPONSE_SUCCESS);
-  //   next();
-  // }
 
   private static async processSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
     // Process the sensitive data (if any)

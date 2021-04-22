@@ -330,6 +330,8 @@ export default abstract class BillingIntegration {
 
   abstract checkConnection(checkPrerequisite?: boolean): Promise<void>;
 
+  abstract preCheckConnection(billingSettings: BillingSettings): Promise<void>;
+
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
   abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;

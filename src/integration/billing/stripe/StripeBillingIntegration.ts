@@ -45,22 +45,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  private static async isConnectedToALiveAccount(stripeFacade: Stripe): Promise<boolean> {
-    try {
-      // TODO - find a way to avoid that call
-      const list = await stripeFacade.customers.list({ limit: 1 });
-      return !!list.data?.[0]?.livemode;
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'isConnectedToALiveAccount',
-        action: ServerAction.CHECK_CONNECTION,
-        message: 'Failed to connect to Stripe',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
   public async getStripeInstance(): Promise<Stripe> {
     // TODO - To be removed - only used by automated tests!
     await this.checkConnection();
@@ -83,20 +67,21 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       }
       // Try to connect
-      this.stripe = new Stripe(this.settings.stripe.secretKey, {
-        apiVersion: '2020-08-27',
-      });
-      // Let's check if the connection is working properly
-      if (!this.stripe) {
+      try {
+        this.stripe = new Stripe(this.settings.stripe.secretKey, {
+          apiVersion: '2020-08-27',
+        });
+        // Let's make sure the connection works as expected
+        this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
+      } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_BILLING_CONNECTION,
-          message: 'Failed to get a Stripe instance'
+          action: ServerAction.CHECK_CONNECTION,
+          message: 'Failed to connect to Stripe',
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
-      // Let's make sure the connection works as expected
-      this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
       // Check Taxes Prerequisites
       if (checkPrerequisite) {
         // Check whether the taxID is set and still active
@@ -120,6 +105,37 @@ export default class StripeBillingIntegration extends BillingIntegration {
           });
         }
       }
+    }
+  }
+
+  public async preCheckConnection(temporarySettings: BillingSettings): Promise<void> {
+    // Used to validate temporary settings (not yet saved)
+    try {
+      temporarySettings.stripe.secretKey = await Cypher.decrypt(this.tenantID, temporarySettings.stripe.secretKey);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'checkConnection',
+        action: ServerAction.CHECK_BILLING_CONNECTION,
+        message: 'Failed to connect to Stripe - Key is inconsistent',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    // Try to connect
+    try {
+      const temporaryStripeInstance = new Stripe(temporarySettings.stripe.secretKey, {
+        apiVersion: '2020-08-27',
+      });
+      // Let's make sure the connection works as expected
+      await StripeHelpers.isConnectedToALiveAccount(temporaryStripeInstance);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'isConnectedToALiveAccount',
+        action: ServerAction.CHECK_BILLING_CONNECTION,
+        message: 'Failed to connect to Stripe',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     }
   }
 
