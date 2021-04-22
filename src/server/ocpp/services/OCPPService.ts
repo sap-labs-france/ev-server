@@ -64,6 +64,8 @@ export default class OCPPService {
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPJSecs;
         break;
     }
+    // Get the charging station
+    let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -90,8 +92,6 @@ export default class OCPPService {
       bootNotification.lastReboot = new Date();
       bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
-      // Get the charging station
-      let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
           throw new BackendError({
@@ -130,6 +130,7 @@ export default class OCPPService {
         chargingStation.createdOn = new Date();
         chargingStation.issuer = true;
         chargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
+        chargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
         // Assign to Site Area
         if (token.siteAreaID) {
           const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, token.siteAreaID);
@@ -150,7 +151,9 @@ export default class OCPPService {
           (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
-          // FIXME: valid charging stations in DB with modified parameters cannot be registered again without direct access to the DB
+          // FIXME: valid charging stations in DB with modified parameters cannot be registered at boot notification again without direct
+          //        access to the DB, standard charging station replacement is not possible. The registration status returned should be 'Pending'
+          //        and a way to manually accept or refuse such stations should be offered.
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -169,6 +172,7 @@ export default class OCPPService {
         chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
         chargingStation.firmwareVersion = bootNotification.firmwareVersion;
         chargingStation.lastReboot = bootNotification.lastReboot;
+        chargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
         // Back again
         chargingStation.deleted = false;
       }
@@ -197,7 +201,7 @@ export default class OCPPService {
       // Save Boot Notification
       await OCPPStorage.saveBootNotification(headers.tenantID, bootNotification);
       // Send Notification (Async)
-      NotificationHandler.sendChargingStationRegistered(
+      void NotificationHandler.sendChargingStationRegistered(
         headers.tenantID,
         Utils.generateUUID(),
         chargingStation,
@@ -206,8 +210,6 @@ export default class OCPPService {
           evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(currentTenant.subdomain, chargingStation, '#all')
         }
-      ).catch(
-        () => { }
       );
       // Log
       await Logging.logInfo({
@@ -277,7 +279,10 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
-      // FIXME: charging stations in DB with rejected boot notification are still seen as online and usable. OCPP spec is clear on how to handle such case: close websocket, no messages of any kind sent or received, ...
+      // Set boot notification registration status to 'Rejected'
+      chargingStation.registrationStatus = RegistrationStatus.REJECTED;
+      // Save Charging Station
+      await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
@@ -635,8 +640,7 @@ export default class OCPPService {
   public async handleStartTransaction(headers: OCPPHeader, startTransaction: OCPPStartTransactionRequestExtended): Promise<OCPPStartTransactionResponse> {
     try {
       // Get the charging station
-      const chargingStation: ChargingStation = await OCPPUtils.checkAndGetChargingStation(
-        headers.chargeBoxIdentity, headers.tenantID);
+      const chargingStation: ChargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
       // Set the header
@@ -661,8 +665,7 @@ export default class OCPPService {
         }
       }
       // Cleanup ongoing transactions
-      await this.stopOrDeleteActiveTransactions(
-        headers.tenantID, chargingStation.id, startTransaction.connectorId);
+      await this.stopOrDeleteActiveTransactions(headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
         issuer: true,
