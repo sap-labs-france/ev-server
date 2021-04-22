@@ -97,7 +97,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
       },
-      { resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
+      {
+        resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR],
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
@@ -142,7 +148,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.ASSETS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
@@ -290,7 +302,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: [Action.READ], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.ASSETS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },

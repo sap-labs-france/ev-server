@@ -33,24 +33,14 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
-    if (Utils.isEmptyArray(filteredRequest.assetIDs)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Asset\'s IDs must be provided',
-        module: MODULE_NAME, method: 'handleAssignAssetsToSiteArea',
-        user: req.user
-      });
-    }
     // Check and Get Site Area
+    const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS : Action.UNASSIGN_ASSETS;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, {});
-    // Check and Get Assets
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, {});
+      // Check and Get Assets
     const assets = await UtilsService.checkSiteAreaAssetsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action, {});
-    // Save
+      // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
       await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, siteArea, assets.map((asset) => asset.id));
     } else {

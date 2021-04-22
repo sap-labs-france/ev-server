@@ -47,6 +47,10 @@ export default class AuthorizationService {
         return entity['can' + Action.ASSIGN_CHARGING_STATIONS];
       case Action.UNASSIGN_CHARGING_STATIONS:
         return entity['can' + Action.UNASSIGN_CHARGING_STATIONS];
+      case Action.ASSIGN_ASSETS:
+        return entity['can' + Action.ASSIGN_ASSETS];
+      case Action.UNASSIGN_ASSETS:
+        return entity['can' + Action.UNASSIGN_ASSETS];
       default:
         return false;
     }
@@ -357,22 +361,16 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetsAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpAssetsRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [ ],
+      authorized: false,
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSites(
-      tenant, userToken, filteredRequest, authorizationFilters);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.ASSETS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

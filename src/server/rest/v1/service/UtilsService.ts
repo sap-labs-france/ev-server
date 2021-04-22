@@ -103,7 +103,7 @@ export default class UtilsService {
 
   public static async checkAndGetChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
-    // Check dynamic auth for assignment
+    // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken, {});
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
@@ -137,6 +137,44 @@ export default class UtilsService {
       }
     }
     return chargingStations.result;
+  }
+
+  public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken,action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
+    // Check dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken, {});
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'checkAndGetAssetsAuthorization',
+      });
+    }
+    // Get Assets
+    const assets = await AssetStorage.getAssets(tenant.id,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check
+    for (const asset of assets.result) {
+      // External Asset
+      if (!asset.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Asset ID '${asset.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
+    }
+    return assets.result;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -368,29 +406,22 @@ export default class UtilsService {
 
   public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Asset[]> {
-    // Check dynamic auth for assignment
-    const authorizationFilter = await AuthorizationService.checkAssignSiteAreaAssetsAuthorizationFilters(
-      tenant, action, userToken, siteArea, { siteAreaID: siteArea.id, assetIDs });
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.ASSET,
+
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaAssetsAuthorization', userToken);
+    if (Utils.isEmptyArray(assetIDs)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Asset\'s IDs must be provided',
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+        user: userToken
       });
     }
-    // Get Assets
-    const assets = await AssetStorage.getAssets(tenant.id,
-      {
-        assetIDs,
-        ...additionalFilters,
-        ...authorizationFilter.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizationFilter.projectFields : null
-    );
+    const assets = await this.checkAndGetAssetsAuthorization(tenant, userToken, action,
+      { assetIDs, ...additionalFilters }, applyProjectFields);
     // Must have the same result
-    if (assetIDs.length !== assets.result.length) {
+    if (assetIDs.length !== assets.length) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -399,21 +430,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
       });
     }
-    // Check
-    for (const asset of assets.result) {
-      // External Asset
-      if (!asset.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Asset ID '${asset.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
-    }
-    return assets.result;
+    return assets;
   }
 
   public static async checkSiteAreaChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, chargingStationIDs: string[],
@@ -431,7 +448,10 @@ export default class UtilsService {
       });
     }
     const chargingStations = await this.checkAndGetChargingStationsAuthorization(tenant, userToken, action,
-      { chargingStationIDs, ...additionalFilters }, applyProjectFields);
+      {
+        chargingStationIDs,
+        ...additionalFilters
+      }, applyProjectFields);
     // Must have the same result
     if (chargingStationIDs.length !== chargingStations.length) {
       throw new AppAuthError({
