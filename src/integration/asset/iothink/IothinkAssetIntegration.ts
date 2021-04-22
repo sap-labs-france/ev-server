@@ -86,27 +86,51 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponse)) {
       for (const mergedConsumption of mergedResponse) {
-        const consumption = {} as AbstractCurrentConsumption;
-        consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.ENERGY_ACTIVE) * energyDirection;
-        consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_ACTIVE) * energyDirection;
-        consumption.currentInstantWattsL1 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L1) * energyDirection;
-        consumption.currentInstantWattsL2 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L2) * energyDirection;
-        consumption.currentInstantWattsL3 = this.getPropertyValue(mergedConsumption, IothinkProperty.POWER_L3) * energyDirection;
-        if (asset.siteArea?.voltage) {
-          consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
-          consumption.currentInstantAmpsL1 = consumption.currentInstantWattsL1 / asset.siteArea.voltage;
-          consumption.currentInstantAmpsL2 = consumption.currentInstantWattsL2 / asset.siteArea.voltage;
-          consumption.currentInstantAmpsL3 = consumption.currentInstantWattsL3 / asset.siteArea.voltage;
+        if (typeof mergedConsumption[IothinkProperty.IO_POW_ACTIVE] === 'undefined') {
+          continue;
         }
-        consumption.lastConsumption = {
-          timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
-          value: consumption.currentInstantWatts / 60
-        };
+        const consumption = {} as AbstractCurrentConsumption;
+        switch (asset.assetType) {
+          case AssetType.CONSUMPTION:
+            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * energyDirection * 1000;
+            consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT);
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumption.lastConsumption = {
+              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
+              value: consumption.currentTotalConsumptionWh
+            };
+            break;
+          case AssetType.PRODUCTION:
+            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * energyDirection * 1000;
+            consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY);
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumption.lastConsumption = {
+              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
+              value: consumption.currentTotalConsumptionWh
+            };
+            break;
+          case AssetType.CONSUMPTION_AND_PRODUCTION:
+            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * 1000;
+            consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
+            if (asset.siteArea?.voltage) {
+              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+            }
+            consumption.lastConsumption = {
+              timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
+              value: consumption.currentTotalConsumptionWh
+            };
+            break;
+        }
         consumptions.push(consumption);
       }
     }
     console.log(consumptions);
     if (manualCall) {
+      console.log(consumptions[consumptions.length - 1]);
       return !Utils.isEmptyArray(consumptions) ? [consumptions[consumptions.length - 1]] : [];
     }
     return consumptions;
