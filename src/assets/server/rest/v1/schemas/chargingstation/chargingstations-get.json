@@ -25,28 +25,29 @@
     },
     "ConnectorStatus": {
       "type": "string",
+      "pattern": "^((Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)(\\||Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)*)?$",
       "sanitize": "mongo"
     },
     "ConnectorType": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/type"
+      "type": "string",
+      "pattern": "^((T2|CCS|C|T1|T3C|T1CCS|D|U)(\\||T2|CCS|C|T1|T3C|T1CCS|D|U)*)?$",
+      "sanitize": "mongo"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/id"
+      "$ref": "chargingstation.json#/definitions/ids"
     },
     "IncludeDeleted": {
       "type": "boolean",
       "sanitize": "mongo"
     },
-    "ErrorType": {
-      "type": "string",
-      "sanitize": "mongo"
-    },
     "LocLongitude": {
       "type": "number",
+      "format": "longitude",
       "sanitize": "mongo"
     },
     "LocLatitude": {
       "type": "number",
+      "format": "latitude",
       "sanitize": "mongo"
     },
     "LocMaxDistanceMeters": {

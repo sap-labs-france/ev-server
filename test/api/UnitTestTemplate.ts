@@ -24,9 +24,9 @@ describe('Template for Dev Unit Test', function() {
     await ContextProvider.defaultInstance.prepareContexts();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Should be called after each UT to clean up created data
-    ContextProvider.defaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   after(async () => {
@@ -66,6 +66,6 @@ describe('Template for Dev Unit Test', function() {
 /**
  * @param ms
  */
-async function timeout(ms) {
+async function timeout(ms: number): Promise<void> {
   return await new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -21,7 +21,7 @@ let oldSetting = {};
 describe('Encryption Setting tests', function() {
   this.timeout(30000);
 
-  before(async function() {
+  before(function() {
     // Init values
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });
