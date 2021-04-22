@@ -39,8 +39,6 @@ if (_centralSystemRestConfig) {
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: _centralSystemRestConfig.userTokenKey
-    // pragma issuer: 'evse-dashboard',
-    // audience: 'evse-dashboard'
   };
   // Use
   passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>

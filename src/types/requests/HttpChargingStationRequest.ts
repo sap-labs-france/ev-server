@@ -46,6 +46,13 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
+export interface HttpChargingStationsInErrorRequest extends HttpDatabaseRequest {
+  Search?: string;
+  SiteID?: string;
+  SiteAreaID?: string;
+  ErrorType?: string;
+}
+
 export interface HttpChargingStationParamsUpdateRequest {
   id: string;
   chargingStationURL: string;

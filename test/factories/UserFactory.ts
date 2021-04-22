@@ -1,5 +1,5 @@
 import { Factory } from 'rosie';
-import UserNotifications from '../types/UserNotifications';
+import UserNotifications from '../../src/types/UserNotifications';
 import faker from 'faker';
 
 const userFactory = Factory.define('user')
