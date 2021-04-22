@@ -22,6 +22,7 @@ export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
   WithSiteArea?: boolean;
   SiteID?: string;
 }
+
 export interface HttpDownloadQrCodeRequest {
   ChargingStationID?: string;
   ConnectorID?: number;
