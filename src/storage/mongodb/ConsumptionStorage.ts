@@ -25,7 +25,7 @@ export default class ConsumptionStorage {
       { $set: consumptionMDB },
       { upsert: true });
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumption', uniqueTimerID, consumptionMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumption', uniqueTimerID, consumptionMDB);
     // Return
     return consumptionMDB._id;
   }
@@ -45,7 +45,7 @@ export default class ConsumptionStorage {
     // Insert
     await global.database.getCollection<any>(tenantID, 'consumptions').insertMany(consumptionsMDB);
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumptions', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumptions', uniqueTimerID);
     // Return
     return consumptionsMDB.map((consumptionMDB) => consumptionMDB._id);
   }
@@ -59,7 +59,7 @@ export default class ConsumptionStorage {
     await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getAssetConsumptions(tenantID: string, params: { assetID: string; startDate: Date; endDate: Date }, projectFields?: string[]): Promise<Consumption[]> {
@@ -138,7 +138,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);
     return consumptionsMDB;
   }
 
@@ -221,7 +221,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
     return consumptionsMDB;
   }
 
@@ -271,7 +271,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getTransactionConsumptions', uniqueTimerID, consumptionsMDB);
     return {
       count: consumptionsMDB.length,
       result: consumptionsMDB
@@ -313,7 +313,7 @@ export default class ConsumptionStorage {
       consumption = consumptionsMDB[0];
     }
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransactionConsumption', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getLastTransactionConsumption', uniqueTimerID, consumptionsMDB);
     return consumption;
   }
 
@@ -391,7 +391,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    await await Logging.traceEnd(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, consumptions);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, consumptions);
     return consumptions;
   }
 
