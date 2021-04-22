@@ -33,15 +33,15 @@ export default class BillingApi extends CrudApi {
   }
 
   public async getBillingSetting(params?) {
-    return await super.read(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING, {}));
+    return await super.read(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING));
   }
 
-  public async checkBillingSettingConnection(id, params?) {
-    return await super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING_CHECK_CONNECTION, { id }));
+  public async checkBillingSettingConnection(params?) {
+    return await super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_CHECK_CONNECTION));
   }
 
-  public async activateBillingSetting(id, params?) {
-    return await super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING_ACTIVATE, { id }));
+  public async activateBillingSetting(params?) {
+    return await super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_ACTIVATE));
   }
 
 }

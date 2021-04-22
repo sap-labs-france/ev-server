@@ -225,7 +225,7 @@ describe('Billing Settings', function() {
       });
 
       it('should be able to invoke Billing Settings endpoints', async () => {
-        // Get all Billing settings
+        // Get the Billing settings
         let response = await testData.userService.billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         const billingSettings = response.data as BillingSettings ;
@@ -234,21 +234,15 @@ describe('Billing Settings', function() {
         assert(billingSettings.stripe, 'Stripe Properties should not be null');
         assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
         assert(billingSettings.id, 'ID should not be null');
-        const settingID = billingSettings.id;
-        // Get a single Billing settings
-        response = await testData.userService.billingApi.getBillingSetting(settingID);
-        assert(response.data, 'Response data should not be null');
-        const currentBillingSettings = response.data as BillingSettings ;
-        assert(currentBillingSettings.id === billingSettings.id, 'ID should be the same');
         // Pre-check a billing settings
         const { id, identifier, type, stripe } = billingSettings;
-        response = await testData.userService.billingApi.checkBillingSettingConnection(settingID, {
+        response = await testData.userService.billingApi.checkBillingSettingConnection({
           id, identifier, type, stripe
         });
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');
         // Pre-check a WRONG billing settings
-        response = await testData.userService.billingApi.checkBillingSettingConnection(settingID, {
+        response = await testData.userService.billingApi.checkBillingSettingConnection({
           id, identifier, type,
           stripe: {
             url: stripe.url,
