@@ -33,7 +33,7 @@ const MODULE_NAME = 'BillingService';
 export default class BillingService {
 
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
+    if (!await Authorizations.canCheckBillingConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -747,17 +747,17 @@ export default class BillingService {
   // ------------------------------------------------------------------------
   // BILLING SETTINGS HANDLERS
   // ------------------------------------------------------------------------
-  public static async handleCheckBillingSettingPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCheckBillingPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingPrerequisites');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingPrerequisites');
     // Check auth
-    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
+    if (!await Authorizations.canCheckBillingConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
-        module: MODULE_NAME, method: 'handleCheckBillingSettingPrerequisites',
+        module: MODULE_NAME, method: 'handleCheckBillingPrerequisites',
       });
     }
     // -----------------------------------------------------
@@ -769,7 +769,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCheckBillingSettingPrerequisites',
+        module: MODULE_NAME, method: 'handleCheckBillingPrerequisites',
         action: action,
         user: req.user
       });
@@ -852,17 +852,17 @@ export default class BillingService {
     next();
   }
 
-  public static async handleActivateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleActivateBilling(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
+      Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleActivateBilling');
     // Check auth
     if (!await Authorizations.canUpdateBillingSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.UPDATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleUpdateBillingSetting',
+        module: MODULE_NAME, method: 'handleActivateBilling',
       });
     }
     // Get current settings
@@ -875,21 +875,21 @@ export default class BillingService {
     next();
   }
 
-  public static async handleCheckBillingSettingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handlePreCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingConnection');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handlePreCheckBillingConnection');
     // -----------------------------------------------------------------------
     // GOAL: Check the connection settings before (and without) saving them!
     // -----------------------------------------------------------------------
     const newBillingProperties = req.body as Partial<BillingSettings>;
     // Check auth
-    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
+    if (!await Authorizations.canCheckBillingConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
-        module: MODULE_NAME, method: 'handleCheckBillingSettingConnection',
+        module: MODULE_NAME, method: 'handlePreCheckBillingConnection',
       });
     }
     // Load current settings
@@ -907,7 +907,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCheckBillingSettingConnection',
+        module: MODULE_NAME, method: 'handlePreCheckBillingConnection',
         action: action,
         user: req.user
       });

@@ -673,7 +673,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
   }
 
-  public static async canCheckConnectionBilling(loggedUser: UserToken): Promise<boolean> {
+  public static async canCheckBillingConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
