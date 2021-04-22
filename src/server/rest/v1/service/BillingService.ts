@@ -663,12 +663,11 @@ export default class BillingService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
   public static async handleBillingChargeInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
-
     // TODO - no use-case for this endpoint so far! - only used for troubleshooting!
     throw new Error('Method not implemented.');
     // // Check if component is active
     // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-    //   Action.BILLING_CHARGE_INVOICE, Entity.BILLING, MODULE_NAME, 'handleBillingChargeInvoice');
+    //   Action.BILLING_CHARGE_INVOICE, Entity.INVOICE, MODULE_NAME, 'handleBillingChargeInvoice');
     // // Filter
     // const filteredRequest = BillingSecurity.filterChargeInvoiceRequest(req.body);
     // // Get the Invoice
@@ -706,6 +705,9 @@ export default class BillingService {
   }
 
   public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.SYNCHRONIZE, Entity.BILLING, MODULE_NAME, 'handleBillingWebHook');
     // Check if component is active
     // ?? How to do it in this context
     // Filter
@@ -746,6 +748,10 @@ export default class BillingService {
   // BILLING SETTINGS HANDLERS
   // ------------------------------------------------------------------------
   public static async handleGetBillingSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.SETTING, MODULE_NAME, 'handleCheckBillingSettingsPrerequisites');
+    // Check auth
     if (!await Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -759,7 +765,7 @@ export default class BillingService {
       allBillingSettings.map((billingSettings) => BillingService.hashSensitiveData(req.user.tenantID, billingSettings));
       res.json(allBillingSettings);
     } else {
-      res.sendStatus(StatusCodes.NOT_FOUND);
+      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     }
     next();
   }
@@ -768,6 +774,15 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingsPrerequisites');
+    // Check auth
+    if (!await Authorizations.canCheckConnectionBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
+        module: MODULE_NAME, method: 'handleCheckBillingSettingsPrerequisites',
+      });
+    }
     // -----------------------------------------------------
     // GOAL: Check the setting consistency before a Go Live
     // -----------------------------------------------------
@@ -783,14 +798,17 @@ export default class BillingService {
       });
     }
     // Check the connection settings + the prerequisites (such as the taxID)
-    const checkPrerequisites = true;
-    await billingImpl.checkConnection(checkPrerequisites);
+    await billingImpl.checkConnection(true /* checkPrerequisites */);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.READ, Entity.SETTING, MODULE_NAME, 'handleGetBillingSetting');
+    // Check auth
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -801,19 +819,30 @@ export default class BillingService {
     }
     const settingID = req.params.id;
     const billingSettings: BillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
-    if (billingSettings) {
-      // For trouble shooting only
-      // _.set(billingSettings, 'sk-enc', billingSettings.stripe.secretKey);
-      // _.set(billingSettings, 'sk-ori', await Cypher.decrypt(req.user.tenantID, billingSettings.stripe.secretKey));
-      BillingService.hashSensitiveData(req.user.tenantID, billingSettings);
-      res.json(billingSettings);
-    } else {
-      res.sendStatus(StatusCodes.NOT_FOUND);
+    if (!billingSettings) {
+      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      next();
+      return;
     }
+    BillingService.hashSensitiveData(req.user.tenantID, billingSettings);
+    // Ok
+    res.json(billingSettings);
     next();
   }
 
   public static async handleUpdateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
+    // Check auth
+    if (!await Authorizations.canUpdateBillingSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleUpdateBillingSetting',
+      });
+    }
     // Filter
     // TODO - sanitize it
     const newBillingProperties = req.body as Partial<BillingSettings>;
@@ -829,17 +858,20 @@ export default class BillingService {
     }
     // Load previous settings
     const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
-    await BillingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    if (billingSettings) {
+      await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    }
     // Billing properties to preserve
     const { isTransactionBillingActivated, usersLastSynchronizedOn } = billingSettings.billing;
     // Billing properties to override
     const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
     // Now populates the settings with the new values
-    billingSettings.id = newBillingProperties.id;
-    billingSettings.type = newBillingProperties.type;
     billingSettings.billing = {
-      isTransactionBillingActivated, usersLastSynchronizedOn,
-      immediateBillingAllowed, periodicBillingAllowed, taxID,
+      isTransactionBillingActivated,
+      usersLastSynchronizedOn,
+      immediateBillingAllowed,
+      periodicBillingAllowed,
+      taxID,
     };
     // TODO - clarify how to avoid the hardcoded "stripe" property here
     billingSettings.stripe = newBillingProperties.stripe;
@@ -847,27 +879,36 @@ export default class BillingService {
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
     // Let's save it
-    const id = await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
-    if (!id) {
-      res.sendStatus(StatusCodes.NOT_FOUND);
-    } else {
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-    }
+    await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleActivateBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
+    // Check auth
+    if (!await Authorizations.canUpdateBillingSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.UPDATE, entity: Entity.SETTING,
+        module: MODULE_NAME, method: 'handleUpdateBillingSetting',
+      });
+    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleActivateBillingSetting');
     // TODO - sanitize
     const settingID = req.params.id;
     const currentBillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, settingID);
     // TODO - check prerequisites - activation should not be possible when settings are inconsistent
     currentBillingSettings.billing.isTransactionBillingActivated = true;
-    const id = await BillingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
-    if (!id) {
-      res.sendStatus(StatusCodes.NOT_FOUND);
-    } else {
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-    }
+    await BillingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -881,17 +922,20 @@ export default class BillingService {
     const newBillingProperties = req.body as Partial<BillingSettings>;
     newBillingProperties.id = req.params.id;
     UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleCheckBillingSettingConnection', req.user);
+    // Check auth
     if (!await Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.UPDATE, entity: Entity.SETTING,
+        action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
         module: MODULE_NAME, method: 'handleCheckBillingSettingConnection',
       });
     }
     // Load current settings
     const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID, newBillingProperties.id);
-    await BillingService.alterSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    if (billingSettings) {
+      await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    }
     // Apply new settings (not yet saved)
     // TODO - clarify how to avoid the hardcoded "stripe" property here
     billingSettings.stripe = newBillingProperties.stripe;
@@ -933,14 +977,13 @@ export default class BillingService {
   //     });
   //   }
   //   // Check the connection settings + the prerequisites (such as the taxID)
-  //   const checkPrerequisites = true;
-  //   await billingImpl.checkConnection(checkPrerequisites);
+  //   await billingImpl.checkConnection( true  /* checkPrerequisites */ );
   //   // Ok
   //   res.json(Constants.REST_RESPONSE_SUCCESS);
   //   next();
   // }
 
-  private static async alterSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
+  private static async processSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
     // Process the sensitive data (if any)
     if (billingSettings.sensitiveData) {
       if (!Array.isArray(billingSettings.sensitiveData)) {

@@ -733,6 +733,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE);
   }
 
+  public static async canReadBillingSetting(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ);
+  }
+
+  public static async canUpdateBillingSetting(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }

@@ -21,7 +21,7 @@ export default class BillingFactory {
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       if (!settings) {
         // Get the billing's settings
-        const allSettings: BillingSettings[] = await BillingStorage.getBillingSettings(tenantID);
+        const allSettings = await BillingStorage.getBillingSettings(tenantID);
         settings = allSettings[0];
       } else {
         // Specific situation to pre-check billing settings

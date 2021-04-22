@@ -279,7 +279,6 @@ export default class BillingStorage {
     const { id, sensitiveData, backupSensitiveData, category } = setting;
     const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
     const { content } = setting;
-
     let billingSettings: BillingSettings = null;
     if (content.type === BillingSettingsType.STRIPE) {
       billingSettings = {

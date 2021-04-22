@@ -241,7 +241,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return this._getTaxRate(taxID);
   }
 
-  public async _getTaxRate(taxID: string): Promise<BillingTax> {
+  private async _getTaxRate(taxID: string): Promise<BillingTax> {
     let taxRate : BillingTax = null;
     try {
       const stripeTaxRate: Stripe.TaxRate = await this.stripe.taxRates.retrieve(taxID);
