@@ -308,7 +308,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
-    const paidInvoices = await await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
+    const paidInvoices = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
