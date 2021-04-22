@@ -764,6 +764,32 @@ export default class BillingService {
     next();
   }
 
+  public static async handleCheckBillingSettingsPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingsPrerequisites');
+    // -----------------------------------------------------
+    // GOAL: Check the setting consistency before a Go Live
+    // -----------------------------------------------------
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleCheckBillingSettingsPrerequisites',
+        action: action,
+        user: req.user
+      });
+    }
+    // Check the connection settings + the prerequisites (such as the taxID)
+    const checkPrerequisites = true;
+    await billingImpl.checkConnection(checkPrerequisites);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -845,7 +871,6 @@ export default class BillingService {
     next();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleCheckBillingSettingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -889,11 +914,31 @@ export default class BillingService {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public static async handleCheckBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // TODO - check the overall consistency - such as the taxID
-    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
-    next();
-  }
+  // public static async handleCheckBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  //   // Check if component is active
+  //   UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+  //     Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingSettingConnection');
+  //   // -----------------------------------------------------------------------
+  //   // GOAL: Check the setting consistency before an activation
+  //   // -----------------------------------------------------------------------
+  //   const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+  //   if (!billingImpl) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.GENERAL_ERROR,
+  //       message: 'Billing service is not configured',
+  //       module: MODULE_NAME, method: 'handleCheckBillingConnection',
+  //       action: action,
+  //       user: req.user
+  //     });
+  //   }
+  //   // Check the connection settings + the prerequisites (such as the taxID)
+  //   const checkPrerequisites = true;
+  //   await billingImpl.checkConnection(checkPrerequisites);
+  //   // Ok
+  //   res.json(Constants.REST_RESPONSE_SUCCESS);
+  //   next();
+  // }
 
   private static async alterSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
     // Process the sensitive data (if any)

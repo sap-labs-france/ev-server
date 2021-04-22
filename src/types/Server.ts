@@ -508,8 +508,9 @@ export enum ServerRoute {
 
   // BILLING SETTING URLs
   REST_BILLING_SETTINGS = 'billing-settings',
+  REST_BILLING_SETTINGS_CHECK_PREREQUISITES = 'billing-settings/CheckPrerequisites',
   REST_BILLING_SETTING = 'billing-settings/:id',
-  REST_BILLING_SETTING_CHECK = 'billing-settings/:id/check',
+  // REST_BILLING_SETTING_CHECK = 'billing-settings/:id/check',
   REST_BILLING_SETTING_ACTIVATE = 'billing-settings/:id/activate',
   REST_BILLING_SETTING_CHECK_CONNECTION = 'billing-settings/:id/checkConnection',
 }
