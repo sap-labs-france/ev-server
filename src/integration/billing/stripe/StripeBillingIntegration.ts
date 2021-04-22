@@ -97,7 +97,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       // Let's make sure the connection works as expected
       this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
-
       // Check Taxes Prerequisites
       if (checkPrerequisite) {
         // Check whether the taxID is set and still active
