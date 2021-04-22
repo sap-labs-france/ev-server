@@ -182,7 +182,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
-  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage = false): Promise<string> {
+  public static async saveUser(tenantID: string, userToSave: User, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUser');
     // Check Tenant
@@ -241,8 +241,7 @@ export default class UserStorage {
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
         sendAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAccountVerificationNotification) : false,
         sendAdminAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAdminAccountVerificationNotification) : false,
-      },
-      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
+      }
     };
     if (userToSave.address) {
       userMDB.address = {
@@ -489,6 +488,7 @@ export default class UserStorage {
     const updatedUserMDB: any = {
       billingData: {
         customerID: billingData.customerID,
+        liveMode: Utils.convertToBoolean(billingData.liveMode),
         hasSynchroError: billingData.hasSynchroError,
         invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
         lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
@@ -557,8 +557,6 @@ export default class UserStorage {
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
@@ -846,8 +844,6 @@ export default class UserStorage {
     }
     // Issuer
     filters.issuer = true;
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Roles
     if (params.roles) {
       filters.role = { '$in': params.roles };
@@ -924,15 +920,18 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteUser');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    // Delete User Image
+    await global.database.getCollection<any>(tenantID, 'userimages')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
-    // Delete Image
-    await global.database.getCollection<any>(tenantID, 'userimages')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete Connections
+    await global.database.getCollection<any>(tenantID, 'connections')
+      .deleteMany({ 'userId': Utils.convertToObjectID(id) });
     // Delete User
     await global.database.getCollection<any>(tenantID, 'users')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });

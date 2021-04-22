@@ -1,5 +1,5 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
-import { ImportedUser, UserRole, UserStatus } from '../../types/User';
+import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
@@ -50,9 +50,6 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 if (!foundUser.issuer) {
                   throw new Error('User is not local to the organization');
                 }
-                if (foundUser.deleted) {
-                  throw new Error('User is deleted');
-                }
                 if (foundUser.status !== UserStatus.PENDING) {
                   throw new Error('User account is already in use');
                 }
@@ -66,7 +63,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 continue;
               }
               // New User
-              const newUser = UserStorage.createNewUser();
+              const newUser = UserStorage.createNewUser() as User;
               // Set
               newUser.firstName = importedUser.firstName;
               newUser.name = importedUser.name;

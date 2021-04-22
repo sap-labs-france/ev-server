@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 
 import Configuration from '../../utils/Configuration';
-import ExpressTools from '../ExpressTools';
+import ExpressUtils from '../ExpressUtils';
 import ODataRestAdapter from './ODataRestAdapter';
 import ODataSchema from './odata-schema/ODataSchema';
 import ODataServerFactory from '../odata/ODataServerFactory';
@@ -18,7 +18,7 @@ export default class ODataServer {
     // Keep params
     this.oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication(null, oDataServerConfig.debug);
+    this.expressApplication = ExpressUtils.initApplication(null, oDataServerConfig.debug);
     // Get URL of the CentralSystemRestServer
     const restConf = Configuration.getCentralSystemRestServer();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;
@@ -40,12 +40,12 @@ export default class ODataServer {
       }
     );
     // Post init
-    ExpressTools.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication);
   }
 
   // Start the server
   start() {
-    ExpressTools.startServer(this.oDataServerConfig, ExpressTools.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
+    ExpressUtils.startServer(this.oDataServerConfig, ExpressUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
   }
 }
 

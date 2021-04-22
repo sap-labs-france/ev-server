@@ -31,6 +31,14 @@ export default class SchemaValidator {
         coerceTypes: true
       }) {
     this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
+    this.ajv.addFormat('latitude', {
+      type: 'number',
+      validate: (c) => Constants.REGEX_VALIDATION_LATITUDE.test(c.toString())
+    });
+    this.ajv.addFormat('longitude', {
+      type: 'number',
+      validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
+    });
     this.ajv.addSchema(this.commonSchema);
     this.ajv.addSchema(this.tenantComponentSchema);
     this.ajv.addSchema(this.chargingStationSchema);

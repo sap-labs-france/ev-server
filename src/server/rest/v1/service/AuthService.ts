@@ -39,8 +39,6 @@ if (_centralSystemRestConfig) {
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: _centralSystemRestConfig.userTokenKey
-    // pragma issuer: 'evse-dashboard',
-    // audience: 'evse-dashboard'
   };
   // Use
   passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
@@ -86,15 +84,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleLogIn', req.user);
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with Email '${filteredRequest.email}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
@@ -322,16 +311,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'checkAndSendResetPasswordConfirmationEmail', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with Email '${filteredRequest.email}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'checkAndSendResetPasswordConfirmationEmail'
-      });
-    }
     const resetHash = Utils.generateUUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
@@ -367,16 +346,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
       MODULE_NAME, 'handleUserPasswordReset', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleUserPasswordReset'
-      });
-    }
     // Check password
     if (!Utils.isPasswordValid(filteredRequest.passwords.password)) {
       throw new AppError({
@@ -514,16 +483,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
       MODULE_NAME, 'handleVerifyEmail', req.user);
-    // User deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: 'The user is logically deleted'
-      });
-    }
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
@@ -554,7 +513,7 @@ export default class AuthService {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       try {
-        await billingImpl.createUser(user);
+        await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',
@@ -653,17 +612,6 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleResendVerificationEmail', req.user);
-    // User deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.email}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
     // Check if account is already active
     if (user.status === UserStatus.ACTIVE) {
       throw new AppError({

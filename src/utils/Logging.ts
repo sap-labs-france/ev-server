@@ -482,8 +482,7 @@ export default class Logging {
         })
       );
     } catch (error) {
-      // FIXME
-      // Error Message: Converting circular structure to JSON
+      // FIXME: Error Message: Converting circular structure to JSON
       // Temporary FIX: Utils.cloneObject() removed
       await Logging.logSecurityDebug({
         tenantID: tenantID,
@@ -738,11 +737,10 @@ export default class Logging {
   // Log
   private static async _log(log: Log): Promise<string> {
     let moduleConfig = null;
+    // Check Log Level
     const loggingConfig = Logging.getConfiguration();
     // Default Log Level
     let logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
-    // Default Console Level
-    let consoleLogLevel = loggingConfig.consoleLogLevel ? loggingConfig.consoleLogLevel : LogLevel.NONE;
     // Module Provided?
     if (log.module && loggingConfig.moduleDetails) {
       // Yes: Check the Module
@@ -755,40 +753,7 @@ export default class Logging {
             logLevel = moduleConfig.logLevel;
           }
         }
-        // Check Console Log Level
-        if (moduleConfig.consoleLogLevel) {
-          // Default?
-          if (moduleConfig.consoleLogLevel !== LogLevel.DEFAULT) {
-            // No
-            consoleLogLevel = moduleConfig.consoleLogLevel;
-          }
-        }
       }
-    }
-    // Log Level takes precedence over console log
-    switch (LogLevel[consoleLogLevel]) {
-      case LogLevel.NONE:
-        break;
-      // Keep up to error filter out debug
-      case LogLevel.ERROR:
-        if (log.level === LogLevel.INFO || log.level === LogLevel.WARNING || log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep up to warning filter out debug
-      case LogLevel.WARNING: // eslint-disable-line no-fallthrough
-        if (log.level === LogLevel.INFO || log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep all log messages just filter out DEBUG
-      case LogLevel.INFO: // eslint-disable-line no-fallthrough
-        if (log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep all messages
-      case LogLevel.DEBUG: // eslint-disable-line no-fallthrough
-      default: // If we did not break then it means we have to console log it
-        Logging._consoleLog(log);
-        break;
     }
     // Do not log to DB simple string messages
     if (log['simpleMessage']) {
@@ -825,9 +790,7 @@ export default class Logging {
     // Timestamp
     log.timestamp = new Date();
     // Source
-    if (!log.source) {
-      log.source = `${Constants.CENTRAL_SERVER}`;
-    }
+    log.source = log.source ?? `${Constants.CENTRAL_SERVER}`;
     // Host
     log.host = Utils.getHostname();
     // Process
@@ -835,8 +798,10 @@ export default class Logging {
     // Check
     if (log.detailedMessages) {
       // Anonymize message
-      log.detailedMessages = Utils.cloneObject(log.detailedMessages);
-      log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
+      if (!Utils.isDevelopmentEnv()) {
+        log.detailedMessages = Utils.cloneObject(log.detailedMessages);
+        log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
+      }
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
         log.detailedMessages = [log.detailedMessages];
@@ -855,13 +820,11 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
     }
-
     // Log
     return LoggingStorage.saveLog(log.tenantID, log);
   }
@@ -922,42 +885,6 @@ export default class Logging {
     });
   }
 
-  // Console Log
-  private static _consoleLog(log): void {
-    let logFn;
-    // Set the function to log
-    switch (log.level) {
-      case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
-        logFn = console.debug;
-        break;
-      case LogLevel.ERROR:
-        // eslint-disable-next-line no-console
-        logFn = console.error;
-        break;
-      case LogLevel.WARNING:
-        // eslint-disable-next-line no-console
-        logFn = console.warn;
-        break;
-      case LogLevel.INFO:
-        // eslint-disable-next-line no-console
-        logFn = console.info;
-        break;
-      default:
-        // eslint-disable-next-line no-console
-        logFn = console.log;
-        break;
-    }
-
-    // Log
-    log.timestamp = new Date();
-    if (log.simpleMessage) {
-      logFn(log.timestamp.toISOString() + ' ' + log.simpleMessage);
-    } else {
-      logFn(log);
-    }
-  }
-
   // Log
   private static getCFLogLevel(logLevel): string {
     // Log level
@@ -981,9 +908,8 @@ export default class Logging {
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module, method: action,
+      module: module, method: action, action,
       message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`,
-      action: action,
       detailedMessages: { args }
     });
   }
@@ -1005,7 +931,8 @@ export default class Logging {
       await Logging.logError({
         tenantID,
         source: Constants.CENTRAL_SERVER,
-        action, module, method: 'traceChargingStationActionEnd',
+        action: ServerAction.PERFORMANCES,
+        module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

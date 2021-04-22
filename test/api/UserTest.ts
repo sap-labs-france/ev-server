@@ -9,9 +9,9 @@ import { HTTPError } from '../../src/types/HTTPError';
 import { ServerRoute } from '../../src/types/Server';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../types/Tag';
+import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
-import User from '../types/User';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
@@ -68,7 +68,7 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created user
       testData.createdUsers.forEach(async (user) => {
         await testData.centralUserService.deleteEntity(
@@ -170,21 +170,6 @@ describe('User tests', function() {
           const response = await testData.userService.userApi.createTag(testData.newTag);
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
-        });
-
-        it('Should not be able to delete a badge that has already been used', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionValid;
-          const resDelete = await testData.userService.userApi.deleteTag(tagId);
-          expect(resDelete.status).to.equal(HTTPError.TAG_HAS_TRANSACTIONS);
-          const tag = (await testData.userService.userApi.readTag(tagId)).data;
-          expect(tag).to.not.be.null;
         });
 
         it('Should be able to deactivate a badge', async () => {

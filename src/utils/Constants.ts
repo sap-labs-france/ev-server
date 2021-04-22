@@ -286,13 +286,13 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  public static readonly REGEX_VALIDATION_LATITUDE = /^-?([1-8]?[0-9]|[0-9]0)\.{0,1}[0-9]*$/;
-  public static readonly REGEX_VALIDATION_LONGITUDE = /^-?([1]?[0-7][0-9]|[1]?[0-8][0]|[1-9]?[0-9])\.{0,1}[0-9]*$/;
+  public static readonly REGEX_VALIDATION_LATITUDE = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/;
+  public static readonly REGEX_VALIDATION_LONGITUDE = /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token',
+    'Authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({
@@ -313,7 +313,6 @@ export default class Constants {
     'role': 0,
     'password': 0,
     'locale': 0,
-    'deleted': 0,
     'passwordWrongNbrTrials': 0,
     'passwordBlockedUntil': 0,
     'passwordResetHash': 0,
@@ -392,6 +391,16 @@ export default class Constants {
     measurand: OCPPMeasurand.STATE_OF_CHARGE,
     location: OCPPLocation.EV,
     format: OCPPValueFormat.RAW,
+  });
+
+  public static readonly OCPP_START_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_BEGIN,
+  });
+
+  public static readonly OCPP_STOP_SIGNED_DATA_ATTRIBUTE: OCPPAttribute = Object.freeze({
+    format: OCPPValueFormat.SIGNED_DATA,
+    context: OCPPReadingContext.TRANSACTION_END,
   });
 
   public static readonly OCPP_VOLTAGE_ATTRIBUTE: OCPPAttribute = Object.freeze({

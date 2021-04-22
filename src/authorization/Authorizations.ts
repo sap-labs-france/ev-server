@@ -5,6 +5,7 @@ import User, { UserRole, UserStatus } from '../types/User';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
@@ -13,6 +14,7 @@ import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
+import OCPIUtils from '../server/ocpi/OCPIUtils';
 import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
@@ -755,13 +757,27 @@ export default class Authorizations {
     return user.role === UserRole.DEMO;
   }
 
+  public static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
+    // Check
+    const authDefinition = AuthorizationsDefinition.getInstance();
+    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
+    if (!result.authorized && Authorizations.getConfiguration().debug) {
+      void Logging.logSecurityInfo({
+        tenantID: loggedUser.tenantID, user: loggedUser,
+        action: ServerAction.AUTHORIZATIONS,
+        module: MODULE_NAME, method: 'canPerformAction',
+        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
+      });
+    }
+    return result;
+  }
+
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     // Get the Organization component
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
     // Org component enabled?
-    if (isOrgCompActive) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
       let foundSiteArea = true;
       // Site Area -----------------------------------------------
       if (!chargingStation.siteAreaID) {
@@ -781,6 +797,7 @@ export default class Authorizations {
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+          detailedMessages: { chargingStation }
         });
       }
       // Access Control is disabled?
@@ -789,9 +806,8 @@ export default class Authorizations {
         return UserStorage.getUserByTagId(tenantID, tagID);
       }
       // Site -----------------------------------------------------
-      chargingStation.siteArea.site = chargingStation.siteArea.site ?
-        chargingStation.siteArea.site : (chargingStation.siteArea.siteID ?
-          await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
+      chargingStation.siteArea.site = chargingStation.siteArea.site ??
+        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
       if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
         throw new BackendError({
@@ -799,6 +815,7 @@ export default class Authorizations {
           action: action,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+          detailedMessages: { chargingStation }
         });
       }
     }
@@ -860,7 +877,8 @@ export default class Authorizations {
         source: chargingStation.id,
         action: action,
         module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-        message: `Tag ID '${tagID}' is unknown and has been created successfully as an inactive Tag`
+        message: `Tag ID '${tagID}' is unknown and has been created successfully as an inactive Tag`,
+        detailedMessages: { tag }
       });
     }
     // Inactive Tag
@@ -869,9 +887,9 @@ export default class Authorizations {
         source: chargingStation.id,
         action: action,
         message: `Tag ID '${tagID}' is not active`,
-        module: MODULE_NAME,
-        method: 'isTagIDAuthorizedOnChargingStation',
-        user: tag.user
+        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+        user: tag.user,
+        detailedMessages: { tag }
       });
     }
     // No User
@@ -880,9 +898,9 @@ export default class Authorizations {
         source: chargingStation.id,
         action: action,
         message: `Tag ID '${tagID}' is not assigned to a User`,
-        module: MODULE_NAME,
-        method: 'isTagIDAuthorizedOnChargingStation',
-        user: tag.user
+        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+        user: tag.user,
+        detailedMessages: { tag }
       });
     }
     // Check User
@@ -909,7 +927,7 @@ export default class Authorizations {
         tagIDs: userToken.tagIDs,
         tagID: transaction ? transaction.tagID : null,
         owner: userToken.id,
-        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
+        site: chargingStation.siteID,
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
@@ -920,7 +938,8 @@ export default class Authorizations {
           message: `User with Tag ID '${tagID}' is not authorized to perform the action '${authAction}'`,
           module: MODULE_NAME,
           method: 'isTagIDAuthorizedOnChargingStation',
-          user: tag.user
+          user: tag.user,
+          detailedMessages: { userToken, tag }
         });
       }
     }
@@ -932,7 +951,8 @@ export default class Authorizations {
           user: user,
           action: ServerAction.AUTHORIZE,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Unable to authorize User with Tag ID '${tag.id}' not issued locally`
+          message: `Unable to authorize User with Tag ID '${tag.id}' not issued locally`,
+          detailedMessages: { tag }
         });
       }
       // Got Token from OCPI
@@ -941,7 +961,8 @@ export default class Authorizations {
           user: user,
           action: ServerAction.AUTHORIZE,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Tag ID '${tag.id}' cannot be authorized through OCPI protocol due to missing OCPI Token`
+          message: `Tag ID '${tag.id}' cannot be authorized through OCPI protocol due to missing OCPI Token`,
+          detailedMessages: { tag }
         });
       }
       // Check Charging Station
@@ -950,7 +971,8 @@ export default class Authorizations {
           user: user,
           action: ServerAction.AUTHORIZE,
           module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Tag ID '${tag.id}' cannot be authorized on a private charging station`
+          message: `Tag ID '${tag.id}' cannot be authorized on a private charging station`,
+          detailedMessages: { tag, chargingStation }
         });
       }
       // Request Authorization
@@ -967,8 +989,31 @@ export default class Authorizations {
         // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
         const transactionConnector: Connector = transaction?.connectorId ?
           Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
-        // Keep the Auth ID
-        user.authorizationID = await ocpiClient.authorizeToken(tag.ocpiToken, chargingStation, transactionConnector);
+        // Check Authorization in Charging Station
+        if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
+          for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
+            if (remoteAuthorization.tagId === tag.ocpiToken.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+              await Logging.logDebug({
+                source: chargingStation.id,
+                tenantID,
+                action: ServerAction.OCPI_AUTHORIZE_TOKEN,
+                message: `Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
+                module: MODULE_NAME, method: 'authorizeToken',
+                detailedMessages: { response: remoteAuthorization }
+              });
+              user.authorizationID = remoteAuthorization.id;
+              break;
+            }
+          }
+          // Clean up
+          if (!user.authorizationID) {
+            chargingStation.remoteAuthorizations = [];
+            await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+          }
+        }
+        // Retrieve Auth token from OCPI
+        user.authorizationID = await ocpiClient.authorizeToken(
+          tag.ocpiToken, chargingStation, transactionConnector);
       }
     }
     return user;
@@ -1023,20 +1068,5 @@ export default class Authorizations {
       });
     }
     return authorized;
-  }
-
-  private static async can(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): Promise<AuthorizationResult> {
-    // Check
-    const authDefinition = AuthorizationsDefinition.getInstance();
-    const result = await authDefinition.canPerformAction(loggedUser.rolesACL, entity, action, context);
-    if (!result.authorized && Authorizations.getConfiguration().debug) {
-      void Logging.logSecurityInfo({
-        tenantID: loggedUser.tenantID, user: loggedUser,
-        action: ServerAction.AUTHORIZATIONS,
-        module: MODULE_NAME, method: 'canPerformAction',
-        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
-      });
-    }
-    return result;
   }
 }

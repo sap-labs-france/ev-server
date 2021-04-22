@@ -19,7 +19,7 @@ const testData: TestData = new TestData();
 describe('Filters with multiple values tests', function() {
   this.timeout(100000);
 
-  before(async function() {
+  before(function() {
     // Init values
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });

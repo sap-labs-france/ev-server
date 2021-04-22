@@ -23,7 +23,6 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   notifications?: UserNotifications;
   iNumber?: string;
   costCenter?: string;
-  deleted: boolean;
   eulaAcceptedHash: string;
   eulaAcceptedVersion: number;
   eulaAcceptedOn: Date;

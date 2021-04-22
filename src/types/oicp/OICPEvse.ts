@@ -1,3 +1,5 @@
+import { Voltage } from '../ChargingStation';
+
 export interface OICPEvseMatch {
   EVSE: OICPEvseDataRecord, // Charging point information
   Distance?: number // Decimal (4,1) Air distance to the requested position in km (non-routed)
@@ -110,9 +112,11 @@ export enum OICPPlug {
   CHAdeMO = 'CHAdeMO' // DC CHAdeMO Connector.
 }
 
+type OICPVoltage = Voltage;
+
 export interface OICPChargingFacility {
   PowerType: OICPPower, // Charging Facility power type (e.g. AC or DC)
-  Voltage?: number, // Voltage of the Charging Facility. Field Length = 3
+  Voltage?: OICPVoltage, // Voltage of the Charging Facility. Field Length = 3
   Amperage?: number, // Amperage of the Charging Facility. Field Length = 2
   Power: number, // Charging Facility power in kW. Field Length = 3
   ChargingModes?: OICPChargingMode[] // List of charging modes that are supported.

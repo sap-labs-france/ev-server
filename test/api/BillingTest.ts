@@ -1,8 +1,8 @@
 import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
+import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
-import BillingIntegration from '../../src/integration/billing/BillingIntegration';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -10,12 +10,13 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
+import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
+import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
@@ -44,60 +45,87 @@ class TestData {
   public chargingStationContext: ChargingStationContext;
   public createdUsers: User[] = [];
   // Dynamic User for testing billing against an empty STRIPE account
-  public dynamicUser: User;
   // Billing Implementation - STRIPE?
-  public billingImpl: BillingIntegration<BillingSetting>;
+  public billingImpl: StripeBillingIntegration;
   public billingUser: BillingUser; // DO NOT CONFUSE - BillingUser is not a User!
 
+  public async assignPaymentMethod(user: BillingUser, stripe_test_token: string) : Promise<Stripe.CustomerSource> {
+    // Assign a source using test tokens (instead of test card numbers)
+    // c.f.: https://stripe.com/docs/testing#cards
+    const concreteImplementation : StripeBillingIntegration = this.billingImpl ;
+    const stripeInstance = await concreteImplementation.getStripeInstance();
+    const customerID = user.billingData?.customerID;
+    assert(customerID, 'customerID should not be null');
+    // TODO - rethink that part - the concrete billing implementation should be called instead
+    const source = await stripeInstance.customers.createSource(customerID, {
+      source: stripe_test_token // e.g.: tok_visa, tok_amex, tok_fr
+    });
+    assert(source, 'Source should not be null');
+    // TODO - rethink that part - the concrete billing implementation should be called instead
+    const customer = await stripeInstance.customers.update(customerID, {
+      default_source: source.id
+    });
+    assert(customer, 'Customer should not be null');
+    return source;
+  }
+
   public async setBillingSystemValidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(false);
-    await this.saveBillingSettings(stripeSettings);
+    const billingSettings = this.getLocalSettings(false);
+    await this.saveBillingSettings(billingSettings);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
-    stripeSettings.secretKey = await Cypher.encrypt(tenantId, stripeSettings.secretKey);
-    const billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
-    expect(this.billingImpl).to.not.be.null;
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, billingSettings.stripe.secretKey);
+    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
-    const stripeSettings = this.getLocalSettings(false);
+    const billingSettings = this.getLocalSettings(false);
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(!!tenantId, 'Tenant ID cannot be null');
-    stripeSettings.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
-    await this.saveBillingSettings(stripeSettings);
-    const billingImpl = new StripeBillingIntegration(tenantId, stripeSettings);
-    expect(this.billingImpl).to.not.be.null;
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
+    await this.saveBillingSettings(billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
-  public getLocalSettings(immediateBilling: boolean): StripeBillingSetting {
-    const settings: StripeBillingSetting = {
-      url: config.get('billing.url'),
-      publicKey: config.get('billing.publicKey'),
-      secretKey: config.get('billing.secretKey'),
-      noCardAllowed: config.get('billing.noCardAllowed'),
-      advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
-      currency: config.get('billing.currency'),
+  public getLocalSettings(immediateBillingAllowed: boolean): BillingSettings {
+    const billingProperties = {
+      isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed'),
       taxID: config.get('billing.taxID')
     };
+    const stripeProperties = {
+      url: config.get('stripe.url'),
+      publicKey: config.get('stripe.publicKey'),
+      secretKey: config.get('stripe.secretKey'),
+    };
+    const settings: BillingSettings = {
+      identifier: TenantComponents.BILLING,
+      type: BillingSettingsType.STRIPE,
+      billing: billingProperties,
+      stripe: stripeProperties,
+    };
 
-    // ---------------------------------------------------------
+    // -----------------------------------------------------------------
     // Our test needs the immediate billing to be switched off!
     // Because we want to check the DRAFT state of the invoice
-    settings.immediateBillingAllowed = immediateBilling;
-    // ---------------------------------------------------------
+    settings.billing.immediateBillingAllowed = immediateBillingAllowed;
+    // -----------------------------------------------------------------
     return settings;
   }
 
-  public async saveBillingSettings(stripeSettings: StripeBillingSetting) {
+  public async saveBillingSettings(billingSettings: BillingSettings) {
+    // TODO - rethink that part
     const tenantBillingSettings = await this.adminUserService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
     componentSetting.content.type = BillingSettingsType.STRIPE;
-    componentSetting.content.stripe = stripeSettings;
+    componentSetting.content.billing = billingSettings.billing;
+    componentSetting.content.stripe = billingSettings.stripe;
     componentSetting.sensitiveData = ['content.stripe.secretKey'];
     await this.adminUserService.settingApi.update(componentSetting);
   }
@@ -142,10 +170,9 @@ class TestData {
   public isBillingProperlyConfigured(): boolean {
     const billingSettings = this.getLocalSettings(false);
     // Check that the mandatory settings are properly provided
-    return (!!billingSettings.publicKey
-      && !!billingSettings.secretKey
-      && !!billingSettings.url
-      && !!billingSettings.currency);
+    return (!!billingSettings.stripe.publicKey
+      && !!billingSettings.stripe.secretKey
+      && !!billingSettings.stripe.url);
   }
 
   public async getLatestDraftInvoice(userId?: string) {
@@ -200,9 +227,11 @@ describe('Billing Service', function() {
 
       it('should add an item to a DRAFT invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
+        assert(transactionID, 'transactionID should noy be null');
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
@@ -239,6 +268,9 @@ describe('Billing Service', function() {
         testData.createdUsers.push(fakeUser);
         // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
         let billingUser = await testData.billingImpl.getUser(fakeUser);
+        if (!billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+          billingUser = await testData.billingImpl.forceSynchronizeUser(fakeUser);
+        }
         expect(billingUser).to.be.not.null;
         // Let's update the new user
         fakeUser.firstName = 'Test';
@@ -249,6 +281,9 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
+        if (!FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+          billingUser = await testData.billingImpl.forceSynchronizeUser(fakeUser);
+        }
         // Let's check that the corresponding billing user was updated as well
         billingUser = await testData.billingImpl.getUser(fakeUser);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
@@ -274,7 +309,7 @@ describe('Billing Service', function() {
       });
 
       xit('should synchronize 1 invoice after a transaction', async () => {
-        // TODO - Synchronize Invoices is for now disabled - c.f.: __liveMode!
+        // Synchronize Invoices is now deprecated
         await testData.userService.billingApi.synchronizeInvoices({});
         const transactionID = await testData.generateTransaction(testData.userContext);
         expect(transactionID).to.not.be.null;
@@ -313,7 +348,11 @@ describe('Billing Service', function() {
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
-        fakeUser.billingData = { customerID: 'cus_utbilling_fake_user' }; // TODO - not supported anymore
+        fakeUser.billingData = {
+          customerID: 'cus_utbilling_fake_user',
+          liveMode: false,
+          lastChangedOn: new Date(),
+        }; // TODO - not supported anymore
         await testData.userService.updateEntity(
           testData.userService.userApi,
           fakeUser
@@ -424,11 +463,13 @@ describe('Billing Service', function() {
           testData.tenantContext.getTenant().subdomain,
           testData.userContext
         );
-        await testData.userService.billingApi.synchronizeInvoices({});
+        // await testData.userService.billingApi.synchronizeInvoices({});
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
         const itemsBefore = await testData.getNumberOfSessions(basicUser.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
-        await testData.userService.billingApi.synchronizeInvoices({});
+        assert(transactionID, 'transactionID should noy be null');
+        // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(basicUser.id);
         expect(itemsAfter).to.be.eq(itemsBefore + 1);
       });
@@ -473,13 +514,18 @@ describe('Billing Service', function() {
         } as User;
         fakeUser.issuer = true;
         testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+        assert(testData.billingImpl, 'Billing implementation should not be null');
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
         );
         testData.createdUsers.push(fakeUser);
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
-        await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+        if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+          await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+        } else {
+          await testData.userService.billingApi.forceSynchronizeUser(fakeUser);
+        }
         const userExists = await testData.billingImpl.isUserSynchronized(fakeUser);
         expect(userExists).to.be.true;
       });
@@ -494,6 +540,7 @@ describe('Billing Service', function() {
         assert(!!testData.userService, 'User service cannot be null');
         // Force INVALID STRIPE credentials
         testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+        assert(testData.billingImpl, 'Billing implementation should not be null');
       });
 
       after(async () => {

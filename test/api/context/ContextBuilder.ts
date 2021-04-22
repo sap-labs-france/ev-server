@@ -4,7 +4,7 @@ import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import BillingContext from './BillingContext';
 import CentralServerService from '../client/CentralServerService';
-import ChargingStation from '../../types/ChargingStation';
+import ChargingStation from '../../../src/types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
@@ -20,7 +20,7 @@ import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../types/Tag';
+import Tag from '../../../src/types/Tag';
 import TagStorage from '../../../src/storage/mongodb/TagStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
@@ -147,9 +147,8 @@ export default class ContextBuilder {
       'locale': 'en-US',
       'phone': '66666666666',
       'mobile': '66666666666',
-      'plateID': '666-FB-69',
-      'deleted': false
-    });
+      'plateID': '666-FB-69'
+    } as User);
     await UserStorage.saveUserStatus(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].status);
     await UserStorage.saveUserRole(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].role);
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });

@@ -1,14 +1,14 @@
-import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
 import chai, { expect } from 'chai';
 
-import { Car } from '../types/Car';
+import { Car } from '../../src/types/Car';
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
-import User from '../types/User';
+import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 
@@ -45,7 +45,7 @@ describe('Car Tests', function() {
 
     describe('Without any component (tenant utnothing)', () => {
       describe('Where admin user', () => {
-        before(async function() {
+        before(function() {
 
           testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
             email: config.get('admin.username'),
@@ -83,8 +83,7 @@ describe('Car Tests', function() {
     describe('With component Car (tenant utcar)', () => {
       describe('Where admin user', () => {
 
-        before(async function() {
-
+        before(function() {
           testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_CAR, {
             email: config.get('admin.username'),
             password: config.get('admin.password')
