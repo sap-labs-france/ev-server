@@ -279,10 +279,12 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
-      // Set boot notification registration status to 'Rejected'
-      chargingStation.registrationStatus = RegistrationStatus.REJECTED;
-      // Save Charging Station
-      await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+      if (chargingStation) {
+        // Set boot notification registration status to 'Rejected'
+        chargingStation.registrationStatus = RegistrationStatus.REJECTED;
+        // Save Charging Station
+        await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+      }
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
