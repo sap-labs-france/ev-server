@@ -760,7 +760,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const allBillingSettings: BillingSettings[] = await BillingStorage.getBillingSettings(req.user.tenantID);
+    const allBillingSettings = await BillingStorage.getBillingSettings(req.user.tenantID);
     if (allBillingSettings) {
       allBillingSettings.map((billingSettings) => BillingService.hashSensitiveData(req.user.tenantID, billingSettings));
       res.json(allBillingSettings);
