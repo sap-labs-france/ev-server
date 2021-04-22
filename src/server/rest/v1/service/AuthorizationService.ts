@@ -368,8 +368,8 @@ export default class AuthorizationService {
       user.canDelete = false;
     } else {
       user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ, authorizationFilter);
-      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter);
-      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter);
+      user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
+      user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
     }
   }
 
