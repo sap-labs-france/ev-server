@@ -244,8 +244,7 @@ export default class BillingStorage {
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings[]> {
     const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.BILLING }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings && settings.count > 0) {
-      const allBillingSettings: BillingSettings[] = settings.result.map((setting) => BillingStorage.convertToBillingSettings(setting));
-      return allBillingSettings;
+      return settings.result.map((setting) => BillingStorage.convertToBillingSettings(setting));
     }
     return null;
   }
