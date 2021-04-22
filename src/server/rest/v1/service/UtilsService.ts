@@ -101,6 +101,44 @@ export default class UtilsService {
     return chargingStation;
   }
 
+  public static async checkAndGetChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
+    // Check dynamic auth for assignment
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken, {});
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
+        module: MODULE_NAME, method: 'checkAndGetChargingStationsAuthorization',
+      });
+    }
+    // Get Charging Stations
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check
+    for (const chargingStation of chargingStations.result) {
+      // External Charging Station
+      if (!chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkAndGetChargingStationsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
+    }
+    return chargingStations.result;
+  }
+
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
@@ -380,29 +418,22 @@ export default class UtilsService {
 
   public static async checkSiteAreaChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, chargingStationIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
-    // Check dynamic auth for assignment
-    const authorizationFilter = await AuthorizationService.checkAssignSiteAreaChargingStationsAuthorizationFilters(
-      tenant, action, userToken, siteArea, { siteAreaID: siteArea.id, chargingStationIDs });
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaChargingStationsAuthorization', userToken);
+    if (Utils.isEmptyArray(chargingStationIDs)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Charging Station\'s IDs must be provided',
+        module: MODULE_NAME,
+        method: 'checkSiteAreaChargingStationsAuthorization',
+        user: userToken
       });
     }
-    // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
-      {
-        chargingStationIDs,
-        ...additionalFilters,
-        ...authorizationFilter.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizationFilter.projectFields : null
-    );
+    const chargingStations = await this.checkAndGetChargingStationsAuthorization(tenant, userToken, action,
+      { chargingStationIDs, ...additionalFilters }, applyProjectFields);
     // Must have the same result
-    if (chargingStationIDs.length !== chargingStations.result.length) {
+    if (chargingStationIDs.length !== chargingStations.length) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -411,21 +442,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
       });
     }
-    // Check
-    for (const chargingStation of chargingStations.result) {
-      // External Charging Station
-      if (!chargingStation.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
-    }
-    return chargingStations.result;
+    return chargingStations;
   }
 
   public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,

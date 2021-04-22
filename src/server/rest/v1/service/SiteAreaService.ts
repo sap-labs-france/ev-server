@@ -76,21 +76,9 @@ export default class SiteAreaService {
       Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
-    // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
-    if (Utils.isEmptyArray(filteredRequest.chargingStationIDs)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Charging Station\'s IDs must be provided',
-        module: MODULE_NAME,
-        method: 'handleAssignChargingStationsToSiteArea',
-        user: req.user
-      });
-    }
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteAreaID, Action.READ, action, {}); // TODO: CHECK IF WE SHOULD HAVE ASSIGN/UNASSIGN action instead of READ
     // Check and Get Charging Stations
     const chargingStations = await UtilsService.checkSiteAreaChargingStationsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.chargingStationIDs, action, {});

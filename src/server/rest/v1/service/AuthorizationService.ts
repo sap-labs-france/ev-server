@@ -43,6 +43,10 @@ export default class AuthorizationService {
         return entity.canCreate;
       case Action.DELETE:
         return entity.canDelete;
+      case Action.ASSIGN_CHARGING_STATIONS:
+        return entity['can' + Action.ASSIGN_CHARGING_STATIONS];
+      case Action.UNASSIGN_CHARGING_STATIONS:
+        return entity['can' + Action.UNASSIGN_CHARGING_STATIONS];
       default:
         return false;
     }
@@ -258,46 +262,36 @@ export default class AuthorizationService {
   }
 
   public static async checkAssignSiteAreaChargingStationsAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea,
-      filteredRequest: HttpAssignChargingStationToSiteAreaRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
-      authorized: userToken.role === UserRole.ADMIN,
+      authorized: false,
     };
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs for which user is admin from db
-      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      // Check Site
-      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
-        // Site Authorized, now check Assets
-        if (!Utils.isEmptyArray(filteredRequest.chargingStationIDs)) {
-          let foundInvalidChargingStationID = false;
-          // Get Charging Station IDs already assigned to the Site
-          const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
-          // Check if any of the Charging Stations we want to unassign are missing
-          for (const chargingStationID of filteredRequest.chargingStationIDs) {
-            switch (action) {
-              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
-                if (chargingStationIDs.includes(chargingStationID)) {
-                  foundInvalidChargingStationID = true;
-                }
-                break;
-              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
-                if (!chargingStationIDs.includes(chargingStationID)) {
-                  foundInvalidChargingStationID = true;
-                }
-                break;
-            }
-          }
-          if (!foundInvalidChargingStationID) {
-            authorizationFilters.authorized = true;
-          }
-        }
-      }
+    // Check static auth
+    const authorizationContext: AuthorizationContext = {};
+    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS : Action.UNASSIGN_CHARGING_STATIONS;
+    const authResult = authAction === Action.ASSIGN_CHARGING_STATIONS ?
+      await Authorizations.canAssignSiteAreaChargingStations(userToken, authorizationContext) :
+      await Authorizations.canUnassignSiteAreaChargingStations(userToken, authorizationContext);
+    authorizationFilters.authorized = authResult.authorized;
+    // Check
+    if (!authorizationFilters.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME, method: 'checkAssignSiteAreaChargingStationsAuthorizationFilters',
+      });
     }
+    // Process dynamic filters
+    await AuthorizationService.processDynamicFilters(tenant, userToken, authAction, Entity.SITE_AREA,
+      authorizationFilters, authorizationContext, { SiteAreaID: filteredRequest.siteAreaID });
+    // Filter projected fields
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
+      authResult.fields, filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
@@ -594,6 +588,14 @@ export default class AuthorizationService {
       siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, filteredRequest);
       siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, filteredRequest);
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, filteredRequest);
+      siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.ASSIGN_ASSETS, authorizationFilter, filteredRequest);
+      siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.UNASSIGN_ASSETS, authorizationFilter, filteredRequest);
+      siteArea.canAssignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.ASSIGN_CHARGING_STATIONS, authorizationFilter, filteredRequest);
+      siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.UNASSIGN_CHARGING_STATIONS, authorizationFilter, filteredRequest);
     }
   }
 
@@ -621,6 +623,20 @@ export default class AuthorizationService {
       await AuthorizationService.checkAssignedSites(
         tenant, userToken, null, authorizationFilters);
     }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetChargingStationsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Record<string,any>):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATIONS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

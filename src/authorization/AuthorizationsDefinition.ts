@@ -58,7 +58,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
         Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'] },
-      { resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
+      {
+        resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR],
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       {
         resource: Entity.CHARGING_STATION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
@@ -192,7 +202,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ]
       },
-      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CHARGING_STATIONS, action: Action.LIST,
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
@@ -294,7 +314,17 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ]
       },
-      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CHARGING_STATIONS, action: Action.LIST,
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: Action.READ, attributes: ['*'] },
       { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
