@@ -1,4 +1,5 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -37,35 +38,34 @@ export default abstract class BillingIntegration {
       inSuccess: 0,
       inError: 0
     };
-    // Sync e-Mobility Users with no billing data
-    const users: User[] = await this._getUsersWithNoBillingData();
-    if (users.length > 0) {
-      // Process them
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: `${users.length} new user(s) are going to be synchronized`
-      });
-      // Check LIVE MODE
-      if (!this.productionMode) {
-        await Logging.logWarning({
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+      // Sync e-Mobility Users with no billing data
+      const users: User[] = await this._getUsersWithNoBillingData();
+      if (users.length > 0) {
+        // Process them
+        await Logging.logInfo({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USERS,
           module: MODULE_NAME, method: 'synchronizeUsers',
-          message: 'Live Mode is OFF - operation has been aborted'
+          message: `${users.length} new user(s) are going to be synchronized`
         });
-      } else {
         for (const user of users) {
-        // Synchronize user
+          // Synchronize user
           if (await this.synchronizeUser(user)) {
             actionsDone.inSuccess++;
           } else {
             actionsDone.inError++;
           }
         }
+      } else {
+        await Logging.logWarning({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'synchronizeUsers',
+          message: 'Feature is switched OFF - operation has been aborted'
+        });
       }
     }
     // Log
@@ -86,26 +86,36 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
-    try {
-      billingUser = await this._synchronizeUser(user);
-      await Logging.logInfo({
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+      try {
+        billingUser = await this._synchronizeUser(user);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
+        });
+        return billingUser;
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    } else {
+      await Logging.logWarning({
         tenantID: this.tenantID,
-        actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
-      });
-      return billingUser;
-    } catch (error) {
-      await Logging.logError({
-        tenantID: this.tenantID,
-        actionOnUser: user,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        message: 'Feature is switched OFF - operation has been aborted'
       });
     }
     return billingUser;
@@ -146,6 +156,7 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
@@ -237,9 +248,9 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.productionMode) {
-      // Check Billing Data (only in Live Mode)
-      if (!transaction.user.billingData) {
+    // Check Billing Data
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
           message: 'User has no Billing Data',
           source: Constants.CENTRAL_SERVER,
@@ -248,14 +259,6 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStopTransaction',
-        message: 'Live Mode is OFF - checkStopTransaction is being performed without checking billing data'
-      });
     }
   }
 
@@ -270,26 +273,17 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.productionMode) {
-      // Check Billing Data (only in Live Mode)
-      const billingUser = transaction.user;
-      if (!billingUser.billingData || !billingUser.billingData.customerID) {
+    // Check Billing Data (only in Live Mode)
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
-          message: 'Transaction user has no billing method or no customer in Stripe',
+          message: 'User has no billing data or no customer in Stripe',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'checkStartTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStartTransaction',
-        message: 'Live Mode is OFF - checkStartTransaction is being performed without checking billing data'
-      });
     }
   }
 
@@ -321,10 +315,9 @@ export default abstract class BillingIntegration {
       // Specific use-case - Trying to REPAIR inconsistencies
       // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
       // ----------------------------------------------------------------------------------------------
-      let exists;
       try {
-        exists = await this.getUser(user);
-        if (!exists) {
+        billingUser = await this.getUser(user);
+        if (!billingUser) {
           billingUser = await this.createUser(user);
         } else {
           billingUser = await this.updateUser(user);
@@ -333,43 +326,6 @@ export default abstract class BillingIntegration {
         // Let's repair it
         billingUser = await this.repairUser(user);
       }
-    }
-    return billingUser;
-  }
-
-  private async checkUser(user: User): Promise<BillingUser> {
-    // Check the user data
-    if (!user?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in e-Mobility',
-        detailedMessages: { user }
-      });
-    }
-    // Check billing user data
-    const billingUser = await this.getUser(user);
-    if (!billingUser?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in billing system',
-        detailedMessages: { user, billingUser }
-      });
-    }
-    if (user.billingData.customerID !== billingUser.billingData.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'Billing data is inconsistent',
-        detailedMessages: { user, billingUser }
-      });
     }
     return billingUser;
   }
@@ -419,4 +375,6 @@ export default abstract class BillingIntegration {
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+
+
 }

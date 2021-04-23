@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
@@ -94,7 +95,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
           message: 'Failed to connect to Stripe'
         });
       }
-      this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
+      // TODO - rethink that part - this is slow and useless!
+      // this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
     }
   }
 
@@ -146,10 +148,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   public async isUserSynchronized(user: User): Promise<boolean> {
     // Check Stripe
     await this.checkConnection();
-    if (!user.billingData) {
-      // Make sure the billing data has been provided
-      user = await UserStorage.getUser(this.tenantID, user.id);
-    }
+    // Make sure to get fresh data
+    user = await UserStorage.getUser(this.tenantID, user.id);
     const customerID: string = user?.billingData?.customerID;
     // returns true when the customerID is properly set!
     return !!customerID;
@@ -164,9 +164,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Retrieve the STRIPE customer (if any)
     const customerID: string = user.billingData?.customerID;
-    const customer = await this.getStripeCustomer(customerID);
-    // Return the corresponding  Billing User
-    return this.convertToBillingUser(customer, user);
+    if (customerID) {
+      const customer = await this.getStripeCustomer(customerID);
+      // Return the corresponding  Billing User
+      return this.convertToBillingUser(customer, user);
+    }
+    // customerID is not set - do not throw exceptions in that case
+    return null;
   }
 
   public async getTaxes(): Promise<BillingTax[]> {
@@ -647,33 +651,56 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Check Transaction
     this.checkStartTransaction(transaction);
-
-    if (this.productionMode) {
-      // Check that the customer STRIPE exists
-      const customerID: string = transaction.user?.billingData?.customerID;
-      const customer = await this.getStripeCustomer(customerID);
-      if (!customer) {
-        throw new BackendError({
-          message: `Stripe customer ID of the transaction user is invalid - ${customerID}`,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
-    } else {
+    // Check Start Transaction Prerequisites
+    const customerID: string = transaction.user?.billingData?.customerID;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
+      // Check whether the customer exists or not
+      const customer = await this.checkStripeCustomer(customerID);
+      // Check whether the customer has a default payment method
+      this.checkStripePaymentMethod(customer);
+    }
+    // Well ... when in test mode we may allow to start the transaction
+    if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
       await Logging.logWarning({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
-        message: 'Live Mode is OFF - Start transaction might have been started with NO customer data'
+        message: 'Live Mode is OFF - transaction has been started with NO customer data'
       });
     }
     return {
       withBillingActive: true
     };
+  }
+
+  private async checkStripeCustomer(customerID: string): Promise<Stripe.Customer> {
+    const customer = await this.getStripeCustomer(customerID);
+    if (!customer) {
+      throw new BackendError({
+        message: `Customer not found - ${customerID}`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
+    }
+    return customer;
+  }
+
+  private checkStripePaymentMethod(customer: Stripe.Customer): void {
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_DEFAULT_PAYMENT_METHOD)) {
+      if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+        throw new BackendError({
+          message: `Customer has no default payment method - ${customer.id}`,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'startTransaction',
+          action: ServerAction.BILLING_TRANSACTION
+        });
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -767,9 +794,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (customer) {
         const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
         return billingDataTransactionStop;
-      } else if (this.productionMode) {
-        // This should not happen - the startTransaction should have been rejected
-        throw new Error(`Unexpected situation - No STRIPE customer - Transaction ID '${transaction.id}'`);
       }
     } catch (error) {
       await Logging.logError({
@@ -1109,6 +1133,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
+      // TODO - ro be clarified - is this allowed when the user has some invoices
       await this.stripe.customers.del(
         customer.id
       );

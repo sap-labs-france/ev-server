@@ -73,7 +73,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -155,7 +155,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -466,7 +466,7 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          await billingImpl.updateUser(user);
+          await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -593,7 +593,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -624,7 +624,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -672,7 +672,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -771,7 +771,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
     // Return
     res.json(users);
     next();
@@ -832,7 +832,6 @@ export default class UserService {
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,
             output: 'json',
-            quote: 'on',
           });
           void converter.subscribe(async (user: ImportedUser) => {
             // Check connection
@@ -1034,7 +1033,7 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.createUser(user);
+          await billingImpl.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -1118,7 +1117,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, id)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1335,7 +1334,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUsersFilters);
     // Return
     return users;
   }
@@ -1343,10 +1342,11 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase(),
-        firstName: importedUser.firstName,
-        email: importedUser.email,
+        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
+        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
+        email: importedUser.email.replace(/^"|"$/g, ''),
       };
+
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties

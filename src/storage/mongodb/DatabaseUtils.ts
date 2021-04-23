@@ -245,7 +245,7 @@ export default class DatabaseUtils {
   }
 
   public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
-    if (projectedFields) {
+    if (!Utils.isEmptyArray(projectedFields)) {
       const project = {
         $project: {}
       };
