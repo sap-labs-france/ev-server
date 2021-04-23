@@ -233,9 +233,17 @@ describe('Authentication Service (tenant utall)', function() {
   describe('Error cases', () => {
     it('Should not allow authentication of known user with wrong password', async () => {
       // Call
-      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
       // Check
       expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication with a password that doesn\'t match requirements', async () => {
+      // Call
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, '1234', true);
+      // Check
+      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
 

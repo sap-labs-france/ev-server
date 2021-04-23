@@ -112,7 +112,8 @@
     },
     "password": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\\$%\\^&\\*\\.\\?\\-_\\+\\=\\(\\)])(?=.{8,})"
     },
     "captcha": {
       "type": "string",
