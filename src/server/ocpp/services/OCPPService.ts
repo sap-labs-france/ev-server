@@ -153,8 +153,22 @@ export default class OCPPService {
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
           // FIXME: valid charging stations in DB with modified parameters cannot be registered at boot notification again without direct
-          //        access to the DB, standard charging station replacement is not possible. The registration status returned should be 'Pending'
-          //        and a way to manually accept or refuse such stations should be offered.
+          //        access to the DB, standard charging station replacement is then not possible. The registration status returned should
+          //        be 'Pending' and a way to manually accept or refuse such stations should be offered.
+          // Do not flag charging stations online with registered boot notification as 'Rejected'
+          if (moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isAfter(chargingStation.lastSeen) && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
+            await Logging.logWarning({
+              tenantID: headers.tenantID,
+              source: chargingStation.id,
+              action: ServerAction.BOOT_NOTIFICATION,
+              module: MODULE_NAME, method: 'handleBootNotification',
+              message: 'Online charging station with registered boot notification, identical chargeBoxID and different attributes already exists',
+              detailedMessages: { headers, bootNotification }
+            });
+          // Set charging station boot notification registration status to 'Rejected'
+          } else {
+            await ChargingStationStorage.saveChargingRegistrationStatus(headers.tenantID, chargingStation.id, { registrationStatus: RegistrationStatus.REJECTED });
+          }
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -280,10 +294,6 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
-      if (chargingStation?.registrationStatus !== RegistrationStatus.REJECTED) {
-        // Set charging station boot notification registration status to 'Rejected'
-        await ChargingStationStorage.saveChargingRegistrationStatus(headers.tenantID, chargingStation.id, { registrationStatus: RegistrationStatus.REJECTED });
-      }
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
