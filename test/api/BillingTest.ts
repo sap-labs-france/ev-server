@@ -10,6 +10,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
+import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
@@ -209,9 +210,8 @@ describe('Billing Settings', function() {
         testData.adminUserContext
       );
       expect(testData.userContext).to.not.be.null;
-      // testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      // testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-      // testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      // Initialize the Billing module with transaction billing ON
+      testData.billingImpl = await testData.setBillingSystemValidCredentials();
     });
 
     describe('As an admin', () => {
@@ -224,7 +224,7 @@ describe('Billing Settings', function() {
         // await testData.setBillingSystemValidCredentials();
       });
 
-      it('should be able to invoke Billing Settings endpoints', async () => {
+      it('Should be able to invoke Billing Settings endpoints', async () => {
         // Get the Billing settings
         let response = await testData.userService.billingApi.getBillingSetting();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
@@ -234,7 +234,36 @@ describe('Billing Settings', function() {
         assert(billingSettings.stripe, 'Stripe Properties should not be null');
         assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
         assert(billingSettings.id, 'ID should not be null');
-        // Pre-check a billing settings
+        // Check billing connection to STRIPE
+        response = await testData.userService.billingApi.checkBillingConnection();
+        assert(response.status === StatusCodes.OK, 'Response status should be 200');
+        assert(response.data, 'Response data should not be null');
+        assert(response.data.connectionIsValid === true, 'Connection should be valid');
+      });
+
+      it('Should not be able to switch OFF the transaction billing activation', async () => {
+        // Get the Billing settings
+        let response = await testData.userService.billingApi.getBillingSetting();
+        assert(response.status === StatusCodes.OK, 'Response status should be 200');
+        let billingSettings = response.data as BillingSettings ;
+        assert(billingSettings.billing, 'Billing Properties should not be null');
+        assert(billingSettings.billing.isTransactionBillingActivated, 'Transaction Billing should be ON');
+        assert(billingSettings.stripe.secretKey, 'Hash of the secret key should not be null');
+        const keyHash = billingSettings.stripe.secretKey;
+        // Let's attempt to update the billing settings
+        response = await testData.userService.billingApi.updateBillingSetting(billingSettings);
+        assert(response.status === StatusCodes.OK, 'Response status should be 200');
+        // Let's attempt to alter the secret key while transaction billing is ON
+        billingSettings.stripe.secretKey = '1234567890';
+        response = await testData.userService.billingApi.updateBillingSetting(billingSettings);
+        assert(response.status === StatusCodes.OK, 'Response status should be 200');
+        // Check that the secret key was preserved
+        response = await testData.userService.billingApi.getBillingSetting();
+        assert(response.status === StatusCodes.OK, 'Response status should be 200');
+        billingSettings = response.data as BillingSettings ;
+        assert(billingSettings.billing, 'Billing Properties should not be null');
+        assert(keyHash === billingSettings.stripe.secretKey, 'Hash of the secret key should not have changed');
+        // Check again the billing connection to STRIPE
         response = await testData.userService.billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');

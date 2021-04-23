@@ -796,32 +796,36 @@ export default class BillingService {
     }
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
+    const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
     // Billing properties to override
     const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
-    let { isTransactionBillingActivated } = newBillingProperties.billing;
-    let postponeTransactionBillingActivation = false;
+    const newTransactionBillingState = !!newBillingProperties.billing.isTransactionBillingActivated;
+    if (!newTransactionBillingState && previousTransactionBillingState) {
+      // Attempt to switch it OFF
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.MISSING_SETTINGS,
+        message: 'Switching OFF the billing of transactions is forbidden',
+        module: MODULE_NAME,
+        method: 'handleUpdateBillingSetting'
+      });
+    }
     // -----------------------------------------------------------
     // ACHTUNG - Handle with care the activation of the billing
     // -----------------------------------------------------------
-    if (isTransactionBillingActivated !== !!billingSettings.billing.isTransactionBillingActivated) {
-      // Attempt to switch it OFF
-      if (!isTransactionBillingActivated) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.MISSING_SETTINGS,
-          message: 'Switching OFF the billing of transactions is forbidden',
-          module: MODULE_NAME,
-          method: 'handleUpdateBillingSetting'
-        });
-      } else {
-        // --------------------------------------------------------------------------
-        // Attempt to switch it ON
-        // - We need to postpone the activation in order to check the prerequisites
-        // - Prerequisites cannot be checked without first saving all other settings
-        // ---------------------------------------------------------------------------
-        isTransactionBillingActivated = false ;
-        postponeTransactionBillingActivation = true;
-      }
+    let postponeTransactionBillingActivation = false;
+    let isTransactionBillingActivated: boolean;
+    if (newTransactionBillingState && !previousTransactionBillingState) {
+      // --------------------------------------------------------------------------
+      // Attempt to switch it ON
+      // - We need to postpone the activation in order to check the prerequisites
+      // - Prerequisites cannot be checked without first saving all other settings
+      // ---------------------------------------------------------------------------
+      isTransactionBillingActivated = false ;
+      postponeTransactionBillingActivation = true;
+    } else {
+      // Let's preserve the previous state
+      isTransactionBillingActivated = previousTransactionBillingState;
     }
     // Now populates the settings with the new values
     billingSettings.billing = {
@@ -831,8 +835,19 @@ export default class BillingService {
       periodicBillingAllowed,
       taxID,
     };
-    // TODO - clarify how to avoid the hardcoded "stripe" property here
-    billingSettings.stripe = newBillingProperties.stripe;
+    // Make sure to preserve critical connection properties
+    let readOnlyProperties = {};
+    if (previousTransactionBillingState) {
+      readOnlyProperties = {
+        // STRIPE keys cannot be changed when Billing was already in a PRODUCTIVE mode
+        publicKey: billingSettings.stripe.publicKey,
+        secretKey: billingSettings.stripe.secretKey,
+      };
+    }
+    billingSettings.stripe = {
+      ...newBillingProperties.stripe,
+      ...readOnlyProperties
+    };
     // Update timestamp
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
@@ -842,7 +857,7 @@ export default class BillingService {
     if (postponeTransactionBillingActivation) {
       // Checks all pre-requisites
       await this.checkActivationPrerequisites(action, req);
-      // Well - everything was Ok
+      // Well - everything was Ok, activation is possible
       billingSettings.billing.isTransactionBillingActivated = true;
       // Save it again now that we are sure
       await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
