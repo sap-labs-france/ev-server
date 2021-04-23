@@ -8,7 +8,6 @@ import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationT
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';

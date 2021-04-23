@@ -1157,8 +1157,7 @@ export default class Utils {
     // Check if GPs are available
     if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
-      if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+      if (validator.isLatLong(coordinates[1].toString() + ',' + coordinates[0].toString())) {
         return true;
       }
     }

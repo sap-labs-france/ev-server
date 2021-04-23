@@ -1,7 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
+import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -724,21 +724,42 @@ export default class OCPPUtils {
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     });
     // Add SignedData
-    if (transaction.signedData) {
-      stopMeterValues.push({
-        id:(id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.signedData,
-        attribute: Constants.OCPP_START_SIGNED_DATA_ATTRIBUTE
-      });
-    }
-    if (transaction.currentSignedData) {
-      stopMeterValues.push({
-        id:(id++).toString(),
-        ...meterValueBasedProps,
-        value: transaction.currentSignedData,
-        attribute: Constants.OCPP_STOP_SIGNED_DATA_ATTRIBUTE
-      });
+    if (Array.isArray(stopTransaction.transactionData)) {
+      for (const meterValue of stopTransaction.transactionData) {
+        for (const sampledValue of meterValue.sampledValue) {
+          if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
+            let attribute: OCPPAttribute;
+            if (sampledValue.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+              attribute = Constants.OCPP_START_SIGNED_DATA_ATTRIBUTE;
+            } else if (sampledValue.context === OCPPReadingContext.TRANSACTION_END) {
+              attribute = Constants.OCPP_STOP_SIGNED_DATA_ATTRIBUTE;
+            }
+            stopMeterValues.push({
+              id: (id++).toString(),
+              ...meterValueBasedProps,
+              value: sampledValue.value,
+              attribute: attribute
+            });
+          }
+        }
+      }
+    } else {
+      if (transaction.signedData) {
+        stopMeterValues.push({
+          id:(id++).toString(),
+          ...meterValueBasedProps,
+          value: transaction.signedData,
+          attribute: Constants.OCPP_START_SIGNED_DATA_ATTRIBUTE
+        });
+      }
+      if (transaction.currentSignedData) {
+        stopMeterValues.push({
+          id:(id++).toString(),
+          ...meterValueBasedProps,
+          value: transaction.currentSignedData,
+          attribute: Constants.OCPP_STOP_SIGNED_DATA_ATTRIBUTE
+        });
+      }
     }
     // Add SoC
     if (transaction.currentStateOfCharge > 0) {

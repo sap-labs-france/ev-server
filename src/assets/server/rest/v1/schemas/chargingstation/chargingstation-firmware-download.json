@@ -1,0 +1,13 @@
+{
+  "title": "Download Charging Station firmware Request",
+  "type": "object",
+  "properties": {
+    "FileName": {
+      "type": "string",
+      "sanitize": "mongo"
+    }
+  },
+  "required": [
+    "FileName"
+  ]
+}
