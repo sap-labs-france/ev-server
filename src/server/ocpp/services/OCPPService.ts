@@ -64,8 +64,7 @@ export default class OCPPService {
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPJSecs;
         break;
     }
-    // Get the charging station
-    let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
+    let chargingStation: ChargingStation;
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -92,6 +91,8 @@ export default class OCPPService {
       bootNotification.lastReboot = new Date();
       bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
+      // Get the charging station
+      chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
           throw new BackendError({
@@ -280,10 +281,8 @@ export default class OCPPService {
       }
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
       if (chargingStation) {
-        // Set boot notification registration status to 'Rejected'
-        chargingStation.registrationStatus = RegistrationStatus.REJECTED;
-        // Save Charging Station
-        await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+        // Set charging station boot notification registration status to 'Rejected'
+        await ChargingStationStorage.saveChargingRegistrationStatus(headers.tenantID, chargingStation.id, { registrationStatus: RegistrationStatus.REJECTED });
       }
       // Reject
       return {

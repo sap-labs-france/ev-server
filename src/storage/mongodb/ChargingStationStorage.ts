@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, RegistrationStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
@@ -604,6 +604,22 @@ export default class ChargingStationStorage {
       { upsert: true });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
+  }
+
+  public static async saveChargingRegistrationStatus(tenantID: string, id: string,
+      params: { registrationStatus: RegistrationStatus }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingRegistrationStatus');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Set data
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      { $set: params },
+      { upsert: true });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingRegistrationStatus', uniqueTimerID, params);
   }
 
   public static async saveChargingStationLastSeen(tenantID: string, id: string,
