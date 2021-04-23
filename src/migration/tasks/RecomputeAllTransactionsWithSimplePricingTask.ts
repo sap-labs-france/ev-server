@@ -47,7 +47,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           $project: { '_id': 1, 'migrationFlag': 1 }
         }
       ]).toArray();
-    if (Utils.isEmptyArray(transactionsMDB)) {
+    if (!Utils.isEmptyArray(transactionsMDB)) {
       let message = `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant ${Utils.buildTenantName(tenant)}...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
