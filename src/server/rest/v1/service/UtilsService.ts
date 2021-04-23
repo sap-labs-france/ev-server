@@ -1324,6 +1324,7 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
+    // Check for mandatory password if user is created, and check for password validity if user's password is updated
     if ((req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) || filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
