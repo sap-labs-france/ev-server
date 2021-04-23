@@ -42,7 +42,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           $project: { '_id': 1 }
         }
       ]).toArray();
-    if (transactionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(transactionsMDB)) {
       void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
