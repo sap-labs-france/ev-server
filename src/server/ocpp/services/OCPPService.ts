@@ -64,7 +64,6 @@ export default class OCPPService {
         heartbeatIntervalSecs = this.chargingStationConfig.heartbeatIntervalOCPPJSecs;
         break;
     }
-    let chargingStation: ChargingStation;
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -92,7 +91,7 @@ export default class OCPPService {
       bootNotification.lastSeen = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
-      chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
+      let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
           throw new BackendError({
