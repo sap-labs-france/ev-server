@@ -1,15 +1,15 @@
 import { AuthorizationFilter, DynamicAuthorizationDataSourceName, Entity } from '../../types/Authorization';
 
+import AssignedSitesDynamicAuthorizationDataSource from '../dynamic-data-source/AssignedSitesDynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from '../DynamicAuthorizationFilter';
-import SitesAdminDynamicAuthorizationDataSource from '../dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
 import Utils from '../../utils/Utils';
 
-export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
+export default class AssignedSitesDynamicAuthorizationFilter extends DynamicAuthorizationFilter {
   public processFilter(authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void {
     // Get Site IDs
-    const sitesAdminDataSource = this.getDataSource(
-      DynamicAuthorizationDataSourceName.SITES_ADMIN) as SitesAdminDynamicAuthorizationDataSource;
-    const { siteIDs } = sitesAdminDataSource.getData();
+    const assignedSitesDataSource = this.getDataSource(
+      DynamicAuthorizationDataSourceName.ASSIGNED_SITES) as AssignedSitesDynamicAuthorizationDataSource;
+    const { siteIDs } = assignedSitesDataSource.getData();
     // Check
     if (!Utils.isEmptyArray(siteIDs)) {
       // Force the filter
@@ -18,12 +18,6 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
       if (Utils.objectHasProperty(extraFilters, 'SiteID') &&
           !Utils.isNullOrUndefined(extraFilters['SiteID'])) {
         const filteredSiteIDs: string[] = extraFilters['SiteID'].split('|');
-        // Override
-        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-          (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
-      } else if (Utils.objectHasProperty(extraFilters, 'siteID') &&
-       !Utils.isNullOrUndefined(extraFilters['siteID'])) {
-        const filteredSiteIDs: string[] = extraFilters['siteID'].split('|');
         // Override
         authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
           (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
@@ -36,13 +30,13 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.SITE
+      Entity.SITES
     ];
   }
 
   public getApplicableDataSources(): DynamicAuthorizationDataSourceName[] {
     return [
-      DynamicAuthorizationDataSourceName.SITES_ADMIN
+      DynamicAuthorizationDataSourceName.ASSIGNED_SITES
     ];
   }
 }

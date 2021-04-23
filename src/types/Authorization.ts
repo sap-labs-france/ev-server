@@ -185,16 +185,23 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canUnassignChargingStations?: boolean;
 }
 
+export interface SiteAuthorizationActions extends AuthorizationActions {
+  canAssignUsers?: boolean;
+  canUnassignUsers?: boolean;
+}
+
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  ASSIGNED_SITES = 'AssignedSites',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  ASSIGNED_SITES = 'AssignedSites',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -209,4 +216,8 @@ export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAut
 
 export interface AssignedSiteAreasDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteAreaIDs?: string[];
+}
+
+export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
 }
