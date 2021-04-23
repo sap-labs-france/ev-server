@@ -82,7 +82,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     mergedResponse.sort(function(a, b) {
       return a.timestamp - b.timestamp;
     });
-    console.log(mergedResponse);
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponse)) {
       for (const mergedConsumption of mergedResponse) {
@@ -128,9 +127,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         consumptions.push(consumption);
       }
     }
-    console.log(consumptions);
     if (manualCall) {
-      console.log(consumptions[consumptions.length - 1]);
       return !Utils.isEmptyArray(consumptions) ? [consumptions[consumptions.length - 1]] : [];
     }
     return consumptions;
@@ -138,7 +135,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private getPropertyValue(data: any, propertyName: string): number {
     if (typeof data[propertyName] !== 'undefined') {
-      return Utils.convertToFloat(Utils.createDecimal(data[propertyName]));
+      return Utils.convertToFloat(data[propertyName]);
     }
     return 0;
   }
