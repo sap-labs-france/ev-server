@@ -833,7 +833,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any[]): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (!array) {
       return true;
     }

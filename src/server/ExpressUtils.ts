@@ -105,7 +105,7 @@ export default class ExpressUtils {
       // Intermediate cert?
       if (serverConfig.sslCa) {
         // Array?
-        if (Array.isArray(serverConfig.sslCa)) {
+        if (!Utils.isEmptyArray(serverConfig.sslCa)) {
           options.ca = [];
           // Add all
           for (let i = 0; i < serverConfig.sslCa.length; i++) {
