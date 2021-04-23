@@ -1324,7 +1324,7 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
+    if ((req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) || filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
