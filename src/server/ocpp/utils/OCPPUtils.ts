@@ -1581,6 +1581,7 @@ export default class OCPPUtils {
         message: 'Charging Station is deleted'
       });
     }
+    // Boot Notification accepted?
     if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
       throw new BackendError({
         source: chargeBoxIdentity,
