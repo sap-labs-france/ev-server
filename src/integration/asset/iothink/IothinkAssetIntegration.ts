@@ -65,26 +65,27 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
-    // Replace value property in logs with tag reference
+    // Rename the value property in logs with tag reference
     for (const dataSet of data.historics) {
       dataSet.logs.forEach((log) => {
         log[dataSet.tagReference] = log['value'];
         delete log['value'];
       });
     }
-    // Create Map to merge the arrays
+    // Create helper map to merge the arrays to combined objects
     const map = new Map();
     for (const dataSet of data.historics) {
       dataSet.logs.forEach((item) => map.set(item.timestamp, { ...map.get(item.timestamp), ...item }));
     }
+    // Create Array with merged consumptions from map
     const mergedResponse = Array.from(map.values());
-    mergedResponse.sort(function(a, b) {
-      return a.timestamp - b.timestamp;
-    });
+    // Sort the Array according the timestamp
+    mergedResponse.sort((a, b) => a.timestamp - b.timestamp);
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponse)) {
       for (const mergedConsumption of mergedResponse) {
         if (typeof mergedConsumption[IothinkProperty.IO_POW_ACTIVE] === 'undefined') {
+          // Skip if current power is undefined
           continue;
         }
         const consumption = {} as AbstractCurrentConsumption;
