@@ -724,8 +724,8 @@ export default class OCPPUtils {
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     });
     // Add SignedData
-    if (Array.isArray(stopTransaction.transactionData)) {
-      for (const meterValue of stopTransaction.transactionData) {
+    if (!Utils.isEmptyArray(stopTransaction.transactionData as OCPPMeterValue[])) {
+      for (const meterValue of stopTransaction.transactionData as OCPPMeterValue[]) {
         for (const sampledValue of meterValue.sampledValue) {
           if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
             let attribute: OCPPAttribute;
