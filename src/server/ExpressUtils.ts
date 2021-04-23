@@ -6,7 +6,7 @@ import CentralSystemServerConfiguration from '../types/configuration/CentralSyst
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
-import { ServerAction } from '../types/Server';
+import { ServerUtils } from './ServerUtils';
 import { StatusCodes } from 'http-status-codes';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Utils from '../utils/Utils';
@@ -128,27 +128,15 @@ export default class ExpressUtils {
     return server;
   }
 
-  public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
-    /**
-     * Default listen callback
-     */
-    async function defaultListenCb(): Promise<void> {
-      // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressUtils.getHttpServerAddress(httpServer)}:${ExpressUtils.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
-      await Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: serverModuleName, method: 'startServer',
-        action: ServerAction.STARTUP,
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-    }
+  public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server,
+      serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
-      cb = defaultListenCb;
+      cb = async () => {
+        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', `${serverName} Server listening on '${serverConfig.protocol}://${ExpressUtils.getHttpServerAddress(httpServer)}:${ExpressUtils.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+      };
     }
     // Log
     // eslint-disable-next-line no-console
