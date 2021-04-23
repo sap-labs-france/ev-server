@@ -1283,11 +1283,16 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $or: [
-                { 'billingData': { $exists: false } },
-                { 'billingData.stop': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $eq: null } }
+              $and: [
+                { 'billingData.isTransactionBillingActivated': { $eq: true } },
+                {
+                  $or: [
+                    { 'billingData': { $exists: false } },
+                    { 'billingData.stop': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $eq: null } }
+                  ]
+                }
               ]
             }
           },
