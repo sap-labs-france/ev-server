@@ -11,6 +11,7 @@ import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
+import BillingValidator from '../validator/BillingValidator';
 import Constants from '../../../../utils/Constants';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
@@ -33,6 +34,9 @@ const MODULE_NAME = 'BillingService';
 export default class BillingService {
 
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
     if (!await Authorizations.canCheckBillingConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -41,9 +45,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -776,10 +777,8 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
-    // Filter
-    // TODO - sanitize it
-    const newBillingProperties = req.body as Partial<BillingSettings>;
-    UtilsService.assertIdIsProvided(action, newBillingProperties.id, MODULE_NAME, 'handleUpdateBillingSetting', req.user);
+    // Check
+    const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Check auth
     if (!await Authorizations.canUpdateBillingSetting(req.user)) {
       throw new AppAuthError({
