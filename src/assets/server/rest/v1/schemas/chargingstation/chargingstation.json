@@ -14,7 +14,9 @@
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "common.json#/definitions/id"
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^[a-f0-9]{64}$"
         },
         "chargingStationID": {
           "$ref": "chargingstation.json#/definitions/id"
