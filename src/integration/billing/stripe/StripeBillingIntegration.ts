@@ -52,7 +52,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async checkConnection(checkPrerequisite = false): Promise<void> {
+  public async checkConnection(): Promise<void> {
     // Initialize Stripe
     if (!this.stripe) {
       try {
@@ -82,59 +82,28 @@ export default class StripeBillingIntegration extends BillingIntegration {
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
-      // Check Taxes Prerequisites
-      if (checkPrerequisite) {
-        // Check whether the taxID is set and still active
-        const taxID = this.settings.billing?.taxID;
-        if (taxID) {
-          const billingTax: BillingTax = await this._getTaxRate(taxID);
-          if (!billingTax) {
-            throw new BackendError({
-              source: Constants.CENTRAL_SERVER,
-              module: MODULE_NAME, method: 'checkConnection',
-              action: ServerAction.CHECK_BILLING_CONNECTION,
-              message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
-            });
-          }
-        } else {
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME, method: 'checkConnection',
-            action: ServerAction.CHECK_BILLING_CONNECTION,
-            message: 'Billing prerequisites are not consistent - taxID is mandatory'
-          });
-        }
-      }
     }
   }
 
-  public async preCheckConnection(temporarySettings: BillingSettings): Promise<void> {
-    // Used to validate temporary settings (not yet saved)
-    try {
-      temporarySettings.stripe.secretKey = await Cypher.decrypt(this.tenantID, temporarySettings.stripe.secretKey);
-    } catch (error) {
+  public async checkActivationPrerequisites(): Promise<void> {
+    // Check whether the taxID is set and still active
+    const taxID = this.settings.billing?.taxID;
+    if (taxID) {
+      const billingTax: BillingTax = await this._getTaxRate(taxID);
+      if (!billingTax) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkConnection',
+          action: ServerAction.CHECK_BILLING_CONNECTION,
+          message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
+        });
+      }
+    } else {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
         action: ServerAction.CHECK_BILLING_CONNECTION,
-        message: 'Failed to connect to Stripe - Key is inconsistent',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    // Try to connect
-    try {
-      const temporaryStripeInstance = new Stripe(temporarySettings.stripe.secretKey, {
-        apiVersion: '2020-08-27',
-      });
-      // Let's make sure the connection works as expected
-      await StripeHelpers.isConnectedToALiveAccount(temporaryStripeInstance);
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'isConnectedToALiveAccount',
-        action: ServerAction.CHECK_BILLING_CONNECTION,
-        message: 'Failed to connect to Stripe',
-        detailedMessages: { error: error.message, stack: error.stack }
+        message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
   }

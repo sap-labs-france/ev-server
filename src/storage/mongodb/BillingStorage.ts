@@ -241,25 +241,10 @@ export default class BillingStorage {
   // ------------------------------------------------------------------------------------------
   // BILLING SETTINGS
   // ------------------------------------------------------------------------------------------
-  public static async getBillingSetting(tenantID: string, settingID?: string): Promise<BillingSettings> {
-    let setting: SettingDB;
-    if (settingID) {
-      // Get by ID
-      setting = await SettingStorage.getSetting(tenantID, settingID);
-    } else {
-      // Get by Identifier
-      setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
-    }
+  public static async getBillingSetting(tenantID: string): Promise<BillingSettings> {
+    // Get BILLING Settings by Identifier
+    const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
     if (setting) {
-      return BillingStorage.convertToBillingSettings(setting);
-    }
-    return null;
-  }
-
-  public static async getBillingSettingByID(tenantID: string, settingID: string): Promise<BillingSettings> {
-    const settings = await SettingStorage.getSettings(tenantID, { settingID }, Constants.DB_PARAMS_SINGLE_RECORD);
-    if (settings?.result?.[0]?.content) {
-      const setting: SettingDB = settings.result[0];
       return BillingStorage.convertToBillingSettings(setting);
     }
     return null;
@@ -290,8 +275,14 @@ export default class BillingStorage {
       billingSettings = {
         identifier: TenantComponents.BILLING,
         type: BillingSettingsType.STRIPE,
-        id, sensitiveData, backupSensitiveData, category,
-        createdBy, createdOn, lastChangedBy, lastChangedOn,
+        id,
+        sensitiveData,
+        backupSensitiveData,
+        category,
+        createdBy,
+        createdOn,
+        lastChangedBy,
+        lastChangedOn,
         billing: content.billing,
         stripe: content.stripe
       };

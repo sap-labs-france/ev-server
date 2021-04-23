@@ -235,23 +235,10 @@ describe('Billing Settings', function() {
         assert(billingSettings.stripe.secretKey, 'Secret Key should not be null');
         assert(billingSettings.id, 'ID should not be null');
         // Pre-check a billing settings
-        const { id, identifier, type, stripe } = billingSettings;
-        response = await testData.userService.billingApi.checkBillingSettingConnection({
-          id, identifier, type, stripe
-        });
+        response = await testData.userService.billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');
         assert(response.data, 'Response data should not be null');
-        // Pre-check a WRONG billing settings
-        response = await testData.userService.billingApi.checkBillingSettingConnection({
-          id, identifier, type,
-          stripe: {
-            url: stripe.url,
-            secretKey: 'sk_' + 'test_wrong_value',
-            publicKey: stripe.publicKey
-          }
-        });
-        // TODO - find a better status code
-        assert(response.status === StatusCodes.INTERNAL_SERVER_ERROR, 'Response status should be 500');
+        assert(response.data.connectionIsValid === true, 'Connection should be valid');
       });
 
     });

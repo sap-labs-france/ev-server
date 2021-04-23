@@ -737,7 +737,7 @@ export default class Authorizations {
   }
 
   public static async canUpdateBillingSetting(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ);
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.UPDATE);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

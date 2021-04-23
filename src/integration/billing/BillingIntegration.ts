@@ -328,9 +328,9 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
-  abstract checkConnection(checkPrerequisite?: boolean): Promise<void>;
+  abstract checkConnection(): Promise<void>;
 
-  abstract preCheckConnection(billingSettings: BillingSettings): Promise<void>;
+  abstract checkActivationPrerequisites(): Promise<void>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 

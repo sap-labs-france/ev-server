@@ -18,9 +18,6 @@ export default class BillingRouter {
     this.buildRouteBillingSetting();
     this.buildRouteUpdateBillingSetting();
     this.buildRouteCheckBillingConnection();
-    this.buildRoutePreCheckBillingConnection();
-    this.buildRouteCheckBillingPrerequisites();
-    this.buildRouteActivateBilling();
     // -----------------------------------
     // ROUTES for PAYMENT METHODS
     // -----------------------------------
@@ -35,12 +32,6 @@ export default class BillingRouter {
     return this.router;
   }
 
-  protected buildRouteCheckBillingPrerequisites(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_CHECK_PREREQUISITES}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleServerAction(BillingService.handleCheckBillingPrerequisites.bind(this), ServerAction.SETTINGS, req, res, next);
-    });
-  }
-
   protected buildRouteBillingSetting(): void {
     this.router.get(`/${ServerRoute.REST_BILLING_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleGetBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
@@ -53,21 +44,9 @@ export default class BillingRouter {
     });
   }
 
-  protected buildRouteActivateBilling(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_ACTIVATE}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleServerAction(BillingService.handleActivateBilling.bind(this), ServerAction.SETTINGS, req, res, next);
-    });
-  }
-
   protected buildRouteCheckBillingConnection(): void {
     this.router.post(`/${ServerRoute.REST_BILLING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleCheckBillingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
-    });
-  }
-
-  protected buildRoutePreCheckBillingConnection(): void {
-    this.router.post(`/${ServerRoute.REST_BILLING_CHECK_CONNECTION}`, (req: Request, res: Response, next: NextFunction) => {
-      void RouterUtils.handleServerAction(BillingService.handlePreCheckBillingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
 

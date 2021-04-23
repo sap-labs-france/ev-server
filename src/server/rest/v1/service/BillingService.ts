@@ -747,40 +747,6 @@ export default class BillingService {
   // ------------------------------------------------------------------------
   // BILLING SETTINGS HANDLERS
   // ------------------------------------------------------------------------
-  public static async handleCheckBillingPrerequisites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingPrerequisites');
-    // Check auth
-    if (!await Authorizations.canCheckBillingConnection(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
-        module: MODULE_NAME, method: 'handleCheckBillingPrerequisites',
-      });
-    }
-    // -----------------------------------------------------
-    // GOAL: Check the setting consistency before a Go Live
-    // -----------------------------------------------------
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (!billingImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCheckBillingPrerequisites',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check the connection settings + the prerequisites (such as the taxID)
-    await billingImpl.checkConnection(true /* checkPrerequisites */);
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
-  }
-
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -829,9 +795,34 @@ export default class BillingService {
       await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     }
     // Billing properties to preserve
-    const { isTransactionBillingActivated, usersLastSynchronizedOn } = billingSettings.billing;
+    const { usersLastSynchronizedOn } = billingSettings.billing;
     // Billing properties to override
     const { immediateBillingAllowed, periodicBillingAllowed, taxID } = newBillingProperties.billing;
+    let { isTransactionBillingActivated } = newBillingProperties.billing;
+    let postponeTransactionBillingActivation = false;
+    // -----------------------------------------------------------
+    // ACHTUNG - Handle with care the activation of the billing
+    // -----------------------------------------------------------
+    if (isTransactionBillingActivated !== !!billingSettings.billing.isTransactionBillingActivated) {
+      // Attempt to switch it OFF
+      if (!isTransactionBillingActivated) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.MISSING_SETTINGS,
+          message: 'Switching OFF the billing of transactions is forbidden',
+          module: MODULE_NAME,
+          method: 'handleUpdateBillingSetting'
+        });
+      } else {
+        // --------------------------------------------------------------------------
+        // Attempt to switch it ON
+        // - We need to postpone the activation in order to check the prerequisites
+        // - Prerequisites cannot be checked without first saving all other settings
+        // ---------------------------------------------------------------------------
+        isTransactionBillingActivated = false ;
+        postponeTransactionBillingActivation = true;
+      }
+    }
     // Now populates the settings with the new values
     billingSettings.billing = {
       isTransactionBillingActivated,
@@ -845,62 +836,23 @@ export default class BillingService {
     // Update timestamp
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
-    // Let's save it
+    // Let's save the new settings
     await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    // Post-process the activation of the billing feature
+    if (postponeTransactionBillingActivation) {
+      // Checks all pre-requisites
+      await this.checkActivationPrerequisites(action, req);
+      // Well - everything was Ok
+      billingSettings.billing.isTransactionBillingActivated = true;
+      // Save it again now that we are sure
+      await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleActivateBilling(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleActivateBilling');
-    // Check auth
-    if (!await Authorizations.canUpdateBillingSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.SETTING,
-        module: MODULE_NAME, method: 'handleActivateBilling',
-      });
-    }
-    // Get current settings
-    const currentBillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
-    // TODO - check prerequisites - activation should not be possible when settings are inconsistent
-    currentBillingSettings.billing.isTransactionBillingActivated = true;
-    await BillingStorage.saveBillingSetting(req.user.tenantID, currentBillingSettings);
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
-  }
-
-  public static async handlePreCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handlePreCheckBillingConnection');
-    // -----------------------------------------------------------------------
-    // GOAL: Check the connection settings before (and without) saving them!
-    // -----------------------------------------------------------------------
-    const newBillingProperties = req.body as Partial<BillingSettings>;
-    // Check auth
-    if (!await Authorizations.canCheckBillingConnection(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CHECK_CONNECTION, entity: Entity.BILLING,
-        module: MODULE_NAME, method: 'handlePreCheckBillingConnection',
-      });
-    }
-    // Load current settings
-    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
-    if (billingSettings) {
-      await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
-    }
-    // Apply new settings (not yet saved)
-    // TODO - clarify how to avoid the hardcoded "stripe" property here
-    billingSettings.stripe = newBillingProperties.stripe;
-    // Create the Billing Implementation Instance
+  private static async checkActivationPrerequisites(action: ServerAction, req: Request) : Promise<void> {
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -912,11 +864,10 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Let's validate the new settings
-    await billingImpl.preCheckConnection(billingSettings);
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
+    // Check the connection
+    await billingImpl.checkConnection();
+    // Let's validate the new settings before activating
+    await billingImpl.checkActivationPrerequisites();
   }
 
   private static async processSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
