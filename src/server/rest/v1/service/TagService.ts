@@ -13,6 +13,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
+import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -72,40 +73,8 @@ export default class TagService {
   }
 
   public static async handleGetTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canListTags(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.TAGS,
-        module: MODULE_NAME, method: 'handleGetTags'
-      });
-    }
-    // Filter
-    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
-    let userID: string;
-    if (Authorizations.isBasic(req.user)) {
-      userID = req.user.id;
-    } else {
-      userID = filteredRequest.UserID;
-    }
-    // Get authorization filters
-    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
-    // Get the tags
-    const tags = await TagStorage.getTags(req.user.tenantID,
-      {
-        search: filteredRequest.Search,
-        userIDs: userID ? userID.split('|') : null,
-        issuer: filteredRequest.Issuer,
-        active: filteredRequest.Active,
-        withUser: true,
-      },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      authorizationTagsFilters.projectFields,
-    );
     // Return
-    res.json(tags);
+    res.json(await TagService.getTags(req));
     next();
   }
 
@@ -681,6 +650,13 @@ export default class TagService {
     }
   }
 
+  public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Export with users
+    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+      TagService.getTags.bind(this),
+      TagService.convertToCSV.bind(this));
+  }
+
   private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);
@@ -798,6 +774,69 @@ export default class TagService {
       'No tags have been deleted', loggedUser
     );
     return result;
+  }
+
+  private static convertToCSV(req: Request, tags: Tag[], writeHeader = true): string {
+    let headers = null;
+    // Header
+    if (writeHeader) {
+      headers = [
+        'id',
+        'description',
+        'firstName',
+        'name',
+        'email'
+      ].join(Constants.CSV_SEPARATOR);
+    }
+    // Content
+    const rows = tags.map((tag) => {
+      const row = [
+        tag.id,
+        tag.description,
+        tag.user?.firstName,
+        tag.user?.name,
+        tag.user?.email
+      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      return row;
+    }).join(Constants.CR_LF);
+    return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
+  }
+
+  private static async getTags(req: Request): Promise<DataResult<Tag>> {
+    // Check auth
+    if (!await Authorizations.canExportTags(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.LIST, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleGetTags'
+      });
+    }
+    // Filter
+    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
+    let userID: string;
+    if (Authorizations.isBasic(req.user)) {
+      userID = req.user.id;
+    } else {
+      userID = filteredRequest.UserID;
+    }
+    // Get authorization filters
+    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    // Get the tags
+    const tags = await TagStorage.getTags(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        userIDs: userID ? userID.split('|') : null,
+        issuer: filteredRequest.Issuer,
+        active: filteredRequest.Active,
+        withUser: filteredRequest.WithUser,
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      authorizationTagsFilters.projectFields,
+    );
+    // Return
+    return tags;
   }
 
   private static async processTag(action: ServerAction, req: Request, importedTag: ImportedTag, tagsToBeImported: ImportedTag[]): Promise<boolean> {
