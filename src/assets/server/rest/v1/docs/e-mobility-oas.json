@@ -5417,7 +5417,8 @@
         "description": "Charging Profile ID",
         "required": true,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       },
       "chargingStationID": {
