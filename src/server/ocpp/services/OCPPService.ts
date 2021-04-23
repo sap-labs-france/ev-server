@@ -155,7 +155,7 @@ export default class OCPPService {
           //        access to the DB, standard charging station replacement is then not possible. The registration status returned should
           //        be 'Pending' and a way to manually accept or refuse such stations should be offered.
           // Do not flag charging stations online with registered boot notification as 'Rejected'
-          if (moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isAfter(chargingStation.lastSeen) && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
+          if (moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isSameOrBefore(chargingStation.lastSeen) && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
             await Logging.logWarning({
               tenantID: headers.tenantID,
               source: chargingStation.id,
