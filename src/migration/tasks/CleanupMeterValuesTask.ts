@@ -52,7 +52,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
         .findOneAndDelete({ '_id': meterValueMDB._id });
     }
     // Log
-    if (meterValuesMDB.length > 0) {
+    if (!Utils.isEmptyArray(meterValuesMDB)) {
       await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
