@@ -161,7 +161,7 @@ export default class OCPPService {
               source: chargingStation.id,
               action: ServerAction.BOOT_NOTIFICATION,
               module: MODULE_NAME, method: 'handleBootNotification',
-              message: 'Online charging station with registered boot notification, identical chargeBoxID and different attributes already exists',
+              message: 'Trying to connect a charging station matching an online charging station with identical chargeBoxID, registered boot notification and different attributes',
               detailedMessages: { headers, bootNotification }
             });
           // Set charging station boot notification registration status to 'Rejected'
