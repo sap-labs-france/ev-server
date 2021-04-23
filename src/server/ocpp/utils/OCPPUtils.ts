@@ -348,7 +348,9 @@ export default class OCPPUtils {
             // Delegate
             await billingImpl.updateTransaction(transaction);
             // Update
-            transaction.billingData.lastUpdate = new Date();
+            if (transaction.billingData) {
+              transaction.billingData.lastUpdate = new Date();
+            }
           } catch (error) {
             await Logging.logError({
               tenantID: tenantID,
@@ -367,8 +369,10 @@ export default class OCPPUtils {
             // Delegate
             const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
             // Update
-            transaction.billingData.stop = billingDataStop;
-            transaction.billingData.lastUpdate = new Date();
+            if (transaction.billingData) {
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
+            }
           } catch (error) {
             await Logging.logError({
               tenantID: tenantID,
