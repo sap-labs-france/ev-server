@@ -11,7 +11,6 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
-import { merge } from 'lodash';
 import moment from 'moment';
 
 const MODULE_NAME = 'IothinkAssetIntegration';
@@ -115,12 +114,14 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
           case AssetType.CONSUMPTION_AND_PRODUCTION:
             consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * 1000;
             consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
+            consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)
+            - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE);
             if (asset.siteArea?.voltage) {
               consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
             }
             consumption.lastConsumption = {
               timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
-              value: consumption.currentTotalConsumptionWh
+              value: consumption.currentConsumptionWh
             };
             break;
         }
