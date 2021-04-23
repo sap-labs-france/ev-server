@@ -62,7 +62,7 @@ export default class TagService {
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
-    if (!await Authorizations.canReadUser(req.user, tag.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       delete tag.userID;
       delete tag.user;
     }
