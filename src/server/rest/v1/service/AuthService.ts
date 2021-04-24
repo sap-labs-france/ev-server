@@ -4,7 +4,7 @@ import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/re
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
-import AuthValidator from '../validator/AuthValidation';
+import AuthValidator from '../validator/AuthValidator';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';

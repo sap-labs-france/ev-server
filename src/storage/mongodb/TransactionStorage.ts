@@ -251,7 +251,7 @@ export default class TransactionStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (!firstTransactionsMDB || firstTransactionsMDB.length === 0) {
+    if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
     }
     const transactionYears = [];
@@ -1283,11 +1283,16 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $or: [
-                { 'billingData': { $exists: false } },
-                { 'billingData.stop': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $eq: null } }
+              $and: [
+                { 'billingData.isTransactionBillingActivated': { $eq: true } },
+                {
+                  $or: [
+                    { 'billingData': { $exists: false } },
+                    { 'billingData.stop': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $eq: null } }
+                  ]
+                }
               ]
             }
           },
