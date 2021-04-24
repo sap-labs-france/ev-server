@@ -40,8 +40,8 @@ export default abstract class BillingIntegration {
     };
     if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
       // Sync e-Mobility Users with no billing data
-      const users: User[] = await this._getUsersWithNoBillingData();
-      if (users.length > 0) {
+      const users = await this._getUsersWithNoBillingData();
+      if (!Utils.isEmptyArray(users)) {
         // Process them
         await Logging.logInfo({
           tenantID: this.tenantID,

@@ -38,7 +38,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                   $project: { '_id': 1 }
                 }
               ]).toArray();
-            if (transactionsMDB.length > 0) {
+            if (!Utils.isEmptyArray(transactionsMDB)) {
               await Logging.logInfo({
                 tenantID: tenant.id,
                 action: ServerAction.OCPI_PUSH_CDRS,
