@@ -21,7 +21,7 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TenantValidator from '../validator/TenantValidation';
+import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
