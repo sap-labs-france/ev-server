@@ -57,7 +57,7 @@ export default class ExpressUtils {
     }));
     // Health Check Handling
     if (Configuration.getHealthCheckConfig().enabled) {
-      app.get('/health-check', ExpressUtils.healthCheckService.bind(this));
+      app.get(Constants.HEALTH_CHECK_ROUTE, ExpressUtils.healthCheckService.bind(this));
     }
     // Use
     app.use(locale(Constants.SUPPORTED_LOCALES));

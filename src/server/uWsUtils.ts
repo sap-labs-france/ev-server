@@ -1,17 +1,22 @@
-import { App, AppOptions, SSLApp, TemplatedApp } from 'uWebSockets.js';
+import { App, AppOptions, HttpRequest, HttpResponse, SSLApp, TemplatedApp } from 'uWebSockets.js';
 
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
-import { ServerAction } from '../types/Server';
+import Constants from '../utils/Constants';
 import { ServerUtils } from './ServerUtils';
+import { StatusCodes } from 'http-status-codes';
 import cluster from 'cluster';
 
 export class uWsUtils {
-  public static createuWsServer(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
+  public static createuWsApp(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
+    let app: TemplatedApp;
     if (serverConfig.sslKey && serverConfig.sslCert) {
       const options: AppOptions = { key_file_name: serverConfig.sslKey, cert_file_name: serverConfig.sslCert };
-      return SSLApp(options);
+      app = SSLApp(options);
+    } else {
+      app = App();
     }
-    return App();
+    app.get(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+    return app;
   }
 
   public static startServer(serverConfig: CentralSystemServerConfiguration, app: TemplatedApp,
@@ -34,5 +39,10 @@ export class uWsUtils {
       // eslint-disable-next-line no-console
       console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
+  }
+
+  public static healthCheckService(res: HttpResponse, req: HttpRequest): void {
+    res.writeStatus(`${StatusCodes.OK} OK`);
+    res.end();
   }
 }

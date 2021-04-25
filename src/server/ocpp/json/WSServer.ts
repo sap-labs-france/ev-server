@@ -56,7 +56,7 @@ export default class WSServer extends WebSocket.Server {
   }
 
   private static httpServerRequestListener(req: IncomingMessage, res: ServerResponse): void {
-    if (Configuration.getHealthCheckConfig().enabled && req.url === '/health-check') {
+    if (Configuration.getHealthCheckConfig().enabled && req.url === Constants.HEALTH_CHECK_ROUTE) {
       res.writeHead(StatusCodes.OK);
       res.end();
     } else {
