@@ -26,7 +26,7 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TagValidator from '../validator/TagValidation';
+import TagValidator from '../validator/TagValidator';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -62,7 +62,7 @@ export default class TagService {
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
-    if (!await Authorizations.canReadUser(req.user, tag.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       delete tag.userID;
       delete tag.user;
     }

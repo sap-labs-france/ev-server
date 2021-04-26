@@ -262,7 +262,7 @@ export default class TenantContext {
 
   async createSiteArea(site, chargingStations, siteArea) {
     siteArea.siteID = (site && site.id ? (!siteArea.siteID || siteArea.siteID !== site.id ? site.id : siteArea.siteID) : null);
-    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && (!siteArea.chargeBoxIDs || siteArea.chargeBoxIDs.length === 0) ? chargingStations.map((chargingStation) => chargingStation.id) : []);
+    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && Utils.isEmptyArray(siteArea.chargeBoxIDs) ? chargingStations.map((chargingStation) => chargingStation.id) : []);
     const createdSiteArea = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteAreaApi, siteArea);
     this.context.createdSiteAreas.push(new SiteAreaContext(createdSiteArea, this));
     return createdSiteArea;

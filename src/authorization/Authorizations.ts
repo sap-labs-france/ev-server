@@ -96,7 +96,7 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    if (!requestedSites || requestedSites.length === 0) {
+    if (Utils.isEmptyArray(requestedSites)) {
       return loggedUser.sites;
     }
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
@@ -116,7 +116,7 @@ export default class Authorizations {
     for (const siteID of loggedUser.sitesOwner) {
       sites.add(siteID);
     }
-    if (!requestedSites || requestedSites.length === 0) {
+    if (Utils.isEmptyArray(requestedSites)) {
       return [...sites];
     }
     return requestedSites.filter((site) => sites.has(site));
@@ -303,16 +303,16 @@ export default class Authorizations {
 
   }
 
-  public static async canAssignUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.ASSIGN);
+  public static async canAssignUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.ASSIGN, authContext);
   }
 
-  public static async canUnassignUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.UNASSIGN);
+  public static async canUnassignUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.UNASSIGN, authContext);
   }
 
-  public static async canListUsersSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_SITES, Action.LIST);
+  public static async canListUsersSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.LIST, authContext);
   }
 
   public static async canListUsers(loggedUser: UserToken): Promise<boolean> {
@@ -347,9 +347,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
-  public static async canReadUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
-      { user: userID, owner: loggedUser.id });
+  public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.READ, authContext);
   }
 
   public static async canCreateUser(loggedUser: UserToken): Promise<boolean> {
@@ -370,12 +369,12 @@ export default class Authorizations {
       { user: userID, owner: loggedUser.id });
   }
 
-  public static async canListSites(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
+  public static async canListSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITES, Action.LIST, authContext);
   }
 
-  public static async canReadSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ);
+  public static async canReadSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.READ, authContext);
   }
 
   public static async canCreateSite(loggedUser: UserToken): Promise<boolean> {
@@ -742,11 +741,11 @@ export default class Authorizations {
   }
 
   public static isSiteAdmin(user: UserToken): boolean {
-    return user.role === UserRole.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
+    return user.role === UserRole.BASIC && !Utils.isEmptyArray(user.sitesAdmin);
   }
 
   public static isSiteOwner(user: UserToken): boolean {
-    return user.sitesOwner && user.sitesOwner.length > 0;
+    return !Utils.isEmptyArray(user.sitesOwner);
   }
 
   public static isBasic(user: UserToken | User): boolean {
