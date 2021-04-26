@@ -348,7 +348,9 @@ export default class OCPPUtils {
             // Delegate
             await billingImpl.updateTransaction(transaction);
             // Update
-            transaction.billingData.lastUpdate = new Date();
+            if (transaction.billingData) {
+              transaction.billingData.lastUpdate = new Date();
+            }
           } catch (error) {
             await Logging.logError({
               tenantID: tenantID,
@@ -367,8 +369,10 @@ export default class OCPPUtils {
             // Delegate
             const billingDataStop: BillingDataTransactionStop = await billingImpl.stopTransaction(transaction);
             // Update
-            transaction.billingData.stop = billingDataStop;
-            transaction.billingData.lastUpdate = new Date();
+            if (transaction.billingData) {
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
+            }
           } catch (error) {
             await Logging.logError({
               tenantID: tenantID,
@@ -724,8 +728,8 @@ export default class OCPPUtils {
       attribute: Constants.OCPP_ENERGY_ACTIVE_IMPORT_REGISTER_ATTRIBUTE
     });
     // Add SignedData
-    if (Array.isArray(stopTransaction.transactionData)) {
-      for (const meterValue of stopTransaction.transactionData) {
+    if (!Utils.isEmptyArray(stopTransaction.transactionData)) {
+      for (const meterValue of stopTransaction.transactionData as OCPPMeterValue[]) {
         for (const sampledValue of meterValue.sampledValue) {
           if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
             let attribute: OCPPAttribute;
