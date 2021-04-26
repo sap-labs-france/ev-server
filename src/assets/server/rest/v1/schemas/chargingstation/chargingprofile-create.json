@@ -1,5 +1,115 @@
 {
   "title": "Create a Charging Profile",
   "type": "object",
-  "$ref": "chargingstation.json#/definitions/chargingProfile"
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "connectorID": {
+      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+    },
+    "chargePointID": {
+      "type": "number",
+      "sanitize": "mongo"
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "chargingProfileId": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "transactionId": {
+          "$ref": "transaction.json#/definitions/id"
+        },
+        "stackLevel": {
+          "type": "number",
+          "sanitize": "mongo"
+        },
+        "chargingProfilePurpose": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "chargingProfileKind": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "recurrencyKind": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo"
+        },
+        "validTo": {
+          "type": "string",
+          "format": "date-time",
+          "sanitize": "mongo"
+        },
+        "chargingSchedule": {
+          "type": "object",
+          "properties": {
+            "duration": {
+              "type": "number",
+              "sanitize": "mongo"
+            },
+            "startSchedule": {
+              "type": "string",
+              "format": "date-time",
+              "sanitize": "mongo"
+            },
+            "chargingRateUnit": {
+              "type": "string",
+              "sanitize": "mongo"
+            },
+            "chargingSchedulePeriod": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "startPeriod": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  },
+                  "limit": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  },
+                  "numberPhases": {
+                    "type": "number",
+                    "sanitize": "mongo"
+                  }
+                },
+                "required": [
+                  "startPeriod",
+                  "limit"
+                ]
+              }
+            },
+            "minChargeRate": {
+              "type": "number",
+              "sanitize": "mongo"
+            }
+          },
+          "required": [
+            "chargingRateUnit",
+            "chargingSchedulePeriod"
+          ]
+        }
+      },
+      "required": [
+        "chargingProfileId",
+        "stackLevel",
+        "chargingProfilePurpose",
+        "chargingProfileKind",
+        "chargingSchedule"
+      ]
+    }
+  },
+  "required": [
+    "chargingStationID",
+    "profile"
+  ]
 }

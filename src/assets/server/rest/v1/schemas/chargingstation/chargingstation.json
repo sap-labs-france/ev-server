@@ -125,6 +125,7 @@
         }
       },
       "required": [
+        "id",
         "chargingStationID",
         "profile"
       ]
