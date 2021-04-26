@@ -1,6 +1,4 @@
-import AppError from '../../../../exception/AppError';
 import { BillingSettings } from '../../../../types/Setting';
-import Constants from '../../../../utils/Constants';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -26,21 +24,6 @@ export default class BillingValidator extends SchemaValidator {
   public validateUpdateBillingSetting(data: any): BillingSettings {
     // Validate schema
     this.validate(this.updateBillingSetting, data);
-    // Validate deps between components
-    // this.validateComponentDependencies(tenant);
     return data;
   }
-
-  // private validateComponentDependencies(tenant: Tenant): void {
-  //   if (tenant.components) {
-  //     if (!tenant.components.pricing?.active) {
-  //       throw new AppError({
-  //         source: Constants.CENTRAL_SERVER,
-  //         errorCode: HTTPError.GENERAL_ERROR,
-  //         message: 'Pricing component must be active to use the Billing module',
-  //         module: this.moduleName, method: 'validateComponentDependencies'
-  //       });
-  //     }
-  //   }
-  // }
 }

@@ -238,9 +238,6 @@ export default class BillingStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }
 
-  // ------------------------------------------------------------------------------------------
-  // BILLING SETTINGS
-  // ------------------------------------------------------------------------------------------
   public static async getBillingSetting(tenantID: string): Promise<BillingSettings> {
     // Get BILLING Settings by Identifier
     const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
@@ -289,5 +286,4 @@ export default class BillingStorage {
     }
     return billingSettings;
   }
-
 }

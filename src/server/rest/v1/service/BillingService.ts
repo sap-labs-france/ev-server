@@ -745,9 +745,6 @@ export default class BillingService {
     next();
   }
 
-  // ------------------------------------------------------------------------
-  // BILLING SETTINGS HANDLERS
-  // ------------------------------------------------------------------------
   public static async handleGetBillingSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -777,8 +774,6 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.UPDATE, Entity.SETTING, MODULE_NAME, 'handleUpdateBillingSetting');
-    // Check
-    const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Check auth
     if (!await Authorizations.canUpdateBillingSetting(req.user)) {
       throw new AppAuthError({
@@ -788,11 +783,16 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleUpdateBillingSetting',
       });
     }
+    // Check
+    const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
-    if (billingSettings) {
-      await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    if (!billingSettings) {
+      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      next();
+      return;
     }
+    await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
