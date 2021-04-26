@@ -43,10 +43,6 @@ export default class AuthorizationService {
         return entity.canCreate;
       case Action.DELETE:
         return entity.canDelete;
-      case Action.ASSIGN:
-        return entity['can' + Action.ASSIGN];
-      case Action.UNASSIGN:
-        return entity['can' + Action.UNASSIGN];
       default:
         return false;
     }
