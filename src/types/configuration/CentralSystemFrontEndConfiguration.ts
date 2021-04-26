@@ -1,5 +1,7 @@
+import { ServerProtocol } from '../Server';
+
 export default interface CentralSystemFrontEndConfiguration {
-  protocol: string;
+  protocol: ServerProtocol;
   host: string;
   port: number;
   distEnabled?: boolean;

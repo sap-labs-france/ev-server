@@ -2,12 +2,13 @@ import { App, AppOptions, HttpRequest, HttpResponse, SSLApp, TemplatedApp } from
 
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import Constants from '../utils/Constants';
+import { ServerProtocol } from '../types/Server';
 import { ServerUtils } from './ServerUtils';
 import { StatusCodes } from 'http-status-codes';
 import cluster from 'cluster';
 
 export class uWsUtils {
-  public static createuWsApp(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
+  public static createApp(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
     let app: TemplatedApp;
     if (serverConfig.sslKey && serverConfig.sslCert) {
       const options: AppOptions = { key_file_name: serverConfig.sslKey, cert_file_name: serverConfig.sslCert };
@@ -15,7 +16,11 @@ export class uWsUtils {
     } else {
       app = App();
     }
-    app.get(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+    if (serverConfig.protocol.startsWith(ServerProtocol.HTTP)) {
+      app.get(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+    } else if (serverConfig.protocol.startsWith(ServerProtocol.WS)) {
+      app.ws(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+    }
     return app;
   }
 
@@ -26,7 +31,7 @@ export class uWsUtils {
       cb = listenCb;
     } else {
       cb = async () => {
-        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', `${serverName} Server listening on '${serverConfig.protocol}://${serverConfig.host ?? ':'}:${serverConfig.port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', `${serverName} Server listening on '${serverConfig.protocol}://${serverConfig.host ?? '::'}:${serverConfig.port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
       };
     }
 

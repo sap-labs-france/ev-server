@@ -1,5 +1,7 @@
+import { ServerProtocol } from '../Server';
+
 export default interface CentralSystemServerConfiguration {
-  protocol: string;
+  protocol: ServerProtocol;
   host: string;
   port: number;
   sslKey?: string;

@@ -246,7 +246,7 @@ export default class Bootstrap {
       if (Bootstrap.centralSystemRestConfig) {
         // Create the server
         if (!Bootstrap.centralRestServer) {
-          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
+          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig);
         }
         // Start it
         await Bootstrap.centralRestServer.start();

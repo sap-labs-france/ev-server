@@ -1,7 +1,9 @@
+import { ServerProtocol } from '../Server';
+
 export default interface ODataServiceConfiguration {
-  protocol: string;
+  protocol: ServerProtocol;
+  externalProtocol: ServerProtocol;
   host: string;
   port: number;
-  externalProtocol: string;
   debug: boolean;
 }

@@ -6,6 +6,7 @@ import ExpressUtils from '../../ExpressUtils';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
+import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
@@ -14,7 +15,6 @@ import express from 'express';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 import http from 'http';
-import sanitize from 'express-sanitizer';
 import { soap } from 'strong-soap';
 
 const MODULE_NAME = 'SoapCentralSystemServer';
@@ -29,9 +29,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, centralSystemConfig.debug);
     // Initialize the HTTP server
-    this.httpServer = ExpressUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
-    // Mount express-sanitizer middleware
-    this.expressApplication.use(sanitize());
+    this.httpServer = ServerUtils.createHttpServer(this.centralSystemConfig, this.expressApplication);
   }
 
   /**
@@ -41,7 +39,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   start(): void {
     // Make it global for SOAP Services
     global.centralSystemSoapServer = this;
-    ExpressUtils.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
+    ServerUtils.startHttpServer(this.centralSystemConfig, this.httpServer, 'OCPP-S', MODULE_NAME);
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
     const soapServer12 = soap.listen(this.httpServer, `/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_12)}`, centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));

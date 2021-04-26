@@ -1,6 +1,8 @@
+import { ServerProtocol } from '../Server';
+
 export default interface OCPIServiceConfiguration {
-  protocol: string;
-  externalProtocol: string;
+  protocol: ServerProtocol;
+  externalProtocol: ServerProtocol;
   host: string;
   port: number;
   debug: boolean;
