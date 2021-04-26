@@ -11,6 +11,7 @@ import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
+import TestUtils from './TestUtils';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
@@ -33,6 +34,8 @@ class TestData {
   public createdTags: any[] = [];
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
+  public tagsToImport: any;
+  public importedTags: Tag[];
 }
 
 const testData: TestData = new TestData();
@@ -200,6 +203,30 @@ describe('User tests', function() {
           response = (await testData.userService.userApi.readTag(testData.newTag.id));
           expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
+
+        it('Should be able to export tag list', async () => {
+          const response = await testData.userService.userApi.exportTags({});
+          const tags = await testData.userService.userApi.readTags({});
+          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          // Verify we have as many tags inserted as tags in the export
+          expect(responseFileArray.length).to.be.eql(tags.data.result.length);
+        });
+
+        // // Need to verify the real logic, not only if we can import (read create) tags
+        // // Something like this ?
+        // it('Should be able to import tag list', async () => {
+        //   const response = await testData.tagService.insertTags(
+        //     tenantid,
+        //     user,
+        //     action,
+        //     tagsToBeImported,
+        //     result);
+        //   expect(response.status).to.equal(??);
+        //   testData.importedTags.push(tag);
+        // });
 
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id

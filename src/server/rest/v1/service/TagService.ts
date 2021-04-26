@@ -577,7 +577,7 @@ export default class TagService {
 
   public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Export with users
-    await UtilsService.exportToCSV(req, res, 'exported-users.csv',
+    await UtilsService.exportToCSV(req, res, 'exported-tags.csv',
       TagService.getTags.bind(this),
       TagService.convertToCSV.bind(this));
   }
