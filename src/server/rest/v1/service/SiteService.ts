@@ -179,7 +179,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.SiteID, MODULE_NAME, 'handleGetUsers', req.user);
     // Check Site - is this needed? it works without.
     try {
       await UtilsService.checkAndGetSiteAuthorization(

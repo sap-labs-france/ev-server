@@ -119,25 +119,9 @@ export default class AuthorizationService {
       projectFields: [ ],
       authorized: false,
     };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authResult = await Authorizations.canListUsersSites(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.USERS_SITES,
-      authorizationFilters, authorizationContext, { SiteID: filteredRequest.SiteID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
