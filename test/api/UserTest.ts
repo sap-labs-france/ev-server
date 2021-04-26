@@ -215,7 +215,7 @@ describe('User tests', function() {
           expect(responseFileArray.length).to.be.eql(tags.data.result.length);
         });
 
-        // // Need to verify the real logic, not only if we can import (read create) tags
+        // // TODO: Need to verify the real logic, not only if we can import (read create) tags
         // // Something like this ?
         // it('Should be able to import tag list', async () => {
         //   const response = await testData.tagService.insertTags(
