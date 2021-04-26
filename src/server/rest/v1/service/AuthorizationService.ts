@@ -168,28 +168,10 @@ export default class AuthorizationService {
       projectFields: [],
       authorized: false,
     };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authResult = action === ServerAction.ADD_USERS_TO_SITE ?
-      await Authorizations.canAssignUsersSites(userToken, authorizationContext) :
-      await Authorizations.canUnassignUsersSites(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkAssignSiteUsersAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.SITE,
-      authorizationFilters, authorizationContext, { SiteID: filteredRequest.siteID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+    // Check static & dynamic authorization
+    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS_SITES, authAction, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -361,7 +343,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

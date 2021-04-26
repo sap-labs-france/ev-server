@@ -147,20 +147,9 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAssignUsersToSite');
     // Filter request
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
-    // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteID, MODULE_NAME, 'handleAssignUsersToSite', req.user);
-    if (Utils.isEmptyArray(filteredRequest.userIDs)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The User\'s IDs must be provided',
-        module: MODULE_NAME, method: 'handleAssignUsersToSite',
-        user: req.user
-      });
-    }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
     // Check and Get Users
     const users = await UtilsService.checkSiteUsersAuthorization(
       req.tenant, req.user, site, filteredRequest.userIDs, action, {});
@@ -173,8 +162,11 @@ export default class SiteService {
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleAssignUsersToSite',
-      message: 'Site\'s Users have been removed successfully', action: action
+      user: req.user,
+      module: MODULE_NAME,
+      method: 'handleAssignUsersToSite',
+      message: 'Site\'s Users have been removed successfully',
+      action: action
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

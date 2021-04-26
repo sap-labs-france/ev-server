@@ -101,6 +101,45 @@ export default class UtilsService {
     return chargingStation;
   }
 
+  public static async checkAndGetUsersAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+    // Check dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, {});
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.USERS,
+        module: MODULE_NAME, method: 'checkAndGetUsersAuthorization',
+      });
+    }
+    // Get Users
+    const users = await UserStorage.getUsers(tenant.id,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check
+    for (const user of users.result) {
+      // External User
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'User not issued by the organization',
+          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+          user: userToken,
+          actionOnUser: user,
+          action: action
+        });
+      }
+    }
+    return users.result;
+  }
+
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
@@ -282,17 +321,11 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Get Users
-    const users = await UserStorage.getUsers(tenant.id,
-      {
-        userIDs,
-        ...additionalFilters,
-        ...authorizationFilter.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizationFilter.projectFields : null
-    );
+    // Get users
+    const users = await this.checkAndGetUsersAuthorization(tenant, userToken, action,
+      { userIDs, ...additionalFilters }, applyProjectFields);
     // Must have the same result
-    if (userIDs.length !== users.result.length) {
+    if (userIDs.length !== users.length) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -301,22 +334,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Check
-    for (const user of users.result) {
-      // External User
-      if (!user.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User not issued by the organization',
-          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
-          user: userToken,
-          actionOnUser: user,
-          action: action
-        });
-      }
-    }
-    return users.result;
+    return users;
   }
 
   public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],
