@@ -228,7 +228,6 @@ export default class SiteService {
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
     // Filter request
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'handleDeleteSite', req.user);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action, {});
@@ -253,7 +252,6 @@ export default class SiteService {
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
     // Filter request
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSite', req.user);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
@@ -405,7 +403,6 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
     // Filter request
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateSite', req.user);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Company
