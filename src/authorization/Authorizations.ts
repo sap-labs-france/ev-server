@@ -96,7 +96,7 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    if (!requestedSites || requestedSites.length === 0) {
+    if (Utils.isEmptyArray(requestedSites)) {
       return loggedUser.sites;
     }
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
@@ -116,7 +116,7 @@ export default class Authorizations {
     for (const siteID of loggedUser.sitesOwner) {
       sites.add(siteID);
     }
-    if (!requestedSites || requestedSites.length === 0) {
+    if (Utils.isEmptyArray(requestedSites)) {
       return [...sites];
     }
     return requestedSites.filter((site) => sites.has(site));
@@ -755,11 +755,11 @@ export default class Authorizations {
   }
 
   public static isSiteAdmin(user: UserToken): boolean {
-    return user.role === UserRole.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
+    return user.role === UserRole.BASIC && !Utils.isEmptyArray(user.sitesAdmin);
   }
 
   public static isSiteOwner(user: UserToken): boolean {
-    return user.sitesOwner && user.sitesOwner.length > 0;
+    return !Utils.isEmptyArray(user.sitesOwner);
   }
 
   public static isBasic(user: UserToken | User): boolean {

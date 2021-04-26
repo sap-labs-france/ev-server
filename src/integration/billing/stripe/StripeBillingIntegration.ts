@@ -818,7 +818,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: BillingInvoiceStatus.DRAFT,
       limit: 1
     });
-    return (list.data.length > 0) ? list.data[0] : null;
+    return !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -1005,7 +1005,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customer: user.billingData.customerID,
       status: BillingInvoiceStatus.OPEN,
     });
-    if (list && list.data && list.data.length > 0) {
+    if (list && !Utils.isEmptyArray(list.data)) {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,
@@ -1020,7 +1020,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customer: user.billingData.customerID,
       status: BillingInvoiceStatus.DRAFT,
     });
-    if (list && list.data && list.data.length > 0) {
+    if (list && !Utils.isEmptyArray(list.data)) {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,

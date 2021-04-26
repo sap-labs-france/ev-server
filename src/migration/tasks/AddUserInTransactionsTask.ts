@@ -25,7 +25,7 @@ export default class AddUserInTransactionsTask extends MigrationTask {
       .aggregate([
         { $match: { userID: null } }
       ]).toArray();
-    if (transactionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(transactionsMDB)) {
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,

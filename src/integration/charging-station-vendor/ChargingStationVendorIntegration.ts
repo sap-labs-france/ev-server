@@ -407,7 +407,7 @@ export default abstract class ChargingStationVendorIntegration {
           chargingProfile.connectorID === 0 &&
           chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
         );
-        if (txDefaultChargingProfiles.length === 0) {
+        if (Utils.isEmptyArray(txDefaultChargingProfiles)) {
           txDefaultChargingProfiles = chargingProfiles.filter((chargingProfile) =>
             chargingProfile.connectorID === connectorID &&
             chargingProfile.profile.chargingProfilePurpose === ChargingProfilePurposeType.TX_DEFAULT_PROFILE
