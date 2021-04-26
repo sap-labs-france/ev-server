@@ -350,6 +350,24 @@ export default class SiteService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
+    // Filter request
+    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
+    // Check data is valid
+    UtilsService.checkIfSiteValid(filteredRequest, req);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
+      req.tenant, req.user, { }, Action.CREATE);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleCreateSite'
+      });
+    }
+    // Check Company
+    await UtilsService.checkAndGetCompanyAuthorization(
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
     // Check static auth
     if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
@@ -359,13 +377,6 @@ export default class SiteService {
         module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
-    // Filter request
-    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
-    // Check and Get Company
-    await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
     // Create site
     const site: Site = {
       ...filteredRequest,

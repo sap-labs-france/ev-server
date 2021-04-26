@@ -210,12 +210,12 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      tenant, userToken, { ID: siteID });
+      tenant, userToken, { ID: siteID }, authAction);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: Action.READ, entity: Entity.SITE,
+        action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         value: siteID
       });
