@@ -263,6 +263,12 @@ To set the end point, fill the following information in the **config.json** file
   }
 ```
 
+In order to properly call the REST endpoints, both ev-server and client must reference a Google reCaptcha key. You can refer to this link https://www.google.com/recaptcha/admin/create, then copy the server key in config.json file, in section CentralSystemRestService:
+
+    ...
+    "captchaSecretKey":"<GOOGLE_RECAPTCHA_KEY_SERVER>"
+    ...
+
 ### Central Service Server (CSS) > Database
 
 You have now to connect the server to the database.
