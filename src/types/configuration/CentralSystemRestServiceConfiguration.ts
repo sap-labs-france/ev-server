@@ -1,9 +1,6 @@
-import { ServerProtocol } from '../Server';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 
-export default interface CentralSystemRestServiceConfiguration {
-  protocol: ServerProtocol;
-  host: string;
-  port: number;
+export default interface CentralSystemRestServiceConfiguration extends CentralSystemServerConfiguration {
   userTokenKey: string;
   userTokenLifetimeHours: number;
   userDemoTokenLifetimeDays: number;

@@ -2,7 +2,7 @@ import { ServerAction, ServerProtocol } from '../types/Server';
 import http, { IncomingMessage, ServerResponse } from 'http';
 
 import { AddressInfo } from 'net';
-import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';

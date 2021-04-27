@@ -1,4 +1,4 @@
-import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServer';
+import CentralSystemServerConfiguration from '../../../types/configuration/CentralSystemServerConfiguration';
 import { ServerUtils } from '../../ServerUtils';
 import { WSServerProtocol } from '../../../types/Server';
 import WebSocket from 'ws';

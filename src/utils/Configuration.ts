@@ -7,7 +7,7 @@ import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
-import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
@@ -219,7 +219,7 @@ export default class Configuration {
     return Configuration.getConfig().CentralSystemServer;
   }
 
-  // Central System REST config
+  // Central System SOAP config
   public static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
     return Configuration.getConfig().WSDLEndpoint;
   }
@@ -323,7 +323,7 @@ export default class Configuration {
     return storageConfig;
   }
 
-  // Central System config
+  // Central System charging station config
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;

@@ -1,11 +1,12 @@
-import { ServerProtocol } from '../Server';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 
-export default interface CentralSystemConfiguration {
-  type: string;
-  implementation: string;
-  protocol: ServerProtocol;
-  host: string;
-  port: number;
+export enum CentralSystemImplementation {
+  SOAP = 'soap',
+  JSON = 'json'
+}
+
+export default interface CentralSystemConfiguration extends CentralSystemServerConfiguration {
+  implementation: CentralSystemImplementation;
   debug: boolean;
   keepaliveinterval?: number;
 }

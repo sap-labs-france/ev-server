@@ -1,6 +1,6 @@
 import { App, AppOptions, HttpRequest, HttpResponse, SSLApp, TemplatedApp } from 'uWebSockets.js';
 
-import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import Constants from '../utils/Constants';
 import { ServerProtocol } from '../types/Server';
 import { ServerUtils } from './ServerUtils';

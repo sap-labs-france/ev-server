@@ -1,6 +1,7 @@
+import CentralSystemConfiguration, { CentralSystemImplementation } from './types/configuration/CentralSystemConfiguration';
+
 import AsyncTaskManager from './async-task/AsyncTaskManager';
 import CentralRestServer from './server/rest/CentralRestServer';
-import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from './storage/mongodb/ChargingStationStorage';
@@ -272,13 +273,13 @@ export default class Bootstrap {
           // Check implementation
           switch (centralSystemConfig.implementation) {
             // SOAP
-            case 'soap':
+            case CentralSystemImplementation.SOAP:
               // Create implementation
               Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
               await Bootstrap.SoapCentralSystemServer.start();
               break;
-            case 'json':
+            case CentralSystemImplementation.JSON:
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
