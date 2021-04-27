@@ -284,6 +284,7 @@ export default class Configuration {
   public static getStorageConfig(): StorageConfiguration {
     // Read conf
     let storageConfig: StorageConfiguration = Configuration.getConfig().Storage;
+    Configuration.deprecateConfigurationKey('schema', 'Storage', 'Please use \'database\' instead');
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       if (Configuration.isUndefined(storageConfig)) {
