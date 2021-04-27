@@ -1518,45 +1518,45 @@ export default class UtilsService {
     }
   }
 
-  public static async processSensitiveData(tenantID: string, settings: Setting, newProperties: Partial<Setting>) {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
     // Process the sensitive data (if any)
-    if (settings.sensitiveData) {
-      if (!Array.isArray(settings.sensitiveData)) {
+    const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${newProperties.id}' is not an array`,
+          message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
-          method: 'processSensitiveData',
+          method: 'processSensitiveData'
         });
       }
       // Process sensitive properties
-      for (const propertyName of settings.sensitiveData) {
-        // TODO - find a better way - HACK to be backward compatible with SettingDB
-        const normalizedPropertyName = propertyName.replace('content.', '');
+      for (const propertyName of sensitivePropertyNames) {
         // Get the sensitive property from the request
-        const valueInRequest = _.get(newProperties, normalizedPropertyName);
-        if (valueInRequest && valueInRequest.length > 0) {
+        const newValue = _.get(newProperties, propertyName);
+        if (newValue && typeof newValue === 'string') {
           // Get the sensitive property from the DB
-          const valueInDb = _.get(settings, normalizedPropertyName);
-          if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            if (valueInRequest !== hashedValueInDB) {
+          const currentValue = _.get(currentProperties, propertyName);
+          if (currentValue && typeof currentValue === 'string') {
+            const currentHash = Cypher.hash(currentValue);
+            if (newValue !== currentHash) {
             // Yes: Encrypt
-              _.set(newProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
+              _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
             } else {
             // No: Put back the encrypted value
-              _.set(newProperties, normalizedPropertyName, valueInDb);
+              _.set(newProperties, propertyName, currentValue);
             }
           } else {
           // Value in db is empty then encrypt
-            _.set(newProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
+            _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
           }
         } else {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-            message: `The property '${propertyName}' for Setting with ID '${newProperties.id}' is not set`,
+            message: `The property '${propertyName}' is not set`,
             module: MODULE_NAME,
             method: 'processSensitiveData',
           });
@@ -1565,30 +1565,31 @@ export default class UtilsService {
     }
   }
 
-  public static hashSensitiveData(tenantID: string, settings: Setting): Setting {
-    if (settings.sensitiveData) {
-      // Check that sensitive data is an array
-      if (!Array.isArray(settings.sensitiveData)) {
-        throw new BackendError({
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static hashSensitiveData(tenantID: string, properties: object): unknown {
+    const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
+        throw new AppError({
           source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: 'Unexpected situation - sensitiveData is not an array',
           module: MODULE_NAME,
-          method: 'hashSensitiveDataInJSON',
-          message: 'The property \'sensitiveData\' is not an array'
+          method: 'hashSensitiveData'
         });
       }
-      for (const propertyName of settings.sensitiveData) {
-        // TODO - find a better way - HACK to be backward compatible with SettingDB
-        const normalizedPropertyName = propertyName.replace('content.', '');
+      for (const propertyName of sensitivePropertyNames) {
         // Check that the property does exist otherwise skip to the next property
-        if (_.has(settings, normalizedPropertyName)) {
-          const value = _.get(settings, normalizedPropertyName);
+        if (_.has(properties, propertyName)) {
+          const value = _.get(properties, propertyName);
           // If the value is undefined, null or empty then do nothing and skip to the next property
-          if (value && value.length > 0) {
-            _.set(settings, normalizedPropertyName, Cypher.hash(value));
+          if (value && typeof value === 'string') {
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            _.set(properties, propertyName, Cypher.hash(value));
           }
         }
       }
     }
-    return settings;
+    return properties;
   }
 }

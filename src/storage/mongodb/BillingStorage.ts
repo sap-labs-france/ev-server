@@ -252,37 +252,42 @@ export default class BillingStorage {
     const { createdBy, createdOn, lastChangedBy, lastChangedOn } = billingSettings;
     const { type, billing, stripe } = billingSettings;
     const setting: SettingDB = {
-      id, identifier, sensitiveData, backupSensitiveData, category,
-      createdBy, createdOn, lastChangedBy, lastChangedOn,
+      id, identifier, sensitiveData, backupSensitiveData,
       content: {
         type,
         billing,
-        stripe,
       },
+      category, createdBy, createdOn, lastChangedBy, lastChangedOn,
     };
+    if (billingSettings.type === BillingSettingsType.STRIPE) {
+      setting.sensitiveData = [ 'content.stripe.secretKey' ];
+      setting.content.stripe = stripe;
+    }
     return SettingStorage.saveSettings(tenantID, setting);
   }
 
   private static convertToBillingSettings(setting: SettingDB): BillingSettings {
-    const { id, sensitiveData, backupSensitiveData, category } = setting;
+    const { id, backupSensitiveData, category } = setting;
     const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
     const { content } = setting;
-    let billingSettings: BillingSettings = null;
-    if (content.type === BillingSettingsType.STRIPE) {
-      billingSettings = {
-        identifier: TenantComponents.BILLING,
-        type: BillingSettingsType.STRIPE,
-        id,
-        sensitiveData,
-        backupSensitiveData,
-        category,
-        createdBy,
-        createdOn,
-        lastChangedBy,
-        lastChangedOn,
-        billing: content.billing,
-        stripe: content.stripe
-      };
+    const billingSettings: BillingSettings = {
+      id,
+      identifier: TenantComponents.BILLING,
+      type: content.type as BillingSettingsType,
+      backupSensitiveData,
+      billing: content.billing,
+      category,
+      createdBy,
+      createdOn,
+      lastChangedBy,
+      lastChangedOn,
+    };
+    switch (content.type) {
+      // Only STRIPE so far
+      case BillingSettingsType.STRIPE:
+        billingSettings.stripe = content.stripe;
+        billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+        break;
     }
     return billingSettings;
   }

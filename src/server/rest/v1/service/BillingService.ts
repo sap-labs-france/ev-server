@@ -764,7 +764,7 @@ export default class BillingService {
       next();
       return;
     }
-    BillingService.hashSensitiveData(req.user.tenantID, billingSettings);
+    UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
     // Ok
     res.json(billingSettings);
     next();
@@ -792,7 +792,7 @@ export default class BillingService {
       next();
       return;
     }
-    await BillingService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    await UtilsService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
@@ -855,11 +855,32 @@ export default class BillingService {
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
       // Checks all pre-requisites
-      await this.checkActivationPrerequisites(action, req);
-      // Well - everything was Ok, activation is possible
-      billingSettings.billing.isTransactionBillingActivated = true;
-      // Save it again now that we are sure
-      await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+      let prerequisitesOk = false;
+      try {
+        // Check
+        await BillingService.checkActivationPrerequisites(action, req);
+        // Well - everything was Ok, activation is possible
+        billingSettings.billing.isTransactionBillingActivated = true;
+        // Save it again now that we are sure
+        await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+        prerequisitesOk = true;
+      } catch (error) {
+        // Ko
+        await Logging.logError({
+          tenantID: req.user.tenantID,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleUpdateBillingSetting',
+          message: 'Failed to activate the billing of transactions',
+          action: action,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+      if (!prerequisitesOk) {
+        // Ko
+        res.sendStatus(StatusCodes.METHOD_NOT_ALLOWED);
+        next();
+        return;
+      }
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -873,7 +894,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handlePreCheckBillingConnection',
+        module: MODULE_NAME, method: 'checkActivationPrerequisites',
         action: action,
         user: req.user
       });
@@ -882,79 +903,5 @@ export default class BillingService {
     await billingImpl.checkConnection();
     // Let's validate the new settings before activating
     await billingImpl.checkActivationPrerequisites();
-  }
-
-  private static async processSensitiveData(tenantID: string, billingSettings: BillingSettings, newBillingProperties: Partial<BillingSettings>) {
-    // Process the sensitive data (if any)
-    if (billingSettings.sensitiveData) {
-      if (!Array.isArray(billingSettings.sensitiveData)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          message: `The property 'sensitiveData' for Setting with ID '${newBillingProperties.id}' is not an array`,
-          module: MODULE_NAME,
-          method: 'processSensitiveData',
-        });
-      }
-      // Process sensitive properties
-      for (const propertyName of billingSettings.sensitiveData) {
-        // TODO - find a better way - HACK to be backward compatible with SettingDB
-        const normalizedPropertyName = propertyName.replace('content.', '');
-        // Get the sensitive property from the request
-        const valueInRequest = _.get(newBillingProperties, normalizedPropertyName);
-        if (valueInRequest && valueInRequest.length > 0) {
-          // Get the sensitive property from the DB
-          const valueInDb = _.get(billingSettings, normalizedPropertyName);
-          if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            if (valueInRequest !== hashedValueInDB) {
-            // Yes: Encrypt
-              _.set(newBillingProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
-            } else {
-            // No: Put back the encrypted value
-              _.set(newBillingProperties, normalizedPropertyName, valueInDb);
-            }
-          } else {
-          // Value in db is empty then encrypt
-            _.set(newBillingProperties, normalizedPropertyName, await Cypher.encrypt(tenantID, valueInRequest));
-          }
-        } else {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-            message: `The property '${propertyName}' for Setting with ID '${newBillingProperties.id}' is not set`,
-            module: MODULE_NAME,
-            method: 'processSensitiveData',
-          });
-        }
-      }
-    }
-  }
-
-  private static hashSensitiveData(tenantID: string, billingSettings: BillingSettings): BillingSettings {
-    if (billingSettings.sensitiveData) {
-      // Check that sensitive data is an array
-      if (!Array.isArray(billingSettings.sensitiveData)) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'hashSensitiveDataInJSON',
-          message: 'The property \'sensitiveData\' is not an array'
-        });
-      }
-      for (const propertyName of billingSettings.sensitiveData) {
-        // TODO - find a better way - HACK to be backward compatible with SettingDB
-        const normalizedPropertyName = propertyName.replace('content.', '');
-        // Check that the property does exist otherwise skip to the next property
-        if (_.has(billingSettings, normalizedPropertyName)) {
-          const value = _.get(billingSettings, normalizedPropertyName);
-          // If the value is undefined, null or empty then do nothing and skip to the next property
-          if (value && value.length > 0) {
-            _.set(billingSettings, normalizedPropertyName, Cypher.hash(value));
-          }
-        }
-      }
-    }
-    return billingSettings;
   }
 }

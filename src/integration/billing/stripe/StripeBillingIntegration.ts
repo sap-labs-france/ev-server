@@ -16,7 +16,6 @@ import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
-import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
@@ -77,7 +76,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
+          action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe',
           detailedMessages: { error: error.message, stack: error.stack }
         });
