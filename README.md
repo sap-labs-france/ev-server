@@ -184,11 +184,9 @@ Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported 
 
 #### Configuration
 
-There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
+In 'src/assets' folder there are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
 Choose one and rename it to **config.json**.
-
-Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
