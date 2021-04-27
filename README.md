@@ -281,7 +281,8 @@ Database connection info:
     "port": 27017,
     "user": "evse-user",
     "password": "YourPassword",
-    "schema": "evse"
+    "schema": "evse",
+    "database" : "evse"
   }
 ```
 
