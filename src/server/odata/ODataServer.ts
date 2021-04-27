@@ -21,7 +21,7 @@ export default class ODataServer {
     // Initialize express app
     this.expressApplication = ExpressUtils.initApplication(null, oDataServerConfig.debug);
     // Get URL of the CentralSystemRestServer
-    const restConf = Configuration.getCentralSystemRestServer();
+    const restConf = Configuration.getCentralSystemRestServerConfig();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;
     // Register ODataServer
     const oDataServerFactory = new ODataServerFactory();
@@ -46,7 +46,7 @@ export default class ODataServer {
 
   // Start the server
   start(): void {
-    ServerUtils.startHttpServer(this.oDataServerConfig, ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
+    ServerUtils.startHttpServer(this.oDataServerConfig, ServerUtils.createHttpServer(this.oDataServerConfig, this.expressApplication), MODULE_NAME, 'OData');
   }
 }
 

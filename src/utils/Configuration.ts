@@ -215,7 +215,7 @@ export default class Configuration {
   }
 
   // Rest Service Configuration - Internet view
-  public static getCentralSystemRestServer(): CentralSystemServerConfiguration {
+  public static getCentralSystemRestServerConfig(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }
 

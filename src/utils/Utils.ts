@@ -932,7 +932,7 @@ export default class Utils {
   }
 
   public static buildRestServerURL(): string {
-    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    const centralSystemRestServer = Configuration.getCentralSystemRestServerConfig();
     return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 

@@ -31,7 +31,7 @@ export class uWsUtils {
       cb = listenCb;
     } else {
       cb = async () => {
-        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', `${serverName} Server listening on '${serverConfig.protocol}://${serverConfig.host ?? '::'}:${serverConfig.port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', serverName, serverConfig.protocol, serverConfig.host ?? '::', serverConfig.port);
       };
     }
 

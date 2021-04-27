@@ -35,7 +35,7 @@ export default class WSServer extends WebSocket.Server {
 
   public start(): void {
     // Make the server listen
-    ServerUtils.startHttpServer(this.serverConfig, this.httpServer, this.serverName, MODULE_NAME);
+    ServerUtils.startHttpServer(this.serverConfig, this.httpServer, MODULE_NAME, this.serverName,);
   }
 }
 

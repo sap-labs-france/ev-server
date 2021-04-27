@@ -173,7 +173,7 @@ export default class CentralRestServer {
 
   // Start the server
   start(): void {
-    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
+    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, 'REST');
   }
 
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {

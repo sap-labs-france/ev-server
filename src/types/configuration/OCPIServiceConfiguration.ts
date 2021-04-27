@@ -1,9 +1,5 @@
-import { ServerProtocol } from '../Server';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 
-export default interface OCPIServiceConfiguration {
-  protocol: ServerProtocol;
-  externalProtocol: ServerProtocol;
-  host: string;
-  port: number;
+export default interface OCPIServiceConfiguration extends CentralSystemServerConfiguration{
   debug: boolean;
 }

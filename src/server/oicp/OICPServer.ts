@@ -36,7 +36,7 @@ export default class OICPServer {
 
   // Start the server
   start(): void {
-    ServerUtils.startHttpServer(this.oicpRestConfig, ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), 'OICP', MODULE_NAME);
+    ServerUtils.startHttpServer(this.oicpRestConfig, ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), MODULE_NAME, 'OICP');
   }
 }
 

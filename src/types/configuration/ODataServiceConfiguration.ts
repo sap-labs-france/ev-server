@@ -1,9 +1,5 @@
-import { ServerProtocol } from '../Server';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 
-export default interface ODataServiceConfiguration {
-  protocol: ServerProtocol;
-  externalProtocol: ServerProtocol;
-  host: string;
-  port: number;
+export default interface ODataServiceConfiguration extends CentralSystemServerConfiguration {
   debug: boolean;
 }

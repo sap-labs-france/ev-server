@@ -1,11 +1,5 @@
-import { ServerProtocol } from '../Server';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 
-export default interface OICPServiceConfiguration {
-  protocol: ServerProtocol;
-  externalProtocol: ServerProtocol;
-  host: string;
-  port: number;
+export default interface OICPServiceConfiguration extends CentralSystemServerConfiguration {
   debug: boolean;
-  key: string;
-  cert: string;
 }

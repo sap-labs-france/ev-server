@@ -12,7 +12,8 @@ import cluster from 'cluster';
 import https from 'https';
 
 export class ServerUtils {
-  static async defaultListenCb(serverModuleName: string, methodName: string, logMsg: string): Promise<void> {
+  static async defaultListenCb(serverModuleName: string, methodName: string, serverName: string, protocol: ServerProtocol, hostname: string, port: number): Promise<void> {
+    const logMsg = `${serverName} Server listening on '${protocol}://${hostname}:${port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
     // Log
     await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
@@ -67,13 +68,13 @@ export class ServerUtils {
   }
 
   public static startHttpServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server,
-      serverName: string, serverModuleName: string, listenCb?: () => void): void {
+      serverModuleName: string, serverName: string, listenCb?: () => void): void {
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
       cb = async () => {
-        await ServerUtils.defaultListenCb(serverModuleName, 'startServer', `${serverName} Server listening on '${serverConfig.protocol}://${ServerUtils.getHttpServerAddress(httpServer)}:${ServerUtils.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
+        await ServerUtils.defaultListenCb(serverModuleName, 'startHttpServer', serverName, serverConfig.protocol, ServerUtils.getHttpServerAddress(httpServer), ServerUtils.getHttpServerPort(httpServer));
       };
     }
     // Log
