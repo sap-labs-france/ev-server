@@ -418,4 +418,58 @@ export default class SettingStorage {
     // Save
     await SettingStorage.saveSettings(tenantID, settingsToSave);
   }
+
+  public static async getBillingSetting(tenantID: string): Promise<BillingSettings> {
+    // Get BILLING Settings by Identifier
+    const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
+    if (setting) {
+      return SettingStorage.convertToBillingSettings(setting);
+    }
+    return null;
+  }
+
+  public static async saveBillingSetting(tenantID: string, billingSettings: BillingSettings): Promise<string> {
+    const { id, identifier, sensitiveData, backupSensitiveData, category } = billingSettings;
+    const { createdBy, createdOn, lastChangedBy, lastChangedOn } = billingSettings;
+    const { type, billing, stripe } = billingSettings;
+    const setting: SettingDB = {
+      id, identifier, sensitiveData, backupSensitiveData,
+      content: {
+        type,
+        billing,
+      },
+      category, createdBy, createdOn, lastChangedBy, lastChangedOn,
+    };
+    if (billingSettings.type === BillingSettingsType.STRIPE) {
+      setting.sensitiveData = [ 'content.stripe.secretKey' ];
+      setting.content.stripe = stripe;
+    }
+    return SettingStorage.saveSettings(tenantID, setting);
+  }
+
+  private static convertToBillingSettings(setting: SettingDB): BillingSettings {
+    const { id, backupSensitiveData, category } = setting;
+    const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
+    const { content } = setting;
+    const billingSettings: BillingSettings = {
+      id,
+      identifier: TenantComponents.BILLING,
+      type: content.type as BillingSettingsType,
+      backupSensitiveData,
+      billing: content.billing,
+      category,
+      createdBy,
+      createdOn,
+      lastChangedBy,
+      lastChangedOn,
+    };
+    switch (content.type) {
+      // Only STRIPE so far
+      case BillingSettingsType.STRIPE:
+        billingSettings.stripe = content.stripe;
+        billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+        break;
+    }
+    return billingSettings;
+  }
 }

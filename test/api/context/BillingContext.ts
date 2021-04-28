@@ -6,6 +6,7 @@ import BillingStorage from '../../../src/storage/mongodb/BillingStorage';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import Cypher from '../../../src/utils/Cypher';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import User from '../../../src/types/User';
@@ -66,11 +67,11 @@ export default class BillingContext {
   }
 
   private async saveBillingSettings(billingSettings: BillingSettings) {
-    const tenantBillingSettings = await BillingStorage.getBillingSetting(this.tenantContext.getTenant().id);
+    const tenantBillingSettings = await SettingStorage.getBillingSetting(this.tenantContext.getTenant().id);
     tenantBillingSettings.billing = billingSettings.billing;
     tenantBillingSettings.stripe = billingSettings.stripe;
     tenantBillingSettings.sensitiveData = ['content.stripe.secretKey'];
     tenantBillingSettings.stripe.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, billingSettings.stripe.secretKey);
-    await BillingStorage.saveBillingSetting(this.tenantContext.getTenant().id, tenantBillingSettings);
+    await SettingStorage.saveBillingSetting(this.tenantContext.getTenant().id, tenantBillingSettings);
   }
 }

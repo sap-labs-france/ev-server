@@ -10,6 +10,7 @@ import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -77,7 +78,7 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     this.settings.billing.usersLastSynchronizedOn = new Date();
-    await BillingStorage.saveBillingSetting(this.tenantID, this.settings);
+    await SettingStorage.saveBillingSetting(this.tenantID, this.settings);
     // Result
     return actionsDone;
   }

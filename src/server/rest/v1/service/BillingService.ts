@@ -19,6 +19,7 @@ import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -758,7 +759,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const billingSettings: BillingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
+    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
     if (!billingSettings) {
       res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       next();
@@ -786,7 +787,7 @@ export default class BillingService {
     // Check
     const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Load previous settings
-    const billingSettings = await BillingStorage.getBillingSetting(req.user.tenantID);
+    const billingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
     if (!billingSettings) {
       res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
       next();
@@ -851,7 +852,7 @@ export default class BillingService {
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
     // Let's save the new settings
-    await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    await SettingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
       // Check
@@ -859,7 +860,7 @@ export default class BillingService {
       // Well - everything was Ok, activation is possible
       billingSettings.billing.isTransactionBillingActivated = true;
       // Save it again now that we are sure
-      await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+      await SettingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
