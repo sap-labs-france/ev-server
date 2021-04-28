@@ -758,11 +758,7 @@ export default class BillingService {
       });
     }
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
-    if (!billingSettings) {
-      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-      next();
-      return;
-    }
+    UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
     // Ok
     res.json(billingSettings);
@@ -786,11 +782,7 @@ export default class BillingService {
     const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
-    if (!billingSettings) {
-      res.sendStatus(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
-      next();
-      return;
-    }
+    UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);
     await UtilsService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
