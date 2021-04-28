@@ -2,11 +2,10 @@ import { BillingSettings, BillingSettingsType } from '../../../src/types/Setting
 
 import BackendError from '../../../src/exception/BackendError';
 import BillingFactory from '../../../src/integration/billing/BillingFactory';
-import BillingStorage from '../../../src/storage/mongodb/BillingStorage';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import Cypher from '../../../src/utils/Cypher';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
+import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
 import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
 import User from '../../../src/types/User';

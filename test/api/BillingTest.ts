@@ -343,7 +343,7 @@ describe('Billing Settings', function() {
         // Let's attempt to switch the transaction billing OFF
         billingSettings.billing.isTransactionBillingActivated = false;
         response = await testData.userService.billingApi.updateBillingSetting(billingSettings);
-        assert(response.status === HTTPError.MISSING_SETTINGS, 'Response status should be 505');
+        assert(response.status === StatusCodes.METHOD_NOT_ALLOWED, 'Response status should be 405');
         // Check again the billing connection to STRIPE
         response = await testData.userService.billingApi.checkBillingConnection();
         assert(response.status === StatusCodes.OK, 'Response status should be 200');

@@ -6,14 +6,12 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
-import BackendError from '../../../../exception/BackendError';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
 import BillingValidator from '../validator/BillingValidator';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -804,7 +802,7 @@ export default class BillingService {
       // Attempt to switch it OFF
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.MISSING_SETTINGS,
+        errorCode: StatusCodes.METHOD_NOT_ALLOWED,
         message: 'Switching OFF the billing of transactions is forbidden',
         module: MODULE_NAME,
         method: 'handleUpdateBillingSetting'
