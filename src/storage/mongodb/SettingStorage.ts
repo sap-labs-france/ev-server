@@ -423,7 +423,29 @@ export default class SettingStorage {
     // Get BILLING Settings by Identifier
     const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
     if (setting) {
-      return SettingStorage.convertToBillingSettings(setting);
+      const { id, backupSensitiveData, category } = setting;
+      const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
+      const { content } = setting;
+      const billingSettings: BillingSettings = {
+        id,
+        identifier: TenantComponents.BILLING,
+        type: content.type as BillingSettingsType,
+        backupSensitiveData,
+        billing: content.billing,
+        category,
+        createdBy,
+        createdOn,
+        lastChangedBy,
+        lastChangedOn,
+      };
+      switch (content.type) {
+        // Only STRIPE so far
+        case BillingSettingsType.STRIPE:
+          billingSettings.stripe = content.stripe;
+          billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+          break;
+      }
+      return billingSettings;
     }
     return null;
   }
@@ -445,31 +467,5 @@ export default class SettingStorage {
       setting.content.stripe = stripe;
     }
     return SettingStorage.saveSettings(tenantID, setting);
-  }
-
-  private static convertToBillingSettings(setting: SettingDB): BillingSettings {
-    const { id, backupSensitiveData, category } = setting;
-    const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
-    const { content } = setting;
-    const billingSettings: BillingSettings = {
-      id,
-      identifier: TenantComponents.BILLING,
-      type: content.type as BillingSettingsType,
-      backupSensitiveData,
-      billing: content.billing,
-      category,
-      createdBy,
-      createdOn,
-      lastChangedBy,
-      lastChangedOn,
-    };
-    switch (content.type) {
-      // Only STRIPE so far
-      case BillingSettingsType.STRIPE:
-        billingSettings.stripe = content.stripe;
-        billingSettings.sensitiveData = [ 'stripe.secretKey' ];
-        break;
-    }
-    return billingSettings;
   }
 }
