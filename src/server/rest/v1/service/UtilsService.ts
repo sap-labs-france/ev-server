@@ -1324,7 +1324,20 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
+    // Check for password requirement and validity if user is created
+    if (req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User Password is empty or not valid',
+        module: MODULE_NAME,
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
+    }
+    // Check for password validity if user's password is updated
+    if (req.method === 'PUT' && filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,

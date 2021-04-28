@@ -1,4 +1,5 @@
 import Constants from '../../utils/Constants';
+import Consumption from '../../types/Consumption';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
@@ -36,7 +37,7 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
     let consumptionsMDB;
     do {
       // Read
-      consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
+      consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
         .aggregate(aggregation).toArray();
       // Check and Update whole consumption
       for (const consumptionMDB of consumptionsMDB) {
@@ -68,7 +69,7 @@ export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
           updated += result.modifiedCount;
         }
       }
-    } while (consumptionsMDB.length > 0);
+    } while (!Utils.isEmptyArray(consumptionsMDB));
     // Log
     if (updated > 0) {
       await Logging.logDebug({

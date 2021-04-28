@@ -369,7 +369,7 @@ export default class NotificationHandler {
       adminSourceData.tenantLogoURL = tenant.logo;
       // Get the admin
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendAdminAccountVerificationNotification');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -564,7 +564,7 @@ export default class NotificationHandler {
       sourceData.tenantLogoURL = tenant.logo;
       // Enrich with admins
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
