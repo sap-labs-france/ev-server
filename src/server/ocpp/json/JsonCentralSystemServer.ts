@@ -45,7 +45,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
     // Build ID
-    const id = `${tenantID}~${chargingStationID}}`;
+    const id = `${tenantID}~${chargingStationID}`;
     // Get the Json Web Socket
     let jsonWebSocket: JsonWSConnection;
     for (const [wsClientID, wsClient] of this.jsonChargingStationClients) {
