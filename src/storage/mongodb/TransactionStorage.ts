@@ -271,7 +271,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
+        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -346,6 +346,13 @@ export default class TransactionStorage {
     // Tag
     if (params.tagIDs) {
       filters.tagID = { $in: params.tagIDs };
+    }
+    // Has user ID?
+    if (params.hasUserID) {
+      filters.$and = [
+        { 'userID': { '$exists': true } },
+        { 'userID': { '$ne': null } }
+      ];
     }
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
