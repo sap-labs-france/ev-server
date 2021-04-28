@@ -407,8 +407,8 @@ export default class StatisticService {
       filter.siteAreaIDs = filteredRequest.SiteAreaIDs;
     }
     // Charge Box
-    if (filteredRequest.ChargeBoxIDs) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxIDs;
+    if (filteredRequest.ChargingStationIDs) {
+      filter.chargeBoxIDs = filteredRequest.ChargingStationIDs;
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
