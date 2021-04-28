@@ -135,10 +135,10 @@ export default class CrudApi {
   }
 
   // Build URL targeting REST endpoints
-  protected buildRestEndpointUrl(urlPatternAsString: ServerRoute, params?: {
+  protected buildRestEndpointUrl(urlPatternAsString: ServerRoute, params: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
-  }): string {
+  } = {}): string {
     const url = SafeUrlAssembler('/v1/api/')
       .template(urlPatternAsString)
       .param(params);
