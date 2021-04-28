@@ -1,4 +1,5 @@
 import WSClientConfiguration from './configuration/WSClientConfiguration';
+import { WSServerProtocol } from './Server';
 import WebSocket from 'ws';
 
 export const WebSocketCloseEventStatusString: Record<WebSocketCloseEventStatusCode, string> = Object.freeze({
@@ -42,5 +43,5 @@ export enum WebSocketCloseEventStatusCode {
 export interface WSClientOptions extends WSClientConfiguration {
   WSOptions?: WebSocket.ClientOptions;
   logTenantID?: string;
-  protocols?: string;
+  protocols?: WSServerProtocol | WSServerProtocol[];
 }

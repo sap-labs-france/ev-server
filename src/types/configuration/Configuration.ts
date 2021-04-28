@@ -4,7 +4,7 @@ import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
-import CentralSystemServerConfiguration from './CentralSystemServer';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 import ChargingStationConfiguration from './ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from './ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from './ClusterConfiguration';

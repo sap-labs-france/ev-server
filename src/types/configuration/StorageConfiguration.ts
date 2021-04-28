@@ -10,5 +10,4 @@ export default interface StorageConfiguration {
   replicaSet: string;
   monitorDBChange: boolean;
   debug: boolean;
-  schema: string;
 }
