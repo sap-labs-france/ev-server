@@ -854,33 +854,12 @@ export default class BillingService {
     await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
-      // Checks all pre-requisites
-      let prerequisitesOk = false;
-      try {
-        // Check
-        await BillingService.checkActivationPrerequisites(action, req);
-        // Well - everything was Ok, activation is possible
-        billingSettings.billing.isTransactionBillingActivated = true;
-        // Save it again now that we are sure
-        await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
-        prerequisitesOk = true;
-      } catch (error) {
-        // Ko
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          user: req.user,
-          module: MODULE_NAME, method: 'handleUpdateBillingSetting',
-          message: 'Failed to activate the billing of transactions',
-          action: action,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-      if (!prerequisitesOk) {
-        // Ko
-        res.sendStatus(StatusCodes.METHOD_NOT_ALLOWED);
-        next();
-        return;
-      }
+      // Check
+      await BillingService.checkActivationPrerequisites(action, req);
+      // Well - everything was Ok, activation is possible
+      billingSettings.billing.isTransactionBillingActivated = true;
+      // Save it again now that we are sure
+      await BillingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
