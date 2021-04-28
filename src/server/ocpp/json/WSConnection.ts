@@ -19,9 +19,6 @@ import http from 'http';
 const MODULE_NAME = 'WSConnection';
 
 export default abstract class WSConnection {
-  public code: string;
-  public message: string;
-  public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
   private readonly uuid: string;
@@ -31,7 +28,6 @@ export default abstract class WSConnection {
   private readonly url: string;
   private readonly clientIP: string | string[];
   private readonly wsConnection: WebSocket;
-  private req: http.IncomingMessage;
   private requests: { [id: string]: OCPPRequest };
   private validTenant: boolean;
 
@@ -40,7 +36,6 @@ export default abstract class WSConnection {
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     this.clientIP = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
-    this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
     Logging.logDebug({

@@ -49,18 +49,18 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Get the Json Web Socket
     let jsonWebSocket: JsonWSConnection;
     for (const [wsClientID, wsClient] of this.jsonChargingStationClients) {
-      if (wsClientID.startsWith(id)) {
+      if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
         jsonWebSocket = wsClient;
         break;
       }
     }
-    if (!jsonWebSocket?.isWSConnectionOpen()) {
+    if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
-        message: 'No open Web Socket connection found'
+        message: 'No open WebSocket connection found'
       });
       return null;
     }
