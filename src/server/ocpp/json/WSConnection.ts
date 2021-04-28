@@ -24,15 +24,16 @@ export default abstract class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly chargingStationID: string;
-  protected readonly tenantID: string;
+  private readonly uuid: string;
+  private readonly chargingStationID: string;
+  private readonly tenantID: string;
   private readonly token: string;
   private readonly url: string;
   private readonly clientIP: string | string[];
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: { [id: string]: OCPPRequest };
-  private tenantIsValid: boolean;
+  private validTenant: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
@@ -49,7 +50,7 @@ export default abstract class WSConnection {
       message: `WS connection opening attempts with URL: '${req.url}'`,
     });
     // Default
-    this.tenantIsValid = false;
+    this.validTenant = false;
     this.requests = {};
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
@@ -80,6 +81,7 @@ export default abstract class WSConnection {
         message: `The URL '${req.url}' is invalid (/(OCPPxx|REST)/TENANT_ID/CHARGEBOX_ID)`
       });
     }
+    this.uuid = Utils.generateUUID();
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
     let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
     if (req.url.startsWith('/REST')) {
@@ -125,7 +127,7 @@ export default abstract class WSConnection {
     try {
       // Check Tenant?
       await DatabaseUtils.checkTenant(this.tenantID);
-      this.tenantIsValid = true;
+      this.validTenant = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
@@ -259,10 +261,6 @@ export default abstract class WSConnection {
     return this.wsConnection;
   }
 
-  public getWSServer(): JsonCentralSystemServer {
-    return this.wsServer;
-  }
-
   public getURL(): string {
     return this.url;
   }
@@ -362,11 +360,11 @@ export default abstract class WSConnection {
   }
 
   public getID(): string {
-    return `${this.getTenantID()}~${this.getChargingStationID()}}`;
+    return `${this.getTenantID()}~${this.getChargingStationID()}~${this.uuid}`;
   }
 
   public isTenantValid(): boolean {
-    return this.tenantIsValid;
+    return this.validTenant;
   }
 
   public isWSConnectionOpen(): boolean {

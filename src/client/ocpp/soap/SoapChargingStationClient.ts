@@ -13,16 +13,6 @@ import { soap } from 'strong-soap';
 const MODULE_NAME = 'SoapChargingStationClient';
 
 export default class SoapChargingStationClient extends ChargingStationClient {
-  public transactionId: number;
-  public error: any;
-  public result: any;
-  public envelope: any;
-  public tagID: string;
-  public connectorID: any;
-  public type: any;
-  // pragma public keys: any;
-  // public keys: any[];
-  // public value: any;
   private chargingStation: ChargingStation;
   private tenantID: string;
   private client: any;
