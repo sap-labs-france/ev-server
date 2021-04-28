@@ -1,10 +1,10 @@
 import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
-import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -13,7 +13,6 @@ import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import http from 'http';
@@ -26,17 +25,17 @@ export default class JsonWSConnection extends WSConnection {
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
 
-  constructor(wsConnection: WebSocket, req: http.IncomingMessage, chargingStationConfig: ChargingStationConfiguration, wsServer: JsonCentralSystemServer) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
     // Check Protocol (required field of OCPP spec)
     switch (wsConnection.protocol) {
       // OCPP 1.6?
-      case 'ocpp1.6':
+      case WSServerProtocol.OCPP16:
         // Create the Json Client
         this.chargingStationClient = new JsonChargingStationClient(this, this.tenantID, this.chargingStationID);
         // Create the Json Server Service
-        this.chargingStationService = new JsonChargingStationService(chargingStationConfig);
+        this.chargingStationService = new JsonChargingStationService();
         break;
       // Not Found
       default:

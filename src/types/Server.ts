@@ -512,3 +512,15 @@ export enum ServerRoute {
   REST_BILLING_CHECK_PREREQUISITES = 'billing/check-prerequisites',
   REST_BILLING_ACTIVATE = 'billing/activate',
 }
+
+export enum ServerProtocol {
+  HTTP = 'http',
+  HTTPS = 'https',
+  WS = 'ws',
+  WSS = 'wss'
+}
+
+export enum WSServerProtocol {
+  OCPP16 = 'ocpp1.6',
+  REST = 'rest'
+}
