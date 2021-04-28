@@ -1,5 +1,4 @@
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
-import WebSocket, { AddressInfo } from 'ws';
 
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
@@ -13,6 +12,7 @@ import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerUtils } from '../../ServerUtils';
 import Utils from '../../../utils/Utils';
 import WSServer from './WSServer';
+import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
@@ -47,14 +47,20 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
     // Get the Json Web Socket
-    const jsonWebSocket = this.jsonChargingStationClients.get(id);
+    let jsonWebSocket: JsonWSConnection;
+    for (const [wsClientID, wsClient] of this.jsonChargingStationClients) {
+      if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
+        jsonWebSocket = wsClient;
+        break;
+      }
+    }
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
-        message: 'No Web Socket connection found'
+        message: 'No open WebSocket connection found'
       });
       return null;
     }

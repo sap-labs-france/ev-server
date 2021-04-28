@@ -25,7 +25,7 @@ export class uWsUtils {
   }
 
   public static startServer(serverConfig: CentralSystemServerConfiguration, app: TemplatedApp,
-      serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
+      serverName: string, serverModuleName: string, listenCb?: () => void): void {
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
@@ -36,11 +36,11 @@ export class uWsUtils {
     }
 
     // Listen
-    if (serverConfig.host && serverConfig.port && listen) {
+    if (serverConfig.host && serverConfig.port) {
       app.listen(serverConfig.host, serverConfig.port, cb);
-    } else if (!serverConfig.host && serverConfig.port && listen) {
+    } else if (!serverConfig.host && serverConfig.port) {
       app.listen(serverConfig.port, cb);
-    } else if (listen) {
+    } else {
       // eslint-disable-next-line no-console
       console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }

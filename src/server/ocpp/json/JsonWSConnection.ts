@@ -33,7 +33,7 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.tenantID, this.chargingStationID);
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID());
         // Create the Json Server Service
         this.chargingStationService = new JsonChargingStationService();
         break;
