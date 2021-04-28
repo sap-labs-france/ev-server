@@ -138,8 +138,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
     // Create the WS server
-    this.wsServer = new WSServer(this.centralSystemConfig, this.serverName,
-      ServerUtils.createHttpServer(this.centralSystemConfig), verifyClient, handleProtocols);
+    this.wsServer = new WSServer(this.centralSystemConfig, this.serverName, ServerUtils.createHttpServer(this.centralSystemConfig), verifyClient, handleProtocols);
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
       try {
