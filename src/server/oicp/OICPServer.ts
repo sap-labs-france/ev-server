@@ -3,6 +3,7 @@ import { Application, NextFunction, Response } from 'express';
 import ExpressUtils from '../ExpressUtils';
 import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfiguration';
 import OICPServices from './OICPServices';
+import { ServerUtils } from '../ServerUtils';
 import { TenantIdHoldingRequest } from './AbstractOICPService';
 
 const MODULE_NAME = 'OICPServer';
@@ -35,7 +36,7 @@ export default class OICPServer {
 
   // Start the server
   start(): void {
-    ExpressUtils.startServer(this.oicpRestConfig, ExpressUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), 'OICP', MODULE_NAME);
+    ServerUtils.startHttpServer(this.oicpRestConfig, ServerUtils.createHttpServer(this.oicpRestConfig, this.expressApplication), MODULE_NAME, 'OICP');
   }
 }
 
