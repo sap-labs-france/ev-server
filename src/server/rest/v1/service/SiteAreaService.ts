@@ -8,7 +8,6 @@ import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargingProfilePurposeType } from '../../../../types/ChargingProfile';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../../locking/LockingHelper';

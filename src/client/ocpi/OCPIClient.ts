@@ -154,7 +154,7 @@ export default abstract class OCPIClient {
   }
 
   public async getVersions(): Promise<any> {
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_GET_VERSIONS,
       message: `Get OCPI Versions at ${this.ocpiEndpoint.baseUrl}`,

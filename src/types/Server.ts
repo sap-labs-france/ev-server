@@ -506,3 +506,15 @@ export enum ServerRoute {
   REST_BILLING_PAYMENT_METHOD_ATTACH = 'users/:userID/payment-methods/:paymentMethodID/attach',
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 }
+
+export enum ServerProtocol {
+  HTTP = 'http',
+  HTTPS = 'https',
+  WS = 'ws',
+  WSS = 'wss'
+}
+
+export enum WSServerProtocol {
+  OCPP16 = 'ocpp1.6',
+  REST = 'rest'
+}
