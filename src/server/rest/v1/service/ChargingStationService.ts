@@ -6,7 +6,6 @@ import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRem
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -103,7 +102,7 @@ export default class ChargingStationService {
               status = OCPIEvseStatus.REMOVED;
             }
             if (ocpiClient) {
-              await ocpiClient.udpateChargingStationStatus(chargingStation, status);
+              await ocpiClient.updateChargingStationStatus(chargingStation, status);
             }
           } catch (error) {
             await Logging.logError({
@@ -522,7 +521,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
@@ -1070,7 +1069,7 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationInErrorReq(req.query);
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -1107,7 +1106,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields
@@ -1158,7 +1157,7 @@ export default class ChargingStationService {
 
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
     if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1529,14 +1528,13 @@ export default class ChargingStationService {
     let headers = null;
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'chargingStation',
         'name',
         'value',
         'siteArea',
         'site'
-      ];
-      headers = headerArray.join(Constants.CSV_SEPARATOR);
+      ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = ocppParams.params.map((param) => {
@@ -1546,18 +1544,32 @@ export default class ChargingStationService {
         Utils.replaceSpecialCharsInCSVValueParam(param.value),
         ocppParams.siteAreaName,
         ocppParams.siteName,
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static convertToCSV(req: Request, chargingStations: ChargingStation[], writeHeader = true): string {
+    // Build createdOn cell
+    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
+      if (chargingStation.createdOn) {
+        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
+      }
+      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
+    };
+    // Build coordinates cell
+    const getCoordinatesCell = (chargingStation: ChargingStation) => {
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
+      }
+      return ['', ''];
+    };
     let headers = null;
     const i18nManager = I18nManager.getInstanceForLocale(req.user.locale);
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'name',
         'createdOn',
         'numberOfConnectors',
@@ -1575,8 +1587,7 @@ export default class ChargingStationService {
         'lastReboot',
         'maxPower',
         'powerLimitUnit'
-      ];
-      headers = headerArray.join(Constants.CSV_SEPARATOR);
+      ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = chargingStations.map((chargingStation) => {
@@ -1597,25 +1608,9 @@ export default class ChargingStationService {
         i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
         chargingStation.maximumPower,
         chargingStation.powerLimitUnit
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
       return row;
     }).join(Constants.CR_LF);
-    // Build createdOn cell
-    const getCreatedOnCell = (chargingStation: ChargingStation, i18nManager: I18nManager) => {
-      if (chargingStation.createdOn) {
-        return [i18nManager.formatDateTime(chargingStation.createdOn, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.createdOn, 'LT')];
-      }
-      return [i18nManager.translate('general.invalidDate') + ' ' + i18nManager.translate('general.invalidTime')];
-
-    };
-    // Build coordinates cell
-    const getCoordinatesCell = (chargingStation: ChargingStation) => {
-      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        return [chargingStation.coordinates[1], chargingStation.coordinates[0]];
-      }
-      return ['', ''];
-
-    };
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 

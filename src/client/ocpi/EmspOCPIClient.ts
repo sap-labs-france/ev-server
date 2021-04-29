@@ -451,7 +451,7 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { tag: tag }
       });
     }
-    if (!tag.user || tag.user.deleted || !tag.user.issuer) {
+    if (!tag.user || !tag.user.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,

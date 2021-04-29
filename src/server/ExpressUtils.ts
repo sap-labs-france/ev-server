@@ -24,7 +24,7 @@ import morgan from 'morgan';
 
 bodyParserXml(bodyParser);
 
-export default class ExpressTools {
+export default class ExpressUtils {
   public static initApplication(bodyLimit = '1mb', debug = false): express.Application {
     const app = express();
     // Secure the application
@@ -57,7 +57,7 @@ export default class ExpressTools {
     }));
     // Health Check Handling
     if (Configuration.getHealthCheckConfig().enabled) {
-      app.get('/health-check', ExpressTools.healthCheckService.bind(this));
+      app.get('/health-check', ExpressUtils.healthCheckService.bind(this));
     }
     // Use
     app.use(locale(Constants.SUPPORTED_LOCALES));
@@ -105,7 +105,7 @@ export default class ExpressTools {
       // Intermediate cert?
       if (serverConfig.sslCa) {
         // Array?
-        if (Array.isArray(serverConfig.sslCa)) {
+        if (!Utils.isEmptyArray(serverConfig.sslCa)) {
           options.ca = [];
           // Add all
           for (let i = 0; i < serverConfig.sslCa.length; i++) {
@@ -134,7 +134,7 @@ export default class ExpressTools {
      */
     async function defaultListenCb(): Promise<void> {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerAddress(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressUtils.getHttpServerAddress(httpServer)}:${ExpressUtils.getHttpServerPort(httpServer)}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',

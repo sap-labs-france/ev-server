@@ -44,20 +44,20 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
           for (const importedTag of importedTags.result) {
             try {
               // Existing tags
-              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
+              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
               if (foundTag) {
                 // Check tag is already in use
                 if (!foundTag.issuer) {
                   throw new Error('Tag is not local to the organization');
-                }
-                if (foundTag.deleted) {
-                  throw new Error('Tag is deleted');
                 }
                 if (foundTag.userID) {
                   throw new Error('Tag is already assigned to an user');
                 }
                 if (foundTag.active) {
                   throw new Error('Tag is already active');
+                }
+                if (foundTag.transactionsCount > 0) {
+                  throw new Error(`Tag is already used in ${foundTag.transactionsCount} transaction(s)`);
                 }
                 // Update it
                 await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
@@ -71,7 +71,6 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 id: importedTag.id,
                 description: importedTag.description,
                 issuer: true,
-                deleted: false,
                 active: false,
                 createdBy: { id: importedTag.importedBy },
                 createdOn: importedTag.importedOn,
@@ -99,7 +98,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
             }
           }
           // Log
-          if (importedTags.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+          if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,

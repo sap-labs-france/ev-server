@@ -1,4 +1,4 @@
-import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid } from '../ChargingStation';
+import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
 
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
@@ -46,6 +46,13 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   LocMaxDistanceMeters?: number;
 }
 
+export interface HttpChargingStationsInErrorRequest extends HttpDatabaseRequest {
+  Search?: string;
+  SiteID?: string;
+  SiteAreaID?: string;
+  ErrorType?: string;
+}
+
 export interface HttpChargingStationParamsUpdateRequest {
   id: string;
   chargingStationURL: string;
@@ -63,7 +70,7 @@ export interface HttpChargingStationParamsUpdateRequest {
     type: ConnectorType;
     power: number;
     amperage: number;
-    voltage: number;
+    voltage: Voltage;
     currentType: CurrentType;
     numberOfConnectedPhase: number;
     phaseAssignmentToGrid: PhaseAssignmentToGrid;
