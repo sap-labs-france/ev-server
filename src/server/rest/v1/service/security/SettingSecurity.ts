@@ -37,6 +37,12 @@ export default class SettingSecurity {
     return SettingSecurity._filterSettingRequest(request);
   }
 
+  public static filterBillingSettingUpdateRequest(request: any): Partial<SettingDB> {
+    const filteredRequest = SettingSecurity._filterSettingRequest(request.body);
+    filteredRequest.id = sanitize(request.params.id);
+    return filteredRequest;
+  }
+
   private static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),

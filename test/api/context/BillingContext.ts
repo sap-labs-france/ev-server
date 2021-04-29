@@ -19,7 +19,7 @@ export default class BillingContext {
     this.tenantContext = tenantContext;
   }
 
-  private static getBillingSettings(): BillingSettings {
+  private static getUnitTestBillingSettings(): BillingSettings {
     const billingProperties = {
       isTransactionBillingActivated: config.get('billing.isTransactionBillingActivated'),
       immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
@@ -40,13 +40,13 @@ export default class BillingContext {
   }
 
   public async createTestData(): Promise<void> {
-    const settings = BillingContext.getBillingSettings();
+    const settings = BillingContext.getUnitTestBillingSettings();
     const skip = (!settings.stripe.secretKey);
     if (skip) {
       // Skip billing context generation if no settings are provided
       return;
     }
-    await this.saveBillingSettings(BillingContext.getBillingSettings());
+    await this.saveBillingSettings(BillingContext.getUnitTestBillingSettings());
     const tenantID = this.tenantContext.getTenant().id;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
@@ -66,12 +66,11 @@ export default class BillingContext {
   }
 
   private async saveBillingSettings(billingSettings: BillingSettings) {
-    // TODO - rethink that part
-    const tenantBillingSettings = await SettingStorage.getBillingSettings(this.tenantContext.getTenant().id);
+    const tenantBillingSettings = await SettingStorage.getBillingSetting(this.tenantContext.getTenant().id);
     tenantBillingSettings.billing = billingSettings.billing;
     tenantBillingSettings.stripe = billingSettings.stripe;
     tenantBillingSettings.sensitiveData = ['content.stripe.secretKey'];
     tenantBillingSettings.stripe.secretKey = await Cypher.encrypt(this.tenantContext.getTenant().id, billingSettings.stripe.secretKey);
-    await SettingStorage.saveBillingSettings(this.tenantContext.getTenant().id, tenantBillingSettings);
+    await SettingStorage.saveBillingSetting(this.tenantContext.getTenant().id, tenantBillingSettings);
   }
 }
