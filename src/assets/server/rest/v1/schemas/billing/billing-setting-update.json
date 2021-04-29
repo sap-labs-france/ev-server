@@ -63,15 +63,13 @@
       ]
     }
   },
+  "required": [
+    "id",
+    "identifier",
+    "type",
+    "billing"
+  ],
   "oneOf": [
-    {
-      "required": [
-        "id",
-        "identifier",
-        "type",
-        "billing",
-        "stripe"
-      ]
-    }
+    { "required": [ "stripe" ] }
   ]
 }
