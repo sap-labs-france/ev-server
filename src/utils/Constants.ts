@@ -37,6 +37,8 @@ export default class Constants {
   public static readonly IMPORT_PAGE_SIZE = 1000;
   public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
 
+  public static readonly HEALTH_CHECK_ROUTE = '/health-check';
+
   public static readonly DEFAULT_TENANT = 'default';
   public static readonly DEFAULT_TENANT_OBJECT = Object.freeze({
     id: Constants.DEFAULT_TENANT,

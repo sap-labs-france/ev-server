@@ -50,7 +50,7 @@ export default class OCPIEndpointService {
     // Delete
     await OCPIEndpointStorage.deleteOcpiEndpoint(req.user.tenantID, ocpiEndpoint.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been deleted successfully`,
@@ -156,7 +156,7 @@ export default class OCPIEndpointService {
     } as OCPIEndpoint;
     const endpointID = await OCPIEndpointStorage.saveOcpiEndpoint(req.user.tenantID, ocpiEndpoint);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateOcpiEndpoint',
       message: `Ocpi Endpoint '${filteredRequest.name}' has been created successfully`,
@@ -196,7 +196,7 @@ export default class OCPIEndpointService {
     // Update OcpiEndpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(req.user.tenantID, { ...ocpiEndpoint, ...filteredRequest });
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been updated successfully`,
@@ -233,7 +233,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (pingResult.statusCode === StatusCodes.OK) {
       // Log
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
@@ -243,7 +243,7 @@ export default class OCPIEndpointService {
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      Logging.logSecurityError({
+      await Logging.logSecurityError({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' cannot be reached`,
@@ -769,7 +769,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
@@ -779,7 +779,7 @@ export default class OCPIEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      Logging.logSecurityError({
+      await Logging.logSecurityError({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
@@ -819,7 +819,7 @@ export default class OCPIEndpointService {
     // Check ping result
     if (result.statusCode === StatusCodes.OK) {
       // Log
-      Logging.logSecurityInfo({
+      await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
@@ -829,7 +829,7 @@ export default class OCPIEndpointService {
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
       // Log
-      Logging.logSecurityError({
+      await Logging.logSecurityError({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
@@ -859,7 +859,7 @@ export default class OCPIEndpointService {
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
       message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generatd successfully`,

@@ -6,6 +6,7 @@ import EMSPService211 from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import ExpressUtils from '../ExpressUtils';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
+import { ServerUtils } from '../ServerUtils';
 
 const MODULE_NAME = 'OCPIServer';
 
@@ -43,7 +44,7 @@ export default class OCPIServer {
 
   // Start the server
   start(): void {
-    ExpressUtils.startServer(this.ocpiRestConfig, ExpressUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), 'OCPI', MODULE_NAME);
+    ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), 'OCPI', MODULE_NAME);
   }
 }
 

@@ -184,11 +184,9 @@ Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported 
 
 #### Configuration
 
-There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
+In **src/assets** folder there are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
 Choose one and rename it to **config.json**.
-
-Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
@@ -265,6 +263,12 @@ To set the end point, fill the following information in the **config.json** file
   }
 ```
 
+In order to properly call the REST endpoints, both ev-server and clients (ev-dashboard, ev-mobile, etc.) must reference a Google reCaptcha key. You can refer to this link https://www.google.com/recaptcha/admin/create, then copy the server key in config.json file, in section CentralSystemRestService:
+
+    ...
+    "captchaSecretKey": "<GOOGLE_RECAPTCHA_KEY_SERVER>"
+    ...
+
 ### Central Service Server (CSS) > Database
 
 You have now to connect the server to the database.
@@ -281,7 +285,7 @@ Database connection info:
     "port": 27017,
     "user": "evse-user",
     "password": "YourPassword",
-    "schema": "evse"
+    "database" : "evse"
   }
 ```
 
