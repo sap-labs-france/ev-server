@@ -420,7 +420,7 @@ export default class Configuration {
       Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
     if (Configuration.isUndefined(Configuration.getConfig().Axios.retries)) {
-      Configuration.getConfig().Axios.retries = 3;
+      Configuration.getConfig().Axios.retries = 0;
     }
     return Configuration.getConfig().Axios;
   }
