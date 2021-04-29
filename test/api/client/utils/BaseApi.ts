@@ -1,6 +1,7 @@
 import AxiosFactory from '../../../../src/utils/AxiosFactory';
 import { AxiosRequestConfig } from 'axios';
 import Constants from '../../../../src/utils/Constants';
+import { IAxiosRetryConfig } from 'axios-retry';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
@@ -12,9 +13,10 @@ export default class BaseApi {
     this.baseURL = baseURL;
   }
 
-  public async send(httpRequest: AxiosRequestConfig): Promise<any> {
+  public async send(httpRequest: AxiosRequestConfig, axiosInstanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }): Promise<any> {
     let httpResponse;
-    const axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT);
+    axiosInstanceConfiguration.axiosRetryConfig.retries = axiosInstanceConfiguration.axiosRetryConfig.retries ?? 0;
+    const axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT, axiosInstanceConfiguration);
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
