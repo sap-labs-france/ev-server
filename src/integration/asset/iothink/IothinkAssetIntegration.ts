@@ -65,36 +65,34 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
 
   private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
+    // Create helper map to merge the arrays to combined objects
+    const mergedResponseMap = new Map();
     // Rename the value property in logs with tag reference
     for (const dataSet of data.historics) {
-      dataSet.logs.forEach((log) => {
+      for (const log of dataSet.logs) {
         log[dataSet.tagReference] = log['value'];
         delete log['value'];
-      });
-    }
-    // Create helper map to merge the arrays to combined objects
-    const map = new Map();
-    for (const dataSet of data.historics) {
-      dataSet.logs.forEach((item) => map.set(item.timestamp, { ...map.get(item.timestamp), ...item }));
+        mergedResponseMap.set(log.timestamp, { ...mergedResponseMap.get(log.timestamp), ...log });
+      }
     }
     // Create Array with merged consumptions from map
-    const mergedResponse = Array.from(map.values());
+    const mergedResponseArray = Array.from(mergedResponseMap.values());
     // Sort the Array according the timestamp
-    mergedResponse.sort((a, b) => a.timestamp - b.timestamp);
+    mergedResponseArray.sort((a, b) => a.timestamp - b.timestamp);
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
-    if (!Utils.isEmptyArray(mergedResponse)) {
-      for (const mergedConsumption of mergedResponse) {
-        if (typeof mergedConsumption[IothinkProperty.IO_POW_ACTIVE] === 'undefined') {
+    if (!Utils.isEmptyArray(mergedResponseArray)) {
+      for (const mergedConsumption of mergedResponseArray) {
+        if (Utils.isUndefined(typeof mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
           // Skip if current power is undefined
           continue;
         }
         const consumption = {} as AbstractCurrentConsumption;
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
-            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * energyDirection * 1000;
+            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
             consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_INPUT);
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
             consumption.lastConsumption = {
               timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
@@ -102,10 +100,10 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
             };
             break;
           case AssetType.PRODUCTION:
-            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * energyDirection * 1000;
+            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(energyDirection * 1000).toNumber();
             consumption.currentTotalConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY);
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
             consumption.lastConsumption = {
               timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
@@ -113,12 +111,12 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
             };
             break;
           case AssetType.CONSUMPTION_AND_PRODUCTION:
-            consumption.currentInstantWatts = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE) * 1000;
+            Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
             consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
             consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)
             - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE);
             if (asset.siteArea?.voltage) {
-              consumption.currentInstantAmps = consumption.currentInstantWatts / asset.siteArea.voltage;
+              consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
             consumption.lastConsumption = {
               timestamp: moment(this.timestampReference).add(mergedConsumption.timestamp, 'seconds').toDate(),
@@ -136,7 +134,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
   private getPropertyValue(data: any, propertyName: string): number {
-    if (typeof data[propertyName] !== 'undefined') {
+    if (!Utils.isUndefined(data[propertyName])) {
       return Utils.convertToFloat(data[propertyName]);
     }
     return 0;
