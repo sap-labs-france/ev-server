@@ -114,4 +114,10 @@ export default class StripeHelpers {
     });
     return shrinkError;
   }
+
+  public static async isConnectedToALiveAccount(stripeFacade: Stripe): Promise<boolean> {
+    // TODO - find a way to avoid that call
+    const list = await stripeFacade.customers.list({ limit: 1 });
+    return !!list.data?.[0]?.livemode;
+  }
 }
