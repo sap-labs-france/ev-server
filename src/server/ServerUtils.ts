@@ -80,7 +80,6 @@ export class ServerUtils {
     // Log
     // eslint-disable-next-line no-console
     console.log(`Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
-
     // Listen
     if (serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);

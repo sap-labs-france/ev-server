@@ -7,7 +7,7 @@ import { ServerUtils } from './ServerUtils';
 import { StatusCodes } from 'http-status-codes';
 import cluster from 'cluster';
 
-export class uWsUtils {
+export class MicroWsUtils {
   public static createApp(serverConfig: CentralSystemServerConfiguration): TemplatedApp {
     let app: TemplatedApp;
     if (serverConfig.sslKey && serverConfig.sslCert) {
@@ -17,9 +17,9 @@ export class uWsUtils {
       app = App();
     }
     if (serverConfig.protocol.startsWith(ServerProtocol.HTTP)) {
-      app.get(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+      app.get(Constants.HEALTH_CHECK_ROUTE, MicroWsUtils.healthCheckService.bind(this));
     } else if (serverConfig.protocol.startsWith(ServerProtocol.WS)) {
-      app.ws(Constants.HEALTH_CHECK_ROUTE, uWsUtils.healthCheckService.bind(this));
+      app.ws(Constants.HEALTH_CHECK_ROUTE, MicroWsUtils.healthCheckService.bind(this));
     }
     return app;
   }
@@ -34,7 +34,6 @@ export class uWsUtils {
         await ServerUtils.defaultListenCb(serverModuleName, 'startServer', serverName, serverConfig.protocol, serverConfig.host ?? '::', serverConfig.port);
       };
     }
-
     // Listen
     if (serverConfig.host && serverConfig.port) {
       app.listen(serverConfig.host, serverConfig.port, cb);
