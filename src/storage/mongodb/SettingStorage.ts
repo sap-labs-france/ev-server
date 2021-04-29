@@ -259,71 +259,6 @@ export default class SettingStorage {
     return smartChargingSettings;
   }
 
-  public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
-    const settings = await SettingStorage.getBillingSettings(tenantID);
-    if (settings.type === BillingSettingsType.STRIPE) {
-      if (!billingSettingsToSave.stripe.secretKey) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'saveBillingSettings',
-          message: 'One or several mandatory fields are missing'
-        });
-      }
-    }
-    // Build internal structure
-    const settingsToSave = {
-      id: billingSettingsToSave.id,
-      identifier: billingSettingsToSave.identifier,
-      sensitiveData: billingSettingsToSave.sensitiveData,
-      backupSensitiveData: billingSettingsToSave.backupSensitiveData,
-      lastChangedOn: new Date(),
-      content: {
-        billing: billingSettingsToSave.billing,
-        stripe: billingSettingsToSave.stripe
-      },
-    } as SettingDB;
-    // Save
-    return this.saveSettings(tenantID, settingsToSave);
-  }
-
-  public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
-    const billingSettings = {
-      identifier: TenantComponents.BILLING,
-    } as BillingSettings;
-    const settings = await SettingStorage.getSettings(tenantID,
-      { identifier: TenantComponents.BILLING },
-      Constants.DB_PARAMS_MAX_LIMIT);
-    if (settings && settings.count > 0 && settings.result[0].content) {
-      const config = settings.result[0].content;
-      billingSettings.id = settings.result[0].id;
-      billingSettings.sensitiveData = settings.result[0].sensitiveData;
-      billingSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
-      // Billing Common Properties
-      if (config.billing) {
-        const { isTransactionBillingActivated, immediateBillingAllowed, periodicBillingAllowed, taxID, usersLastSynchronizedOn } = config.billing;
-        billingSettings.billing = {
-          isTransactionBillingActivated,
-          immediateBillingAllowed,
-          periodicBillingAllowed,
-          usersLastSynchronizedOn,
-          taxID,
-        };
-      }
-      // Billing Concrete Implementation Properties
-      if (config.stripe) {
-        billingSettings.type = BillingSettingsType.STRIPE;
-        const { url, publicKey, secretKey } = config.stripe;
-        billingSettings.stripe = {
-          url,
-          publicKey,
-          secretKey,
-        };
-      }
-      return billingSettings;
-    }
-  }
-
   public static async getCryptoSettings(tenantID: string): Promise<CryptoSettings> {
     // Get the Crypto Key settings
     const settings = await SettingStorage.getSettings(tenantID,
@@ -482,5 +417,55 @@ export default class SettingStorage {
     } as SettingDB;
     // Save
     await SettingStorage.saveSettings(tenantID, settingsToSave);
+  }
+
+  public static async getBillingSetting(tenantID: string): Promise<BillingSettings> {
+    // Get BILLING Settings by Identifier
+    const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
+    if (setting) {
+      const { id, backupSensitiveData, category } = setting;
+      const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
+      const { content } = setting;
+      const billingSettings: BillingSettings = {
+        id,
+        identifier: TenantComponents.BILLING,
+        type: content.type as BillingSettingsType,
+        backupSensitiveData,
+        billing: content.billing,
+        category,
+        createdBy,
+        createdOn,
+        lastChangedBy,
+        lastChangedOn,
+      };
+      switch (content.type) {
+        // Only STRIPE so far
+        case BillingSettingsType.STRIPE:
+          billingSettings.stripe = content.stripe;
+          billingSettings.sensitiveData = [ 'stripe.secretKey' ];
+          break;
+      }
+      return billingSettings;
+    }
+    return null;
+  }
+
+  public static async saveBillingSetting(tenantID: string, billingSettings: BillingSettings): Promise<string> {
+    const { id, identifier, sensitiveData, backupSensitiveData, category } = billingSettings;
+    const { createdBy, createdOn, lastChangedBy, lastChangedOn } = billingSettings;
+    const { type, billing, stripe } = billingSettings;
+    const setting: SettingDB = {
+      id, identifier, sensitiveData, backupSensitiveData,
+      content: {
+        type,
+        billing,
+      },
+      category, createdBy, createdOn, lastChangedBy, lastChangedOn,
+    };
+    if (billingSettings.type === BillingSettingsType.STRIPE) {
+      setting.sensitiveData = [ 'content.stripe.secretKey' ];
+      setting.content.stripe = stripe;
+    }
+    return SettingStorage.saveSettings(tenantID, setting);
   }
 }
