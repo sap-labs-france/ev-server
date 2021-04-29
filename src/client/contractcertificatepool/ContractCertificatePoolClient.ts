@@ -4,34 +4,54 @@ import AxiosFactory from '../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import Configuration from '../../utils/Configuration';
 import { ContractCertificatePoolType } from '../../types/configuration/ContractsCertificatePoolConfiguration';
+import Logging from '../../utils/Logging';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
-import Tenant from '../../types/Tenant';
+import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ContractCertificatePoolClient';
 
 export default class ContractCertificatePoolClient {
+  private static ccpClient: ContractCertificatePoolClient;
+  public ccpIndex = 0;
   private axiosInstance: AxiosInstance;
+  private tenantID: string;
+  private chargingStationID: string;
 
-  constructor(tenant: Tenant) {
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
+
+  public static getInstance(): ContractCertificatePoolClient {
+    if (!ContractCertificatePoolClient.ccpClient) {
+      ContractCertificatePoolClient.ccpClient = new ContractCertificatePoolClient();
+    }
+    return ContractCertificatePoolClient.ccpClient;
+  }
+
+  public initialize(tenantID: string, chargingStationID: string): void {
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+    this.tenantID = tenantID;
+    this.chargingStationID = chargingStationID;
   }
 
   public async getContractCertificateExiResponse(schemaVersion: string, exiRequest: string): Promise<string> {
     let exiResponse: string;
-    for (const contractCertificatePool of Configuration.getContractCertificatePool().pools) {
-      switch (contractCertificatePool.type) {
-        case ContractCertificatePoolType.GIREVE:
-        case ContractCertificatePoolType.ELAAD:
-        case ContractCertificatePoolType.VEDECOM:
-          exiResponse = await this.getCommonAPIContractCertificateExiResponse(contractCertificatePool.type, schemaVersion, exiRequest);
-          break;
-        default:
-          throw Error(`Configured ${contractCertificatePool.type} contract certificate pool type not found`);
-      }
-      if (exiResponse) {
+    const contractCertificatePool = Configuration.getContractCertificatePool().pools[this.ccpIndex];
+    switch (contractCertificatePool.type) {
+      case ContractCertificatePoolType.GIREVE:
+      case ContractCertificatePoolType.ELAAD:
+      case ContractCertificatePoolType.VEDECOM:
+        exiResponse = await this.getCommonAPIContractCertificateExiResponse(contractCertificatePool.type, schemaVersion, exiRequest);
         break;
-      }
+      default:
+        throw Error(`Configured ${contractCertificatePool.type} contract certificate pool type not found`);
     }
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: this.chargingStationID,
+      action: ServerAction.GET_15118_EV_CERTIFICATE,
+      message: `Fetching contract certificate from ${contractCertificatePool.type}`,
+      module: MODULE_NAME, method: 'getContractCertificateExiResponse',
+    });
     return exiResponse;
   }
 

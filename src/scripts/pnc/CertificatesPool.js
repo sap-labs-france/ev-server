@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+
+const tenantID = '5be7fb271014d90008992f06'
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjNGYwM2Y5MjMwNmJkZTcxNTdlZmRkZiIsInJvbGUiOiJBIiwicm9sZXNBQ0wiOlsiYWRtaW4iXSwibmFtZSI6IkJFTk9JVCIsIm1vYmlsZSI6IiIsImVtYWlsIjoiamVyb21lLmJlbm9pdEBzYXAuY29tIiwidGFnSURzIjpbIjg0RkIyQTQ0IiwiQkoxMDE2NTI0NTA1IiwiNUNENTBFMDIiXSwiZmlyc3ROYW1lIjoiSsOpcsO0bWUiLCJsb2NhbGUiOiJlbl9VUyIsImxhbmd1YWdlIjoiZW4iLCJjdXJyZW5jeSI6IkVVUiIsInRlbmFudElEIjoiNWJlN2ZiMjcxMDE0ZDkwMDA4OTkyZjA2IiwidGVuYW50TmFtZSI6IlNBUCBMYWJzIEZyYW5jZSAtIENoYXJnZUBXb3JrIiwidGVuYW50U3ViZG9tYWluIjoic2xmIiwidXNlckhhc2hJRCI6IjkwZDA0MTlmYmNkODQ3MWIwZDA4NmJiODAyOWU2YjE0NGM0ZjIwMzcwZjE0ZTc5ZTBkMTgzZTU0OWQ3MzI4N2QiLCJ0ZW5hbnRIYXNoSUQiOiI4YTRmYWZjOTdhNWNiY2JmZWMwMjdkYjQ1NTVkNTBkZTc4MWZkMDE1Zjc4NDJmMjYxNmUwNjI5NjczNDNkNDJkIiwic2NvcGVzIjpbIkFzc2V0OkNoZWNrQ29ubmVjdGlvbiIsIkFzc2V0OkNyZWF0ZSIsIkFzc2V0OkRlbGV0ZSIsIkFzc2V0OlJlYWQiLCJBc3NldDpSZXRyaWV2ZUNvbnN1bXB0aW9uIiwiQXNzZXQ6VXBkYXRlIiwiQXNzZXRzOkluRXJyb3IiLCJBc3NldHM6TGlzdCIsIkJpbGxpbmc6Q2hlY2tDb25uZWN0aW9uIiwiQ2FyOkNyZWF0ZSIsIkNhcjpEZWxldGUiLCJDYXI6UmVhZCIsIkNhcjpVcGRhdGUiLCJDYXJDYXRhbG9nOlJlYWQiLCJDYXJDYXRhbG9nczpMaXN0IiwiQ2FyczpMaXN0IiwiQ2hhcmdpbmdQcm9maWxlOlJlYWQiLCJDaGFyZ2luZ1Byb2ZpbGVzOkxpc3QiLCJDaGFyZ2luZ1N0YXRpb246QXV0aG9yaXplIiwiQ2hhcmdpbmdTdGF0aW9uOkNoYW5nZUF2YWlsYWJpbGl0eSIsIkNoYXJnaW5nU3RhdGlvbjpDaGFuZ2VDb25maWd1cmF0aW9uIiwiQ2hhcmdpbmdTdGF0aW9uOkNsZWFyQ2FjaGUiLCJDaGFyZ2luZ1N0YXRpb246Q2xlYXJDaGFyZ2luZ1Byb2ZpbGUiLCJDaGFyZ2luZ1N0YXRpb246Q3JlYXRlIiwiQ2hhcmdpbmdTdGF0aW9uOkRlbGV0ZSIsIkNoYXJnaW5nU3RhdGlvbjpEZWxldGVDZXJ0aWZpY2F0ZSIsIkNoYXJnaW5nU3RhdGlvbjpFeHBvcnQiLCJDaGFyZ2luZ1N0YXRpb246R2V0Q29tcG9zaXRlU2NoZWR1bGUiLCJDaGFyZ2luZ1N0YXRpb246R2V0Q29uZmlndXJhdGlvbiIsIkNoYXJnaW5nU3RhdGlvbjpHZXREaWFnbm9zdGljcyIsIkNoYXJnaW5nU3RhdGlvbjpHZXRJbnN0YWxsZWRDZXJ0aWZpY2F0ZUlkcyIsIkNoYXJnaW5nU3RhdGlvbjpJbnN0YWxsQ2VydGlmaWNhdGUiLCJDaGFyZ2luZ1N0YXRpb246UmVhZCIsIkNoYXJnaW5nU3RhdGlvbjpSZW1vdGVTdGFydFRyYW5zYWN0aW9uIiwiQ2hhcmdpbmdTdGF0aW9uOlJlbW90ZVN0b3BUcmFuc2FjdGlvbiIsIkNoYXJnaW5nU3RhdGlvbjpSZXNldCIsIkNoYXJnaW5nU3RhdGlvbjpTZXRDaGFyZ2luZ1Byb2ZpbGUiLCJDaGFyZ2luZ1N0YXRpb246U3RhcnRUcmFuc2FjdGlvbiIsIkNoYXJnaW5nU3RhdGlvbjpTdG9wVHJhbnNhY3Rpb24iLCJDaGFyZ2luZ1N0YXRpb246VW5sb2NrQ29ubmVjdG9yIiwiQ2hhcmdpbmdTdGF0aW9uOlVwZGF0ZSIsIkNoYXJnaW5nU3RhdGlvbjpVcGRhdGVGaXJtd2FyZSIsIkNoYXJnaW5nU3RhdGlvbnM6SW5FcnJvciIsIkNoYXJnaW5nU3RhdGlvbnM6TGlzdCIsIkNvbXBhbmllczpMaXN0IiwiQ29tcGFueTpDcmVhdGUiLCJDb21wYW55OkRlbGV0ZSIsIkNvbXBhbnk6UmVhZCIsIkNvbXBhbnk6VXBkYXRlIiwiQ29ubmVjdGlvbjpDcmVhdGUiLCJDb25uZWN0aW9uOkRlbGV0ZSIsIkNvbm5lY3Rpb246UmVhZCIsIkNvbm5lY3Rpb25zOkxpc3QiLCJJbnZvaWNlOkNyZWF0ZSIsIkludm9pY2U6RG93bmxvYWQiLCJJbnZvaWNlczpMaXN0IiwiSW52b2ljZXM6U3luY2hyb25pemUiLCJMb2dnaW5nOlJlYWQiLCJMb2dnaW5nczpMaXN0IiwiTm90aWZpY2F0aW9uOkNyZWF0ZSIsIk9jcGlFbmRwb2ludDpDcmVhdGUiLCJPY3BpRW5kcG9pbnQ6RGVsZXRlIiwiT2NwaUVuZHBvaW50OkdlbmVyYXRlTG9jYWxUb2tlbiIsIk9jcGlFbmRwb2ludDpQaW5nIiwiT2NwaUVuZHBvaW50OlJlYWQiLCJPY3BpRW5kcG9pbnQ6UmVnaXN0ZXIiLCJPY3BpRW5kcG9pbnQ6VHJpZ2dlckpvYiIsIk9jcGlFbmRwb2ludDpVcGRhdGUiLCJPY3BpRW5kcG9pbnRzOkxpc3QiLCJPaWNwRW5kcG9pbnQ6Q3JlYXRlIiwiT2ljcEVuZHBvaW50OkRlbGV0ZSIsIk9pY3BFbmRwb2ludDpQaW5nIiwiT2ljcEVuZHBvaW50OlJlYWQiLCJPaWNwRW5kcG9pbnQ6UmVnaXN0ZXIiLCJPaWNwRW5kcG9pbnQ6VHJpZ2dlckpvYiIsIk9pY3BFbmRwb2ludDpVcGRhdGUiLCJPaWNwRW5kcG9pbnRzOkxpc3QiLCJQYXltZW50TWV0aG9kOkNyZWF0ZSIsIlBheW1lbnRNZXRob2Q6RGVsZXRlIiwiUGF5bWVudE1ldGhvZDpSZWFkIiwiUGF5bWVudE1ldGhvZHM6TGlzdCIsIlByaWNpbmc6UmVhZCIsIlByaWNpbmc6VXBkYXRlIiwiUmVwb3J0OlJlYWQiLCJTZXR0aW5nOkNyZWF0ZSIsIlNldHRpbmc6RGVsZXRlIiwiU2V0dGluZzpSZWFkIiwiU2V0dGluZzpVcGRhdGUiLCJTZXR0aW5nczpMaXN0IiwiU2l0ZTpDcmVhdGUiLCJTaXRlOkRlbGV0ZSIsIlNpdGU6UmVhZCIsIlNpdGU6VXBkYXRlIiwiU2l0ZUFyZWE6Q3JlYXRlIiwiU2l0ZUFyZWE6RGVsZXRlIiwiU2l0ZUFyZWE6UmVhZCIsIlNpdGVBcmVhOlVwZGF0ZSIsIlNpdGVBcmVhczpMaXN0IiwiU2l0ZXM6TGlzdCIsIlRhZzpDcmVhdGUiLCJUYWc6RGVsZXRlIiwiVGFnOlJlYWQiLCJUYWc6VXBkYXRlIiwiVGFnczpJbXBvcnQiLCJUYWdzOkxpc3QiLCJUYXhlczpMaXN0IiwiVG9rZW46Q3JlYXRlIiwiVG9rZW46RGVsZXRlIiwiVG9rZW46UmVhZCIsIlRva2VuOlVwZGF0ZSIsIlRva2VuczpMaXN0IiwiVHJhbnNhY3Rpb246RGVsZXRlIiwiVHJhbnNhY3Rpb246UmVhZCIsIlRyYW5zYWN0aW9uOlJlZnVuZFRyYW5zYWN0aW9uIiwiVHJhbnNhY3Rpb246VXBkYXRlIiwiVHJhbnNhY3Rpb25zOkV4cG9ydCIsIlRyYW5zYWN0aW9uczpJbkVycm9yIiwiVHJhbnNhY3Rpb25zOkxpc3QiLCJVc2VyOkNyZWF0ZSIsIlVzZXI6RGVsZXRlIiwiVXNlcjpSZWFkIiwiVXNlcjpTeW5jaHJvbml6ZUJpbGxpbmdVc2VyIiwiVXNlcjpVcGRhdGUiLCJVc2VyczpFeHBvcnQiLCJVc2VyczpJbXBvcnQiLCJVc2VyczpJbkVycm9yIiwiVXNlcnM6TGlzdCIsIlVzZXJzOlN5bmNocm9uaXplQmlsbGluZ1VzZXJzIiwiVXNlcnNDYXJzOkFzc2lnbiIsIlVzZXJzQ2FyczpMaXN0IiwiVXNlcnNTaXRlczpBc3NpZ24iLCJVc2Vyc1NpdGVzOkxpc3QiLCJVc2Vyc1NpdGVzOlVuYXNzaWduIl0sInNpdGVzQWRtaW4iOltdLCJzaXRlc093bmVyIjpbXSwic2l0ZXMiOltdLCJhY3RpdmVDb21wb25lbnRzIjpbIm9jcGkiLCJwcmljaW5nIiwib3JnYW5pemF0aW9uIiwic3RhdGlzdGljcyIsImFuYWx5dGljcyIsImFzc2V0Iiwic21hcnRDaGFyZ2luZyIsImNhciJdLCJpYXQiOjE2MTk3MTgyMDQsImV4cCI6MTYxOTc2MTQwNH0.9dsEC3bnfkU-jJhV1KuWfr6jDwKpOK8r2FIc6pt5mQI';
+const hostRestApi = 'localhost';
+const portRestApi = '8090';
+const httpsClient = false;
+const httpClient = httpsClient ? https : http;
+const switchEndpointPathURI = `/v1/api/ccp/switch`;
+
+const poolTypeArray = ['Gireve', 'Vedecom', 'Elaad', 'Hubject'];
+
+const args = process.argv.slice(2);
+const cmd = args[0];
+
+let ccpType;
+
+switch (cmd) {
+  case 'switch':
+    ccpType = args[1];
+    switchCcpPool(ccpType);
+    break;
+  default:
+    console.log(`Usage: - ./CertificatesPool.js switch <ccpPoolType>`);
+}
+
+function requestCallback(response) {
+  var str = '';
+  response.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  response.on('end', function () {
+    console.log(str);
+    if (response.statusCode != 200) {
+      console.error('API call failed with response code ' + response.statusCode);
+    }
+  });
+}
+
+function switchCcpPool(ccpType) {
+  if (!ccpType) {
+    console.error('Contract Certificate Pool type CLI argument not provided');
+    return;
+  }
+  if (!poolTypeArray.includes(ccpType)) {
+    console.error('Invalid Contract Certificate Pool type CLI argument provided');
+    return;
+  }
+  const requestOptions = {
+    host: `${hostRestApi}`,
+    port: `${portRestApi}`,
+    path: `${switchEndpointPathURI}`,
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Tenant': tenantID,
+      'Authorization': `Bearer ${token}`
+    }
+  };
+  const httpRequest = httpClient.request(requestOptions, requestCallback);
+  httpRequest.write(JSON.stringify({
+    ccpType: ccpType,
+  }));
+  httpRequest.end();
+}
+

@@ -98,7 +98,7 @@ export default class ConnectionService {
     // Check
     ConnectionValidator.getInstance().validateConnectionCreation(req.body);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleCreateConnection',
       message: `Connection to '${connection.connectorId}' has been created successfully`,
@@ -129,7 +129,7 @@ export default class ConnectionService {
     // Delete
     await ConnectionStorage.deleteConnectionById(req.user.tenantID, connection.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       actionOnUser: connection.userId,
