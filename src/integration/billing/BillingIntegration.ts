@@ -77,9 +77,8 @@ export default abstract class BillingIntegration {
       'All the users are up to date'
     );
     // Update last synchronization
-    const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-    billingSettings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
+    this.settings.billing.usersLastSynchronizedOn = new Date();
+    await SettingStorage.saveBillingSetting(this.tenantID, this.settings);
     // Result
     return actionsDone;
   }
@@ -331,6 +330,8 @@ export default abstract class BillingIntegration {
   }
 
   abstract checkConnection(): Promise<void>;
+
+  abstract checkActivationPrerequisites(): Promise<void>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
