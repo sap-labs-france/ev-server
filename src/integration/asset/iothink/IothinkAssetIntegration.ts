@@ -82,7 +82,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const energyDirection = asset.assetType === AssetType.PRODUCTION ? -1 : 1;
     if (!Utils.isEmptyArray(mergedResponseArray)) {
       for (const mergedConsumption of mergedResponseArray) {
-        if (Utils.isUndefined(typeof mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
+        if (Utils.isUndefined(mergedConsumption[IothinkProperty.IO_POW_ACTIVE])) {
           // Skip if current power is undefined
           continue;
         }
@@ -113,8 +113,8 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
           case AssetType.CONSUMPTION_AND_PRODUCTION:
             Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
             consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
-            consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE)
-            - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE);
+            consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE)
+            - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE);
             if (asset.siteArea?.voltage) {
               consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
             }
