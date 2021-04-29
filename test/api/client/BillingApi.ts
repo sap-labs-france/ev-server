@@ -1,5 +1,6 @@
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class BillingApi extends CrudApi {
@@ -30,4 +31,17 @@ export default class BillingApi extends CrudApi {
   public async downloadInvoiceDocument(params?) {
     return await super.read(params, '/client/api/BillingDownloadInvoice');
   }
+
+  public async getBillingSetting(params?) {
+    return await super.read(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING));
+  }
+
+  public async checkBillingConnection(params?) {
+    return await super.create(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_CHECK));
+  }
+
+  public async updateBillingSetting(params?) {
+    return await super.update(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING));
+  }
+
 }
