@@ -4,7 +4,7 @@ import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../../types/re
 import User, { UserRole, UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
-import AuthValidator from '../validator/AuthValidation';
+import AuthValidator from '../validator/AuthValidator';
 import Authorizations from '../../../../authorization/Authorizations';
 import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
@@ -39,8 +39,6 @@ if (_centralSystemRestConfig) {
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: _centralSystemRestConfig.userTokenKey
-    // pragma issuer: 'evse-dashboard',
-    // audience: 'evse-dashboard'
   };
   // Use
   passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
@@ -172,6 +170,7 @@ export default class AuthService {
       });
     }
     // Check Mandatory field
+    Object.assign(filteredRequest, { password: filteredRequest.passwords.password });
     UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
@@ -277,7 +276,8 @@ export default class AuthService {
     next();
   }
 
-  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request,
+      res: Response, next: NextFunction): Promise<void> {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
@@ -515,7 +515,7 @@ export default class AuthService {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       try {
-        await billingImpl.createUser(user);
+        await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
           tenantID: tenantID,
           module: MODULE_NAME, method: 'handleVerifyEmail',

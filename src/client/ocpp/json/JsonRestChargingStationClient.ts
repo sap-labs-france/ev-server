@@ -1,11 +1,11 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPDeleteCertificateCommandParam, OCPPDeleteCertificateCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPGetInstalledCertificateIdsCommandParam, OCPPGetInstalledCertificateIdsCommandResult, OCPPInstallCertificateCommandParam, OCPPInstallCertificateCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSClient from '../../websocket/WSClient';
 import { WSClientOptions } from '../../../types/WebSocket';
@@ -116,12 +116,12 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       let WSOptions = {};
       if (Configuration.isCloudFoundry()) {
         WSOptions = {
-          protocol: 'rest',
+          protocol: WSServerProtocol.REST,
           headers: { 'X-CF-APP-INSTANCE': this.chargingStation.cfApplicationIDAndInstanceIndex }
         };
       } else {
         WSOptions = {
-          protocol: 'rest'
+          protocol: WSServerProtocol.REST
         };
       }
       const wsClientOptions: WSClientOptions = {
@@ -132,9 +132,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       };
       this.wsConnection = new WSClient(this.serverURL, wsClientOptions);
       // Opened
-      this.wsConnection.onopen = () => {
+      this.wsConnection.onopen = async () => {
         // Log
-        void Logging.logInfo({
+        await Logging.logInfo({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
@@ -145,9 +145,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         resolve();
       };
       // Closed
-      this.wsConnection.onclose = (code: number) => {
+      this.wsConnection.onclose = async (code: number) => {
         // Log
-        void Logging.logInfo({
+        await Logging.logInfo({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
@@ -156,9 +156,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         });
       };
       // Handle Error Message
-      this.wsConnection.onerror = (error: Error) => {
+      this.wsConnection.onerror = async (error: Error) => {
         // Log
-        void Logging.logError({
+        await Logging.logError({
           tenantID: this.tenantID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
@@ -170,7 +170,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         this.terminateConnection();
       };
       // Handle Server Message
-      this.wsConnection.onmessage = (message) => {
+      this.wsConnection.onmessage = async (message) => {
         try {
           // Parse the message
           const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
@@ -179,7 +179,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Check message type
             if (messageType === OCPPMessageType.CALL_ERROR_MESSAGE) {
               // Error message
-              void Logging.logError({
+              await Logging.logError({
                 tenantID: this.tenantID,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
@@ -197,8 +197,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             this.closeConnection();
           } else {
             // Error message
-            // eslint-disable-next-line no-lonely-if
-            void Logging.logError({
+            await Logging.logError({
               tenantID: this.tenantID,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
@@ -209,7 +208,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          void Logging.logException(
+          await Logging.logException(
             error,
             ServerAction.WS_REST_CLIENT_MESSAGE,
             this.chargingStation.id,

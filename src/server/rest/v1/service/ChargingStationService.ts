@@ -6,7 +6,6 @@ import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRem
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
-import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
@@ -522,7 +521,7 @@ export default class ChargingStationService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
@@ -1070,7 +1069,7 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationInErrorReq(req.query);
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -1107,7 +1106,7 @@ export default class ChargingStationService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       projectFields
@@ -1158,7 +1157,7 @@ export default class ChargingStationService {
 
   public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationFirmwareDownloadReq(req.query);
     if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1545,7 +1544,7 @@ export default class ChargingStationService {
         Utils.replaceSpecialCharsInCSVValueParam(param.value),
         ocppParams.siteAreaName,
         ocppParams.siteName,
-      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      ].map((value) => Utils.replaceDoubleQuotes(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1609,7 +1608,7 @@ export default class ChargingStationService {
         i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
         chargingStation.maximumPower,
         chargingStation.powerLimitUnit
-      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      ].map((value) => Utils.replaceDoubleQuotes(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);

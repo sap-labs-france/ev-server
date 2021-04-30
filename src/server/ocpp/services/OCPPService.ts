@@ -379,7 +379,7 @@ export default class OCPPService {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
-      OCPPValidation.getInstance().validateMeterValues(headers.tenantID, chargingStation, meterValues);
+      await OCPPValidation.getInstance().validateMeterValues(headers.tenantID, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
@@ -1019,7 +1019,8 @@ export default class OCPPService {
     try {
       // Check the charging station
       await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      const ccpClient = new ContractCertificatePoolClient(await TenantStorage.getTenant(headers.tenantID));
+      const ccpClient = ContractCertificatePoolClient.getInstance();
+      ccpClient.initialize(headers.tenantID, headers.chargeBoxIdentity);
       const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate['15118SchemaVersion'], ev15118Certificate.exiRequest);
       return {
         status: OCPP15118EVCertificateStatus.ACCEPTED,

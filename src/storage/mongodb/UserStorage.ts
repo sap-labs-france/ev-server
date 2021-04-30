@@ -46,7 +46,7 @@ export default class UserStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (eulasMDB && eulasMDB.length > 0) {
+    if (!Utils.isEmptyArray(eulasMDB)) {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
@@ -146,7 +146,7 @@ export default class UserStorage {
     // User provided?
     if (userID) {
       // At least one Site
-      if (siteIDs && siteIDs.length > 0) {
+      if (!Utils.isEmptyArray(siteIDs)) {
         // Create the lis
         await global.database.getCollection<User>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
@@ -164,7 +164,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // At least one Site
-    if (siteIDs && siteIDs.length > 0) {
+    if (!Utils.isEmptyArray(siteIDs)) {
       const siteUsersMDB = [];
       // Create the list
       for (const siteID of siteIDs) {
@@ -182,7 +182,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
-  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage = false): Promise<string> {
+  public static async saveUser(tenantID: string, userToSave: User, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUser');
     // Check Tenant
@@ -586,7 +586,7 @@ export default class UserStorage {
       filters['billingData.customerID'] = params.billingUserID;
     }
     // Status (Previously getUsersInError)
-    if (params.statuses && params.statuses.length > 0) {
+    if (!Utils.isEmptyArray(params.statuses)) {
       filters.status = { $in: params.statuses };
     }
     // Notifications
@@ -670,7 +670,7 @@ export default class UserStorage {
       // Return only the count
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsers', uniqueTimerID, usersCountMDB);
       return {
-        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(usersCountMDB) ? usersCountMDB[0].count : 0),
         result: []
       };
     }
@@ -707,7 +707,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsers', uniqueTimerID, usersMDB);
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
@@ -771,7 +771,7 @@ export default class UserStorage {
       // Return only the count
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportCountMDB);
       return {
-        count: (usersImportCountMDB.length > 0 ? usersImportCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(usersImportCountMDB) ? usersImportCountMDB[0].count : 0),
         result: []
       };
     }
@@ -810,7 +810,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsersImport', uniqueTimerID, usersImportMDB);
     // Ok
     return {
-      count: (usersImportCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(usersImportCountMDB) ?
         (usersImportCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersImportCountMDB[0].count) : 0),
       result: usersImportMDB
     };
@@ -996,7 +996,7 @@ export default class UserStorage {
     if (dbParams.onlyRecordCount) {
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, sitesCountMDB);
       return {
-        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(sitesCountMDB) ? sitesCountMDB[0].count : 0),
         result: []
       };
     }
@@ -1033,7 +1033,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, siteUsersMDB);
     // Ok
     return {
-      count: (sitesCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: siteUsersMDB
     };

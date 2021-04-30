@@ -1,6 +1,5 @@
 import { OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPGet15118EVCertificateRequest, OCPPGet15118EVCertificateResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
-import ChargingStationConfiguration from '../../../../types/configuration/ChargingStationConfiguration';
 import Logging from '../../../../utils/Logging';
 import { OCPPHeader } from '../../../../types/ocpp/OCPPHeader';
 import OCPPService from '../../services/OCPPService';
@@ -11,11 +10,9 @@ import global from '../../../../types/GlobalType';
 const MODULE_NAME = 'JsonChargingStationService';
 
 export default class JsonChargingStationService {
-  public chargingStationService: OCPPService;
-  private chargingStationConfig: ChargingStationConfiguration;
+  private chargingStationService: OCPPService;
 
-  constructor(chargingStationConfig: ChargingStationConfiguration) {
-    this.chargingStationConfig = chargingStationConfig;
+  constructor() {
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
   }

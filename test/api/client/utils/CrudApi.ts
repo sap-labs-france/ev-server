@@ -1,4 +1,6 @@
 import AuthenticatedBaseApi from './AuthenticatedBaseApi';
+import SafeUrlAssembler from 'safe-url-assembler';
+import { ServerRoute } from '../../../../src/types/Server';
 import TestConstants from './TestConstants';
 
 /**
@@ -27,7 +29,7 @@ export default class CrudApi {
    * @param {*} authenticatedApi
    * @memberof CrudApi
    */
-  public setAutheticatedApi(authenticatedApi) {
+  public setAutheticatedApi(authenticatedApi): void {
     this._authenticatedApi = authenticatedApi;
   }
 
@@ -39,7 +41,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async readById(id, path) {
+  public async readById(id, path): Promise<any> {
     return await this.read({ ID: id }, path);
   }
 
@@ -51,7 +53,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async read(params, path) {
+  public async read(params, path): Promise<any> {
     return await this._authenticatedApi.send({
       method: 'GET',
       url: path,
@@ -69,7 +71,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async readAll(params = {}, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING, path) {
+  public async readAll(params = {}, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING, path): Promise<any> {
     // Build Paging
     this._buildPaging(paging, params);
     // Build Ordering
@@ -90,7 +92,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async create(data, path) {
+  public async create(data, path): Promise<any> {
     return await this._authenticatedApi.send({
       method: 'POST',
       url: path,
@@ -106,7 +108,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public async update(data, path) {
+  public async update(data, path): Promise<any> {
     return await this._authenticatedApi.send({
       method: 'PUT',
       url: path,
@@ -122,7 +124,7 @@ export default class CrudApi {
    * @returns
    * @memberof CrudApi
    */
-  public async delete(id, path) {
+  public async delete(id, path): Promise<any> {
     return await this._authenticatedApi.send({
       method: 'DELETE',
       url: path,
@@ -130,6 +132,17 @@ export default class CrudApi {
         ID: id
       }
     });
+  }
+
+  // Build URL targeting REST endpoints
+  protected buildRestEndpointUrl(urlPatternAsString: ServerRoute, params: {
+    // Just a flat list of key/value pairs!
+    [name: string]: string | number | null;
+  } = {}): string {
+    const url = SafeUrlAssembler('/v1/api/')
+      .template(urlPatternAsString)
+      .param(params);
+    return url.toString();
   }
 
   // Build the paging in the Queryparam

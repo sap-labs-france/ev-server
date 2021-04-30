@@ -251,7 +251,7 @@ export default class TransactionStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (!firstTransactionsMDB || firstTransactionsMDB.length === 0) {
+    if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
     }
     const transactionYears = [];
@@ -271,7 +271,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
+        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -346,6 +346,13 @@ export default class TransactionStorage {
     // Tag
     if (params.tagIDs) {
       filters.tagID = { $in: params.tagIDs };
+    }
+    // Has user ID?
+    if (params.hasUserID) {
+      filters.$and = [
+        { 'userID': { '$exists': true } },
+        { 'userID': { '$ne': null } }
+      ];
     }
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
@@ -1283,11 +1290,16 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $or: [
-                { 'billingData': { $exists: false } },
-                { 'billingData.stop': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $exists: false } },
-                { 'billingData.stop.invoiceID': { $eq: null } }
+              $and: [
+                { 'billingData.isTransactionBillingActivated': { $eq: true } },
+                {
+                  $or: [
+                    { 'billingData': { $exists: false } },
+                    { 'billingData.stop': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $exists: false } },
+                    { 'billingData.stop.invoiceID': { $eq: null } }
+                  ]
+                }
               ]
             }
           },

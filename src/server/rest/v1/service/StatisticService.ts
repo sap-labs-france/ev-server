@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
 import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
@@ -640,9 +641,9 @@ export default class StatisticService {
         });
       }
       // Now build the export file
-      let numberOfTransaction: number;
+      let numberOfTransactions: number;
       const rows = transactions.map((transaction) => {
-        numberOfTransaction = Utils.truncTo(transaction.total, 2);
+        numberOfTransactions = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
@@ -650,8 +651,8 @@ export default class StatisticService {
           dataCategory === StatsDataCategory.CHARGING_STATION ? transaction.chargeBox : Utils.buildUserFullName(transaction.user, false),
           year && year !== '0' ? year : '',
           transaction.month > 0 ? transaction.month : '',
-          dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransaction) : numberOfTransaction.toString()
-        ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+          dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransactions) : numberOfTransactions.toString()
+        ].map((value) => Utils.replaceDoubleQuotes(value));
         return row;
       }).join(Constants.CR_LF);
       return [headers, rows].join(Constants.CR_LF);

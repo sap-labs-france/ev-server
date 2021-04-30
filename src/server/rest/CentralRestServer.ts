@@ -8,13 +8,13 @@ import AuthService from './v1/service/AuthService';
 import CentralRestServerService from './CentralRestServerService';
 import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ChangeNotification from '../../types/ChangeNotification';
-import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import ExpressTools from '../ExpressTools';
+import ExpressUtils from '../ExpressUtils';
 import GlobalRouter from './v1/router/GlobalRouter';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import { ServerUtils } from '../ServerUtils';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
@@ -30,16 +30,14 @@ export default class CentralRestServer {
   private static socketIOServer: Server;
   private static changeNotifications: ChangeNotification[] = [];
   private static singleChangeNotifications: SingleChangeNotification[] = [];
-  private chargingStationConfig: ChargingStationConfiguration;
   private expressApplication: express.Application;
 
   // Create the rest server
-  constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration) {
     // Keep params
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
-    this.chargingStationConfig = chargingStationConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication('2mb', centralSystemRestConfig.debug);
+    this.expressApplication = ExpressUtils.initApplication('2mb', centralSystemRestConfig.debug);
     // Mount express-sanitizer middleware
     this.expressApplication.use(sanitize());
     // Authentication
@@ -60,9 +58,9 @@ export default class CentralRestServer {
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
     // Post init
-    ExpressTools.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication);
     // Create HTTP server to serve the express app
-    CentralRestServer.restHttpServer = ExpressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
+    CentralRestServer.restHttpServer = ServerUtils.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   startSocketIO(): void {
@@ -175,7 +173,7 @@ export default class CentralRestServer {
 
   // Start the server
   start(): void {
-    ExpressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
+    ServerUtils.startHttpServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, MODULE_NAME, 'REST');
   }
 
   public notifyUser(tenantID: string, action: Action, data: NotificationData): void {
