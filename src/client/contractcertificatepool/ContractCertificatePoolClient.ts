@@ -61,8 +61,7 @@ export default class ContractCertificatePoolClient {
       exiRequest
     };
     // Get 15118 EV Certificate
-    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType),
-      ocpi15118EVCertificateRequest);
+    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType), ocpi15118EVCertificateRequest);
     const ocpi15118EVCertificateResponse = result.data;
     if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
       return ocpi15118EVCertificateResponse.data.exiResponse;
