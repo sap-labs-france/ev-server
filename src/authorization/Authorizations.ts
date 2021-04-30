@@ -676,7 +676,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
   }
 
-  public static async canCheckConnectionBilling(loggedUser: UserToken): Promise<boolean> {
+  public static async canCheckBillingConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
@@ -734,6 +734,14 @@ export default class Authorizations {
 
   public static async canDeletePaymentMethod(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.PAYMENT_METHOD, Action.CREATE);
+  }
+
+  public static async canReadBillingSetting(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ);
+  }
+
+  public static async canUpdateBillingSetting(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.UPDATE);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

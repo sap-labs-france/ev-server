@@ -144,7 +144,7 @@ export default class TagService {
       });
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { tagIDs: [filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (!Utils.isEmptyArray(transactions.result)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
