@@ -228,7 +228,7 @@ export default class CpoOCPIClient extends OCPIClient {
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
-      id: authorizationId,
+      id: transaction.id.toString(),
       start_datetime: transaction.timestamp,
       kwh: 0,
       auth_method: OCPIAuthMethod.AUTH_REQUEST,

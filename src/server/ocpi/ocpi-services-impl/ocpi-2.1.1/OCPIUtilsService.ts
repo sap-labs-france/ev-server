@@ -1,7 +1,7 @@
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationOptions, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
@@ -187,9 +187,7 @@ export default class OCPIUtilsService {
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: {
-        twentyfourseven: true,
-      }
+      opening_times: this.buildOpeningHours(tenant, site)
     };
   }
 
@@ -943,5 +941,50 @@ export default class OCPIUtilsService {
         }
       }
     }
+  }
+
+  // TODO: Implement the Opening Hours in the Site and send it to OCPI
+  private static buildOpeningHours(tenant: Tenant, site: Site): OCPIOpeningTimes {
+    switch (tenant?.id) {
+      // SLF
+      case '5be7fb271014d90008992f06':
+        // Mougins
+        switch (site.id) {
+          case '5abeba8d4bae1457eb565e5b':
+            return {
+              regular_hours: [
+                {
+                  weekday: 1, // Monday
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+              ]
+            };
+        }
+    }
+    // Default
+    return {
+      twentyfourseven: true,
+    };
   }
 }
