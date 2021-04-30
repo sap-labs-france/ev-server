@@ -1061,9 +1061,7 @@ export default class CpoOCPIClient extends OCPIClient {
         last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: {
-        twentyfourseven: true,
-      }
+      opening_times: OCPIUtilsService.buildOpeningTimes(tenant, site)
     };
     return ocpiLocation;
   }
