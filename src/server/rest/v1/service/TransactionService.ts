@@ -207,7 +207,16 @@ export default class TransactionService {
         user: req.user, action: action
       });
     }
-    // Check if transaction was handled with Gireve or Hubject
+    // No Roaming Cdr to push
+    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
+        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, action: action
+      });
+    }
     // Check OCPI
     if (transaction.ocpiData.session) {
       // CDR already pushed
@@ -226,6 +235,8 @@ export default class TransactionService {
         try {
           // Post CDR
           await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          // Save
+          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -260,6 +271,8 @@ export default class TransactionService {
         try {
           // Post CDR
           await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          // Save
+          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -273,38 +286,6 @@ export default class TransactionService {
           // Release the lock
           await LockingManager.release(oicpLock);
         }
-      }
-    }
-    // No Roaming Cdr to push
-    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
-        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action: action
-      });
-    }
-    // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
-    if (ocpiLock) {
-      try {
-        // Post CDR
-        await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
-        // Save
-        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-        // Ok
-        await Logging.logInfo({
-          tenantID: req.user.tenantID,
-          action: action,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-          detailedMessages: { cdr: transaction.ocpiData.cdr }
-        });
-      } finally {
-        // Release the lock
-        await LockingManager.release(ocpiLock);
       }
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);

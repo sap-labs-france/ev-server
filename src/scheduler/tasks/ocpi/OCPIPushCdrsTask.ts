@@ -95,11 +95,12 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       detailedMessages: { cdr: transaction.ocpiData.cdr }
                     });
                   } catch (error) {
-                    await Logging.logInfo({
+                    await Logging.logError({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
                       message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
+                      detailedMessages: { error: error.message, stack: error.stack, transaction: transactionMDB }
                     });
                   } finally {
                     // Release the lock
