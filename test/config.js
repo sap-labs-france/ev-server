@@ -197,12 +197,12 @@ const config = convict({
   },
   axios: {
     timeout: {
-      doc: 'axios HTTP client connection timeout',
+      doc: 'Axios HTTP client connection timeout',
       format: 'int',
       default: 60000,
     },
     retries: {
-      doc: 'axios HTTP client re-connection max retries.',
+      doc: 'Axios HTTP client re-connection max retries.',
       format: 'int',
       default: 0,
     },
