@@ -912,9 +912,9 @@ export default class TransactionService {
         'startTime',
         'endDate',
         'endTime',
-        'totalConsumption',
-        'totalDuration',
-        'totalInactivity',
+        'totalConsumptionkWh',
+        'totalDurationMins',
+        'totalInactivityMins',
         'price',
         'priceUnit'
       ];
@@ -935,9 +935,12 @@ export default class TransactionService {
         (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss'),
         (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : ''),
         (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : ''),
-        transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '',
-        transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '',
-        transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalConsumptionWh ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber(), 2) : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalDurationSecs ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalDurationSecs).div(60).toNumber(), 2) : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalInactivitySecs ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalInactivitySecs).div(60).toNumber(), 2) : 0) : '',
         transaction.stop ? transaction.stop.roundedPrice : '',
         transaction.stop ? transaction.stop.priceUnit : ''
       ].map((value) => Utils.replaceDoubleQuotes(value));
