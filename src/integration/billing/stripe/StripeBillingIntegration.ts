@@ -1147,14 +1147,29 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return this.convertToBillingUser(customer, user);
   }
 
-  private _buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string } {
+  private _buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string, address: Stripe.Address } {
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newCustomer: any = {
       name: Utils.buildUserFullName(user, false, false),
       description: i18nManager.translate('billing.generatedUser', { email: user.email }),
       preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
-      email: user.email
+      email: user.email,
     };
+    // Assign the address (if any)
+    if (user.address) {
+      const { address1: line1, address2: line2, postalCode: postal_code, city, region: state, country, /* department */ } = user.address;
+      const address: Stripe.Address = {
+        line1,
+        line2,
+        postal_code,
+        city,
+        state,
+        country
+      };
+      newCustomer.address = address;
+    }
+    return newCustomer;
   }
 
   public async deleteUser(user: User): Promise<void> {
