@@ -629,7 +629,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No CDRs have been checked'
+      'No CDR to be checked'
     );
     return result;
   }
