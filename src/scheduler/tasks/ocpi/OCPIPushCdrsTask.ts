@@ -61,7 +61,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       });
                       continue;
                     }
-                    if (transaction.ocpiData && transaction.ocpiData.cdr) {
+                    if (transaction.ocpiData?.cdr) {
                       await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_PUSH_CDRS,

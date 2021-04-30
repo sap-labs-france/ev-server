@@ -1198,29 +1198,35 @@ export default class OCPPService {
   }
 
   private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
-    // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
-    if (ocpiLock) {
-      try {
-        // Process
-        await OCPPUtils.processOCPITransaction(tenantID, transaction, chargingStation, TransactionAction.END);
-      } finally {
-        // Release the lock
-        await LockingManager.release(ocpiLock);
+    // CDR not already pushed
+    if (transaction.ocpiData && !transaction.ocpiData.cdr?.id) {
+      // Get the lock
+      const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
+      if (ocpiLock) {
+        try {
+          // Process
+          await OCPPUtils.processOCPITransaction(tenantID, transaction, chargingStation, TransactionAction.END);
+        } finally {
+          // Release the lock
+          await LockingManager.release(ocpiLock);
+        }
       }
     }
   }
 
   private async checkAndSendOICPTransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
-    // Get the lock
-    const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
-    if (oicpLock) {
-      try {
-        // Process
-        await OCPPUtils.processOICPTransaction(tenantID, transaction, chargingStation, TransactionAction.END);
-      } finally {
-        // Release the lock
-        await LockingManager.release(oicpLock);
+    // CDR not already pushed
+    if (transaction.oicpData && !transaction.oicpData.cdr?.SessionID) {
+      // Get the lock
+      const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
+      if (oicpLock) {
+        try {
+          // Process
+          await OCPPUtils.processOICPTransaction(tenantID, transaction, chargingStation, TransactionAction.END);
+        } finally {
+          // Release the lock
+          await LockingManager.release(oicpLock);
+        }
       }
     }
   }
