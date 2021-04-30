@@ -545,6 +545,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerID
       });
+
+      // Add billing_details to the payment method
+      // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2) in the address
+      // await this.stripe.paymentMethods.update(
+      //   paymentMethodId, {
+      //     billing_details: StripeHelpers.buildBillingDetails(user)
+      //   }
+      // );
+
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -1099,7 +1108,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Checks create a new STRIPE customer
     const customer: Stripe.Customer = await this.stripe.customers.create({
-      ...this._buildCustomerCommonProperties(user),
+      ...StripeHelpers.buildCustomerCommonProperties(user),
       metadata: {
         tenantID: this.tenantID,
         userID: user.id // IMPORTANT - keep track on the stripe side of the original eMobility user
@@ -1136,7 +1145,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Update user data
     const updateParams: Stripe.CustomerUpdateParams = {
-      ...this._buildCustomerCommonProperties(user),
+      ...StripeHelpers.buildCustomerCommonProperties(user),
     };
     // Update changed data
     customer = await this.stripe.customers.update(customerID, updateParams);
@@ -1145,31 +1154,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenantID, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
-  }
-
-  private _buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string, address: Stripe.Address } {
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newCustomer: any = {
-      name: Utils.buildUserFullName(user, false, false),
-      description: i18nManager.translate('billing.generatedUser', { email: user.email }),
-      preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
-      email: user.email,
-    };
-    // Assign the address (if any)
-    if (user.address) {
-      const { address1: line1, address2: line2, postalCode: postal_code, city, region: state, country, /* department */ } = user.address;
-      const address: Stripe.Address = {
-        line1,
-        line2,
-        postal_code,
-        city,
-        state,
-        country
-      };
-      newCustomer.address = address;
-    }
-    return newCustomer;
   }
 
   public async deleteUser(user: User): Promise<void> {
