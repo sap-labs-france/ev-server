@@ -669,6 +669,7 @@ export default class OCPPService {
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
+        id: await TransactionStorage.findAvailableID(tenant.id),
         issuer: true,
         chargeBoxID: startTransaction.chargeBoxID,
         tagID: startTransaction.idTag,
@@ -734,7 +735,6 @@ export default class OCPPService {
       if (transaction.user && !transaction.user.issuer) {
         // Assumption: Either Gireve or Hubject is enabled for eRoaming
         // OCPI or OICP
-        // TODO: OCPI and OICP must work together and then the IOP must be identified clearly to call the right implementation
         if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
           // OCPI
           await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
@@ -744,7 +744,7 @@ export default class OCPPService {
         }
       }
       // Save it
-      transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
+      await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
       const foundConnector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
       if (foundConnector) {
@@ -1226,29 +1226,35 @@ export default class OCPPService {
   }
 
   private async checkAndSendOCPITransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
-    // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
-    if (ocpiLock) {
-      try {
-        // Process
-        await OCPPUtils.processOCPITransaction(tenantID, transaction, chargingStation, TransactionAction.END);
-      } finally {
-        // Release the lock
-        await LockingManager.release(ocpiLock);
+    // CDR not already pushed
+    if (transaction.ocpiData && !transaction.ocpiData.cdr?.id) {
+      // Get the lock
+      const ocpiLock = await LockingHelper.createOCPIPushCdrLock(tenantID, transaction.id);
+      if (ocpiLock) {
+        try {
+          // Process
+          await OCPPUtils.processOCPITransaction(tenantID, transaction, chargingStation, TransactionAction.END);
+        } finally {
+          // Release the lock
+          await LockingManager.release(ocpiLock);
+        }
       }
     }
   }
 
   private async checkAndSendOICPTransactionCdr(tenantID: string, transaction: Transaction, chargingStation: ChargingStation) {
-    // Get the lock
-    const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
-    if (oicpLock) {
-      try {
-        // Process
-        await OCPPUtils.processOICPTransaction(tenantID, transaction, chargingStation, TransactionAction.END);
-      } finally {
-        // Release the lock
-        await LockingManager.release(oicpLock);
+    // CDR not already pushed
+    if (transaction.oicpData && !transaction.oicpData.cdr?.SessionID) {
+      // Get the lock
+      const oicpLock = await LockingHelper.createOICPPushCdrLock(tenantID, transaction.id);
+      if (oicpLock) {
+        try {
+          // Process
+          await OCPPUtils.processOICPTransaction(tenantID, transaction, chargingStation, TransactionAction.END);
+        } finally {
+          // Release the lock
+          await LockingManager.release(oicpLock);
+        }
       }
     }
   }
