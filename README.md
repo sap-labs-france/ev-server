@@ -17,7 +17,7 @@ The application features:
 ## Installation
 
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
-* Install Python: https://www.python.org/
+* Install Python: https://www.python.org/ (needed by node-gyp)
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
