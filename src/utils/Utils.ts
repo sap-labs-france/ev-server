@@ -833,7 +833,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any[]): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (!array) {
       return true;
     }
@@ -932,7 +932,7 @@ export default class Utils {
   }
 
   public static buildRestServerURL(): string {
-    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    const centralSystemRestServer = Configuration.getCentralSystemRestServerConfig();
     return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
@@ -1442,5 +1442,9 @@ export default class Utils {
 
   public static getHostname(): string {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+  }
+
+  public static replaceDoubleQuotes(value: any): string {
+    return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
   }
 }

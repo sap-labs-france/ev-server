@@ -18,6 +18,7 @@ import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -229,7 +230,8 @@ export default class StripeIntegrationTestData {
     // TODO - Why do we get the amount in cents here?
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
     const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
-    expect(lastPaidInvoiceDateTime).to.be.gt(beforeInvoiceDateTime);
+    // Stripe is using Unix Epoch for its date - and looses some precision
+    expect(lastPaidInvoiceDateTime).to.be.gte(moment.unix(beforeInvoiceDateTime / 1000).toDate().getTime());
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
@@ -308,7 +310,7 @@ export default class StripeIntegrationTestData {
   }
 
   public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
-    const paidInvoices = await await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
+    const paidInvoices = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');

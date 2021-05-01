@@ -16,7 +16,6 @@ import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
-import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
@@ -45,22 +44,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  private static async isConnectedToALiveAccount(stripeFacade: Stripe): Promise<boolean> {
-    try {
-      // TODO - find a way to avoid that call
-      const list = await stripeFacade.customers.list({ limit: 1 });
-      return !!list.data?.[0]?.livemode;
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'isConnectedToALiveAccount',
-        action: ServerAction.CHECK_CONNECTION,
-        message: 'Failed to connect to Stripe',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
   public async getStripeInstance(): Promise<Stripe> {
     // TODO - To be removed - only used by automated tests!
     await this.checkConnection();
@@ -77,26 +60,50 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe',
+          action: ServerAction.CHECK_BILLING_CONNECTION,
+          message: 'Failed to connect to Stripe - Key is inconsistent',
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
       // Try to connect
-      this.stripe = new Stripe(this.settings.stripe.secretKey, {
-        apiVersion: '2020-08-27',
-      });
-      // Let's check if the connection is working properly
-      if (!this.stripe) {
+      try {
+        this.stripe = new Stripe(this.settings.stripe.secretKey, {
+          apiVersion: '2020-08-27',
+        });
+        // Let's make sure the connection works as expected
+        this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
+      } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkConnection',
-          action: ServerAction.CHECK_CONNECTION,
-          message: 'Failed to connect to Stripe'
+          action: ServerAction.CHECK_BILLING_CONNECTION,
+          message: 'Failed to connect to Stripe',
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
-      // TODO - rethink that part - this is slow and useless!
-      // this.productionMode = await StripeBillingIntegration.isConnectedToALiveAccount(this.stripe);
+    }
+  }
+
+  public async checkActivationPrerequisites(): Promise<void> {
+    // Check whether the taxID is set and still active
+    const taxID = this.settings.billing?.taxID;
+    if (taxID) {
+      const billingTax: BillingTax = await this.getTaxRate(taxID);
+      if (!billingTax) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'checkActivationPrerequisites',
+          action: ServerAction.CHECK_BILLING_CONNECTION,
+          message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
+        });
+      }
+    } else {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'checkActivationPrerequisites',
+        action: ServerAction.CHECK_BILLING_CONNECTION,
+        message: 'Billing prerequisites are not consistent - taxID is mandatory'
+      });
     }
   }
 
@@ -200,16 +207,39 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: 'getTaxes',
         message: `Retrieved tax list (${taxes.length} taxes)`
       });
-    } catch (e) {
+    } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
-        message: `Stripe operation failed - ${e?.message as string}`
+        message: 'Failed to retrieve tax rates',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return taxes;
+  }
+
+  public async getTaxRate(taxID: string): Promise<BillingTax> {
+    await this.checkConnection();
+    let taxRate : BillingTax = null;
+    try {
+      const stripeTaxRate: Stripe.TaxRate = await this.stripe.taxRates.retrieve(taxID);
+      if (stripeTaxRate && stripeTaxRate.active) {
+        const { id, description, display_name: displayName, percentage } = stripeTaxRate;
+        taxRate = { id, description, displayName, percentage };
+      }
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenantID,
+        action: ServerAction.BILLING_TAXES,
+        module: MODULE_NAME, method: 'getTaxRate',
+        message: 'Failed to retrieve tax rate',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    return taxRate;
   }
 
   public async getStripeInvoice(id: string): Promise<Stripe.Invoice> {
@@ -581,14 +611,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
           requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
         }
       } while (request.has_more);
-    } catch (e) {
+    } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
         module: MODULE_NAME, method: '_getPaymentMethods',
-        message: `Stripe operation failed - ${e?.message as string}`
+        message: 'Failed to retrieve payment methods',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return paymentMethods;
@@ -818,7 +849,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: BillingInvoiceStatus.DRAFT,
       limit: 1
     });
-    return (list.data.length > 0) ? list.data[0] : null;
+    return !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -1005,7 +1036,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customer: user.billingData.customerID,
       status: BillingInvoiceStatus.OPEN,
     });
-    if (list && list.data && list.data.length > 0) {
+    if (list && !Utils.isEmptyArray(list.data)) {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,
@@ -1020,7 +1051,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customer: user.billingData.customerID,
       status: BillingInvoiceStatus.DRAFT,
     });
-    if (list && list.data && list.data.length > 0) {
+    if (list && !Utils.isEmptyArray(list.data)) {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.USER_DELETE,

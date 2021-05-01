@@ -8,8 +8,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import Authorizations from '../../../../authorization/Authorizations';
-import BackendError from '../../../../exception/BackendError';
-import CarFactory from '../../../../integration/car/CarFactory';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -468,7 +466,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Check User
     let userProject: string[] = [];
-    if (await Authorizations.canReadUser(req.user, req.user.id)) {
+    if (await Authorizations.canReadUser(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
@@ -617,7 +615,7 @@ export default class CarService {
         UtilsService.assertObjectExists(action, foundUser, `User ID '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
-        if (!await Authorizations.canReadUser(loggedUser, foundUser.id)) {
+        if (!await Authorizations.canReadUser(loggedUser)) {
           throw new AppAuthError({
             errorCode: HTTPAuthError.FORBIDDEN,
             user: loggedUser,

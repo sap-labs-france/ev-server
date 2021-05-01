@@ -11,12 +11,8 @@ import Utils from '../../../utils/Utils';
 const MODULE_NAME = 'JsonChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
-  public tagID: string;
-  public type: string;
-  public key: string;
   private chargingStationID: string;
   private tenantID: string;
-
   private wsConnection: JsonWSConnection;
 
   constructor(wsConnection: JsonWSConnection, tenantID: string, chargingStationID: string) {

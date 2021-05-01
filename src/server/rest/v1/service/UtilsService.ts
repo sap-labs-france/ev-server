@@ -11,11 +11,13 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
@@ -23,6 +25,7 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
+import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -34,6 +37,7 @@ import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import _ from 'lodash';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
@@ -94,7 +98,7 @@ export default class UtilsService {
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${chargingStation.id}' is logically deleted`,
         module: MODULE_NAME,
-        method: 'handleGetChargingStation',
+        method: 'checkAndGetChargingStationAuthorization',
         user: userToken
       });
     }
@@ -153,18 +157,8 @@ export default class UtilsService {
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
-    // Check static auth for reading user
-    if (!await Authorizations.canReadUser(userToken, userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
-        value: userID
-      });
-    }
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
       tenant, userToken, { ID: userID });
@@ -173,7 +167,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         value: userID
       });
     }
@@ -186,20 +180,20 @@ export default class UtilsService {
       applyProjectFields ? authorizationFilter.projectFields : null
     );
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
+      MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
     if (!user.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User '${user.name}' with ID '${user.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         user: userToken,
         action: action
       });
     }
     // Add actions
-    await AuthorizationService.addUserAuthorizations(tenant, userToken, user);
+    await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     // Check
     const authorized = AuthorizationService.canPerfomAction(user, authAction);
     if (!authorized) {
@@ -207,7 +201,7 @@ export default class UtilsService {
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.USER,
-        module: MODULE_NAME, method: 'checkAndGetCompanyAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
         value: userID
       });
     }
@@ -216,21 +210,11 @@ export default class UtilsService {
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
-    // Check static auth for reading site
-    if (!await Authorizations.canReadSite(userToken)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
-        value: siteID
-      });
-    }
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      tenant, userToken, { ID: siteID }, action);
+      tenant, userToken, { ID: siteID });
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -262,7 +246,7 @@ export default class UtilsService {
       });
     }
     // Add actions
-    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site);
+    await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter, { SiteID: siteID });
     // Check
     const authorized = AuthorizationService.canPerfomAction(site, authAction);
     if (!authorized) {
@@ -279,6 +263,17 @@ export default class UtilsService {
 
   public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
+    if (Utils.isEmptyArray(userIDs)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The User\'s IDs must be provided',
+        module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+        user: userToken
+      });
+    }
     // Check dynamic auth for assignment
     const authorizationFilter = await AuthorizationService.checkAssignSiteUsersAuthorizationFilters(
       tenant, action, userToken, { siteID: site.id, userIDs });
@@ -809,7 +804,7 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Profile ID is mandatory',
         module: MODULE_NAME,
-        method: 'checkIfOICPEndpointValid'
+        method: 'checkIfChargingProfileIsValid'
       });
     }
     if (!Utils.objectHasProperty(filteredRequest, 'chargingStationID')) {
@@ -1333,7 +1328,20 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
+    // Check for password requirement and validity if user is created
+    if (req.method === 'POST' && (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User Password is empty or not valid',
+        module: MODULE_NAME,
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
+    }
+    // Check for password validity if user's password is updated
+    if (req.method === 'PUT' && filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1521,5 +1529,80 @@ export default class UtilsService {
         user: req.user.id
       });
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
+    // Process the sensitive data (if any)
+    const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: 'Unexpected situation - sensitiveData is not an array',
+          module: MODULE_NAME,
+          method: 'processSensitiveData'
+        });
+      }
+      // Process sensitive properties
+      for (const propertyName of sensitivePropertyNames) {
+        // Get the sensitive property from the request
+        const newValue = _.get(newProperties, propertyName);
+        if (newValue && typeof newValue === 'string') {
+          // Get the sensitive property from the DB
+          const currentValue = _.get(currentProperties, propertyName);
+          if (currentValue && typeof currentValue === 'string') {
+            const currentHash = Cypher.hash(currentValue);
+            if (newValue !== currentHash) {
+            // Yes: Encrypt
+              _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+            } else {
+            // No: Put back the encrypted value
+              _.set(newProperties, propertyName, currentValue);
+            }
+          } else {
+          // Value in db is empty then encrypt
+            _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+          }
+        } else {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+            message: `The property '${propertyName}' is not set`,
+            module: MODULE_NAME,
+            method: 'processSensitiveData',
+          });
+        }
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static hashSensitiveData(tenantID: string, properties: object): unknown {
+    const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: 'Unexpected situation - sensitiveData is not an array',
+          module: MODULE_NAME,
+          method: 'hashSensitiveData'
+        });
+      }
+      for (const propertyName of sensitivePropertyNames) {
+        // Check that the property does exist otherwise skip to the next property
+        if (_.has(properties, propertyName)) {
+          const value = _.get(properties, propertyName);
+          // If the value is undefined, null or empty then do nothing and skip to the next property
+          if (value && typeof value === 'string') {
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            _.set(properties, propertyName, Cypher.hash(value));
+          }
+        }
+      }
+    }
+    return properties;
   }
 }

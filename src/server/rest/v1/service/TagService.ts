@@ -26,7 +26,7 @@ import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import TagValidator from '../validator/TagValidation';
+import TagValidator from '../validator/TagValidator';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -62,7 +62,7 @@ export default class TagService {
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTag', req.user);
     // Check Users
-    if (!await Authorizations.canReadUser(req.user, tag.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       delete tag.userID;
       delete tag.user;
     }
@@ -175,7 +175,7 @@ export default class TagService {
       });
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { tagIDs: [filteredRequest.id.toUpperCase()] }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (!Utils.isEmptyArray(transactions.result)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

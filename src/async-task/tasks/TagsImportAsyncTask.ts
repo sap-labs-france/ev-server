@@ -98,7 +98,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
             }
           }
           // Log
-          if (importedTags.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+          if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,

@@ -1,8 +1,8 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../../src/types/Server';
 
 import OCPPService from '../OCPPService';
-import { ServerAction } from '../../../../src/types/Server';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import { WSClientOptions } from '../../../../src/types/WebSocket';
@@ -28,7 +28,7 @@ export default class OCPPJsonService16 extends OCPPService {
       // Create WS
       const sentRequests = {};
       const wsClientOptions: WSClientOptions = {
-        protocols: 'ocpp1.6',
+        protocols: WSServerProtocol.OCPP16,
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
         autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
       };

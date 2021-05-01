@@ -40,7 +40,7 @@ import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
-import UserValidator from '../validator/UserValidation';
+import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
@@ -73,7 +73,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -155,7 +155,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -593,7 +593,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -624,7 +624,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -672,7 +672,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -771,7 +771,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
     // Return
     res.json(users);
     next();
@@ -1117,7 +1117,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, id)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1266,7 +1266,7 @@ export default class UserService {
     // Content
     const rows = users.map((user) => {
       const row = [
-        Cypher.hash(user.id),
+        user.id,
         user.name,
         user.firstName,
         user.locale,
@@ -1277,7 +1277,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      ].map((value) => Utils.replaceDoubleQuotes(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1334,7 +1334,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUsersFilters);
     // Return
     return users;
   }

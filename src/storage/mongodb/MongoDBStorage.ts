@@ -230,7 +230,7 @@ export default class MongoDBStorage {
       }
     );
     // Get the EVSE DB
-    this.db = mongoDBClient.db(this.dbConfig.schema);
+    this.db = mongoDBClient.db();
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
