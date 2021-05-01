@@ -17,6 +17,7 @@ The application features:
 ## Installation
 
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
+* Install Python: https://www.python.org/
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
@@ -35,14 +36,14 @@ The application features:
 * On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
 
 ```
-choco install -y nodejs-lts mongodb postman robot3t microsoft-build-tools
+choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 ```
 
 * On Mac OSX with **Homebrew** (https://brew.sh/), do:
 
 ```
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 postman robo-3t
+brew install node mongodb-community@4.2 python@3.9 postman robo-3t
 ```
 
 * Follow the rest of the setup below
