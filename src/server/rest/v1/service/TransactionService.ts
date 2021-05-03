@@ -208,7 +208,7 @@ export default class TransactionService {
       });
     }
     // No Roaming Cdr to push
-    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
+    if (!transaction.oicpData?.session && !transaction.ocpiData?.session) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
@@ -218,7 +218,7 @@ export default class TransactionService {
       });
     }
     // Check OCPI
-    if (transaction.ocpiData.session) {
+    if (transaction.ocpiData?.session) {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
@@ -253,7 +253,7 @@ export default class TransactionService {
       }
     }
     // Check OICP
-    if (transaction.oicpData.session) {
+    if (transaction.oicpData?.session) {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
