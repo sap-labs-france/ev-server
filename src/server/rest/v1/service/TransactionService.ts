@@ -234,7 +234,7 @@ export default class TransactionService {
       if (ocpiLock) {
         try {
           // Post CDR
-          await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processOCPITransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
@@ -270,7 +270,7 @@ export default class TransactionService {
       if (oicpLock) {
         try {
           // Post CDR
-          await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
@@ -342,7 +342,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
+    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.tenant, transaction);
     // Return
     res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();

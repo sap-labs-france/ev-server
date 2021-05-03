@@ -79,7 +79,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           // FIXME: Power limitation will be lost in consumptions (to check the implementation)
           const pricedTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
           // Rebuild Consumptions
-          await OCPPUtils.rebuildTransactionConsumptions(tenant.id, pricedTransaction);
+          await OCPPUtils.rebuildTransactionConsumptions(tenant, pricedTransaction);
           transactionsUpdated.inSuccess++;
         } catch (error) {
           transactionsUpdated.inError++;
