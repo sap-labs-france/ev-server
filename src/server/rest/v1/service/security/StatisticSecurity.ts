@@ -10,7 +10,7 @@ export default class StatisticSecurity {
       StartDateTime: request.StartDateTime ? sanitize(request.StartDateTime) : null,
       EndDateTime: request.EndDateTime ? sanitize(request.EndDateTime) : null,
       SiteAreaIDs: request.SiteAreaID ? sanitize(request.SiteAreaID).split('|') : null,
-      ChargeBoxIDs: request.ChargeBoxID ? sanitize(request.ChargeBoxID).split('|') : null,
+      ChargingStationIDs: request.ChargingStationID ? sanitize(request.ChargingStationID).split('|') : null,
       UserIDs: request.UserID ? sanitize(request.UserID).split('|') : null,
       SiteIDs: request.SiteID ? sanitize(request.SiteID).split('|') : null
     };

@@ -301,7 +301,7 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
     expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(0);
   }
@@ -330,7 +330,7 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
     expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.stats).to.containSubset({ count: 2 });
@@ -383,7 +383,7 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted({
-      ChargeBoxID: this.chargingStationContext.getChargingStation().id,
+      ChargingStationID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'history'
     });
     expect(transactions.status).to.equal(StatusCodes.OK);
@@ -446,7 +446,7 @@ export default class TransactionCommonTests {
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted({
       UserId: this.transactionUser.id,
-      ChargeBoxID: this.chargingStationContext.getChargingStation().id,
+      ChargingStationID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'refund'
     });
     expect(transactions.status).to.equal(StatusCodes.OK);
@@ -497,7 +497,7 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
     expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(0);
   }
@@ -526,7 +526,7 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
     expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([{
@@ -986,7 +986,7 @@ export default class TransactionCommonTests {
   }
 
   public async testReadActiveTransactionsWithoutActiveTransactions() {
-    const response = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    const response = await this.transactionUserService.transactionApi.readAllActive({ ChargingStationID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(StatusCodes.OK);
     expect(response.data.count).to.equal(0);
   }
@@ -1013,7 +1013,7 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId3 = startTransactionResponse.transactionId;
-    const transactions = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    const transactions = await this.transactionUserService.transactionApi.readAllActive({ ChargingStationID: this.chargingStationContext.getChargingStation().id });
     expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([

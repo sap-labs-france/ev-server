@@ -11,7 +11,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationLimitPowerRequest(request: any): HttpChargingStationLimitPowerRequest {
     return {
-      chargeBoxID: sanitize(request.chargeBoxID),
+      chargingStationID: sanitize(request.chargingStationID),
       chargePointID: sanitize(request.chargePointID),
       ampLimitValue: sanitize(request.ampLimitValue),
       forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
@@ -19,7 +19,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationOcppParametersRequest(request: any): HttpChargingStationOcppRequest {
-    return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+    return { ChargingStationID: sanitize(request.ChargingStationID) };
   }
 
   public static filterChargingStationConnectorRequest(request: any): HttpChargingStationConnectorRequest {
@@ -51,7 +51,7 @@ export default class ChargingStationSecurity {
 
   public static filterRequestChargingStationOcppParametersRequest(request: any): HttpChargingStationOcppParametersRequest {
     return {
-      chargeBoxID: sanitize(request.chargeBoxID),
+      chargingStationID: sanitize(request.chargingStationID),
       forceUpdateOCPPParamsFromTemplate: UtilsSecurity.filterBoolean(request.forceUpdateOCPPParamsFromTemplate)
     };
   }
@@ -216,7 +216,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationActionRequest(request: any): HttpChargingStationCommandRequest {
     const filteredRequest = {} as HttpChargingStationCommandRequest;
-    filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
+    filteredRequest.chargingStationID = sanitize(request.chargingStationID);
     if (Utils.objectHasProperty(request, 'carID')) {
       filteredRequest.carID = sanitize(request.carID);
     }
@@ -284,7 +284,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
     return {
-      chargeBoxID: sanitize(request.chargeBoxID),
+      chargingStationID: sanitize(request.chargingStationID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
     };
   }
