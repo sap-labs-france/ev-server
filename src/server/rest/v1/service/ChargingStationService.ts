@@ -1128,7 +1128,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
-    const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
+    const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(statusNotifications);
@@ -1148,7 +1148,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
-    const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
+    const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(bootNotifications);
