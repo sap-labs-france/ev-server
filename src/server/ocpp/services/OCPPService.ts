@@ -434,13 +434,26 @@ export default class OCPPService {
             transaction.numberOfMeterValues >= 1) {
             transaction.phasesUsed = Utils.getUsedPhasesInTransactionInProgress(chargingStation, transaction);
           }
-          // Handle OCPI
-          if (transaction.ocpiData?.session) {
-            await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
-          }
-          // Handle OICP
-          if (transaction.oicpData?.session.id) {
-            await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+          // Handle the Roaming
+          try {
+            // Handle OCPI
+            if (transaction.ocpiData?.session) {
+              await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+            }
+            // Handle OICP
+            if (transaction.oicpData?.session.id) {
+              await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+            }
+          } catch (error) {
+            await Logging.logError({
+              tenantID: headers.tenantID,
+              source: chargingStation.id,
+              action: ServerAction.METER_VALUES,
+              user: transaction.userID,
+              module: MODULE_NAME, method: 'handleMeterValues',
+              message: `Connector ID '${meterValues.connectorId.toString()}' > Transaction ID '${meterValues.transactionId.toString()}' > Roaming exception occurred`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
           }
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
@@ -947,13 +960,26 @@ export default class OCPPService {
         // Save Consumption
         await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       }
-      // Handle OCPI
-      if (transaction.ocpiData?.session) {
-        await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
-      }
-      // Handle OICP
-      if (transaction.oicpData?.session?.id) {
-        await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+      // Roaming
+      try {
+        // Handle OCPI
+        if (transaction.ocpiData?.session) {
+          await OCPPUtils.processOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+        }
+        // Handle OICP
+        if (transaction.oicpData?.session?.id) {
+          await OCPPUtils.processOICPTransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          action: ServerAction.STOP_TRANSACTION,
+          user: transaction.userID,
+          module: MODULE_NAME, method: 'handleMeterValues',
+          message: `Connector ID '${transaction.connectorId.toString()}' > Transaction ID '${transaction.id.toString()}' > Roaming exception occurred`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
       }
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
@@ -977,7 +1003,7 @@ export default class OCPPService {
               source: chargingStation.id,
               module: MODULE_NAME, method: 'handleStopTransaction',
               action: ServerAction.STOP_TRANSACTION,
-              message: 'An error occurred while trying to call smart charging',
+              message: `Connector ID '${transaction.connectorId.toString()}' > Transaction ID '${transaction.id.toString()}' > Smart Charging exception occurred`,
               detailedMessages: { headers, stopTransaction, error: error.message, stack: error.stack }
             });
           }
