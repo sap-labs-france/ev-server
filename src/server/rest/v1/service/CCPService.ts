@@ -38,13 +38,13 @@ export default class CPPService {
       });
     }
     let ccpIndex = 0;
-    for (const pool of Configuration.getContractCertificatePool().pools) {
+    for (const pool of Configuration.getContractCertificatePool()?.pools) {
       if (pool.type === ccpType) {
         break;
       }
       ccpIndex++;
     }
-    if (ccpIndex < 0 || ccpIndex > Configuration.getContractCertificatePool().pools.length - 1) {
+    if (ccpIndex < 0 || ccpIndex > Configuration.getContractCertificatePool()?.pools.length - 1) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,

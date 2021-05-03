@@ -35,7 +35,7 @@ export default class ContractCertificatePoolClient {
 
   public async getContractCertificateExiResponse(schemaVersion: string, exiRequest: string): Promise<string> {
     let exiResponse: string;
-    const contractCertificatePool = Configuration.getContractCertificatePool().pools[this.ccpIndex];
+    const contractCertificatePool = Configuration.getContractCertificatePool()?.pools[this.ccpIndex];
     switch (contractCertificatePool.type) {
       case ContractCertificatePoolType.GIREVE:
       case ContractCertificatePoolType.ELAAD:

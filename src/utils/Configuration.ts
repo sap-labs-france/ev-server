@@ -431,7 +431,7 @@ export default class Configuration {
   }
 
   public static getContractCertificatePoolEndPoint(contractCertificatePoolType: ContractCertificatePoolType): string {
-    for (const contractCertificatePool of Configuration.getContractCertificatePool().pools) {
+    for (const contractCertificatePool of Configuration.getContractCertificatePool()?.pools) {
       if (contractCertificatePoolType === contractCertificatePool.type) {
         return contractCertificatePool.endpoint;
       }
