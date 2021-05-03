@@ -493,7 +493,7 @@ describe('Billing Service', function() {
         }
       });
 
-      it('Should synchronize invoices', async () => {
+      xit('Should synchronize invoices', async () => {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
