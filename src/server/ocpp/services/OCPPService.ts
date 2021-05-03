@@ -87,8 +87,7 @@ export default class OCPPService {
       if (!tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkAndGetChargingStation',
+          module: MODULE_NAME, method: 'handleBootNotification',
           message: `Tenant ID '${headers.tenantID}' does not exist!`
         });
       }
