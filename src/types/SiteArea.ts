@@ -5,6 +5,7 @@ import { AuthorizationActions } from './Authorization';
 import ConnectorStats from './ConnectorStats';
 import Consumption from './Consumption';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OpeningTimes } from './OpeningTimes';
 import Site from '../types/Site';
 
 export default interface SiteArea extends CreatedUpdatedProps, AuthorizationActions {
@@ -24,4 +25,5 @@ export default interface SiteArea extends CreatedUpdatedProps, AuthorizationActi
   connectorStats: ConnectorStats;
   values: Consumption[];
   distanceMeters?: number;
+  openingTimes?: OpeningTimes;
 }

@@ -228,7 +228,7 @@ export default class CpoOCPIClient extends OCPIClient {
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
-      id: authorizationId,
+      id: transaction.id.toString(),
       start_datetime: transaction.timestamp,
       kwh: 0,
       auth_method: OCPIAuthMethod.AUTH_REQUEST,
@@ -629,7 +629,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No CDRs have been checked'
+      'No CDR to be checked'
     );
     return result;
   }
@@ -1061,9 +1061,7 @@ export default class CpoOCPIClient extends OCPIClient {
         last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: {
-        twentyfourseven: true,
-      }
+      opening_times: OCPIUtilsService.buildOpeningTimes(tenant, site)
     };
     return ocpiLocation;
   }

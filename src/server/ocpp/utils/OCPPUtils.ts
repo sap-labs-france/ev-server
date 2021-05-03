@@ -120,7 +120,7 @@ export default class OCPPUtils {
           for (const authorization of authorizations.result) {
             if (authorization.authorizationId) {
               // OCPI authorizationId = OCPI sessionID
-              const ocpiTransaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, authorization.authorizationId);
+              const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant.id, authorization.authorizationId);
               // OCPI ID not used yet
               if (!ocpiTransaction) {
                 authorizationId = authorization.authorizationId;

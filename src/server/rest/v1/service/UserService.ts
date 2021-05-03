@@ -1266,7 +1266,7 @@ export default class UserService {
     // Content
     const rows = users.map((user) => {
       const row = [
-        Cypher.hash(user.id),
+        user.id,
         user.name,
         user.firstName,
         user.locale,
@@ -1277,7 +1277,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+      ].map((value) => Utils.replaceDoubleQuotes(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
