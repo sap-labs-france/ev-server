@@ -1561,7 +1561,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'chargeBoxIdentity\'!'
       });
     }
@@ -1569,7 +1569,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'tenantID\'!'
       });
     }
@@ -1579,7 +1579,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
       });
     }
@@ -1590,7 +1590,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station does not exist'
       });
     }
@@ -1599,7 +1599,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station is deleted'
       });
     }

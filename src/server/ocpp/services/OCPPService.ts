@@ -385,7 +385,7 @@ export default class OCPPService {
       // Get the charging station
       const { chargingStation, tenant } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
       // Check props
-      OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
