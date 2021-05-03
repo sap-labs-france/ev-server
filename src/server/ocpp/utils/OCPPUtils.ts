@@ -1608,7 +1608,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station boot notification not accepted'
       });
     }
