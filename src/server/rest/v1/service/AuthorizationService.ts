@@ -1,6 +1,6 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
-import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -14,7 +14,6 @@ import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
@@ -33,24 +32,24 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
-  public static canPerfomAction(entity: AuthorizationActions, authAction: Action): boolean {
-    switch (authAction) {
+  public static canPerfomAction(authActions: any, action: Action): boolean {
+    switch (action) {
       case Action.READ:
-        return entity.canRead;
+        return authActions.canRead;
       case Action.UPDATE:
-        return entity.canUpdate;
+        return authActions.canUpdate;
       case Action.CREATE:
-        return entity.canCreate;
+        return authActions.canCreate;
       case Action.DELETE:
-        return entity.canDelete;
+        return authActions.canDelete;
       case Action.ASSIGN_CHARGING_STATIONS:
-        return entity['can' + Action.ASSIGN_CHARGING_STATIONS];
+        return authActions.canAssignChargingStations;
       case Action.UNASSIGN_CHARGING_STATIONS:
-        return entity['can' + Action.UNASSIGN_CHARGING_STATIONS];
+        return authActions.canUnassignChargingStations;
       case Action.ASSIGN_ASSETS:
-        return entity['can' + Action.ASSIGN_ASSETS];
+        return authActions.canAssignAssets;
       case Action.UNASSIGN_ASSETS:
-        return entity['can' + Action.UNASSIGN_ASSETS];
+        return authActions.canUnassignAssets;
       default:
         return false;
     }
