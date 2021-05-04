@@ -22,26 +22,26 @@ const certificateTypeArray = ['V2GRootCertificate', 'MORootCertificate', 'CSOSub
 
 let certificateFile;
 let certificateType;
-let chargeBoxId;
+let chargingStationId;
 
 switch (cmd) {
   case 'put':
     certificateFile = args[1];
     certificateType = args[2];
-    chargeBoxId = args[3];
-    pushCertificateFile(certificateFile, certificateType, chargeBoxId);
+    chargingStationId = args[3];
+    pushCertificateFile(certificateFile, certificateType, chargingStationId);
     break;
   case 'get':
     certificateFile = args[1];
-    chargeBoxId = args[2];
-    pullCertificateIds(certificateFile, chargeBoxId);
+    chargingStationId = args[2];
+    pullCertificateIds(certificateFile, chargingStationId);
     break;
   case 'delete':
     console.info('Not yet implemented client side');
     break;
   default:
-    console.log(`Usage: - ./Certificates.js put <certificateFile> <certificateType> <chargeBoxId>
-       - ./Certificates.js get <certificateType> <chargeBoxId>`
+    console.log(`Usage: - ./Certificates.js put <certificateFile> <certificateType> <chargingStationId>
+       - ./Certificates.js get <certificateType> <chargingStationId>`
     );
 }
 
@@ -59,7 +59,7 @@ function requestCallback(response) {
   });
 }
 
-function pushCertificateFile(certificateFile, certificateType, chargeBoxId) {
+function pushCertificateFile(certificateFile, certificateType, chargingStationId) {
   if (!certificateFile) {
     console.error('Certificate file CLI argument not provided');
   } else if (fs.existsSync(certificateFile)) {
@@ -67,15 +67,15 @@ function pushCertificateFile(certificateFile, certificateType, chargeBoxId) {
       console.error('Invalid certificate type CLI argument provided ' + certificateType);
       return;
     }
-    if (!chargeBoxId) {
-      console.error('Charge box id CLI argument not provided');
+    if (!chargingStationId) {
+      console.error('Charging station id CLI argument not provided');
       return;
     }
     const x509Certificate = new X509Certificate(fs.readFileSync(certificateFile));
     const requestOptions = {
       host: `${hostRestApi}`,
       port: `${portRestApi}`,
-      path: `${pushEndpointPathURI.replace(':id', chargeBoxId)}`,
+      path: `${pushEndpointPathURI.replace(':id', chargingStationId)}`,
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ function pushCertificateFile(certificateFile, certificateType, chargeBoxId) {
     };
     const httpRequest = httpClient.request(requestOptions, requestCallback);
     httpRequest.write(JSON.stringify({
-      chargeBoxID: chargeBoxId,
+      chargeBoxID: chargingStationId,
       args: {
         certificateType: certificateType,
         certificate: x509Certificate.toString('hex')
@@ -97,19 +97,19 @@ function pushCertificateFile(certificateFile, certificateType, chargeBoxId) {
   }
 }
 
-function pullCertificateIds(certificateType, chargeBoxId) {
+function pullCertificateIds(certificateType, chargingStationId) {
   if (!certificateTypeArray.includes(certificateType)) {
     console.error('Invalid certificate type CLI argument provided ' + certificateType);
     return;
   }
-  if (!chargeBoxId) {
-    console.error('Charge box id CLI argument not provided');
+  if (!chargingStationId) {
+    console.error('Charging station id CLI argument not provided');
     return;
   }
   const requestOptions = {
     host: `${hostRestApi}`,
     port: `${portRestApi}`,
-    path: `${pullEndpointPathURI.replace(':id', chargeBoxId)}`,
+    path: `${pullEndpointPathURI.replace(':id', chargingStationId)}`,
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ function pullCertificateIds(certificateType, chargeBoxId) {
   };
   const httpRequest = httpClient.request(requestOptions, requestCallback);
   httpRequest.write(JSON.stringify({
-    chargeBoxID: chargeBoxId,
+    chargingStationID: chargingStationId,
     args: {
       typeOfCertificate: certificateType
     }
