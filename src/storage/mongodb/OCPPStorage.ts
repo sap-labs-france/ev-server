@@ -17,7 +17,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveAuthorize');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(authorize.timestamp);
     // Insert
     await global.database.getCollection<any>(tenant.id, 'authorizes')
@@ -40,7 +40,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getAuthorizes');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -109,7 +109,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveHeartbeat');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
     // Insert
     await global.database.getCollection<any>(tenant.id, 'heartbeats')
@@ -129,7 +129,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -203,7 +203,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getLastStatusNotifications');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Set the filters
     const filters: FilterParams = {};
     // Date before provided?
@@ -255,7 +255,7 @@ export default class OCPPStorage {
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     const statusNotificationMDB: any = {
       _id: Cypher.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`),
       timestamp,
@@ -279,7 +279,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveDataTransfer');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Set the ID
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
     // Insert
@@ -301,7 +301,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveBootNotification');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Insert
     const timestamp = Utils.convertToDate(bootNotification.timestamp);
     await global.database.getCollection<any>(tenant.id, 'bootnotifications')
@@ -327,7 +327,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getBootNotifications');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -388,7 +388,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveDiagnosticsStatusNotification');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
     // Insert
     await global.database.getCollection<any>(tenant.id, 'diagnosticsstatusnotifications')
@@ -407,7 +407,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveFirmwareStatusNotification');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Set the ID
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
     // Insert
@@ -427,7 +427,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveMeterValues');
     // Check
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
       try {
@@ -464,7 +464,7 @@ export default class OCPPStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getMeterValues');
     // Check Tenant
-    await DatabaseUtils.checkTenantObject(tenant);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit

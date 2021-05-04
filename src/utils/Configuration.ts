@@ -1,6 +1,5 @@
 import { AppEnv, getAppEnv } from 'cfenv';
 import { CloudCredentials, CloudCredentialsKey } from '../types/Cloud';
-import ContractCertificatePoolConfiguration, { ContractCertificatePoolType } from '../types/configuration/ContractsCertificatePoolConfiguration';
 
 import AsyncTaskConfiguration from '../types/configuration/AsyncTaskConfiguration';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
@@ -14,6 +13,8 @@ import ChargingStationTemplatesConfiguration from '../types/configuration/Chargi
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import Constants from './Constants';
+import ContractCertificatePoolConfiguration from '../types/configuration/ContractsCertificatePoolConfiguration';
+import { ContractCertificatePoolType } from '../types/contractcertificatepool/ContractsCertificatePool';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
 import EmailConfiguration from '../types/configuration/EmailConfiguration';

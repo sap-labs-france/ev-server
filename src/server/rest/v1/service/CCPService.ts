@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
+import CCPStorage from '../../../../storage/mongodb/CCPStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
-import ContractCertificatePoolClient from '../../../../client/contractcertificatepool/ContractCertificatePoolClient';
-import { ContractCertificatePoolType } from '../../../../types/configuration/ContractsCertificatePoolConfiguration';
+import { ContractCertificatePoolType } from '../../../../types/contractcertificatepool/ContractsCertificatePool';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -60,8 +60,14 @@ export default class CPPService {
       message: `Contract Certificate Pool type switched to ${ccpType} (index: ${ccpIndex.toString()})`,
       action: action,
     });
-    ContractCertificatePoolClient.getInstance().ccpIndex = ccpIndex;
+    await CCPStorage.saveDefaultCCP(ccpType, ccpIndex);
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleGetCCP(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const result = await CCPStorage.getDefaultCCP();
+    res.json(result);
     next();
   }
 }
