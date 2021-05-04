@@ -2,7 +2,7 @@
   "title": "Charging Station Action Request",
   "type": "object",
   "properties": {
-    "chargeBoxID": {
+    "chargingStationID": {
       "$ref": "chargingstation.json#/definitions/id"
     },
     "carID": {
@@ -130,6 +130,6 @@
     }
   },
   "required": [
-    "chargeBoxID"
+    "chargingStationID"
   ]
 }

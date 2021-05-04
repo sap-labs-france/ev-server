@@ -2,7 +2,7 @@ import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP
 
 import { AxiosResponse } from 'axios';
 import CentralServerService from '../client/CentralServerService';
-import ChargingStation from '../../types/ChargingStation';
+import ChargingStation from '../../../src/types/ChargingStation';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';

@@ -20,5 +20,9 @@ export default class CCPRouter {
     this.router.put(`/${ServerRoute.REST_CCP_SWITCH}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CPPService.handleCCPSwitch.bind(this), ServerAction.GET_15118_EV_CERTIFICATE, req, res, next);
     });
+
+    this.router.get(`/${ServerRoute.REST_CCP}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(CPPService.handleGetCCP.bind(this), ServerAction.GET_15118_EV_CERTIFICATE, req, res, next);
+    });
   }
 }

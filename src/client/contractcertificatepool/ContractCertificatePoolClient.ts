@@ -2,8 +2,9 @@ import { OCPI15118EVCertificateRequest, OCPI15118EVCertificateResponse } from '.
 
 import AxiosFactory from '../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
+import CCPStorage from '../../storage/mongodb/CCPStorage';
 import Configuration from '../../utils/Configuration';
-import { ContractCertificatePoolType } from '../../types/configuration/ContractsCertificatePoolConfiguration';
+import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractsCertificatePool';
 import Logging from '../../utils/Logging';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { ServerAction } from '../../types/Server';
@@ -12,7 +13,6 @@ const MODULE_NAME = 'ContractCertificatePoolClient';
 
 export default class ContractCertificatePoolClient {
   private static ccpClient: ContractCertificatePoolClient;
-  public ccpIndex = 0;
   private axiosInstance: AxiosInstance;
   private tenantID: string;
   private chargingStationID: string;
@@ -35,7 +35,7 @@ export default class ContractCertificatePoolClient {
 
   public async getContractCertificateExiResponse(schemaVersion: string, exiRequest: string): Promise<string> {
     let exiResponse: string;
-    const contractCertificatePool = Configuration.getContractCertificatePool().pools[this.ccpIndex];
+    const contractCertificatePool = Configuration.getContractCertificatePool()?.pools[(await CCPStorage.getDefaultCCP()).ccpIndex ?? 0];
     switch (contractCertificatePool.type) {
       case ContractCertificatePoolType.GIREVE:
       case ContractCertificatePoolType.ELAAD:

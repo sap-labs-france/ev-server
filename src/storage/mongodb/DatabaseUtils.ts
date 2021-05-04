@@ -4,6 +4,7 @@ import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectID } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -399,6 +400,17 @@ export default class DatabaseUtils {
           message: `Invalid Tenant ID '${tenantID}'`
         });
       }
+    }
+  }
+
+  public static checkTenantObject(tenant: Tenant): void {
+    if (!tenant) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkTenantObject',
+        message: 'Invalid Tenant'
+      });
     }
   }
 
