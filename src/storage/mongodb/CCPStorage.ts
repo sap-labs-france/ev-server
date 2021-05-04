@@ -21,7 +21,7 @@ export default class CCPStorage {
     };
     const defaultCpp = await global.database.getCollection<ccpMDB>(Constants.DEFAULT_TENANT, 'ccp').findOne({});
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'ccp').findOneAndUpdate(
-      { _id: defaultCpp._id ?? new ObjectID() },
+      { _id: defaultCpp?._id ?? new ObjectID() },
       { $set: ccpMDB },
       { upsert: true }
     );
