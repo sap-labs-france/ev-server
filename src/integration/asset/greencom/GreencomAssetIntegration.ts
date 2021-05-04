@@ -160,7 +160,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
       this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

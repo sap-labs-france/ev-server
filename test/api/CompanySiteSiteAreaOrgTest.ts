@@ -54,7 +54,7 @@ describe('Company, Site, Site Area tests', function() {
       );
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created company
       testData.createdCompanies.forEach(async (company) => {
         await testData.centralUserService.deleteEntity(

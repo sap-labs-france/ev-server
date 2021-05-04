@@ -13,16 +13,10 @@ export default class AxiosFactory {
 
   // All could have been done at 'axios' level normally!
   public static getAxiosInstance(tenantID: string, instanceConfiguration?: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig }): AxiosInstance {
-    if (!instanceConfiguration) {
-      instanceConfiguration = {};
-    }
-    if (!instanceConfiguration.axiosConfig) {
-      instanceConfiguration.axiosConfig = {} as AxiosRequestConfig;
-    }
+    instanceConfiguration = instanceConfiguration ?? {};
+    instanceConfiguration.axiosConfig = instanceConfiguration.axiosConfig ?? {} as AxiosRequestConfig;
     // Set timeout
-    if (!instanceConfiguration.axiosConfig.timeout) {
-      instanceConfiguration.axiosConfig.timeout = Configuration.getAxiosConfig().timeout;
-    }
+    instanceConfiguration.axiosConfig.timeout = instanceConfiguration.axiosConfig.timeout ?? Configuration.getAxiosConfig().timeout;
     // Get from map
     let axiosInstance = this.axiosInstances.get(tenantID);
     if (!axiosInstance) {
@@ -53,18 +47,10 @@ export default class AxiosFactory {
   }
 
   private static applyAxiosRetryConfiguration(axiosInstance: AxiosInstance, axiosRetryConfig?: IAxiosRetryConfig) {
-    if (!axiosRetryConfig) {
-      axiosRetryConfig = {} as IAxiosRetryConfig;
-    }
-    if (!axiosRetryConfig.retries) {
-      axiosRetryConfig.retries = Configuration.getAxiosConfig().retries;
-    }
-    if (!axiosRetryConfig.retryCondition) {
-      axiosRetryConfig.retryCondition = AxiosFactory.isNetworkOrDefaultIdempotentRequestError.bind(this);
-    }
-    if (!axiosRetryConfig.retryDelay) {
-      axiosRetryConfig.retryDelay = axiosRetry.exponentialDelay.bind(this);
-    }
+    axiosRetryConfig = axiosRetryConfig ?? {} as IAxiosRetryConfig;
+    axiosRetryConfig.retries = axiosRetryConfig.retries ?? Configuration.getAxiosConfig().retries;
+    axiosRetryConfig.retryCondition = axiosRetryConfig.retryCondition ?? AxiosFactory.isNetworkOrDefaultIdempotentRequestError.bind(this);
+    axiosRetryConfig.retryDelay = axiosRetryConfig.retryDelay ?? axiosRetry.exponentialDelay.bind(this);
     axiosRetry(axiosInstance, axiosRetryConfig);
   }
 
