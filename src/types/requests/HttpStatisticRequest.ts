@@ -9,8 +9,8 @@ export default interface HttpStatisticsRequest {
   PeriodInMonth?: string|number;
   SiteAreaID?: string;
   SiteAreaIDs?: string[];
-  ChargeBoxID?: string;
-  ChargeBoxIDs?: string[];
+  ChargingStationID?: string;
+  ChargingStationIDs?: string[];
   UserID?: string;
   UserIDs?: string[];
   DataType?: StatsDataType;

@@ -23,7 +23,7 @@ export interface HttpPushTransactionCdrRequest {
 }
 
 export interface HttpTransactionsRequest extends HttpDatabaseRequest {
-  ChargeBoxID: string;
+  ChargingStationID: string;
   Issuer: boolean;
   ConnectorID: string;
   SiteAreaID?: string;

@@ -57,7 +57,7 @@ export default class OCPIEndpointStorage {
       token: ocpiEndpointToSave.token,
       countryCode: ocpiEndpointToSave.countryCode,
       partyId: ocpiEndpointToSave.partyId,
-      backgroundPatchJob: ocpiEndpointToSave.backgroundPatchJob,
+      backgroundPatchJob: Utils.convertToBoolean(ocpiEndpointToSave.backgroundPatchJob),
       status: ocpiEndpointToSave.status,
       version: ocpiEndpointToSave.version,
       businessDetails: ocpiEndpointToSave.businessDetails,

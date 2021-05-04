@@ -66,7 +66,7 @@ export default class OCPIClientFactory {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as EmspOCPIClient;
     }
-    Logging.logError({
+    await Logging.logError({
       tenantID: tenant.id,
       action: ServerAction.OCPI_CLIENT_INITIALIZATION,
       module: MODULE_NAME, method: 'getEmspOcpiClient',

@@ -1,20 +1,30 @@
+import { AxiosInstance, AxiosRequestConfig } from 'axios';
+
 import AxiosFactory from '../../../../src/utils/AxiosFactory';
-import { AxiosRequestConfig } from 'axios';
 import Constants from '../../../../src/utils/Constants';
+import { IAxiosRetryConfig } from 'axios-retry';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 import querystring from 'querystring';
 
 export default class BaseApi {
   private baseURL: string;
+  private axiosInstance: AxiosInstance;
 
   public constructor(baseURL: string) {
     this.baseURL = baseURL;
+    const axiosInstanceConfiguration: { axiosConfig?: AxiosRequestConfig, axiosRetryConfig?: IAxiosRetryConfig } =
+    {
+      axiosConfig: {} as AxiosRequestConfig,
+      axiosRetryConfig: {} as IAxiosRetryConfig
+    };
+    axiosInstanceConfiguration.axiosConfig.timeout = config.get('axios.timeout');
+    axiosInstanceConfiguration.axiosRetryConfig.retries = config.get('axios.retries');
+    this.axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT, axiosInstanceConfiguration);
   }
 
   public async send(httpRequest: AxiosRequestConfig): Promise<any> {
     let httpResponse;
-    const axiosInstance = AxiosFactory.getAxiosInstance(Constants.DEFAULT_TENANT);
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
     // Set the Query String
@@ -35,7 +45,7 @@ export default class BaseApi {
         console.debug('====================================');
       }
       // Execute with Axios
-      httpResponse = await axiosInstance(httpRequest);
+      httpResponse = await this.axiosInstance(httpRequest);
       // Debug
       if (config.get('trace_logs')) {
         console.debug('HTTP Response ======================');
