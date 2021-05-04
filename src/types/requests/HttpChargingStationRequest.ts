@@ -8,7 +8,7 @@ export interface HttpTriggerSmartChargingRequest {
 }
 
 export interface HttpChargingStationLimitPowerRequest {
-  chargeBoxID: string;
+  chargingStationID: string;
   chargePointID: number;
   ampLimitValue: number;
   forceUpdateChargingPlan: boolean;
@@ -80,7 +80,7 @@ export interface HttpChargingStationParamsUpdateRequest {
 export type HttpChargingStationRequest = HttpByIDRequest;
 
 export interface HttpChargingStationOcppRequest {
-  ChargeBoxID: string;
+  ChargingStationID: string;
 }
 
 export interface HttpChargingStationConnectorRequest {
@@ -89,7 +89,7 @@ export interface HttpChargingStationConnectorRequest {
 }
 
 export interface HttpChargingStationOcppParametersRequest {
-  chargeBoxID: string;
+  chargingStationID: string;
   forceUpdateOCPPParamsFromTemplate: boolean;
 }
 
@@ -99,7 +99,7 @@ export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpCha
 }
 
 export interface HttpChargingStationCommandRequest {
-  chargeBoxID: string;
+  chargingStationID: string;
   carID?: string;
   args?: any;
 }

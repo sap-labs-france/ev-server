@@ -269,7 +269,8 @@ export default abstract class WSConnection {
     return this.sendMessage(messageId, error, OCPPMessageType.CALL_ERROR_MESSAGE);
   }
 
-  public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType = OCPPMessageType.CALL_RESULT_MESSAGE, commandName?: Command | ServerAction): Promise<unknown> {
+  public async sendMessage(messageId: string, commandParams: Record<string, unknown> | OCPPError, messageType: OCPPMessageType,
+      commandName?: Command | ServerAction): Promise<unknown> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     // Send a message through WSConnection

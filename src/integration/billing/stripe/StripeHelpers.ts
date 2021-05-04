@@ -1,7 +1,10 @@
 import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
+import User from '../../../types/User';
+import Utils from '../../../utils/Utils';
 
 export default class StripeHelpers {
 
@@ -119,5 +122,52 @@ export default class StripeHelpers {
     // TODO - find a way to avoid that call
     const list = await stripeFacade.customers.list({ limit: 1 });
     return !!list.data?.[0]?.livemode;
+  }
+
+  public static buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string, address: Stripe.Address } {
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const customer: any = {
+      name: Utils.buildUserFullName(user, false, false),
+      description: i18nManager.translate('billing.generatedUser', { email: user.email }),
+      preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
+      email: user.email,
+    };
+    // Assign the address (if any)
+    if (user.address) {
+      customer.address = StripeHelpers.buildStripeAddress(user);
+    }
+    return customer;
+  }
+
+  public static buildBillingDetails(user: User): Stripe.PaymentMethodUpdateParams.BillingDetails {
+    if (!user.address) {
+      return null;
+    }
+
+    return {
+      name: Utils.buildUserFullName(user, false, false),
+      email: user.email,
+      /* phone: user.phone, */
+      address: StripeHelpers.buildStripeAddress(user)
+    };
+  }
+
+  public static buildStripeAddress(user: User): Stripe.Address {
+    if (!user.address) {
+      return null;
+    }
+    const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
+    // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2)
+    // It throws an exception when the code is inconsistent!
+    const address: Stripe.Address = {
+      line1,
+      line2,
+      postal_code,
+      city,
+      state: region,
+      country: country
+    };
+    return address;
   }
 }

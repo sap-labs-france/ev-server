@@ -2,7 +2,7 @@
   "title": "Limit Charging Station power",
   "type": "object",
   "properties": {
-    "chargeBoxID": {
+    "chargingStationID": {
       "$ref": "chargingstation.json#/definitions/id"
     },
     "chargePointID": {
@@ -21,6 +21,6 @@
     }
   },
   "required": [
-    "chargeBoxID", "chargePointID", "connectorId", "ampLimitValue"
+    "chargingStationID", "chargePointID", "connectorId", "ampLimitValue"
   ]
 }
