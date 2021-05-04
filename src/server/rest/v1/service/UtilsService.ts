@@ -126,20 +126,6 @@ export default class UtilsService {
       }, Constants.DB_PARAMS_MAX_LIMIT,
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    // Check
-    for (const chargingStation of chargingStations.result) {
-      // External Charging Station
-      if (!chargingStation.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkAndGetChargingStationsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
-    }
     return chargingStations.result;
   }
 
@@ -164,20 +150,6 @@ export default class UtilsService {
       }, Constants.DB_PARAMS_MAX_LIMIT,
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    // Check
-    for (const asset of assets.result) {
-      // External Asset
-      if (!asset.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Asset ID '${asset.id}' not issued by the organization`,
-          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
-          user: userToken,
-          action: action
-        });
-      }
-    }
     return assets.result;
   }
 
@@ -425,6 +397,20 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
       });
     }
+    // Check
+    for (const asset of assets) {
+      // External Asset
+      if (!asset.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Asset ID '${asset.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkSiteAreaAssetsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
+    }
     return assets;
   }
 
@@ -456,6 +442,20 @@ export default class UtilsService {
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
       });
+    }
+    // Check
+    for (const chargingStation of chargingStations) {
+      // External Charging Station
+      if (!chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Charging Station ID '${chargingStation.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkSiteAreaChargingStationsAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
     }
     return chargingStations;
   }
