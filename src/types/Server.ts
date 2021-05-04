@@ -516,9 +516,6 @@ export enum ServerRoute {
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
   REST_BILLING_CHECK = 'billing/check',
-  REST_BILLING_CHECK_CONNECTION = 'billing/check-connection',
-  REST_BILLING_CHECK_PREREQUISITES = 'billing/check-prerequisites',
-  REST_BILLING_ACTIVATE = 'billing/activate',
 
   REST_CCP_SWITCH = 'ccp/switch'
 }

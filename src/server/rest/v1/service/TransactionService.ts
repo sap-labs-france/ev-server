@@ -208,7 +208,7 @@ export default class TransactionService {
       });
     }
     // No Roaming Cdr to push
-    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
+    if (!transaction.oicpData?.session && !transaction.ocpiData?.session) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
@@ -218,7 +218,7 @@ export default class TransactionService {
       });
     }
     // Check OCPI
-    if (transaction.ocpiData.session) {
+    if (transaction.ocpiData?.session) {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
@@ -253,7 +253,7 @@ export default class TransactionService {
       }
     }
     // Check OICP
-    if (transaction.oicpData.session) {
+    if (transaction.oicpData?.session) {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
@@ -856,7 +856,7 @@ export default class TransactionService {
         errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
         endDateTime: filteredRequest.EndDateTime,
         startDateTime: filteredRequest.StartDateTime,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
@@ -1067,7 +1067,7 @@ export default class TransactionService {
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
       {
         ...extrafilters,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargeBoxIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
