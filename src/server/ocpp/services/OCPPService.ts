@@ -163,7 +163,6 @@ export default class OCPPService {
           // FIXME: valid charging stations in DB with modified parameters cannot be registered at boot notification again without direct
           //        access to the DB, standard charging station replacement is then not possible. The registration status returned should
           //        be 'Pending' and a way to manually accept or refuse such stations should be offered.
-          // Do not flag charging stations online with registered boot notification as 'Rejected'
           const isChargingStationOnline = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isSameOrBefore(chargingStation.lastSeen);
           if (isChargingStationOnline && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
             await Logging.logWarning({
