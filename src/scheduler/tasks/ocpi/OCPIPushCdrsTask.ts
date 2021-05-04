@@ -61,7 +61,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       });
                       continue;
                     }
-                    if (transaction.ocpiData && transaction.ocpiData.cdr) {
+                    if (transaction.ocpiData?.cdr) {
                       await Logging.logInfo({
                         tenantID: tenant.id,
                         action: ServerAction.OCPI_PUSH_CDRS,
@@ -82,7 +82,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Post CDR
-                    await OCPPUtils.processOCPITransaction(tenant.id, transaction, chargingStation, TransactionAction.END);
+                    await OCPPUtils.processOCPITransaction(tenant, transaction, chargingStation, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransaction(tenant.id, transaction);
                     // Ok
@@ -95,11 +95,12 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       detailedMessages: { cdr: transaction.ocpiData.cdr }
                     });
                   } catch (error) {
-                    await Logging.logInfo({
+                    await Logging.logError({
                       tenantID: tenant.id,
                       action: ServerAction.OCPI_PUSH_CDRS,
                       module: MODULE_NAME, method: 'processTenant',
                       message: `Failed to pushed the CDR of the Transaction ID '${transactionMDB._id}' to OCPI`,
+                      detailedMessages: { error: error.message, stack: error.stack, transaction: transactionMDB }
                     });
                   } finally {
                     // Release the lock

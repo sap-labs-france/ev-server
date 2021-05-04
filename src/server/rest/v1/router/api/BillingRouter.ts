@@ -12,6 +12,15 @@ export default class BillingRouter {
   }
 
   public buildRoutes(): express.Router {
+    // -----------------------------------
+    // ROUTES for BILLING SETTINGS
+    // -----------------------------------
+    this.buildRouteBillingSetting();
+    this.buildRouteUpdateBillingSetting();
+    this.buildRouteCheckBillingConnection();
+    // -----------------------------------
+    // ROUTES for PAYMENT METHODS
+    // -----------------------------------
     this.buildRouteBillingPaymentMethods();
     // this.buildRouteBillingPaymentMethod(); - // No use case so far
     // this.buildRouteBillingCreatePaymentMethod(); - // No use case so far
@@ -21,6 +30,24 @@ export default class BillingRouter {
     this.buildRouteBillingPaymentMethodAttach();
     this.buildRouteBillingPaymentMethodDetach();
     return this.router;
+  }
+
+  protected buildRouteBillingSetting(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleGetBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
+  }
+
+  protected buildRouteUpdateBillingSetting(): void {
+    this.router.put(`/${ServerRoute.REST_BILLING_SETTING}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleUpdateBillingSetting.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
+  }
+
+  protected buildRouteCheckBillingConnection(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleCheckBillingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
   }
 
   protected buildRouteBillingPaymentMethods(): void {

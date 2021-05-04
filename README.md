@@ -17,6 +17,7 @@ The application features:
 ## Installation
 
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
+* Install Python: https://www.python.org/ (needed by node-gyp)
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
@@ -35,14 +36,14 @@ The application features:
 * On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
 
 ```
-choco install -y nodejs-lts mongodb postman robot3t microsoft-build-tools
+choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 ```
 
 * On Mac OSX with **Homebrew** (https://brew.sh/), do:
 
 ```
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 postman robo-3t
+brew install node mongodb-community@4.2 python@3.9 postman robo-3t
 ```
 
 * Follow the rest of the setup below
@@ -184,11 +185,9 @@ Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported 
 
 #### Configuration
 
-There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
+In **src/assets** folder there are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
 Choose one and rename it to **config.json**.
-
-Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
@@ -265,6 +264,12 @@ To set the end point, fill the following information in the **config.json** file
   }
 ```
 
+In order to properly call the REST endpoints, both ev-server and clients (ev-dashboard, ev-mobile, etc.) must reference a Google reCaptcha key. You can refer to this link https://www.google.com/recaptcha/admin/create, then copy the server key in config.json file, in section CentralSystemRestService:
+
+    ...
+    "captchaSecretKey": "<GOOGLE_RECAPTCHA_KEY_SERVER>"
+    ...
+
 ### Central Service Server (CSS) > Database
 
 You have now to connect the server to the database.
@@ -281,7 +286,7 @@ Database connection info:
     "port": 27017,
     "user": "evse-user",
     "password": "YourPassword",
-    "schema": "evse"
+    "database" : "evse"
   }
 ```
 

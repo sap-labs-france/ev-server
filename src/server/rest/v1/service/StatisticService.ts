@@ -407,8 +407,8 @@ export default class StatisticService {
       filter.siteAreaIDs = filteredRequest.SiteAreaIDs;
     }
     // Charge Box
-    if (filteredRequest.ChargeBoxIDs) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxIDs;
+    if (filteredRequest.ChargingStationIDs) {
+      filter.chargeBoxIDs = filteredRequest.ChargingStationIDs;
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
@@ -652,7 +652,7 @@ export default class StatisticService {
           year && year !== '0' ? year : '',
           transaction.month > 0 ? transaction.month : '',
           dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransactions) : numberOfTransactions.toString()
-        ].map((value) => typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '') + '"' : value);
+        ].map((value) => Utils.replaceDoubleQuotes(value));
         return row;
       }).join(Constants.CR_LF);
       return [headers, rows].join(Constants.CR_LF);

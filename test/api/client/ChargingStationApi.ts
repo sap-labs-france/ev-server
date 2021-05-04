@@ -50,7 +50,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async remoteStartTransaction(data) {
-    return super.update(data, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${data.chargeBoxID}/remote/start`);
+    return super.update(data, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${data.chargingStationID}/remote/start`);
   }
 
   public async checkConnector(chargingStation, connectorId, connectorData) {

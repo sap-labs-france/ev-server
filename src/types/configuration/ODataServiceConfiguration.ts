@@ -1,7 +1,5 @@
-export default interface ODataServiceConfiguration {
-  protocol: string;
-  host: string;
-  port: number;
-  externalProtocol: string;
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
+
+export default interface ODataServiceConfiguration extends CentralSystemServerConfiguration {
   debug: boolean;
 }

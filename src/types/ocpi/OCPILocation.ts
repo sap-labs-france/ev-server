@@ -28,13 +28,15 @@ export interface OCPILocation {
   evses: OCPIEvse[];
   last_updated: Date;
   // OCPI specify that attribute as optional but Gireve requires it
-  opening_times: {
-    regular_hours?: OCPIDayPeriod[];
-    twentyfourseven: boolean;
-    exceptional_openings?: OCPIPeriod[];
-    exceptional_closings?: OCPIPeriod[];
-  }
+  opening_times: OCPIOpeningTimes;
   charging_when_closed?: boolean;
+}
+
+export interface OCPIOpeningTimes {
+  regular_hours?: OCPIDayPeriod[];
+  twentyfourseven?: boolean;
+  exceptional_openings?: OCPIPeriod[];
+  exceptional_closings?: OCPIPeriod[];
 }
 
 export enum OCPILocationType {

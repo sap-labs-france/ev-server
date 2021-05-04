@@ -219,7 +219,7 @@ describe('Statistics tests', function() {
         const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
@@ -229,7 +229,7 @@ describe('Statistics tests', function() {
             `Inactivity data should be ${numberOfUsers * expectedInactivity} hours`
           ).to.be.eql(numberOfUsers * expectedInactivity);
         }
-        adminUserListResponse = await adminUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        adminUserListResponse = await adminUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
@@ -247,7 +247,7 @@ describe('Statistics tests', function() {
         const chargingStationContext1 = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         const chargingStationContext2 = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({
-          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+          ChargingStationID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
         });
         expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
@@ -260,7 +260,7 @@ describe('Statistics tests', function() {
           ).to.be.eql(numberOfUsers * 2 * numberOfYears * expectedTransactions);
         }
         adminUserListResponse = await adminUserServerService.statisticsApi.readUserTransactions({
-          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+          ChargingStationID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
         });
         expect(adminUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(adminUserListResponse.data,
@@ -373,7 +373,7 @@ describe('Statistics tests', function() {
         const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-        let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
@@ -383,7 +383,7 @@ describe('Statistics tests', function() {
             `Inactivity data should be ${expectedInactivity} hours`
           ).to.be.eql(expectedInactivity);
         }
-        basicUserListResponse = await basicUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        basicUserListResponse = await basicUserServerService.statisticsApi.readUserInactivity({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(basicUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(basicUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
@@ -494,7 +494,7 @@ describe('Statistics tests', function() {
         const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
         const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-        let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationUsage({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationUsage({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
@@ -504,7 +504,7 @@ describe('Statistics tests', function() {
             `Usage data should be ${numberOfUsers * expectedUsage} hours`
           ).to.be.eql(numberOfUsers * expectedUsage);
         }
-        demoUserListResponse = await demoUserServerService.statisticsApi.readUserUsage({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
+        demoUserListResponse = await demoUserServerService.statisticsApi.readUserUsage({ Year: firstYear, ChargingStationID: chargingStationContext.getChargingStation().id });
         expect(demoUserListResponse.status).to.be.eql(StatusCodes.OK);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`

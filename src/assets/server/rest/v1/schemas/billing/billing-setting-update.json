@@ -1,0 +1,75 @@
+{
+  "title": "Update Billing Settings",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "identifier": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "type": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "isTransactionBillingActivated": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "immediateBillingAllowed": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "periodicBillingAllowed": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        },
+        "taxID": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "isTransactionBillingActivated",
+        "immediateBillingAllowed",
+        "periodicBillingAllowed",
+        "taxID"
+      ]
+    },
+    "stripe": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "publicKey": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "secretKey": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      },
+      "required": [
+        "url",
+        "publicKey",
+        "secretKey"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "identifier",
+    "type",
+    "billing"
+  ],
+  "oneOf": [
+    { "required": [ "stripe" ] }
+  ]
+}
