@@ -150,7 +150,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       this.axiosInstance.post(`${this.connection.url}/token`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },
