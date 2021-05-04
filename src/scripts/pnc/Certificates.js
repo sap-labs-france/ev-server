@@ -85,7 +85,7 @@ function pushCertificateFile(certificateFile, certificateType, chargingStationId
     };
     const httpRequest = httpClient.request(requestOptions, requestCallback);
     httpRequest.write(JSON.stringify({
-      chargeBoxID: chargingStationId,
+      chargingStationID: chargingStationId,
       args: {
         certificateType: certificateType,
         certificate: x509Certificate.toString('hex')
