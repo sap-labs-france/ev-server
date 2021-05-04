@@ -18,7 +18,6 @@ import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -231,7 +230,7 @@ export default class StripeIntegrationTestData {
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
     const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
     // Stripe is using Unix Epoch for its date - and looses some precision
-    expect(lastPaidInvoiceDateTime).to.be.gte(moment.unix(beforeInvoiceDateTime / 1000).toDate().getTime());
+    expect(Math.trunc(lastPaidInvoiceDateTime / 1000)).to.be.gte(Math.trunc(beforeInvoiceDateTime / 1000));
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
