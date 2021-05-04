@@ -55,7 +55,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Initialize Stripe
     if (!this.stripe) {
       try {
-        this.settings.stripe.secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        const secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        this.stripe = new Stripe(secretKey, {
+          apiVersion: '2020-08-27',
+        });
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -67,9 +70,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       // Try to connect
       try {
-        this.stripe = new Stripe(this.settings.stripe.secretKey, {
-          apiVersion: '2020-08-27',
-        });
         // Let's make sure the connection works as expected
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
       } catch (error) {
