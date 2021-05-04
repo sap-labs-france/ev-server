@@ -476,7 +476,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
         },
-        attributes: ['*'] },
+        attributes: ['*']
+      },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
           Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'],

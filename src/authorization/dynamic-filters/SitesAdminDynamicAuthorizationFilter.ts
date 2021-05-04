@@ -21,12 +21,6 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
         // Override
         authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
           (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
-      } else if (Utils.objectHasProperty(extraFilters, 'siteID') &&
-       !Utils.isNullOrUndefined(extraFilters['siteID'])) {
-        const filteredSiteIDs: string[] = extraFilters['siteID'].split('|');
-        // Override
-        authorizationFilters.filters.siteIDs = filteredSiteIDs.filter(
-          (siteID) => authorizationFilters.filters.siteIDs.includes(siteID));
       }
     }
     if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
