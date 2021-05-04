@@ -606,22 +606,6 @@ export default class ChargingStationStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
   }
 
-  public static async saveChargingRegistrationStatus(tenantID: string, id: string,
-      params: { registrationStatus: RegistrationStatus }): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingRegistrationStatus');
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
-    // Set data
-    // Modify document
-    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
-      { '_id': id },
-      { $set: params },
-      { upsert: true });
-    // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingRegistrationStatus', uniqueTimerID, params);
-  }
-
   public static async saveChargingStationLastSeen(tenantID: string, id: string,
       params: { lastSeen: Date; currentIPAddress?: string | string[] }): Promise<void> {
     // Debug

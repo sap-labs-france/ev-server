@@ -174,9 +174,6 @@ export default class OCPPService {
               message: 'Trying to connect a charging station matching an online charging station with identical chargeBoxID, registered boot notification and different attributes',
               detailedMessages: { headers, bootNotification }
             });
-          // Set charging station boot notification registration status to 'Rejected'
-          } else {
-            await ChargingStationStorage.saveChargingRegistrationStatus(headers.tenantID, chargingStation.id, { registrationStatus: RegistrationStatus.REJECTED });
           }
           throw new BackendError({
             source: chargingStation.id,
