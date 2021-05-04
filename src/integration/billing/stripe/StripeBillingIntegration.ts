@@ -473,13 +473,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
-      throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getPaymentMethods',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+      // TODO: For now, we do not complain when the user is not in sync! Just return an empty list instead
+      return [];
+      // throw new BackendError({
+      //   message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+      //   source: Constants.CENTRAL_SERVER,
+      //   module: MODULE_NAME,
+      //   method: 'getPaymentMethods',
+      //   action: ServerAction.BILLING_TRANSACTION
+      // });
     }
     // Let's do it!
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
