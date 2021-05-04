@@ -25,11 +25,12 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
         const ocpiLock = await LockingHelper.createOCPIPushCpoCdrsLock(tenant.id);
         if (ocpiLock) {
           try {
-            // Get all Transaction with no CDR
+            // Get all finished Transaction with no CDR
             const transactionsMDB: {_id: number}[] = await global.database.getCollection<{_id: number}>(tenant.id, 'transactions')
               .aggregate([
                 {
                   $match: {
+                    'stop': { $exists: true },
                     'ocpiData': { $exists: true },
                     'ocpiData.cdr': null
                   }
