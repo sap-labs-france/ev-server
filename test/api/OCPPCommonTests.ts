@@ -432,7 +432,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithNoBadge() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
       }
@@ -442,7 +442,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithExternalUser() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'tagID': this.transactionStartUser.tags[0].id,
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
@@ -453,7 +453,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'tagID': this.transactionStartUser.tags[0].id,
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId

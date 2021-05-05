@@ -54,7 +54,7 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -86,7 +86,7 @@ export default class TransactionSecurity {
   public static filterTransactionsInErrorRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ChargingStationID = sanitize(request.ChargingStationID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);

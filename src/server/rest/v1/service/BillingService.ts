@@ -423,60 +423,65 @@ export default class BillingService {
     next();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
   public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
-    // Check Auth
-    if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.CREATE,
-        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-      });
-    }
-    const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
-    // Get Billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (!billingImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get the Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
-      Utils.convertToInt(filteredRequest.transactionID));
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
-      MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
+    // TODO - no use-case for this endpoint so far!
+    throw new Error('Method not implemented.');
+    // // Check if component is active
+    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+    //   Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
+    // // Check Auth
+    // if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
+    //   throw new AppAuthError({
+    //     errorCode: HTTPAuthError.FORBIDDEN,
+    //     user: req.user,
+    //     entity: Entity.INVOICE, action: Action.CREATE,
+    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //   });
+    // }
+    // const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
+    // // Get Billing impl
+    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // if (!billingImpl) {
+    //   throw new AppError({
+    //     source: Constants.CENTRAL_SERVER,
+    //     errorCode: HTTPError.GENERAL_ERROR,
+    //     message: 'Billing service is not configured',
+    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //     action: action,
+    //     user: req.user
+    //   });
+    // }
+    // // Get the Transaction
+    // const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
+    //   Utils.convertToInt(filteredRequest.transactionID));
+    // UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
+    //   MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     // Create an invoice for the transaction
     // ----------------------------------------------------------------------
     // TODO - Rethink that part!
     // Calling StopTransaction without calling startTransaction may have
     // unpredictable side-effects.
     // ----------------------------------------------------------------------
-    const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // Update transaction billing data
-    transaction.billingData.stop = billingDataStop;
-    transaction.billingData.lastUpdate = new Date();
-    // Save it
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // const billingDataStop = await billingImpl.stopTransaction(transaction);
+    // // Update transaction billing data
+    // if (transaction.billingData) {
+    //   transaction.billingData.stop = billingDataStop;
+    //   transaction.billingData.lastUpdate = new Date();
+    // }
+    // // Save it
+    // await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // // Ok
+    // await Logging.logInfo({
+    //   tenantID: req.user.tenantID,
+    //   user: req.user, actionOnUser: transaction.userID,
+    //   module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //   message: `Transaction ID '${transaction.id}' has been billed successfully`,
+    //   action: action,
+    // });
     // Ok
-    await Logging.logInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: transaction.userID,
-      module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-      message: `Transaction ID '${transaction.id}' has been billed successfully`,
-      action: action,
-    });
-    // Ok
-    res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
-    next();
+    // res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
+    // next();
   }
 
   public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

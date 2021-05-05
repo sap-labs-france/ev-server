@@ -2,6 +2,7 @@ import Address from './Address';
 import Company from './Company';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OpeningTimes } from './OpeningTimes';
 import SiteArea from './SiteArea';
 import { SiteAuthorizationActions } from './Authorization';
 
@@ -18,6 +19,7 @@ export default interface Site extends CreatedUpdatedProps, SiteAuthorizationActi
   company?: Company;
   distanceMeters?: number;
   public?: boolean;
+  openingTimes?: OpeningTimes;
 }
 
 export interface SiteUser {

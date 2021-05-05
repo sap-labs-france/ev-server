@@ -90,13 +90,13 @@ export default class OCPPValidation extends SchemaValidator {
     }
   }
 
-  validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): void {
+  async validateMeterValues(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPMeterValuesRequestExtended): Promise<void> {
     // Always integer
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
     if (meterValues.connectorId === 0) {
       // KEBA: Connector ID must be > 0 according to OCPP
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
@@ -109,7 +109,7 @@ export default class OCPPValidation extends SchemaValidator {
     // Check if the transaction ID matches
     const foundConnector = Utils.getConnectorFromID(chargingStation, meterValues.connectorId);
     if (!foundConnector) {
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
@@ -127,7 +127,7 @@ export default class OCPPValidation extends SchemaValidator {
         // Check if valid
         if (chargerTransactionId > 0) {
           // No: Log that the transaction ID will be reused
-          Logging.logWarning({
+          await Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
@@ -141,7 +141,7 @@ export default class OCPPValidation extends SchemaValidator {
       // Transaction is not provided: check if there is a transaction assigned on the connector
     } else if (chargerTransactionId > 0) {
       // Yes: Use Connector's Transaction ID
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',

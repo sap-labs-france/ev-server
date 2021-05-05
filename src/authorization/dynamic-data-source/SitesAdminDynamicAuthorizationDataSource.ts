@@ -2,9 +2,7 @@ import { DynamicAuthorizationDataSourceName, SitesAdminDynamicAuthorizationDataS
 
 import Constants from '../../utils/Constants';
 import DynamicAuthorizationDataSource from '../DynamicAuthorizationDataSource';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import _ from 'lodash';
 
 export default class SitesAdminDynamicAuthorizationDataSource
   extends DynamicAuthorizationDataSource<SitesAdminDynamicAuthorizationDataSourceData> {
