@@ -170,7 +170,7 @@ export default class OCPIUtilsService {
   }
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
+      options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
