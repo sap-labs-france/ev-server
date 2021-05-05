@@ -11,9 +11,10 @@ export default class WSServer extends WebSocket.Server {
   private serverName: string;
   private httpServer: http.Server;
 
-  public constructor(serverConfig: CentralSystemServerConfiguration, serverName: string, httpServer: http.Server,
+  public constructor(serverConfig: CentralSystemServerConfiguration, serverName: string,
       verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { },
       handleProtocolsCb: (protocols: WSServerProtocol | WSServerProtocol[], request: http.IncomingMessage) => boolean | string = (protocols, request) => '') {
+    const httpServer = ServerUtils.createHttpServer(serverConfig);
     // Create the WebSocket Server
     super({
       server: httpServer,
