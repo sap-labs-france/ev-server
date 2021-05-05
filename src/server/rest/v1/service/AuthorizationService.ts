@@ -32,7 +32,8 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
-  public static canPerfomAction(authActions: any, action: Action): boolean {
+  public static canPerfomAction(authActions: AuthorizationActions, action: Action): boolean {
+    const siteAreaAuthActions = <SiteAreaAuthorizationActions> authActions;
     switch (action) {
       case Action.READ:
         return authActions.canRead;
@@ -43,13 +44,13 @@ export default class AuthorizationService {
       case Action.DELETE:
         return authActions.canDelete;
       case Action.ASSIGN_CHARGING_STATIONS:
-        return authActions.canAssignChargingStations;
+        return siteAreaAuthActions.canAssignChargingStations;
       case Action.UNASSIGN_CHARGING_STATIONS:
-        return authActions.canUnassignChargingStations;
+        return siteAreaAuthActions.canUnassignChargingStations;
       case Action.ASSIGN_ASSETS:
-        return authActions.canAssignAssets;
+        return siteAreaAuthActions.canAssignAssets;
       case Action.UNASSIGN_ASSETS:
-        return authActions.canUnassignAssets;
+        return siteAreaAuthActions.canUnassignAssets;
       default:
         return false;
     }
