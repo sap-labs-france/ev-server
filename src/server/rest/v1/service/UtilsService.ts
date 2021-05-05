@@ -122,21 +122,6 @@ export default class UtilsService {
       }, Constants.DB_PARAMS_MAX_LIMIT,
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    // Check
-    for (const user of users.result) {
-      // External User
-      if (!user.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User not issued by the organization',
-          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
-          user: userToken,
-          actionOnUser: user,
-          action: action
-        });
-      }
-    }
     return users.result;
   }
 
@@ -333,6 +318,21 @@ export default class UtilsService {
         entity: Entity.USERS_SITES,
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
+    }
+    // Check
+    for (const user of users) {
+      // External User
+      if (!user.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'User not issued by the organization',
+          module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
+          user: userToken,
+          actionOnUser: user,
+          action: action
+        });
+      }
     }
     return users;
   }
