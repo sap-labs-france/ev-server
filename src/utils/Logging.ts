@@ -63,7 +63,7 @@ export default class Logging {
       console.debug(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -72,16 +72,16 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -90,11 +90,11 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       await PerformanceStorage.savePerformanceRecord(
@@ -321,7 +321,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
         if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -330,16 +330,16 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -348,11 +348,11 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         void Logging.logSecurityDebug({
@@ -420,7 +420,7 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -429,16 +429,16 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -447,11 +447,11 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     try {
@@ -928,7 +928,7 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -937,11 +937,11 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {

@@ -11,11 +11,13 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpEndUserReportErrorRequest } from '../../../../types/requests/HttpNotificationRequest';
 import Logging from '../../../../utils/Logging';
@@ -23,6 +25,7 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
+import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -34,6 +37,7 @@ import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import _ from 'lodash';
 import countries from 'i18n-iso-countries';
 import moment from 'moment';
 
@@ -1543,5 +1547,80 @@ export default class UtilsService {
         user: req.user.id
       });
     }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
+    // Process the sensitive data (if any)
+    const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: 'Unexpected situation - sensitiveData is not an array',
+          module: MODULE_NAME,
+          method: 'processSensitiveData'
+        });
+      }
+      // Process sensitive properties
+      for (const propertyName of sensitivePropertyNames) {
+        // Get the sensitive property from the request
+        const newValue = _.get(newProperties, propertyName);
+        if (newValue && typeof newValue === 'string') {
+          // Get the sensitive property from the DB
+          const currentValue = _.get(currentProperties, propertyName);
+          if (currentValue && typeof currentValue === 'string') {
+            const currentHash = Cypher.hash(currentValue);
+            if (newValue !== currentHash) {
+            // Yes: Encrypt
+              _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+            } else {
+            // No: Put back the encrypted value
+              _.set(newProperties, propertyName, currentValue);
+            }
+          } else {
+          // Value in db is empty then encrypt
+            _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+          }
+        } else {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+            message: `The property '${propertyName}' is not set`,
+            module: MODULE_NAME,
+            method: 'processSensitiveData',
+          });
+        }
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public static hashSensitiveData(tenantID: string, properties: object): unknown {
+    const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
+    if (sensitivePropertyNames) {
+      if (!Array.isArray(sensitivePropertyNames)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: 'Unexpected situation - sensitiveData is not an array',
+          module: MODULE_NAME,
+          method: 'hashSensitiveData'
+        });
+      }
+      for (const propertyName of sensitivePropertyNames) {
+        // Check that the property does exist otherwise skip to the next property
+        if (_.has(properties, propertyName)) {
+          const value = _.get(properties, propertyName);
+          // If the value is undefined, null or empty then do nothing and skip to the next property
+          if (value && typeof value === 'string') {
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            _.set(properties, propertyName, Cypher.hash(value));
+          }
+        }
+      }
+    }
+    return properties;
   }
 }

@@ -246,7 +246,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');

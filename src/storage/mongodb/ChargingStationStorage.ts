@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, RegistrationStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
@@ -543,6 +543,7 @@ export default class ChargingStationStorage {
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
       chargePointVendor: chargingStationToSave.chargePointVendor,
+      registrationStatus: chargingStationToSave.registrationStatus,
       iccid: chargingStationToSave.iccid,
       imsi: chargingStationToSave.imsi,
       meterType: chargingStationToSave.meterType,
