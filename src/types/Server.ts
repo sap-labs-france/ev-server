@@ -244,7 +244,6 @@ export enum ServerAction {
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
   WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',
 
-
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
