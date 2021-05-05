@@ -370,6 +370,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
         ]
       },
+      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },

@@ -56,7 +56,7 @@ describe('Asset Test', function() {
       );
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created company
       testData.createdCompanies.forEach(async (company) => {
         await testData.centralUserService.deleteEntity(
