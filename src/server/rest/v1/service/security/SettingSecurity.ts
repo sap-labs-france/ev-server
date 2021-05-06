@@ -234,6 +234,15 @@ export default class SettingSecurity {
                   password: sanitize(connection.iothinkConnection.password),
                 };
                 break;
+              case AssetConnectionType.WIT:
+                sanitizedConnection.witConnection = {
+                  authenticationUrl: sanitize(connection.witConnection.authenticationUrl),
+                  clientId: sanitize(connection.witConnection.clientId),
+                  clientSecret: sanitize(connection.witConnection.clientSecret),
+                  user: sanitize(connection.witConnection.user),
+                  password: sanitize(connection.witConnection.password),
+                };
+                break;
             }
             settings.content.asset.connections.push(sanitizedConnection);
           }
