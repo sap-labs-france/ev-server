@@ -4,9 +4,11 @@ import AxiosFactory from '../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import CCPStorage from '../../storage/mongodb/CCPStorage';
 import Configuration from '../../utils/Configuration';
-import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractsCertificatePool';
+import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractCertificatePool';
+import HubjectContractCertificatePoolClient from './HubjectContractCertificatePoolClient';
 import Logging from '../../utils/Logging';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import { OCPP1511SchemaVersionList } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'ContractCertificatePoolClient';
@@ -33,14 +35,21 @@ export default class ContractCertificatePoolClient {
     this.chargingStationID = chargingStationID;
   }
 
-  public async getContractCertificateExiResponse(schemaVersion: string, exiRequest: string): Promise<string> {
+  public async getContractCertificateExiResponse(schemaVersion: OCPP1511SchemaVersionList, exiRequest: string): Promise<string> {
     let exiResponse: string;
-    const contractCertificatePool = Configuration.getContractCertificatePool()?.pools[(await CCPStorage.getDefaultCCP()).ccpIndex ?? 0];
+    let hubjectCCPClient: HubjectContractCertificatePoolClient;
+    const contractCertificatePool = Configuration.getContractCertificatePools()?.pools[(await CCPStorage.getDefaultCCP()).ccpIndex ?? 0];
     switch (contractCertificatePool.type) {
       case ContractCertificatePoolType.GIREVE:
       case ContractCertificatePoolType.ELAAD:
       case ContractCertificatePoolType.VEDECOM:
         exiResponse = await this.getCommonAPIContractCertificateExiResponse(contractCertificatePool.type, schemaVersion, exiRequest);
+        break;
+      case ContractCertificatePoolType.HUBJECT:
+        // FIXME: implement a ccp object factory instead
+        hubjectCCPClient = HubjectContractCertificatePoolClient.getInstance();
+        hubjectCCPClient.initialize(this.tenantID, this.chargingStationID);
+        exiResponse = await hubjectCCPClient.getHubjectContractCertificateExiResponse(schemaVersion, exiRequest);
         break;
       default:
         throw Error(`Configured ${contractCertificatePool.type} contract certificate pool type not found`);
@@ -55,14 +64,14 @@ export default class ContractCertificatePoolClient {
     return exiResponse;
   }
 
-  private async getCommonAPIContractCertificateExiResponse(ccpType: ContractCertificatePoolType, schemaVersion: string, exiRequest: string): Promise<string> {
+  private async getCommonAPIContractCertificateExiResponse(ccpType: ContractCertificatePoolType, schemaVersion: OCPP1511SchemaVersionList, exiRequest: string): Promise<string> {
     const ocpi15118EVCertificateRequest: OCPI15118EVCertificateRequest = {
       '15118SchemaVersion': schemaVersion,
       exiRequest
     };
     // Get 15118 EV Certificate
-    const result = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType), ocpi15118EVCertificateRequest);
-    const ocpi15118EVCertificateResponse = result.data;
+    const axiosResponse = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType), ocpi15118EVCertificateRequest);
+    const ocpi15118EVCertificateResponse = axiosResponse.data;
     if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
       return ocpi15118EVCertificateResponse.data.exiResponse;
     }

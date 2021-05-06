@@ -459,8 +459,12 @@ export interface OCPPStopTransactionResponse {
   idTagInfo: OCPPIdTagInfo;
 }
 
+export enum OCPP1511SchemaVersionList {
+  '15118:2:2013' = 'urn:iso:15118:2:2013:MsgDef'
+}
+
 export interface OCPPGet15118EVCertificateRequest {
-  '15118SchemaVersion': string,
+  '15118SchemaVersion': OCPP1511SchemaVersionList,
   exiRequest: string
 }
 
