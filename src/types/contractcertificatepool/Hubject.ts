@@ -8,7 +8,7 @@ export interface HubjectContractCertificatePool extends ContractCertificatePool 
 }
 
 export enum GrantType {
-  CLIENT_CREDENTIALS = 'client_credentials',
+  CLIENT_CREDENTIALS = 'client_credentials'
 }
 
 export interface AuthRequest {
@@ -39,6 +39,14 @@ export interface GetSignedContractDataRequest {
 }
 
 export interface GetSignedContractDataResponse {
-  certificateInstallationRes: string;
+  CCPResponse: {
+    emaidContent: [
+      {
+        messageDef: {
+          certificateInstallationRes: string;
+          emaid: string;
+        }
+      }
+    ]
+  }
 }
-

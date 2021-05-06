@@ -57,7 +57,7 @@ export default class HubjectContractCertificatePoolClient {
         message: `Fetching contract certificate from ${ContractCertificatePoolType.HUBJECT}`,
         module: MODULE_NAME, method: 'getHubjectContractCertificateExiResponse',
       });
-      return axiosResponse.data.certificateInstallationRes;
+      return axiosResponse.data.CCPResponse.emaidContent.messageDef.certificateInstallationRes;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
