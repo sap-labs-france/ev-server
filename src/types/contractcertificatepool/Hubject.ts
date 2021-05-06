@@ -5,6 +5,7 @@ export interface HubjectContractCertificatePool extends ContractCertificatePool 
   auth_endpoint: string;
   client_id: string;
   client_secret: string;
+  audience?: string;
 }
 
 export enum GrantType {

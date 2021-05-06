@@ -7,13 +7,14 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import CCPStorage from '../../../storage/mongodb/CCPStorage';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import ContractCertificatePoolClient from '../../../client/contractcertificatepool/ContractCertificatePoolClient';
+import ContractCertificatePoolClientFactory from '../../../client/contractcertificatepool/ContractCertificatePoolClientFactory';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import I18nManager from '../../../utils/I18nManager';
@@ -1050,10 +1051,23 @@ export default class OCPPService {
 
   public async handleGet15118EVCertificate(headers: OCPPHeader, ev15118Certificate: OCPPGet15118EVCertificateRequest): Promise<OCPPGet15118EVCertificateResponse> {
     try {
-      // Check the charging station
-      await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
-      const ccpClient = ContractCertificatePoolClient.getInstance();
-      ccpClient.initialize(headers.tenantID, headers.chargeBoxIdentity);
+      // Check and get the tenant and charging station
+      const { chargingStation, tenant } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
+      const contractCertificatePool = Configuration.getContractCertificatePools()?.pools[(await CCPStorage.getDefaultCCP()).ccpIndex ?? 0];
+      const ccpClient = ContractCertificatePoolClientFactory.getCCPClient(tenant.id, chargingStation.id, contractCertificatePool.type);
+      if (!ccpClient) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          source: chargingStation.id,
+          action: ServerAction.GET_15118_EV_CERTIFICATE,
+          message: `Cannot create client for ${contractCertificatePool.type} certificate pool service `,
+          module: MODULE_NAME, method: 'handleGet15118EVCertificate',
+        });
+        return {
+          status: OCPP15118EVCertificateStatus.FAILED,
+          exiResponse: ''
+        };
+      }
       const exiResponse = await ccpClient.getContractCertificateExiResponse(ev15118Certificate['15118SchemaVersion'], ev15118Certificate.exiRequest);
       return {
         status: OCPP15118EVCertificateStatus.ACCEPTED,

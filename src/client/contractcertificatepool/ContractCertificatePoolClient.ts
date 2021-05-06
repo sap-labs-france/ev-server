@@ -1,11 +1,11 @@
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { OCPI15118EVCertificateRequest, OCPI15118EVCertificateResponse } from '../../types/ocpi/OCPICertificate';
 
 import AxiosFactory from '../../utils/AxiosFactory';
-import { AxiosInstance } from 'axios';
-import CCPStorage from '../../storage/mongodb/CCPStorage';
+import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractCertificatePool';
-import HubjectContractCertificatePoolClient from './HubjectContractCertificatePoolClient';
 import Logging from '../../utils/Logging';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { OCPP1511SchemaVersionList } from '../../types/ocpp/OCPPServer';
@@ -18,47 +18,38 @@ export default class ContractCertificatePoolClient {
   private axiosInstance: AxiosInstance;
   private tenantID: string;
   private chargingStationID: string;
+  private type: ContractCertificatePoolType;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor(tenantID: string, chargingStationID: string, ccpType: ContractCertificatePoolType) {
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+    this.tenantID = tenantID;
+    this.chargingStationID = chargingStationID;
+    this.type = ccpType;
+  }
 
-  public static getInstance(): ContractCertificatePoolClient {
+  public static getInstance(tenantID: string, chargingStationID: string, ccpType: ContractCertificatePoolType): ContractCertificatePoolClient {
     if (!ContractCertificatePoolClient.ccpClient) {
-      ContractCertificatePoolClient.ccpClient = new ContractCertificatePoolClient();
+      ContractCertificatePoolClient.ccpClient = new ContractCertificatePoolClient(tenantID, chargingStationID, ccpType);
     }
     return ContractCertificatePoolClient.ccpClient;
   }
 
-  public initialize(tenantID: string, chargingStationID: string): void {
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
-    this.tenantID = tenantID;
-    this.chargingStationID = chargingStationID;
-  }
-
   public async getContractCertificateExiResponse(schemaVersion: OCPP1511SchemaVersionList, exiRequest: string): Promise<string> {
     let exiResponse: string;
-    let hubjectCCPClient: HubjectContractCertificatePoolClient;
-    const contractCertificatePool = Configuration.getContractCertificatePools()?.pools[(await CCPStorage.getDefaultCCP()).ccpIndex ?? 0];
-    switch (contractCertificatePool.type) {
+    switch (this.type) {
       case ContractCertificatePoolType.GIREVE:
       case ContractCertificatePoolType.ELAAD:
       case ContractCertificatePoolType.VEDECOM:
-        exiResponse = await this.getCommonAPIContractCertificateExiResponse(contractCertificatePool.type, schemaVersion, exiRequest);
-        break;
-      case ContractCertificatePoolType.HUBJECT:
-        // FIXME: implement a ccp object factory instead
-        hubjectCCPClient = HubjectContractCertificatePoolClient.getInstance();
-        hubjectCCPClient.initialize(this.tenantID, this.chargingStationID);
-        exiResponse = await hubjectCCPClient.getHubjectContractCertificateExiResponse(schemaVersion, exiRequest);
+        exiResponse = await this.getCommonAPIContractCertificateExiResponse(this.type, schemaVersion, exiRequest);
         break;
       default:
-        throw Error(`Configured ${contractCertificatePool.type} contract certificate pool type not found`);
+        throw Error(`${this.type} contract certificate pool type not found in configuration`);
     }
-    await Logging.logInfo({
+    await Logging.logDebug({
       tenantID: this.tenantID,
       source: this.chargingStationID,
       action: ServerAction.GET_15118_EV_CERTIFICATE,
-      message: `Fetching contract certificate from ${contractCertificatePool.type}`,
+      message: `Fetching contract certificate from ${this.type} contract certificate pool service`,
       module: MODULE_NAME, method: 'getContractCertificateExiResponse',
     });
     return exiResponse;
@@ -70,11 +61,30 @@ export default class ContractCertificatePoolClient {
       exiRequest
     };
     // Get 15118 EV Certificate
-    const axiosResponse = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType), ocpi15118EVCertificateRequest);
-    const ocpi15118EVCertificateResponse = axiosResponse.data;
-    if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
-      return ocpi15118EVCertificateResponse.data.exiResponse;
+    let axiosResponse: AxiosResponse;
+    try {
+      axiosResponse = await this.axiosInstance.post<OCPI15118EVCertificateResponse>(Configuration.getContractCertificatePoolEndPoint(ccpType), ocpi15118EVCertificateRequest);
+      const ocpi15118EVCertificateResponse = axiosResponse.data;
+      if (ocpi15118EVCertificateResponse.status_code === OCPIStatusCode.CODE_1000_SUCCESS.status_code && ocpi15118EVCertificateResponse.data.status === 'Accepted') {
+        return ocpi15118EVCertificateResponse.data.exiResponse;
+      }
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getContractCertificateExiResponse',
+        action: ServerAction.GET_15118_EV_CERTIFICATE,
+        message: `Error while fetching contract certificate from ${this.type} contract certificate pool service`,
+        detailedMessages: { ocpi15118EVCertificateRequest, axiosResponse, error: error.message, stack: error.stack }
+      });
     }
-    throw Error(ccpType + ': Failed to get 15118 exiResponse');
+    throw new BackendError({
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME,
+      method: 'getContractCertificateExiResponse',
+      action: ServerAction.GET_15118_EV_CERTIFICATE,
+      message: `Cannot fetch contract certificate from ${this.type} contract certificate pool service`,
+      detailedMessages: { ocpi15118EVCertificateRequest, axiosResponse }
+    });
   }
 }
