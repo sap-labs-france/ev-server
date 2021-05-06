@@ -18,26 +18,23 @@ export default class HubjectContractCertificatePoolClient {
   private axiosInstance: AxiosInstance;
   private tenantID: string;
   private chargingStationID: string;
+  private type: ContractCertificatePoolType;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor(tenantID: string, chargingStationID: string, ccpType: ContractCertificatePoolType) {
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+    this.tenantID = tenantID;
+    this.chargingStationID = chargingStationID;
+    this.type = ccpType;
+  }
 
-  public static getInstance(): HubjectContractCertificatePoolClient {
+  public static getInstance(tenantID: string, chargingStationID: string, ccpType: ContractCertificatePoolType): HubjectContractCertificatePoolClient {
     if (!HubjectContractCertificatePoolClient.ccpClient) {
-      HubjectContractCertificatePoolClient.ccpClient = new HubjectContractCertificatePoolClient();
+      HubjectContractCertificatePoolClient.ccpClient = new HubjectContractCertificatePoolClient(tenantID, chargingStationID, ccpType);
     }
     return HubjectContractCertificatePoolClient.ccpClient;
   }
 
-  public initialize(tenantID: string, chargingStationID: string): void {
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
-    this.tenantID = tenantID;
-    this.chargingStationID = chargingStationID;
-  }
-
-  public async getHubjectContractCertificateExiResponse(schemaVersion: OCPP1511SchemaVersionList, exiRequest: string): Promise<string> {
-    // FIXME: make the authentication step conditional to the token expire
-    await this.authenticateHubjectCCP();
+  public async getContractCertificateExiResponse(schemaVersion: OCPP1511SchemaVersionList, exiRequest: string): Promise<string> {
     const hubject15118EVCertificateRequest: GetSignedContractDataRequest = {
       certificateInstallationReq: exiRequest,
       xsdMsgDefNamespace: schemaVersion
@@ -45,26 +42,28 @@ export default class HubjectContractCertificatePoolClient {
     // Get 15118 EV Certificate
     let axiosResponse: AxiosResponse;
     try {
-      axiosResponse = await this.axiosInstance.post<GetSignedContractDataResponse>(Configuration.getContractCertificatePoolEndPoint(ContractCertificatePoolType.HUBJECT),
+      // FIXME: make the authentication step conditional to the token expire
+      await this.authenticateHubjectCCP();
+      axiosResponse = await this.axiosInstance.post<GetSignedContractDataResponse>(Configuration.getContractCertificatePoolEndPoint(this.type),
         hubject15118EVCertificateRequest,
         {
           headers: this.buildAuthHeader(this.bearerToken)
         });
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: this.tenantID,
         source: this.chargingStationID,
         action: ServerAction.GET_15118_EV_CERTIFICATE,
-        message: `Fetching contract certificate from ${ContractCertificatePoolType.HUBJECT}`,
-        module: MODULE_NAME, method: 'getHubjectContractCertificateExiResponse',
+        message: `Fetching contract certificate from ${this.type} contract certificate pool service`,
+        module: MODULE_NAME, method: 'getContractCertificateExiResponse',
       });
       return axiosResponse.data.CCPResponse.emaidContent.messageDef.certificateInstallationRes;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'getHubjectContractCertificateExiResponse',
+        method: 'getContractCertificateExiResponse',
         action: ServerAction.GET_15118_EV_CERTIFICATE,
-        message: `Error while fetching contract certificate from ${ContractCertificatePoolType.HUBJECT} contract certificate pool service`,
+        message: `Error while fetching contract certificate from ${this.type} contract certificate pool service`,
         detailedMessages: { hubject15118EVCertificateRequest, axiosResponse, error: error.message, stack: error.stack }
       });
     }
@@ -72,10 +71,19 @@ export default class HubjectContractCertificatePoolClient {
 
   private async authenticateHubjectCCP() {
     const hubjectContractCertificatePoolConfiguration = this.getHubjectContractCertificatePoolConfiguration();
+    if (!hubjectContractCertificatePoolConfiguration) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'authenticateHubjectCCP',
+        action: ServerAction.GET_15118_EV_CERTIFICATE,
+        message: `Configuration for ${this.type} contract certificate pool service not found`,
+      });
+    }
     const hubject15118EVCertificateAuthRequest: AuthRequest = {
       client_id: hubjectContractCertificatePoolConfiguration.client_id,
       client_secret: hubjectContractCertificatePoolConfiguration.client_secret,
-      audience: 'https://eu.plugncharge-qa.hubject.com',
+      audience: hubjectContractCertificatePoolConfiguration.audience ?? 'https://eu.plugncharge-qa.hubject.com',
       grant_type: GrantType.CLIENT_CREDENTIALS
     };
     let axiosResponse: AxiosResponse;
@@ -89,7 +97,7 @@ export default class HubjectContractCertificatePoolClient {
         module: MODULE_NAME,
         method: 'authenticateHubjectCCP',
         action: ServerAction.GET_15118_EV_CERTIFICATE,
-        message: `Error while authenticating to ${ContractCertificatePoolType.HUBJECT} contract certificate pool service`,
+        message: `Error while authenticating to ${this.type} contract certificate pool service`,
         detailedMessages: { hubject15118EVCertificateAuthRequest, axiosResponse, error: error.message, stack: error.stack }
       });
     }
