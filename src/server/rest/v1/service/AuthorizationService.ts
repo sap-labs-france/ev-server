@@ -539,7 +539,7 @@ export default class AuthorizationService {
   public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult, authorizationFilter: AuthorizationFilter,
       filteredRequest: Record<string, any>): Promise<void> {
     // Add canCreate flag to root
-    siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREAS, Action.CREATE, authorizationFilter);
+    siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
 
     // Enrich
     for (const siteArea of siteAreas.result) {
