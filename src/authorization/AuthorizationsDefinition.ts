@@ -93,8 +93,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE], attributes: ['*'] },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION] },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
-      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
+      // ---------------------------------------------------------------------------------------------------
+      // TODO - no use-case so far - clarify whether a SYNC INVOICES and CREATE INVOICE makes sense or not!
+      // ---------------------------------------------------------------------------------------------------
+      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
+      // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
@@ -178,7 +183,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['id', 'name', 'issuer', 'logo', 'address']
       },
       // -----------------------------------------------------------------------------------------------
-      // TODO - put it pack as soon as BILLING has been validated of SLF
+      // TODO - put it back as soon as BILLING has been validated on SLF
       // -----------------------------------------------------------------------------------------------
       // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       // {
@@ -290,7 +295,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   demo: {
     grants: [
       {
-        resource: Entity.USER, action: [Action.READ], attributes: ['*'],
+        resource: Entity.USER, action: [Action.READ], attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },

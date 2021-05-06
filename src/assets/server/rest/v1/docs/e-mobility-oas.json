@@ -713,7 +713,7 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "$ref": "#/components/parameters/ChargeBoxIDs"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorIDs"
@@ -2574,7 +2574,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
+                  "chargingStationID": {
                     "type": "string",
                     "example": ""
                   },
@@ -2584,7 +2584,7 @@
                   }
                 },
                 "required": [
-                  "chargeBoxID",
+                  "chargingStationID",
                   "forceUpdateOCPPParamsFromTemplate"
                 ]
               }
@@ -4350,11 +4350,6 @@
       }
     },
     "schemas": {
-      "ocppChargeBoxID": {
-        "type": "string",
-        "description": "The Charging Station ID",
-        "example": ""
-      },
       "Tenant": {
         "type": "object",
         "required": [
@@ -5354,15 +5349,6 @@
       "ChargingStationIDs": {
         "in": "query",
         "name": "ChargingStationID",
-        "description": "Pipe separated Charging Station IDs",
-        "required": false,
-        "schema": {
-          "type": "string"
-        }
-      },
-      "ChargeBoxIDs": {
-        "in": "query",
-        "name": "ChargeBoxID",
         "description": "Pipe separated Charging Station IDs",
         "required": false,
         "schema": {

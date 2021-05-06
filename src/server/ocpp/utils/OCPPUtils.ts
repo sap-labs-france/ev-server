@@ -21,6 +21,7 @@ import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
@@ -46,7 +47,7 @@ import url from 'url';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
-  public static async processOCPITransaction(tenantID: string, transaction: Transaction,
+  public static async processOCPITransaction(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     // Set Action
     let action: ServerAction;
@@ -73,7 +74,6 @@ export default class OCPPUtils {
       });
     }
     const user = transaction.user;
-    const tenant = await TenantStorage.getTenant(tenantID);
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       throw new BackendError({
         user: user,
@@ -98,7 +98,7 @@ export default class OCPPUtils {
     switch (transactionAction) {
       case TransactionAction.START:
         // eslint-disable-next-line no-case-declarations
-        const tag = await TagStorage.getTag(tenantID, transaction.tagID);
+        const tag = await TagStorage.getTag(tenant.id, transaction.tagID);
         if (!tag.ocpiToken) {
           throw new BackendError({
             user: user,
@@ -109,7 +109,7 @@ export default class OCPPUtils {
           });
         }
         // Retrieve Authorization ID
-        authorizations = await OCPPStorage.getAuthorizes(tenant.id, {
+        authorizations = await OCPPStorage.getAuthorizes(tenant, {
           dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
           chargeBoxID: transaction.chargeBoxID,
           tagID: transaction.tagID
@@ -151,13 +151,12 @@ export default class OCPPUtils {
     }
   }
 
-  public static async processOICPTransaction(tenantID: string, transaction: Transaction,
+  public static async processOICPTransaction(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     if (!transaction.user || transaction.user.issuer) {
       return;
     }
     const user: User = transaction.user;
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     let action: ServerAction;
     switch (transactionAction) {
       case TransactionAction.START:
@@ -194,9 +193,10 @@ export default class OCPPUtils {
     switch (transactionAction) {
       case TransactionAction.START:
         // Retrieve session Id and identification from (remote) authorization
-        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(tenantID, chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
+        authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
+          tenant.id, chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
         if (!authorization) {
-          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenantID, transaction);
+          authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
         }
         if (!authorization) {
           throw new BackendError({
@@ -559,7 +559,7 @@ export default class OCPPUtils {
     await TransactionStorage.saveTransaction(tenantID, transaction);
   }
 
-  public static async rebuildTransactionConsumptions(tenantID: string, transaction: Transaction): Promise<number> {
+  public static async rebuildTransactionConsumptions(tenant: Tenant, transaction: Transaction): Promise<number> {
     let consumptions: Consumption[] = [];
     let transactionSimplePricePerkWh: number;
     if (!transaction) {
@@ -583,7 +583,7 @@ export default class OCPPUtils {
       transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenantID,
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id,
       transaction.chargeBoxID, { includeDeleted: true });
     if (!chargingStation) {
       throw new BackendError({
@@ -594,10 +594,10 @@ export default class OCPPUtils {
       });
     }
     // Get the Meter Values
-    const meterValues = await OCPPStorage.getMeterValues(tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
+    const meterValues = await OCPPStorage.getMeterValues(tenant, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT);
     if (meterValues.count > 0) {
       // Build all Consumptions
-      consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenantID, chargingStation, transaction, meterValues.result);
+      consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, meterValues.result);
       // Push last dummy consumption for Stop Transaction
       consumptions.push({} as Consumption);
       for (let i = 0; i < consumptions.length; i++) {
@@ -615,7 +615,7 @@ export default class OCPPUtils {
           const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
           // Create last consumption
           const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
-            tenantID, chargingStation, transaction, stopMeterValues);
+            tenant.id, chargingStation, transaction, stopMeterValues);
           const lastConsumption = lastConsumptions[0];
           // No consumption or no duration, skip it
           if (!lastConsumption || lastConsumption.startedAt.getTime() === lastConsumption.endedAt.getTime()) {
@@ -630,8 +630,8 @@ export default class OCPPUtils {
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         // Price & Bill
         if (consumption.toPrice) {
-          await OCPPUtils.priceTransaction(tenantID, transaction, consumption, TransactionAction.UPDATE);
-          await OCPPUtils.billTransaction(tenantID, transaction, TransactionAction.UPDATE);
+          await OCPPUtils.priceTransaction(tenant.id, transaction, consumption, TransactionAction.UPDATE);
+          await OCPPUtils.billTransaction(tenant.id, transaction, TransactionAction.UPDATE);
         }
         // Override the price if simple pricing only
         if (transactionSimplePricePerkWh > 0) {
@@ -665,9 +665,9 @@ export default class OCPPUtils {
         }
       }
       // Delete first all transaction's consumptions
-      await ConsumptionStorage.deleteConsumptions(tenantID, [transaction.id]);
+      await ConsumptionStorage.deleteConsumptions(tenant.id, [transaction.id]);
       // Save all
-      await ConsumptionStorage.saveConsumptions(tenantID, consumptions);
+      await ConsumptionStorage.saveConsumptions(tenant.id, consumptions);
       // Update the Transaction
       if (!transaction.refundData) {
         transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
@@ -682,9 +682,9 @@ export default class OCPPUtils {
       }
     }
     // Build extra inactivity consumption
-    const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenantID, transaction);
+    const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenant.id, transaction);
     // Save
-    await TransactionStorage.saveTransaction(tenantID, transaction);
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
@@ -1555,37 +1555,58 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {
+  static async checkAndGetTenantAndChargingStation(ocppHeader: OCPPHeader): Promise<{ chargingStation: ChargingStation, tenant: Tenant }> {
     // Check
-    if (!chargeBoxIdentity) {
+    if (!ocppHeader.chargeBoxIdentity) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'chargeBoxIdentity\'!'
       });
     }
-    // Get the charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargeBoxIdentity);
-    // Found?
+    if (!ocppHeader.tenantID) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkAndGetTenantAndChargingStation',
+        message: 'Should have the required property \'tenantID\'!'
+      });
+    }
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(ocppHeader.tenantID);
+    if (!tenant) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkAndGetTenantAndChargingStation',
+        message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
+      });
+    }
+    // Get Charging Station
+    const chargingStation = await ChargingStationStorage.getChargingStation(
+      ocppHeader.tenantID, ocppHeader.chargeBoxIdentity);
     if (!chargingStation) {
       throw new BackendError({
-        source: chargeBoxIdentity,
+        source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station does not exist'
       });
     }
     // Deleted?
     if (chargingStation.deleted) {
       throw new BackendError({
-        source: chargeBoxIdentity,
+        source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station is deleted'
       });
     }
-    return chargingStation;
+    return {
+      tenant,
+      chargingStation,
+    };
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {

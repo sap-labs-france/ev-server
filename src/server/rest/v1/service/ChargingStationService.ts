@@ -322,7 +322,7 @@ export default class ChargingStationService {
     // Check
     if (!filteredRequest.chargePointID) {
       throw new AppError({
-        source: filteredRequest.chargeBoxID,
+        source: filteredRequest.chargingStationID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'You must provide a Charge Point ID',
@@ -331,8 +331,8 @@ export default class ChargingStationService {
       });
     }
     // Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist.`,
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
     // Charge Point
     const chargePoint = Utils.getChargePointFromID(chargingStation, filteredRequest.chargePointID);
@@ -342,7 +342,7 @@ export default class ChargingStationService {
     const numberOfPhases = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, 0);
     if (filteredRequest.ampLimitValue < (StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length)) {
       throw new AppError({
-        source: filteredRequest.chargeBoxID,
+        source: filteredRequest.chargingStationID,
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT_PER_PHASE * numberOfPhases * chargePoint.connectorIDs.length}A`,
@@ -700,11 +700,11 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
     // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
     // Found?
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
@@ -726,7 +726,7 @@ export default class ChargingStationService {
   public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationRequestOCPPParametersReq(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!await Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -734,13 +734,13 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ, entity: Entity.CHARGING_STATION,
         module: MODULE_NAME, method: 'handleRequestChargingStationOcppParameters',
-        value: filteredRequest.chargeBoxID
+        value: filteredRequest.chargingStationID
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
     // Found?
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Get the configuration
     let result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(req.user.tenantID, chargingStation);
@@ -1039,7 +1039,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
-    const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
+    const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(statusNotifications);
@@ -1059,7 +1059,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
-    const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
+    const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Return
     res.json(bootNotifications);
@@ -1120,10 +1120,10 @@ export default class ChargingStationService {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice(15) as Command;
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargeBoxID}' does not exist`,
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     let result = null;
     // Remote Stop Transaction / Unlock Connector
