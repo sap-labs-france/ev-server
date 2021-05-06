@@ -1,5 +1,5 @@
 import Constants from '../../utils/Constants';
-import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractsCertificatePool';
+import { ContractCertificatePoolType } from '../../types/contractcertificatepool/ContractCertificatePool';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import global from '../../types/GlobalType';

@@ -13,8 +13,8 @@ import ChargingStationTemplatesConfiguration from '../types/configuration/Chargi
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
 import { Configuration as ConfigurationData } from '../types/configuration/Configuration';
 import Constants from './Constants';
-import ContractCertificatePoolConfiguration from '../types/configuration/ContractsCertificatePoolConfiguration';
-import { ContractCertificatePoolType } from '../types/contractcertificatepool/ContractsCertificatePool';
+import { ContractCertificatePoolType } from '../types/contractcertificatepool/ContractCertificatePool';
+import ContractCertificatePoolsConfiguration from '../types/configuration/ContractCertificatePoolsConfiguration';
 import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
 import EVDatabaseConfiguration from '../types/configuration/EVDatabaseConfiguration';
 import EmailConfiguration from '../types/configuration/EmailConfiguration';
@@ -427,12 +427,12 @@ export default class Configuration {
     return Configuration.getConfig().Axios;
   }
 
-  public static getContractCertificatePool(): ContractCertificatePoolConfiguration {
-    return Configuration.getConfig().ContractCertificatePool;
+  public static getContractCertificatePools(): ContractCertificatePoolsConfiguration {
+    return Configuration.getConfig().ContractCertificatePools;
   }
 
   public static getContractCertificatePoolEndPoint(contractCertificatePoolType: ContractCertificatePoolType): string {
-    for (const contractCertificatePool of Configuration.getContractCertificatePool()?.pools) {
+    for (const contractCertificatePool of Configuration.getContractCertificatePools()?.pools) {
       if (contractCertificatePoolType === contractCertificatePool.type) {
         return contractCertificatePool.endpoint;
       }
