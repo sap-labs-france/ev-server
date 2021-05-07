@@ -490,7 +490,7 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'handleGetCar', userToken);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilter(
+    const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilters(
       tenant, userToken, { ID: carID }, Action.READ);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
