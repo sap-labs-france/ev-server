@@ -11,7 +11,7 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import BackendError from '../../../../exception/BackendError';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
@@ -25,7 +25,6 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
-import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -484,6 +483,46 @@ export default class UtilsService {
       });
     }
     return siteArea;
+  }
+
+  public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Car> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'handleGetCar', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilter(
+      tenant, userToken, { ID: carID }, Action.READ);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'checkAndGetCarAuthorization',
+        value: carID
+      });
+    }
+    // Check User
+    let userProject: string[] = [];
+    if (await Authorizations.canReadUser(userToken)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
+      ];
+      // todo: is it ok like this?
+      authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
+    }
+    // Get Car
+    const car = await CarStorage.getCar(userToken.tenantID, carID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check it exists
+    UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
+      MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Return
+    return car;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {

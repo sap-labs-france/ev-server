@@ -459,37 +459,13 @@ export default class CarService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR,
       MODULE_NAME, 'handleGetCar');
-    // Check auth
-    if (!await Authorizations.canReadCar(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleGetCar'
-      });
-    }
+    // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
-    // Check User
-    let userProject: string[] = [];
-    if (await Authorizations.canReadUser(req.user)) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
-        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
-      ];
-    }
-    // Get the car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID, {
-      withUsers: true,
-      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
-    },
-    [
-      'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-      'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
-      'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
-      'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-      'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
-      ...userProject
-    ]);
+    // Check and get Car
+    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+      withUsers: true ,
+      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null // todo: dynamic filter?
+    }, true);
     // Return
     res.json(car);
     next();

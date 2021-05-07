@@ -127,7 +127,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      {
+        resource: Entity.CAR, action: Action.READ, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+          'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+        ]
+      },
       {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
@@ -170,7 +179,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      {
+        resource: Entity.CAR, action: Action.READ, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+          'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+        ]
+      },
       {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
@@ -318,7 +336,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
+      {
+        resource: Entity.CAR, action: Action.READ, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+          'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+        ]
+      },
       {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
