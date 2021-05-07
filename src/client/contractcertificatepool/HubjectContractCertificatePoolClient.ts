@@ -9,6 +9,7 @@ import { ContractCertificatePoolType } from '../../types/contractcertificatepool
 import Logging from '../../utils/Logging';
 import { OCPP1511SchemaVersionList } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
+import { StatusCodes } from 'http-status-codes';
 
 const MODULE_NAME = 'HubjectContractCertificatePoolClient';
 
@@ -49,6 +50,16 @@ export default class HubjectContractCertificatePoolClient {
         {
           headers: this.buildAuthHeader(this.bearerToken)
         });
+      if (axiosResponse.status !== StatusCodes.OK) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME,
+          method: 'getContractCertificateExiResponse',
+          action: ServerAction.GET_15118_EV_CERTIFICATE,
+          message: `Failed to fetch successfully contract certificate from ${this.type} contract certificate pool service`,
+          detailedMessages: { hubject15118EVCertificateRequest, axiosResponse }
+        });
+      }
       await Logging.logDebug({
         tenantID: this.tenantID,
         source: this.chargingStationID,

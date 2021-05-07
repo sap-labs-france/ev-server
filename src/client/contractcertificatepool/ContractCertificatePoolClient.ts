@@ -83,7 +83,7 @@ export default class ContractCertificatePoolClient {
       module: MODULE_NAME,
       method: 'getContractCertificateExiResponse',
       action: ServerAction.GET_15118_EV_CERTIFICATE,
-      message: `Cannot fetch contract certificate from ${this.type} contract certificate pool service`,
+      message: `Failed to fetch successfully contract certificate from ${this.type} contract certificate pool service`,
       detailedMessages: { ocpi15118EVCertificateRequest, axiosResponse }
     });
   }
