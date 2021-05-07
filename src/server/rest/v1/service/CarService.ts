@@ -229,7 +229,9 @@ export default class CarService {
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    if (!await Authorizations.canCreateCar(req.user)) {
+    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizationFilters(
+      req.tenant,req.user, filteredRequest, Action.CREATE);
+    if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -237,7 +239,8 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleCreateCar'
       });
     }
-    // Check Car Catalog
+    // Check and get CarCatalog
+    // todo: update when working on car catalogs
     const carCatalog = await CarStorage.getCarCatalog(filteredRequest.carCatalogID);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
@@ -248,6 +251,7 @@ export default class CarService {
       filteredRequest.licensePlate, filteredRequest.vin, {
         withUsers: Authorizations.isBasic(req.user) ? true : false,
       });
+
     if (car) {
       // If Admin, car already exits!
       if (Authorizations.isAdmin(req.user)) {
@@ -318,7 +322,7 @@ export default class CarService {
     if (filteredRequest.usersAdded.length > 0) {
       await CarService.handleAssignCarUsers(action, req.user.tenantID, req.user, newCar, filteredRequest.usersAdded);
     }
-    // Ok
+    // Return
     res.json(Object.assign({ id: newCar.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }

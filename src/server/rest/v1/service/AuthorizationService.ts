@@ -682,7 +682,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCarAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCarByIDRequest,
+  public static async checkAndGetCarAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
       action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
