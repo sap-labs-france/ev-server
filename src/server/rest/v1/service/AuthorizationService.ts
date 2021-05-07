@@ -16,6 +16,7 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -665,6 +666,20 @@ export default class AuthorizationService {
       await AuthorizationService.checkAssignedSites(
         tenant, userToken, null, authorizationFilters);
     }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetCarsAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCarsRequest) {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CARS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

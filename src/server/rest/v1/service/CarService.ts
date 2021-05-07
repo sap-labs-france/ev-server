@@ -7,6 +7,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
+import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
@@ -216,6 +217,8 @@ export default class CarService {
     next();
   }
 
+  // todo: above this are the car catalogs
+
   public static async handleCreateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let newCar: Car;
     // Check if component is active
@@ -414,37 +417,40 @@ export default class CarService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS,
       MODULE_NAME, 'handleGetCars');
-    // Check auth
-    if (!await Authorizations.canListCars(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.CARS,
-        module: MODULE_NAME, method: 'handleGetCars'
-      });
-    }
+    // Filter
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
+    // Check auth
+    const authorizationCarsFilter = await AuthorizationService.checkAndGetCarsAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    if (!authorizationCarsFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Check User
     let userProject: string[] = [];
     if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
+      // todo: is it ok like this?
+      authorizationCarsFilter.projectFields = authorizationCarsFilter.projectFields.concat(userProject);
     }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        // todo: should this be replaced by a dynamic filter?
         userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUsers: filteredRequest.WithUsers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
-        'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
-        ...userProject
-      ]);
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizationCarsFilter.projectFields
+    );
+    // Return
     res.json(cars);
     next();
   }

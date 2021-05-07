@@ -128,7 +128,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CARS, action: Action.LIST, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
+        ]
+      },
       { resource: Entity.USERS_CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
@@ -165,7 +171,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CARS, action: Action.LIST, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
+        ]
+      },
       {
         resource: Entity.COMPANIES, action: Action.LIST,
         condition: {
@@ -307,7 +319,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CARS, action: Action.LIST, attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
+        ]
+      },
       {
         resource: Entity.COMPANIES, action: Action.LIST, attributes: [
           'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
