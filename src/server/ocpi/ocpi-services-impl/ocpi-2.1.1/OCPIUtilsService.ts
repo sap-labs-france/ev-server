@@ -1,4 +1,4 @@
-import * as countriesList from 'countries-list';
+import * as CountriesList from 'countries-list';
 
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
@@ -180,7 +180,7 @@ export default class OCPIUtilsService {
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
       postal_code: site.address.postalCode,
-      country: countries.getAlpha3Code(site.address.country, countriesList.countries[options.countryID].languages[0]),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[options.countryID].languages[0]),
       coordinates: {
         longitude: site.address.coordinates[0].toString(),
         latitude: site.address.coordinates[1].toString()

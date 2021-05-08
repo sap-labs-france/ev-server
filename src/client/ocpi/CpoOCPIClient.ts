@@ -1,4 +1,4 @@
-import * as countriesList from 'countries-list';
+import * as CountriesList from 'countries-list';
 
 import { CdrDimensionType, OCPIChargingPeriod } from '../../types/ocpi/OCPIChargingPeriod';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
@@ -1041,7 +1041,7 @@ export default class CpoOCPIClient extends OCPIClient {
       address: Utils.convertAddressToOneLine(site.address),
       city: site.address?.city,
       postal_code: site.address?.postalCode,
-      country: countries.getAlpha3Code(site.address.country, countriesList.countries[countryId].languages[0]),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryId].languages[0]),
       coordinates: {
         latitude: site.address?.coordinates[1]?.toString(),
         longitude: site.address?.coordinates[0]?.toString()
