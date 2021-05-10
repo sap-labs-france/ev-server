@@ -76,6 +76,7 @@ export default class CarService {
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
@@ -99,23 +100,25 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
-    }
-    // Check auth
-    if (!await Authorizations.canReadCarCatalog(req.user)) {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+      Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
+    // Filter
+    const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.READ, entity: Entity.CAR_CATALOG,
-        module: MODULE_NAME, method: 'handleGetCarCatalogImages'
+        module: MODULE_NAME, method: 'handleGetCarCatalogImages',
+        value: filteredRequest.ID.toString()
       });
     }
-    // Filter
-    const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Get the car
     const carCatalogImages = await CarStorage.getCarCatalogImages(
       filteredRequest.ID,
@@ -126,6 +129,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   public static async handleSynchronizeCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
@@ -171,6 +175,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
@@ -304,6 +309,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   public static async handleUpdateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
@@ -455,6 +461,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   public static async handleGetCarUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
@@ -484,6 +491,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   public static async handleDeleteCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const carId = CarSecurity.filterCarRequest(req.query).ID;
@@ -550,6 +558,7 @@ export default class CarService {
     next();
   }
 
+  // todo: refactor
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
       car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
     // Filter only allowed assignments
