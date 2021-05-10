@@ -27,22 +27,17 @@ const MODULE_NAME = 'CarService';
 
 export default class CarService {
   public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
-    }
-    // Check auth
-    if (!await Authorizations.canListCarCatalogs(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.CAR_CATALOGS,
-        module: MODULE_NAME, method: 'handleGetCarCatalogs'
-      });
-    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+      Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
+    // Check auth
+    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    if (!authorizationCarCatalogsFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the Cars
     const carCatalogs = await CarStorage.getCarCatalogs(
       {
@@ -50,14 +45,15 @@ export default class CarService {
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withImage: true,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [
-        'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
-        'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
-        'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP'
-      ]
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizationCarCatalogsFilter.projectFields
     );
+    // Return
     res.json(carCatalogs);
     next();
   }

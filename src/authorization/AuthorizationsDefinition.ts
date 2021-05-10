@@ -23,7 +23,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.TENANTS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.TENANT, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
+          'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+          'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP'
+        ]
+      },
       { resource: Entity.CAR_CATALOGS, action: Action.SYNCHRONIZE, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
     ]
@@ -125,7 +133,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
+          'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+          'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP'
+        ]
+      },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       {
@@ -177,7 +193,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
+          'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+          'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP'
+        ]
+      },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       {
@@ -334,7 +358,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
+          'id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+          'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image',
+          'chargeStandardPower', 'chargeStandardPhase', 'chargeStandardPhaseAmp', 'chargeAlternativePower', 'chargeOptionPower',
+          'chargeOptionPhaseAmp', 'chargeOptionPhase', 'chargeAlternativePhaseAmp', 'chargeAlternativePhase', 'chargePlug', 'fastChargePlug',
+          'fastChargePowerMax', 'drivetrainPowerHP'
+        ]
+      },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       {
         resource: Entity.CAR, action: Action.READ, attributes: [

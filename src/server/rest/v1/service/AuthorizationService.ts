@@ -1,6 +1,7 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
 import { CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpCarCatalogsRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -17,7 +18,6 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -719,6 +719,20 @@ export default class AuthorizationService {
       car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, filteredRequest);
       car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, filteredRequest);
     }
+  }
+
+  public static async checkAndGetCarCatalogsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpCarCatalogsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOGS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
   }
 
   public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
