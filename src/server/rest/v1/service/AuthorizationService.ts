@@ -1,7 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import { HttpCarByIDRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
@@ -10,6 +9,7 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Car } from '../../../../types/Car';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
@@ -17,6 +17,7 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -693,6 +694,31 @@ export default class AuthorizationService {
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, action, authorizationFilters, filteredRequest);
     return authorizationFilters;
+  }
+
+  public static async addCarsAuthorizations(tenant: Tenant, userToken: UserToken, cars: CarDataResult, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
+  // Add canCreate flag to root
+    cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
+    // Enrich
+    for (const car of cars.result) {
+      await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter, filteredRequest);
+    }
+  }
+
+  public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
+  // Enrich
+    if (!car) {
+      car.canRead = true;
+      car.canUpdate = false;
+      car.canDelete = false;
+    } else {
+      filteredRequest.SiteID = car.id;
+      car.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, filteredRequest);
+      car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, filteredRequest);
+      car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, filteredRequest);
+    }
   }
 
   public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {

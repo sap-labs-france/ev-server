@@ -521,6 +521,19 @@ export default class UtilsService {
     // Check it exists
     UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Add Actions
+    await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter, { ID: carID });
+    // Check
+    const authorized = AuthorizationService.canPerfomAction(car, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'checkAndGetCarAuthorization',
+        value: carID
+      });
+    }
     // Return
     return car;
   }

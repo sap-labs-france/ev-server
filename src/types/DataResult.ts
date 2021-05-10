@@ -1,3 +1,4 @@
+import { Car } from './Car';
 import Company from './Company';
 import Site from './Site';
 import SiteArea from './SiteArea';
@@ -18,6 +19,9 @@ export interface SiteDataResult extends DataResult<Site>{
 }
 
 export interface SiteAreaDataResult extends DataResult<SiteArea>{
+  canCreate: boolean;
+}
+export interface CarDataResult extends DataResult<Car>{
   canCreate: boolean;
 }
 
