@@ -331,14 +331,20 @@ export default class OCPPUtils {
               lastUpdate: new Date()
             };
           } catch (error) {
+            const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
+            });
+            throw new BackendError({
+              user: transaction.user,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -352,14 +358,20 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
+            });
+            throw new BackendError({
+              user: transaction.user,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -374,14 +386,20 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
+            });
+            throw new BackendError({
+              user: transaction.user,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
