@@ -1,7 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
+import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -1595,12 +1595,21 @@ export default class OCPPUtils {
       });
     }
     // Deleted?
-    if (chargingStation.deleted) {
+    if (chargingStation?.deleted) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station is deleted'
+      });
+    }
+    // Boot Notification accepted?
+    if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
+      throw new BackendError({
+        source: ocppHeader.chargeBoxIdentity,
+        module: MODULE_NAME,
+        method: 'checkAndGetTenantAndChargingStation',
+        message: 'Charging Station boot notification not accepted'
       });
     }
     return {

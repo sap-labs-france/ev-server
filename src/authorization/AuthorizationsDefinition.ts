@@ -301,6 +301,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
+      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
