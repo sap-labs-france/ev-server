@@ -139,11 +139,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-        // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-        // condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
     ]
   },
   basic: {
@@ -182,20 +178,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: ['id', 'name', 'issuer', 'logo', 'address']
       },
-      // -----------------------------------------------------------------------------------------------
-      // TODO - put it back as soon as BILLING has been validated on SLF
-      // -----------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      // {
-      //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // {
-      //   resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-      // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // -----------------------------------------------------------------------------------------------
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
       {
         resource: Entity.SITES, action: Action.LIST,
         condition: {
