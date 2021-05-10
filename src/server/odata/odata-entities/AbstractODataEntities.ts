@@ -3,7 +3,7 @@ import Utils from '../../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment-timezone';
 
-export default class AbstractODataEntities {
+export default abstract class AbstractODataEntities {
   public buildParams(query) {
     // Check limit parameter
     const limit = query.$limit ? query.$limit : 0;
@@ -49,11 +49,6 @@ export default class AbstractODataEntities {
     const uniqueID = this.getObjectKey(object);
     // Set tenant
     return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant }, object);
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  public getObjectKey(object) {
-    throw new Error('Abstract Implementation');
   }
 
   public convertTimestamp(timestampUTC, req) {
@@ -117,4 +112,6 @@ export default class AbstractODataEntities {
       cb(null, result);
     }
   }
+
+  public abstract getObjectKey(object: any): string;
 }
