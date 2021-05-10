@@ -820,7 +820,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check whether the billing was activated on start transaction
-    if (!transaction.billingData.withBillingActive) {
+    if (!transaction.billingData?.withBillingActive) {
       return {
         status: BillingStatus.UNBILLED
       };

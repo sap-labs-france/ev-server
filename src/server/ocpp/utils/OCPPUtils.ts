@@ -340,6 +340,7 @@ export default class OCPPUtils {
               module: MODULE_NAME, method: 'billTransaction',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
+            // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
               user: transaction.user,
               action: ServerAction.BILLING_TRANSACTION,
@@ -367,12 +368,6 @@ export default class OCPPUtils {
               module: MODULE_NAME, method: 'billTransaction',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
-            throw new BackendError({
-              user: transaction.user,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
-              message, detailedMessages: { error: error.message, stack: error.stack }
-            });
           }
           break;
         // Stop Transaction
@@ -391,12 +386,6 @@ export default class OCPPUtils {
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
-              message, detailedMessages: { error: error.message, stack: error.stack }
-            });
-            throw new BackendError({
-              user: transaction.user,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
               message, detailedMessages: { error: error.message, stack: error.stack }
