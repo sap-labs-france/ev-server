@@ -237,6 +237,7 @@ export default class SettingSecurity {
               case AssetConnectionType.WIT:
                 sanitizedConnection.witConnection = {
                   authenticationUrl: sanitize(connection.witConnection.authenticationUrl),
+                  refreshInterval: sanitize(connection.witConnection.refreshInterval),
                   clientId: sanitize(connection.witConnection.clientId),
                   clientSecret: sanitize(connection.witConnection.clientSecret),
                   user: sanitize(connection.witConnection.user),
