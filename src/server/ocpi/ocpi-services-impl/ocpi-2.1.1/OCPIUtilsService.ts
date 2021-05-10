@@ -226,7 +226,8 @@ export default class OCPIUtilsService {
                   period_begin: '08:00',
                   period_end: '18:00'
                 },
-              ]
+              ],
+              twentyfourseven: false
             };
         }
     }
