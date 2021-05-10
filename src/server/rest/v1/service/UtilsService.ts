@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car, CarType } from '../../../../types/Car';
+import { Car, CarCatalog, CarType } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -536,6 +536,37 @@ export default class UtilsService {
     }
     // Return
     return car;
+  }
+
+  public static async checkAndGetCarCatalogAuthorization(tenant: Tenant, userToken: UserToken, carCatalogID: number, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<CarCatalog> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, carCatalogID, MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizationFilters(
+      tenant, userToken, { ID: carCatalogID }, Action.READ);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        value: carCatalogID.toString()
+      });
+    }
+    // Get the car
+    const carCatalog = await CarStorage.getCarCatalog(carCatalogID, {
+      ...additionalFilters,
+      ...authorizationFilter.filters
+    },
+    applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check it exists
+    UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
+      MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // todo: check if extra auth is needed?
+    // Return
+    return carCatalog;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {

@@ -735,6 +735,19 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetCarCatalogAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
+      action: Action): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+      // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, action, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
   public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
