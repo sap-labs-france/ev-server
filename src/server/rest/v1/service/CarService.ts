@@ -9,6 +9,7 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import { CarDataResult } from '../../../../types/DataResult';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -430,6 +431,9 @@ export default class CarService {
       },
       authorizationCarsFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addCarsAuthorizations(
+      req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter, filteredRequest);
     // Return
     res.json(cars);
     next();

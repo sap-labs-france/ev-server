@@ -710,12 +710,12 @@ export default class AuthorizationService {
       filteredRequest: Record<string, any>): Promise<void> {
   // Enrich
     if (!car) {
-      car.canRead = true;
+      // car.canRead = true;
       car.canUpdate = false;
       car.canDelete = false;
     } else {
       filteredRequest.SiteID = car.id;
-      car.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, filteredRequest);
+      // car.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, filteredRequest);
       car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, filteredRequest);
       car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, filteredRequest);
     }
