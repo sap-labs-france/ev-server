@@ -566,8 +566,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.LIST);
   }
 
-  public static async canReadCarCatalog(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOG, Action.READ);
+  public static async canReadCarCatalog(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.CAR_CATALOG, Action.READ, authContext);
   }
 
   public static async canListCars(loggedUser: UserToken): Promise<boolean> {

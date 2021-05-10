@@ -107,7 +107,7 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
-    // Get dynamic auth
+    // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
     if (!authorizationFilter.authorized) {
@@ -175,13 +175,12 @@ export default class CarService {
     next();
   }
 
-  // todo: refactor
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
-    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+      Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
+    // Filter
+    const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Check auth
     if (!await Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
@@ -191,15 +190,11 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleGetCarMakers'
       });
     }
-    // Filter
-    const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Get car makers
     const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, [ 'carMaker' ]);
     res.json(carMakers);
     next();
   }
-
-  // todo: above this are the car catalogs
 
   public static async handleCreateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let newCar: Car;
