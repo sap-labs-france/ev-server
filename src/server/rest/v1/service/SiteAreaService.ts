@@ -213,8 +213,8 @@ export default class SiteAreaService {
       authorizationSiteAreasFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSiteAreasAuthorizations(
-      req.tenant, req.user, siteAreas as SiteAreaDataResult,authorizationSiteAreasFilter, filteredRequest);
+    await AuthorizationService.addSiteAreasAuthorizations(req.tenant, req.user, siteAreas as SiteAreaDataResult,
+      authorizationSiteAreasFilter, filteredRequest);
     // Return
     res.json(siteAreas);
     next();
@@ -273,8 +273,8 @@ export default class SiteAreaService {
     // Check request data is valid
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
-      req.tenant, req.user, filteredRequest, Action.CREATE);
+    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(req.tenant, req.user,
+      filteredRequest, Action.CREATE);
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -284,8 +284,8 @@ export default class SiteAreaService {
       });
     }
     // Check Site auth
-    await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
+    await UtilsService.checkAndGetSiteAuthorization(req.tenant, req.user, filteredRequest.siteID, Action.READ,
+      action, {});
     // Create Site Area
     const newSiteArea: SiteArea = {
       ...filteredRequest,

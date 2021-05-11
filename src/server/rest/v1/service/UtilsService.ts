@@ -108,7 +108,7 @@ export default class UtilsService {
   public static async checkAndGetChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
     // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken, {});
+    const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -132,7 +132,7 @@ export default class UtilsService {
   public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken,action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
     // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken, {});
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -464,8 +464,8 @@ export default class UtilsService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(
-      tenant, userToken, { ID: siteAreaID }, Action.READ);
+    const authorizationFilter = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(tenant, userToken,
+      { id: siteAreaID }, Action.READ);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
