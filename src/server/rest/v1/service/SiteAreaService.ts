@@ -103,12 +103,13 @@ export default class SiteAreaService {
           const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
           const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
           if (numberOfConnectedPhase !== 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
-            await Logging.logWarning({
-              tenantID: req.user.tenantID,
-              source: chargingStation.id, action: action,
-              user: req.user, module: MODULE_NAME,
-              method: 'handleAssignChargingStationsToSiteArea',
-              message: `Three phased charging station is assigned to single phased site area '${chargingStation.siteArea.name}'`
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+              message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
+              module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+              user: req.user
             });
           }
         }
