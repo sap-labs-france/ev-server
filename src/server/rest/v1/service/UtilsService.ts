@@ -108,7 +108,7 @@ export default class UtilsService {
   public static async checkAndGetUsersAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
     // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, {});
+    const authorizationFilter = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

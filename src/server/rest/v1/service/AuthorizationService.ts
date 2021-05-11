@@ -74,7 +74,7 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAuthorizations(tenant: Tenant, userToken: UserToken, site: Site, authorizationFilter: AuthorizationFilter,
-      filteredRequest: Record<string, any>): Promise<void> {
+      filteredRequest: Partial<HttpSitesRequest>): Promise<void> {
     // Enrich
     if (!site.issuer) {
       site.canRead = true;
@@ -327,7 +327,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
+      filteredRequest?: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
