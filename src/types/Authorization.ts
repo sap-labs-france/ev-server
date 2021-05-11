@@ -152,7 +152,9 @@ export enum Action {
   ASSIGN_ASSETS = 'AssignAssets',
   UNASSIGN_ASSETS = 'UnassignAssets',
   ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
-  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations'
+  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
+  EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
+  GENERATE_QR = 'GenerateQRCode',
 }
 
 export interface AuthorizationContext {
@@ -183,6 +185,8 @@ export interface SiteAreaAuthorizationActions extends AuthorizationActions {
   canUnassignAssets?: boolean;
   canAssignChargingStations?: boolean;
   canUnassignChargingStations?: boolean;
+  canExportOCPPParams?: boolean;
+  canGenerateQrCode?:boolean;
 }
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
