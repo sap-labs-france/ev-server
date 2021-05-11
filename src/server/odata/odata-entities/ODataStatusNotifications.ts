@@ -7,7 +7,7 @@ export default class ODataStatusNotifications extends AbstractODataEntities {
   public convertTimestamp: any;
   public buildDateObject: any;
 
-  public getObjectKey(statusNotification) {
+  public getObjectKey(statusNotification): string {
     return statusNotification._id;
   }
 

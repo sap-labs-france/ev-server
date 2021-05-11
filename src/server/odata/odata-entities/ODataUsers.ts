@@ -5,11 +5,11 @@ export default class ODataUsers extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  public getObjectKey(user: User) {
+  public getObjectKey(user: User): string {
     return user.id;
   }
 
-  public async getUsers(centralServiceApi, query, req, cb) {
+  public async getUsers(centralServiceApi, query, req, cb): Promise<void> {
     try {
       // Check limit parameter
       const params = this.buildParams(query);
