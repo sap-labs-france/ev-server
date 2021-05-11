@@ -1,10 +1,11 @@
 import AbstractODataEntities from './AbstractODataEntities';
+import ChargingStation from '../../../types/ChargingStation';
 
 export default class ODataChargingStations extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  public getObjectKey(chargingStation) {
+  public getObjectKey(chargingStation: ChargingStation): string {
     return chargingStation.id;
   }
 

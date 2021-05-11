@@ -63,10 +63,10 @@ export default class CentralRestServer {
     CentralRestServer.restHttpServer = ServerUtils.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
-  startSocketIO(): void {
+  async startSocketIO(): Promise<void> {
     // Log
     const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
-    Logging.logInfo({
+    await Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
       action: ServerAction.STARTUP,
@@ -90,7 +90,7 @@ export default class CentralRestServer {
     // Handle Socket IO connection
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     CentralRestServer.socketIOServer.on('connect', async (socket: Socket): Promise<void> => {
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
@@ -100,7 +100,7 @@ export default class CentralRestServer {
       const userToken: UserToken = socket.request['user'];
       if (!userToken || !userToken['logged_in']) {
         CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers['origin']);
-        Logging.logWarning({
+        await Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
@@ -117,7 +117,7 @@ export default class CentralRestServer {
         try {
           await socket.join(userToken.tenantID);
           CentralRestServer.centralSystemRestConfig.debug && console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is connected on room '${userToken.tenantID}'`);
-          Logging.logDebug({
+          await Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
@@ -127,7 +127,7 @@ export default class CentralRestServer {
           });
         } catch (error) {
           CentralRestServer.centralSystemRestConfig.debug && console.error(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`);
-          Logging.logError({
+          await Logging.logError({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
@@ -140,7 +140,7 @@ export default class CentralRestServer {
         // Handle Socket IO disconnection
         socket.on('disconnect', (reason: string) => {
           CentralRestServer.centralSystemRestConfig.debug && console.log(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO client is disconnected: ${reason}`);
-          Logging.logDebug({
+          void Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,

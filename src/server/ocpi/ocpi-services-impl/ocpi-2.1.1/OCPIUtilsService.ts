@@ -1,3 +1,5 @@
+import * as CountriesList from 'countries-list';
+
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
@@ -16,7 +18,6 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import CountryLanguage from 'country-language';
 import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -179,7 +180,7 @@ export default class OCPIUtilsService {
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
       postal_code: site.address.postalCode,
-      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(options.countryID, (err, languages) => languages[0].iso639_1)),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[options.countryID].languages[0]),
       coordinates: {
         longitude: site.address.coordinates[0].toString(),
         latitude: site.address.coordinates[1].toString()
@@ -226,7 +227,8 @@ export default class OCPIUtilsService {
                   period_begin: '08:00',
                   period_end: '18:00'
                 },
-              ]
+              ],
+              twentyfourseven: false
             };
         }
     }
