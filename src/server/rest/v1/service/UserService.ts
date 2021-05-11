@@ -16,7 +16,6 @@ import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';

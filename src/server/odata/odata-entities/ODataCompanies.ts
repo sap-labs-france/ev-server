@@ -6,7 +6,7 @@ export default class ODataCompanies extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  public getObjectKey(company: Company) {
+  public getObjectKey(company: Company): string {
     return company.id;
   }
 
