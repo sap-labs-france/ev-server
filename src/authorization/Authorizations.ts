@@ -586,8 +586,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
   }
 
-  public static async canSynchronizeCarCatalogs(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE);
+  public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.CAR_CATALOG, Action.SYNCHRONIZE, authContext);
   }
 
   public static async canCreateCar(loggedUser: UserToken): Promise<boolean> {
