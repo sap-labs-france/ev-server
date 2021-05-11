@@ -2,7 +2,7 @@ import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import { HttpSiteAssignUsersRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSitesRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
@@ -49,7 +49,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Record<string, any>, authAction: Action): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<Site>, authAction: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -63,7 +63,7 @@ export default class AuthorizationService {
   }
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter,
-      filteredRequest: Record<string, any>): Promise<void> {
+      filteredRequest: HttpSitesRequest): Promise<void> {
     // Add canCreate flag to root
     sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
       authorizationFilter);
@@ -112,7 +112,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Record<string, any>): Promise<AuthorizationFilter> {
+      filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),

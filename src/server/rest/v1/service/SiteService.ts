@@ -188,8 +188,8 @@ export default class SiteService {
       return;
     }
     // Check dynamic auth for reading Users
-    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
+    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(req.tenant,
+      req.user, filteredRequest);
     if (!authorizationSiteUsersFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
