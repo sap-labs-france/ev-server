@@ -48,7 +48,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
-      { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT], attributes: ['*'] },
+      { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT, Action.EXPORT], attributes: ['*'] },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
@@ -515,6 +515,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
+      { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
     ]
   },
   siteOwner: {
