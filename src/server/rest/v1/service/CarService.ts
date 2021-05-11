@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
+import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -9,7 +10,6 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import { CarDataResult } from '../../../../types/DataResult';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -54,6 +54,9 @@ export default class CarService {
       },
       authorizationCarCatalogsFilter.projectFields
     );
+    // Add Auth flags
+    await AuthorizationService.addCarCatalogsAuthorizationActions(req.tenant, req.user, carCatalogs as CarCatalogDataResult,
+      authorizationCarCatalogsFilter);
     // Return
     res.json(carCatalogs);
     next();

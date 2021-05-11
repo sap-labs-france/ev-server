@@ -1,5 +1,6 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
-import { CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { Car, CarCatalog } from '../../../../types/Car';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, DataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpCarCatalogsRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -10,7 +11,6 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
@@ -746,6 +746,13 @@ export default class AuthorizationService {
       // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, action, authorizationFilters, filteredRequest);
     return authorizationFilters;
+  }
+
+  public static async addCarCatalogsAuthorizationActions(tenant: Tenant, userToken: UserToken, carCatalogs: CarCatalogDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add canSync flag to root
+    carCatalogs.canSync = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOGS, Action.SYNCHRONIZE,
+      authorizationFilter);
   }
 
   public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {

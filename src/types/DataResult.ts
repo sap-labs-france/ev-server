@@ -1,4 +1,5 @@
-import { Car } from './Car';
+import { Car, CarCatalog } from './Car';
+
 import Company from './Company';
 import Site from './Site';
 import SiteArea from './SiteArea';
@@ -18,13 +19,16 @@ export interface SiteDataResult extends DataResult<Site>{
   canUnassignUsers: boolean;
 }
 
-export interface SiteAreaDataResult extends DataResult<SiteArea>{
+export interface SiteAreaDataResult extends DataResult<SiteArea> {
   canCreate: boolean;
 }
-export interface CarDataResult extends DataResult<Car>{
+export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
 }
 
+export interface CarCatalogDataResult extends DataResult<CarCatalog>{
+  canSync: boolean;
+}
 export interface TransactionDataResult {
   count: number;
   result: Transaction[];
