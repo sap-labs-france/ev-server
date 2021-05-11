@@ -37,10 +37,10 @@ export default class SiteAreaService {
     const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS : Action.UNASSIGN_ASSETS;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, {});
-      // Check and Get Assets
+    // Check and Get Assets
     const assets = await UtilsService.checkSiteAreaAssetsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action, {});
-      // Save
+    // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
       await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, siteArea, assets.map((asset) => asset.id));
     } else {
@@ -191,7 +191,7 @@ export default class SiteAreaService {
     // Check dynamic auth
     const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
-      // Get the SiteAreas
+    // Get the SiteAreas
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         issuer: filteredRequest.Issuer,
