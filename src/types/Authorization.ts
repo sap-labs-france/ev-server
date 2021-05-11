@@ -148,7 +148,9 @@ export enum Action {
   REGISTER = 'Register',
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
-  IMPORT = 'Import'
+  IMPORT = 'Import',
+  EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
+  GENERATE_QR = 'GenerateQRCode'
 }
 
 export interface AuthorizationContext {
@@ -178,6 +180,8 @@ export interface AuthorizationActions {
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
+  canExportOCPPParams?: boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {

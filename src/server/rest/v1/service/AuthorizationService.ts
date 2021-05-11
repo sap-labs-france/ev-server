@@ -90,6 +90,10 @@ export default class AuthorizationService {
         authorizationFilter, filteredRequest);
       site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.UPDATE,
         authorizationFilter, filteredRequest);
+      site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.GENERATE_QR,
+        authorizationFilter, filteredRequest);
+      site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.EXPORT_OCPP_PARAMS,
+        authorizationFilter, filteredRequest);
       site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.ASSIGN,
         authorizationFilter, filteredRequest);
       site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN,
