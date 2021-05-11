@@ -249,7 +249,7 @@ export default class ChargingStationService {
       }
       chargingStation.siteAreaID = siteArea.id;
       chargingStation.siteID = siteArea.siteID;
-      // Check number of phases corresponds to the site area one
+      // Check if number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
         if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {

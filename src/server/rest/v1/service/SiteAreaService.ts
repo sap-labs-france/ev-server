@@ -96,7 +96,7 @@ export default class SiteAreaService {
     // Check and Get Charging Stations
     const chargingStations = await UtilsService.checkSiteAreaChargingStationsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.chargingStationIDs, action, {});
-    // Check that Charging Station has not 3 phases on 1 phase Site
+    // Check if Charging Station has 3 phases on 1 phase Site Area
     if (siteArea.numberOfPhases === 1) {
       for (const chargingStation of chargingStations) {
         for (const connector of chargingStation.connectors) {
@@ -371,7 +371,7 @@ export default class SiteAreaService {
               source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `'Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
+              message: `Error occurred while updating SiteArea.'${chargingStation.id}' is not single phased`,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               user: req.user
             });
