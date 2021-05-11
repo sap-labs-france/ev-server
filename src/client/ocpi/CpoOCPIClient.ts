@@ -1,3 +1,5 @@
+import * as CountriesList from 'countries-list';
+
 import { CdrDimensionType, OCPIChargingPeriod } from '../../types/ocpi/OCPIChargingPeriod';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
@@ -11,7 +13,6 @@ import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
-import CountryLanguage from 'country-language';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
@@ -1040,7 +1041,7 @@ export default class CpoOCPIClient extends OCPIClient {
       address: Utils.convertAddressToOneLine(site.address),
       city: site.address?.city,
       postal_code: site.address?.postalCode,
-      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(countryId, (err, languages) => languages[0].iso639_1)),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryId].languages[0]),
       coordinates: {
         latitude: site.address?.coordinates[1]?.toString(),
         longitude: site.address?.coordinates[0]?.toString()

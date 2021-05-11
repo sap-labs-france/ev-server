@@ -7,7 +7,6 @@ import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
-import CountryLanguage from 'country-language';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -16,6 +15,7 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
+import { countries } from 'countries-list';
 
 const MODULE_NAME = 'OICPMapping';
 
@@ -258,7 +258,7 @@ export default class OICPMapping {
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
-    const countryLanguage = CountryLanguage.getCountryLanguages(countryID, (err, languages) => languages[0].iso639_1) as string;
+    const countryLanguage = countries[countryID].languages[0] as string;
     const countryCode = Countries.getAlpha3Code(country, countryLanguage);
     // Check result
     if (!countryCode) {
