@@ -1,6 +1,7 @@
 import { App, AppOptions, HttpRequest, HttpResponse, SSLApp, TemplatedApp } from 'uWebSockets.js';
 
 import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
+import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import { ServerProtocol } from '../types/Server';
 import { ServerUtils } from './ServerUtils';
@@ -16,9 +17,9 @@ export class MicroWsUtils {
     } else {
       app = App();
     }
-    if (serverConfig.protocol.startsWith(ServerProtocol.HTTP)) {
+    if (Configuration.getHealthCheckConfig().enabled && serverConfig.protocol.startsWith(ServerProtocol.HTTP)) {
       app.get(Constants.HEALTH_CHECK_ROUTE, MicroWsUtils.healthCheckService.bind(this));
-    } else if (serverConfig.protocol.startsWith(ServerProtocol.WS)) {
+    } else if (Configuration.getHealthCheckConfig().enabled && serverConfig.protocol.startsWith(ServerProtocol.WS)) {
       app.ws(Constants.HEALTH_CHECK_ROUTE, MicroWsUtils.healthCheckService.bind(this));
     }
     return app;
