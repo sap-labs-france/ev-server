@@ -403,7 +403,7 @@ export default class DatabaseUtils {
     }
   }
 
-  public static async checkTenantObject(tenant: Tenant): Promise<void> {
+  public static checkTenantObject(tenant: Tenant): void {
     if (!tenant) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

@@ -206,6 +206,7 @@ export enum ServerAction {
   SOCKET_IO = 'SocketIO',
 
   // OCPP server commands
+  BOOT_NOTIFICATION = 'BootNotification',
   AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
   DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
@@ -213,7 +214,7 @@ export enum ServerAction {
   STATUS_NOTIFICATION = 'StatusNotification',
   START_TRANSACTION = 'StartTransaction',
   STOP_TRANSACTION = 'StopTransaction',
-  METERVALUES = 'MeterValues',
+  METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
@@ -242,10 +243,6 @@ export enum ServerAction {
   WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
   WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',
-
-  BOOT_NOTIFICATION = 'BootNotification',
-
-  METER_VALUES = 'MeterValues',
 
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',

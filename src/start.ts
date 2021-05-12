@@ -115,7 +115,7 @@ export default class Bootstrap {
       process.on('unhandledRejection', (reason: any, p): void => {
         // eslint-disable-next-line no-console
         console.log('Unhandled Rejection: ', p, ' reason: ', reason);
-        Logging.logError({
+        void Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.STARTUP,
           module: MODULE_NAME, method: 'start',
@@ -170,7 +170,7 @@ export default class Bootstrap {
     function onlineCb(worker: cluster.Worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
@@ -188,7 +188,7 @@ export default class Bootstrap {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id.toString() + ' died with code: ' + code + ', and signal: ' + signal +
         '.\n Starting new ' + serverName + ' server worker';
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
@@ -207,7 +207,7 @@ export default class Bootstrap {
       cluster.fork();
       // Log
       const logMsg = `Starting ${serverName} server worker ${i} of ${Bootstrap.numWorkers}...`;
-      Logging.logInfo({
+      void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
@@ -220,7 +220,7 @@ export default class Bootstrap {
     cluster.on('exit', exitCb);
   }
 
-  private static startMaster(): void {
+  private static async startMaster(): Promise<void> {
     try {
       if (Bootstrap.isClusterEnabled && Utils.isEmptyObject(cluster.workers)) {
         Bootstrap.startServerWorkers('Main');
@@ -229,7 +229,7 @@ export default class Bootstrap {
       // Log
       // eslint-disable-next-line no-console
       console.error(error);
-      Logging.logError({
+      await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startMasters',
