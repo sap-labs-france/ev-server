@@ -249,7 +249,7 @@ export default class ChargingStationService {
       }
       chargingStation.siteAreaID = siteArea.id;
       chargingStation.siteID = siteArea.siteID;
-      // Check number of phases corresponds to the site area one
+      // Check if number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
         if (numberOfConnectedPhase !== 1 && siteArea?.numberOfPhases === 1) {
@@ -533,7 +533,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Check auth
-    if (!await Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+    if (!await Authorizations.canUpdateSiteArea(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

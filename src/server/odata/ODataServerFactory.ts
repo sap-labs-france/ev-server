@@ -9,7 +9,7 @@ export default class ODataServerFactory {
     ODataRestAdapter.registerAdapter(this.oDataServer);
   }
 
-  getODataServer() {
+  getODataServer(): ODataServer {
     return this.oDataServer;
   }
 }

@@ -55,7 +55,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Initialize Stripe
     if (!this.stripe) {
       try {
-        this.settings.stripe.secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        const secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        this.stripe = new Stripe(secretKey, {
+          apiVersion: '2020-08-27',
+        });
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -67,9 +70,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       // Try to connect
       try {
-        this.stripe = new Stripe(this.settings.stripe.secretKey, {
-          apiVersion: '2020-08-27',
-        });
         // Let's make sure the connection works as expected
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
       } catch (error) {
@@ -473,13 +473,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
-      throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getPaymentMethods',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+      // TODO: For now, we do not complain when the user is not in sync! Just return an empty list instead
+      return [];
+      // throw new BackendError({
+      //   message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+      //   source: Constants.CENTRAL_SERVER,
+      //   module: MODULE_NAME,
+      //   method: 'getPaymentMethods',
+      //   action: ServerAction.BILLING_TRANSACTION
+      // });
     }
     // Let's do it!
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);

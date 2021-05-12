@@ -111,7 +111,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
             };
             break;
           case AssetType.CONSUMPTION_AND_PRODUCTION:
-            Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
+            consumption.currentInstantWatts = Utils.createDecimal(this.getPropertyValue(mergedConsumption, IothinkProperty.IO_POW_ACTIVE)).mul(1000).toNumber();
             consumption.currentStateOfCharge = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_SOC);
             consumption.currentConsumptionWh = this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_CHARGE)
             - this.getPropertyValue(mergedConsumption, IothinkProperty.IO_ENERGY_DISCHARGE);
@@ -150,7 +150,6 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
       this.axiosInstance.post(`${this.connection.url}/token`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

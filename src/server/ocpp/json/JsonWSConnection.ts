@@ -1,5 +1,5 @@
 import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
-import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { OCPPProtocol, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
@@ -165,7 +165,7 @@ export default class JsonWSConnection extends WSConnection {
 
   private async updateChargingStationLastSeen(): Promise<void> {
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), { issuer: true });
-    if (chargingStation) {
+    if (chargingStation?.registrationStatus === RegistrationStatus.ACCEPTED) {
       await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
         {
           lastSeen: new Date()
