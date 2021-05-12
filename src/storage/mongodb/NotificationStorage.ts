@@ -13,9 +13,9 @@ const MODULE_NAME = 'NotificationStorage';
 
 export default class NotificationStorage {
   static async getNotifications(tenantID: string,
-    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
-      sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
+      params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
+        sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
     // Check Tenant

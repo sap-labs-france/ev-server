@@ -47,7 +47,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           $project: { '_id': 1, 'migrationFlag': 1 }
         }
       ]).toArray();
-    if (transactionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(transactionsMDB)) {
       let message = `${transactionsMDB.length} Transaction(s) are going to be recomputed in Tenant ${Utils.buildTenantName(tenant)}...`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -79,7 +79,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           // FIXME: Power limitation will be lost in consumptions (to check the implementation)
           const pricedTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
           // Rebuild Consumptions
-          await OCPPUtils.rebuildTransactionConsumptions(tenant.id, pricedTransaction);
+          await OCPPUtils.rebuildTransactionConsumptions(tenant, pricedTransaction);
           transactionsUpdated.inSuccess++;
         } catch (error) {
           transactionsUpdated.inError++;

@@ -56,7 +56,7 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
       message: 'Check of MongoDB database...',
@@ -104,7 +104,7 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1, issuer: 1 } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -121,7 +121,6 @@ export default class MongoDBStorage {
     ]);
     // Car Catalogs
     await this.handleIndexesInCollection(tenantID, 'carcatalogimages', [
-      { fields: { carID: 1 } }
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
@@ -231,7 +230,7 @@ export default class MongoDBStorage {
       }
     );
     // Get the EVSE DB
-    this.db = mongoDBClient.db(this.dbConfig.schema);
+    this.db = mongoDBClient.db();
     // Check Database only when migration is active
     if (this.migrationConfig.active) {
       await this.checkDatabase();
@@ -250,59 +249,71 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    // Check only collections with indexes
-    // Tenants
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
-      { fields: { subdomain: 1 }, options: { unique: true } },
-      { fields: { name: 1 }, options: { unique: true } }
-    ]);
-    // Users
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
-      { fields: { email: 1 }, options: { unique: true } }
-    ]);
-    // Logs
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
-      { fields: { timestamp: 1 } },
-      { fields: { type: 1, timestamp: 1 } },
-      { fields: { action: 1, timestamp: 1 } },
-      { fields: { level: 1, timestamp: 1 } },
-      { fields: { source: 1, timestamp: 1 } },
-      { fields: { host: 1, timestamp: 1 } },
-      { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
-    ]);
-    // Locks
-    await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', [
-    ]);
-    // Get all the collections
-    const collections = await this.db.listCollections().toArray();
-    for (const collection of collections) {
-      if (collection.name === 'migrations') {
-        await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
-      }
-      if (collection.name === DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'runningmigrations')) {
-        await this.db.collection(collection.name).drop();
+    // Handle Default Tenant
+    await this.handleCheckDefaultTenant();
+    // Handle Tenants
+    await this.handleCheckTenants();
+  }
+
+  private async handleCheckDefaultTenant() {
+    // Database creation Lock
+    const databaseLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'check-database');
+    if (await LockingManager.acquire(databaseLock)) {
+      try {
+        // Check only collections with indexes
+        // Locks
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'locks', []);
+        // Tenants
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
+          { fields: { subdomain: 1 }, options: { unique: true } },
+        ]);
+        // Users
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
+          { fields: { email: 1 }, options: { unique: true } }
+        ]);
+        // Car Catalogs
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'carcatalogimages', [
+          { fields: { carID: 1 } }
+        ]);
+        // Logs
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'logs', [
+          { fields: { timestamp: 1 } },
+          { fields: { type: 1, timestamp: 1 } },
+          { fields: { action: 1, timestamp: 1 } },
+          { fields: { level: 1, timestamp: 1 } },
+          { fields: { source: 1, timestamp: 1 } },
+          { fields: { host: 1, timestamp: 1 } },
+          { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
+        ]);
+      } finally {
+        // Release the database creation Lock
+        await LockingManager.release(databaseLock);
       }
     }
+  }
+
+  private async handleCheckTenants() {
+    // Get all the Tenants
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({}).toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       // Database creation Lock
-      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
-      if (await LockingManager.acquire(createDatabaseLock)) {
+      const databaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'check-database');
+      if (await LockingManager.acquire(databaseLock)) {
         try {
           // Create tenant collections
           await this.checkAndCreateTenantDatabase(tenantId);
         } finally {
           // Release the database creation Lock
-          await LockingManager.release(createDatabaseLock);
+          await LockingManager.release(databaseLock);
         }
       }
     }
   }
 
   private async handleIndexesInCollection(tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
+      name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({

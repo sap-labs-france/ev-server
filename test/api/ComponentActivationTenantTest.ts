@@ -3,6 +3,7 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
+import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../src/types/TenantComponents';
 import TestConstants from './client/utils/TestConstants';
 import chaiSubset from 'chai-subset';
@@ -71,7 +72,7 @@ describe('Tenant Settings test', function() {
     };
     const res = await testData.superAdminCentralService.updateEntity(
       testData.centralService.tenantApi, testData.data);
-    expect(res.status).to.equal(200);
+    expect(res.status).to.equal(StatusCodes.OK);
   });
 
   describe('Success cases', function() {
@@ -100,7 +101,7 @@ describe('Tenant Settings test', function() {
       };
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(3);
@@ -128,10 +129,10 @@ describe('Tenant Settings test', function() {
       };
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
@@ -157,7 +158,7 @@ describe('Tenant Settings test', function() {
       };
       let res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data, false);
-      expect(res.status).to.equal(500);
+      expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
 
       // Fill in the data
       testData.data = {
@@ -179,10 +180,10 @@ describe('Tenant Settings test', function() {
       };
       res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(4);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BILLING, BillingSettingsType.STRIPE);
       expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
@@ -209,7 +210,7 @@ describe('Tenant Settings test', function() {
       };
       let res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data, false);
-      expect(res.status).to.equal(500);
+      expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
 
       // Test Refund with Pricing
       testData.data = {
@@ -230,10 +231,10 @@ describe('Tenant Settings test', function() {
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(4);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
       expect(settings.data.result[2]).to.be.validatedSetting(TenantComponents.REFUND, RefundSettingsType.CONCUR);
@@ -260,7 +261,7 @@ describe('Tenant Settings test', function() {
       };
       let res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data, false);
-      expect(res.status).to.equal(500);
+      expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       // Test Smart Charging with Pricing
       testData.data = {
         id: testData.credentials.tenantId,
@@ -280,10 +281,10 @@ describe('Tenant Settings test', function() {
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting('smartCharging', 'sapSmartCharging');
     });
@@ -308,10 +309,10 @@ describe('Tenant Settings test', function() {
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(3);
       expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
     });
@@ -337,10 +338,10 @@ describe('Tenant Settings test', function() {
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
-      expect(settings.status).to.equal(200);
+      expect(settings.status).to.equal(StatusCodes.OK);
       expect(settings.data.count).to.equal(3);
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ANALYTICS, AnalyticsSettingsType.SAC);
     });
@@ -366,7 +367,7 @@ describe('Tenant Settings test', function() {
       };
       let res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data, false);
-      expect(res.status).to.equal(500);
+      expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
       // Test Asset with Organization
       testData.data = {
         id: testData.credentials.tenantId,
@@ -387,7 +388,7 @@ describe('Tenant Settings test', function() {
       };
       res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      expect(res.status).to.equal(StatusCodes.OK);
       testData.connectUser();
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(3);

@@ -22,14 +22,14 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         Constants.DB_PARAMS_MAX_LIMIT);
       // Get Site Area
       for (const siteArea of siteAreas.result) {
-        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea);
+        const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
             // Get implementation
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
             if (!smartCharging) {
               // Log
-              Logging.logError({
+              await Logging.logError({
                 tenantID: tenant.id,
                 module: MODULE_NAME, method: 'processTenant',
                 action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
@@ -40,7 +40,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             await smartCharging.computeAndApplyChargingProfiles(siteArea);
           } catch (error) {
             // Log error
-            Logging.logError({
+            await Logging.logError({
               tenantID: tenant.id,
               module: MODULE_NAME, method: 'processTenant',
               action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,

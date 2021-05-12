@@ -25,7 +25,7 @@ export default class SettingService {
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
-    if (!Authorizations.canDeleteSetting(req.user)) {
+    if (!await Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -36,7 +36,7 @@ export default class SettingService {
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`,
+    UtilsService.assertObjectExists(action, setting, `Tenant ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
@@ -58,7 +58,7 @@ export default class SettingService {
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
+    if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -69,7 +69,7 @@ export default class SettingService {
     }
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`,
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
@@ -88,7 +88,7 @@ export default class SettingService {
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
+    if (!await Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -99,7 +99,7 @@ export default class SettingService {
     }
     // Get it
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(action, setting, `Setting with Identifier '${settingID}' does not exist`,
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
@@ -115,7 +115,7 @@ export default class SettingService {
 
   public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListSettings(req.user)) {
+    if (!await Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -145,7 +145,7 @@ export default class SettingService {
 
   public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateSetting(req.user)) {
+    if (!await Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -180,7 +180,7 @@ export default class SettingService {
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
-    if (!Authorizations.canUpdateSetting(req.user)) {
+    if (!await Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -191,7 +191,7 @@ export default class SettingService {
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
-    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' does not exist`,
+    UtilsService.assertObjectExists(action, setting, `Setting ID '${settingUpdate.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values

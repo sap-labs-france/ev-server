@@ -4,6 +4,7 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
+import { StatusCodes } from 'http-status-codes';
 import TestConstants from './client/utils/TestConstants';
 import TestData from './client/utils/TestData';
 import chaiSubset from 'chai-subset';
@@ -20,7 +21,7 @@ let oldSetting = {};
 describe('Encryption Setting tests', function() {
   this.timeout(30000);
 
-  before(async function() {
+  before(function() {
     // Init values
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });
@@ -28,7 +29,7 @@ describe('Encryption Setting tests', function() {
   afterEach(async function() {
     // Housekeeping
     const update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
-    expect(update.status).to.equal(200);
+    expect(update.status).to.equal(StatusCodes.OK);
   });
 
   after(async function() {
@@ -42,7 +43,7 @@ describe('Encryption Setting tests', function() {
         limit: TestConstants.UNLIMITED,
         skip: 0
       });
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       // Store the old setting
       oldSetting = read.data.result[0];
@@ -66,13 +67,13 @@ describe('Encryption Setting tests', function() {
             }
         }`);
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-      expect(update.status).to.equal(200);
+      expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
         limit: TestConstants.UNLIMITED,
         skip: 0
       });
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       expect(read.data.result[0].sensitiveData[0]).to.equal('content.concur.clientSecret');
       expect(read.data.result[0].content.concur.clientSecret).to.not.equal(FAKE_WORD);
@@ -84,7 +85,7 @@ describe('Encryption Setting tests', function() {
         limit: TestConstants.UNLIMITED,
         skip: 0
       });
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       // Store the old setting
       oldSetting = read.data.result[0];
@@ -104,13 +105,13 @@ describe('Encryption Setting tests', function() {
             }
         }`);
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-      expect(update.status).to.equal(200);
+      expect(update.status).to.equal(StatusCodes.OK);
       // Retrieve the updated setting and check
       read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
         limit: TestConstants.UNLIMITED,
         skip: 0
       });
-      expect(read.status).to.equal(200);
+      expect(read.status).to.equal(StatusCodes.OK);
       expect(read.data.count).to.equal(1);
       expect(read.data.result[0].sensitiveData[0]).to.equal('content.convergentCharging.password');
       expect(read.data.result[0].content.convergentCharging.password).to.not.equal(FAKE_WORD);
@@ -128,7 +129,7 @@ describe('Encryption Setting tests', function() {
         }
       }`);
       const response = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(StatusCodes.OK);
     });
   });
 });

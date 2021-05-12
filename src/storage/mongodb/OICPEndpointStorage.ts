@@ -71,8 +71,8 @@ export default class OICPEndpointStorage {
 
   // Delegate
   static async getOicpEndpoints(tenantID: string,
-    params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
+      params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant
@@ -164,7 +164,7 @@ export default class OICPEndpointStorage {
     };
   }
 
-  static async deleteOicpEndpoint(tenantID: string, id: string) {
+  static async deleteOicpEndpoint(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoint');
     // Check Tenant
@@ -176,7 +176,7 @@ export default class OICPEndpointStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
   }
 
-  static async deleteOicpEndpoints(tenantID: string) {
+  static async deleteOicpEndpoints(tenantID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoints');
     // Check Tenant

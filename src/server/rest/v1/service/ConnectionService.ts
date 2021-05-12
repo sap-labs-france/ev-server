@@ -32,7 +32,7 @@ export default class ConnectionService {
       });
     }
     // Check auth
-    if (!Authorizations.canReadConnection(req.user, connectionID)) {
+    if (!await Authorizations.canReadConnection(req.user, connectionID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -43,7 +43,7 @@ export default class ConnectionService {
     }
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get it
@@ -57,7 +57,7 @@ export default class ConnectionService {
 
   public static async handleGetConnections(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canListConnections(req.user)) {
+    if (!await Authorizations.canListConnections(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -69,7 +69,7 @@ export default class ConnectionService {
     const filteredRequest = ConnectionSecurity.filterConnectionsRequest(req.query);
     // Check Users
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get
@@ -81,7 +81,7 @@ export default class ConnectionService {
 
   public static async handleCreateConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canCreateConnection(req.user)) {
+    if (!await Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -98,7 +98,7 @@ export default class ConnectionService {
     // Check
     ConnectionValidator.getInstance().validateConnectionCreation(req.body);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
       module: MODULE_NAME, method: 'handleCreateConnection',
       message: `Connection to '${connection.connectorId}' has been created successfully`,
@@ -129,7 +129,7 @@ export default class ConnectionService {
     // Delete
     await ConnectionStorage.deleteConnectionById(req.user.tenantID, connection.id);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       actionOnUser: connection.userId,

@@ -63,7 +63,7 @@ export default class Logging {
       console.debug(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -72,16 +72,16 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -90,11 +90,11 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       await PerformanceStorage.savePerformanceRecord(
@@ -192,9 +192,9 @@ export default class Logging {
   }
 
   public static async logActionsResponse(
-    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string, user?: UserToken): Promise<void> {
+      tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
+      messageSuccess: string, messageError: string, messageSuccessAndError: string,
+      messageNoSuccessNoError: string, user?: UserToken): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -241,9 +241,9 @@ export default class Logging {
   }
 
   public static async logOcpiResult(
-    tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string): Promise<void> {
+      tenantID: string, action: ServerAction, module: string, method: string, ocpiResult: OCPIResult,
+      messageSuccess: string, messageError: string, messageSuccessAndError: string,
+      messageNoSuccessNoError: string): Promise<void> {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', ocpiResult.success.toString());
     messageError = messageError.replace('{{inError}}', ocpiResult.failure.toString());
@@ -293,7 +293,7 @@ export default class Logging {
   }
 
   public static async logOicpResult(tenantID: string, action: ServerAction, module: string, method: string, oicpResult: OICPResult,
-    messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): Promise<void> {
+      messageSuccess: string, messageError: string, messageSuccessAndError: string, messageNoSuccessNoError: string): Promise<void> {
     await Logging.logOcpiResult(tenantID, action, module, method, oicpResult,
       messageSuccess, messageError, messageSuccessAndError, messageNoSuccessNoError);
   }
@@ -321,7 +321,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
         if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -330,16 +330,16 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -348,11 +348,11 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         void Logging.logSecurityDebug({
@@ -420,7 +420,7 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -429,16 +429,16 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -447,11 +447,11 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     try {
@@ -482,8 +482,7 @@ export default class Logging {
         })
       );
     } catch (error) {
-      // FIXME
-      // Error Message: Converting circular structure to JSON
+      // FIXME: Error Message: Converting circular structure to JSON
       // Temporary FIX: Utils.cloneObject() removed
       await Logging.logSecurityDebug({
         tenantID: tenantID,
@@ -517,28 +516,28 @@ export default class Logging {
   }
 
   public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any): Promise<void> {
+      action: ServerAction, args: any): Promise<void> {
     await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
   }
 
   public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): Promise<void> {
+      action: ServerAction, detailedMessages: any): Promise<void> {
     await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '>>');
   }
 
   public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, payload: any): Promise<void> {
+      action: ServerAction, payload: any): Promise<void> {
     await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
   }
 
   public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any): Promise<void> {
+      action: ServerAction, detailedMessages: any): Promise<void> {
     await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
   public static async logException(error: Error, action: ServerAction, source: string,
-    module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
+      module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       await Logging.logSecurityError(log);
@@ -569,7 +568,7 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error,
-    req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
+      req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): Promise<void> {
     // Clear password
     if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
@@ -688,7 +687,7 @@ export default class Logging {
   }
 
   private static _buildLog(error, action: ServerAction, source: string, module: string,
-    method: string, tenantID: string, user: UserToken|User|string): Log {
+      method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
@@ -738,11 +737,10 @@ export default class Logging {
   // Log
   private static async _log(log: Log): Promise<string> {
     let moduleConfig = null;
+    // Check Log Level
     const loggingConfig = Logging.getConfiguration();
     // Default Log Level
     let logLevel = loggingConfig.logLevel ? loggingConfig.logLevel : LogLevel.DEBUG;
-    // Default Console Level
-    let consoleLogLevel = loggingConfig.consoleLogLevel ? loggingConfig.consoleLogLevel : LogLevel.NONE;
     // Module Provided?
     if (log.module && loggingConfig.moduleDetails) {
       // Yes: Check the Module
@@ -755,40 +753,7 @@ export default class Logging {
             logLevel = moduleConfig.logLevel;
           }
         }
-        // Check Console Log Level
-        if (moduleConfig.consoleLogLevel) {
-          // Default?
-          if (moduleConfig.consoleLogLevel !== LogLevel.DEFAULT) {
-            // No
-            consoleLogLevel = moduleConfig.consoleLogLevel;
-          }
-        }
       }
-    }
-    // Log Level takes precedence over console log
-    switch (LogLevel[consoleLogLevel]) {
-      case LogLevel.NONE:
-        break;
-      // Keep up to error filter out debug
-      case LogLevel.ERROR:
-        if (log.level === LogLevel.INFO || log.level === LogLevel.WARNING || log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep up to warning filter out debug
-      case LogLevel.WARNING: // eslint-disable-line no-fallthrough
-        if (log.level === LogLevel.INFO || log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep all log messages just filter out DEBUG
-      case LogLevel.INFO: // eslint-disable-line no-fallthrough
-        if (log.level === LogLevel.DEBUG) {
-          break;
-        }
-      // Keep all messages
-      case LogLevel.DEBUG: // eslint-disable-line no-fallthrough
-      default: // If we did not break then it means we have to console log it
-        Logging._consoleLog(log);
-        break;
     }
     // Do not log to DB simple string messages
     if (log['simpleMessage']) {
@@ -825,9 +790,7 @@ export default class Logging {
     // Timestamp
     log.timestamp = new Date();
     // Source
-    if (!log.source) {
-      log.source = `${Constants.CENTRAL_SERVER}`;
-    }
+    log.source = log.source ?? `${Constants.CENTRAL_SERVER}`;
     // Host
     log.host = Utils.getHostname();
     // Process
@@ -835,8 +798,10 @@ export default class Logging {
     // Check
     if (log.detailedMessages) {
       // Anonymize message
-      log.detailedMessages = Utils.cloneObject(log.detailedMessages);
-      log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
+      if (!Utils.isDevelopmentEnv()) {
+        log.detailedMessages = Utils.cloneObject(log.detailedMessages);
+        log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
+      }
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
         log.detailedMessages = [log.detailedMessages];
@@ -855,13 +820,11 @@ export default class Logging {
     if (!log.tenantID || log.tenantID === '') {
       log.tenantID = Constants.DEFAULT_TENANT;
     }
-
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
     }
-
     // Log
     return LoggingStorage.saveLog(log.tenantID, log);
   }
@@ -922,42 +885,6 @@ export default class Logging {
     });
   }
 
-  // Console Log
-  private static _consoleLog(log): void {
-    let logFn;
-    // Set the function to log
-    switch (log.level) {
-      case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
-        logFn = console.debug;
-        break;
-      case LogLevel.ERROR:
-        // eslint-disable-next-line no-console
-        logFn = console.error;
-        break;
-      case LogLevel.WARNING:
-        // eslint-disable-next-line no-console
-        logFn = console.warn;
-        break;
-      case LogLevel.INFO:
-        // eslint-disable-next-line no-console
-        logFn = console.info;
-        break;
-      default:
-        // eslint-disable-next-line no-console
-        logFn = console.log;
-        break;
-    }
-
-    // Log
-    log.timestamp = new Date();
-    if (log.simpleMessage) {
-      logFn(log.timestamp.toISOString() + ' ' + log.simpleMessage);
-    } else {
-      logFn(log);
-    }
-  }
-
   // Log
   private static getCFLogLevel(logLevel): string {
     // Log level
@@ -974,22 +901,21 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
     // Keep duration
     Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
     // Log
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module, method: action,
+      module: module, method: action, action,
       message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`,
-      action: action,
       detailedMessages: { args }
     });
   }
 
   private static async traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string,
-    action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
@@ -1002,19 +928,20 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
-        action, module, method: 'traceChargingStationActionEnd',
+        action: ServerAction.PERFORMANCES,
+        module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {

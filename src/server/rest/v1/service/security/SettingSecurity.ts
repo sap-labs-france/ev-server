@@ -37,6 +37,12 @@ export default class SettingSecurity {
     return SettingSecurity._filterSettingRequest(request);
   }
 
+  public static filterBillingSettingUpdateRequest(request: any): Partial<SettingDB> {
+    const filteredRequest = SettingSecurity._filterSettingRequest(request.body);
+    filteredRequest.id = sanitize(request.params.id);
+    return filteredRequest;
+  }
+
   private static _filterSettingRequest(request: Partial<SettingDB>): Partial<SettingDB> {
     const settings: SettingDB = {
       identifier: sanitize(request.identifier),
@@ -173,16 +179,16 @@ export default class SettingSecurity {
           }
           break;
         case BillingSettingsType.STRIPE:
+          settings.content.billing = {
+            isTransactionBillingActivated : sanitize(request.content.billing.isTransactionBillingActivated),
+            immediateBillingAllowed: sanitize(request.content.billing.immediateBillingAllowed),
+            periodicBillingAllowed: sanitize(request.content.billing.periodicBillingAllowed),
+            taxID: sanitize(request.content.billing.taxID)
+          };
           settings.content.stripe = {
             url: sanitize(request.content.stripe.url),
             secretKey: sanitize(request.content.stripe.secretKey),
             publicKey: sanitize(request.content.stripe.publicKey),
-            noCardAllowed: sanitize(request.content.stripe.noCardAllowed),
-            immediateBillingAllowed: sanitize(request.content.stripe.immediateBillingAllowed),
-            periodicBillingAllowed: sanitize(request.content.stripe.periodicBillingAllowed),
-            advanceBillingAllowed: sanitize(request.content.stripe.advanceBillingAllowed),
-            currency: sanitize(request.content.stripe.currency),
-            taxID: sanitize(request.content.stripe.taxID)
           };
           break;
         case SmartChargingSettingsType.SAP_SMART_CHARGING:
@@ -220,6 +226,12 @@ export default class SettingSecurity {
                 sanitizedConnection.greencomConnection = {
                   clientId: sanitize(connection.greencomConnection.clientId),
                   clientSecret: sanitize(connection.greencomConnection.clientSecret),
+                };
+                break;
+              case AssetConnectionType.IOTHINK:
+                sanitizedConnection.iothinkConnection = {
+                  user: sanitize(connection.iothinkConnection.user),
+                  password: sanitize(connection.iothinkConnection.password),
                 };
                 break;
             }

@@ -54,4 +54,7 @@ export default class UserApi extends CrudApi {
     return super.delete(id, '/client/api/TagDelete');
   }
 
+  public async exportTags(params) {
+    return await super.read(params, '/client/api/TagsExport');
+  }
 }

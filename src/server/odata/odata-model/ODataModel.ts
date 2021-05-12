@@ -80,7 +80,6 @@ export default {
       'costCenter' : { 'type': 'Edm.String' },
       'status' : { 'type': 'Edm.String' },
       'role' : { 'type': 'Edm.String' },
-      'deleted' : { 'type': 'Edm.Boolean' },
       'address' : { 'type': 'eMobility.Address' }
     },
     'Transaction': {

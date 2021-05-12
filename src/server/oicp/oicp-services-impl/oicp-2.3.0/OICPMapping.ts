@@ -7,7 +7,6 @@ import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
-import CountryLanguage from 'country-language';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -16,6 +15,7 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
+import { countries } from 'countries-list';
 
 const MODULE_NAME = 'OICPMapping';
 
@@ -60,7 +60,7 @@ export default class OICPMapping {
    */
   public static convertConnector2EvseStatus(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     const evseStatus: OICPEvseStatusRecord = {} as OICPEvseStatusRecord;
-    evseStatus.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    evseStatus.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId);
     evseStatus.EvseStatus = OICPMapping.convertStatus2OICPEvseStatus(connector.status);
     evseStatus.ChargingStationID = chargingStation.id;
     return evseStatus;
@@ -179,7 +179,7 @@ export default class OICPMapping {
       Amperage: amperage,
       Power: connector.power,
       PowerType: OICPMapping.convertNumberOfConnectedPhase2PowerType(numberOfConnectedPhase),
-      Voltage:voltage,
+      Voltage: voltage,
       ChargingModes: [
         OICPChargingMode.Mode_4 // No mapping yet
       ]
@@ -258,7 +258,7 @@ export default class OICPMapping {
         module: MODULE_NAME, method: 'convertCountry2CountryCode',
       });
     }
-    const countryLanguage = CountryLanguage.getCountryLanguages(countryID, (err, languages) => languages[0].iso639_1) as string;
+    const countryLanguage = countries[countryID].languages[0] as string;
     const countryCode = Countries.getAlpha3Code(country, countryLanguage);
     // Check result
     if (!countryCode) {
@@ -410,7 +410,7 @@ export default class OICPMapping {
     const evse: OICPEvseDataRecord = {} as OICPEvseDataRecord;
     evse.deltaType; // Optional
     evse.lastUpdate; // Optional
-    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
+    evse.EvseID = RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId);
     evse.ChargingPoolID = OICPMapping.buildEChargingPoolID(options.countryID, options.partyID, siteArea.id); // Optional
     evse.ChargingStationID = chargingStation.id; // Optional
     evse.ChargingStationNames = [

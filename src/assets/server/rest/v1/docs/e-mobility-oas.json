@@ -694,7 +694,10 @@
             "description": "Transaction status",
             "schema": {
               "type": "string",
-              "enum": ["completed", "active"]
+              "enum": [
+                "completed",
+                "active"
+              ]
             }
           },
           {
@@ -710,7 +713,7 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "$ref": "#/components/parameters/ChargeBoxIDs"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorIDs"
@@ -734,12 +737,7 @@
             "$ref": "#/components/parameters/TransactionStatistics"
           },
           {
-            "in": "query",
-            "name": "RefundStatus",
-            "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/RefundStatus"
           },
           {
             "in": "query",
@@ -783,20 +781,43 @@
               "application/json": {
                 "example": {
                   "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "firstTimestamp": "2017-06-07T07:09:20.000Z",
+                    "lastTimestamp": "2020-02-21T11:53:36.000Z",
+                    "totalConsumptionWattHours": 10701590.285,
+                    "totalDurationSecs": 8956090.273,
+                    "totalPrice": 1498.222641,
+                    "totalInactivitySecs": 4324778.908,
+                    "currency": "EUR",
+                    "count": 500
+                  },
                   "result": [
                     {
-                      "id": 1234567889,
                       "issuer": true,
-                      "siteID": "####",
-                      "siteAreaID": "####",
-                      "connectorId": 2,
-                      "tagID": "####",
-                      "userID": "####",
-                      "chargeBoxID": "####",
-                      "meterStart": 1122030,
-                      "timestamp": "2021-02-15T16:04:04.000Z",
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 7157518,
+                      "timestamp": "2021-03-05T16:37:56.000Z",
+                      "price": 0,
+                      "roundedPrice": 0,
+                      "priceUnit": "EUR",
                       "stateOfCharge": 0,
-                      "timezone": "Europe/Paris",
+                      "timezone": "###",
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 11640,
+                      "currentInactivityStatus": "E",
+                      "currentCumulatedPrice": 1.968,
+                      "currentInstantWatts": 0,
+                      "currentTotalConsumptionWh": 12793,
+                      "currentTotalDurationSecs": 21480,
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "id": 123456789,
                       "stop": {
                         "userID": "####",
                         "timestamp": "2021-02-15T16:05:38.000Z",
@@ -805,10 +826,12 @@
                         "stateOfCharge": 0,
                         "totalConsumptionWh": 16,
                         "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 1,
                         "inactivityStatus": "I",
                         "totalDurationSecs": 94,
                         "price": 0.002,
                         "priceUnit": "EUR",
+                        "roundedPrice": 0,
                         "user": {
                           "email": "####",
                           "firstName": "####",
@@ -816,8 +839,9 @@
                           "id": "####"
                         }
                       },
-                      "ocpi": false,
-                      "ocpiWithCdr": false,
+                      "billingData": {
+                        "invoiceID": "###"
+                      },
                       "user": {
                         "email": "####",
                         "firstName": "####",
@@ -828,9 +852,9 @@
                         "licensePlate": "####"
                       },
                       "carCatalog": {
-                        "vehicleMake": "Tesla",
-                        "vehicleModel": "Model 3",
-                        "vehicleModelVersion": "Long Range Dual Motor"
+                        "vehicleMake": "###",
+                        "vehicleModel": "###",
+                        "vehicleModelVersion": "###"
                       }
                     }
                   ]
@@ -1019,7 +1043,7 @@
         }
       }
     },
-    "/api/chargingstations": {
+    "/api/charging-stations": {
       "get": {
         "security": [
           {
@@ -1095,10 +1119,10 @@
                   "count": 1,
                   "result": [
                     {
-                      "chargeBoxSerialNumber": "####",
-                      "chargePointModel": "####",
-                      "chargePointSerialNumber": "####",
-                      "chargePointVendor": "####",
+                      "chargeBoxSerialNumber": "###",
+                      "chargePointModel": "###",
+                      "chargePointSerialNumber": "###",
+                      "chargePointVendor": "###",
                       "connectors": [
                         {
                           "connectorId": 1,
@@ -1106,25 +1130,12 @@
                           "currentStateOfCharge": 0,
                           "currentTotalInactivitySecs": 0,
                           "currentTotalConsumptionWh": 0,
-                          "currentTransactionDate": null,
                           "currentTagID": null,
                           "status": "Available",
                           "errorCode": "NoError",
-                          "info": "",
-                          "vendorErrorCode": "",
                           "power": 22080,
                           "type": "T2",
-                          "voltage": 0,
-                          "amperage": 96,
-                          "amperageLimit": 96,
-                          "currentTransactionID": 0,
-                          "userID": null,
-                          "statusLastChangedOn": "2020-12-15T09:57:16.000Z",
-                          "currentInactivityStatus": "I",
-                          "numberOfConnectedPhase": null,
-                          "currentType": null,
-                          "chargePointID": 1,
-                          "phaseAssignmentToGrid": null
+                          "currentTransactionID": 0
                         },
                         {
                           "connectorId": 2,
@@ -1132,51 +1143,26 @@
                           "currentStateOfCharge": 0,
                           "currentTotalInactivitySecs": 0,
                           "currentTotalConsumptionWh": 0,
-                          "currentTransactionDate": null,
                           "currentTagID": null,
                           "status": "Available",
                           "errorCode": "NoError",
-                          "info": "",
-                          "vendorErrorCode": "",
                           "power": 22080,
                           "type": "T2",
-                          "voltage": 0,
-                          "amperage": 96,
-                          "amperageLimit": 96,
-                          "currentTransactionID": 0,
-                          "userID": null,
-                          "statusLastChangedOn": "2020-12-15T12:10:31.000Z",
-                          "currentInactivityStatus": "I",
-                          "numberOfConnectedPhase": null,
-                          "currentType": null,
-                          "chargePointID": 1,
-                          "phaseAssignmentToGrid": null
+                          "currentTransactionID": 0
                         }
                       ],
-                      "endpoint": "####",
-                      "firmwareVersion": "3",
-                      "lastReboot": "2020-12-08T09:06:14.948Z",
-                      "ocppVersion": "1.5",
-                      "siteAreaID": "####",
-                      "chargingStationURL": "wss://####",
+                      "createdOn": "2020-06-19T14:30:01.191Z",
+                      "firmwareVersion": "###",
+                      "lastReboot": "2020-12-09T18:00:10.199Z",
+                      "ocppVersion": "1.6",
+                      "siteAreaID": "###",
                       "maximumPower": 44160,
-                      "ocppProtocol": "soap",
+                      "ocppProtocol": "json",
                       "powerLimitUnit": "A",
-                      "createdOn": "2019-03-20T07:41:57.583Z",
-                      "currentIPAddress": "####",
                       "coordinates": [
-                        7,
-                        43
+                        -0.390899731877199,
+                        49.20079707133
                       ],
-                      "capabilities": {
-                        "supportStaticLimitation": true,
-                        "supportChargingProfiles": true,
-                        "supportRemoteStartStopTransaction": true,
-                        "supportUnlockConnector": true,
-                        "supportReservation": false,
-                        "supportCreditCard": false,
-                        "supportRFIDCard": false
-                      },
                       "issuer": true,
                       "chargePoints": [
                         {
@@ -1197,23 +1183,30 @@
                           ]
                         }
                       ],
-                      "excludeFromSmartCharging": false,
                       "voltage": 230,
                       "public": false,
-                      "forceInactive": false,
-                      "lastSeen": "2020-12-20T22:34:37.468Z",
+                      "lastSeen": "2021-02-17T08:32:52.393Z",
+                      "siteID": "###",
                       "inactive": true,
                       "siteArea": {
-                        "name": "####",
-                        "siteID": "####",
-                        "smartCharging": true,
-                        "id": "####",
-                        "site": {
-                          "name": "####",
-                          "id": "####"
-                        }
+                        "name": "###",
+                        "siteID": "###",
+                        "address": {
+                          "address1": "###",
+                          "address2": "",
+                          "postalCode": "###",
+                          "city": "###",
+                          "department": "###",
+                          "region": "###",
+                          "country": "###",
+                          "coordinates": [
+                            -0.39091984844480976,
+                            49.20079970020356
+                          ]
+                        },
+                        "id": "###"
                       },
-                      "id": "####"
+                      "id": "###"
                     }
                   ]
                 }
@@ -1232,7 +1225,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}": {
+    "/api/charging-stations/{id}": {
       "get": {
         "security": [
           {
@@ -1428,7 +1421,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/reset": {
+    "/api/charging-stations/{id}/reset": {
       "put": {
         "security": [
           {
@@ -1491,7 +1484,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/cache/clear": {
+    "/api/charging-stations/{id}/cache/clear": {
       "put": {
         "security": [
           {
@@ -1549,7 +1542,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration/retrieve": {
+    "/api/charging-stations/{id}/configuration/retrieve": {
       "put": {
         "security": [
           {
@@ -1647,7 +1640,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/configuration": {
+    "/api/charging-stations/{id}/configuration": {
       "put": {
         "security": [
           {
@@ -1712,7 +1705,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/start": {
+    "/api/charging-stations/{id}/remote/start": {
       "put": {
         "security": [
           {
@@ -1813,7 +1806,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/remote/stop": {
+    "/api/charging-stations/{id}/remote/stop": {
       "put": {
         "security": [
           {
@@ -1904,7 +1897,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/unlock": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/unlock": {
       "put": {
         "security": [
           {
@@ -1968,7 +1961,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/compositeschedule": {
+    "/api/charging-stations/{id}/compositeschedule": {
       "put": {
         "security": [
           {
@@ -2111,7 +2104,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/diagnostics": {
+    "/api/charging-stations/{id}/diagnostics": {
       "put": {
         "security": [
           {
@@ -2207,7 +2200,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/firmware/update": {
+    "/api/charging-stations/{id}/firmware/update": {
       "put": {
         "security": [
           {
@@ -2284,7 +2277,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/availability/change": {
+    "/api/charging-stations/{id}/availability/change": {
       "put": {
         "security": [
           {
@@ -2386,7 +2379,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/connectors/{connectorId}/qrcode/generate": {
+    "/api/charging-stations/{id}/connectors/{connectorId}/qrcode/generate": {
       "get": {
         "security": [
           {
@@ -2438,7 +2431,7 @@
         }
       }
     },
-    "/api/chargingstations/qrcode/download": {
+    "/api/charging-stations/qrcode/download": {
       "get": {
         "security": [
           {
@@ -2491,7 +2484,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/ocpp/parameters": {
+    "/api/charging-stations/{id}/ocpp/parameters": {
       "get": {
         "security": [
           {
@@ -2567,7 +2560,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters": {
+    "/api/charging-stations/ocpp/parameters": {
       "post": {
         "security": [
           {
@@ -2581,7 +2574,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
+                  "chargingStationID": {
                     "type": "string",
                     "example": ""
                   },
@@ -2591,7 +2584,7 @@
                   }
                 },
                 "required": [
-                  "chargeBoxID",
+                  "chargingStationID",
                   "forceUpdateOCPPParamsFromTemplate"
                 ]
               }
@@ -2624,7 +2617,7 @@
         }
       }
     },
-    "/api/chargingstations/ocpp/parameters/export": {
+    "/api/charging-stations/ocpp/parameters/export": {
       "get": {
         "security": [
           {
@@ -2664,7 +2657,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/parameters": {
+    "/api/charging-stations/{id}/parameters": {
       "put": {
         "security": [
           {
@@ -2683,6 +2676,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "chargingStationUrl": {
+                    "type": "string"
+                  },
                   "maximumPower": {
                     "type": "number",
                     "example": 50000
@@ -2694,6 +2690,9 @@
                   "forceInactive": {
                     "type": "boolean",
                     "example": false
+                  },
+                  "manualConfiguration": {
+                    "type": "boolean"
                   },
                   "public": {
                     "type": "boolean",
@@ -2710,6 +2709,12 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/Connector"
+                    }
+                  },
+                  "chargePoints": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ChargePoint"
                     }
                   }
                 }
@@ -2739,7 +2744,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/power/limit": {
+    "/api/charging-stations/{id}/power/limit": {
       "put": {
         "security": [
           {
@@ -2809,7 +2814,7 @@
         }
       }
     },
-    "/api/chargingstations/{id}/transactions": {
+    "/api/charging-stations/{id}/transactions": {
       "get": {
         "security": [
           {
@@ -2873,22 +2878,10 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "in": "query",
-            "name": "InactivityStatus",
-            "required": false,
-            "description": "Pipe separated Inactivity Statuses",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/InactivityStatuses"
           },
           {
-            "in": "query",
-            "name": "RefundStatus",
-            "required": false,
-            "description": "Pipe separated Refund Statuses",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/RefundStatus"
           },
           {
             "in": "query",
@@ -2941,7 +2934,87 @@
         ],
         "responses": {
           "200": {
-            "description": "Return Charging Station transactions list"
+            "description": "Return Charging Station transactions list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "firstTimestamp": "2017-06-07T07:09:20.000Z",
+                    "lastTimestamp": "2020-02-21T11:53:36.000Z",
+                    "totalConsumptionWattHours": 10701590.285,
+                    "totalDurationSecs": 8956090.273,
+                    "totalPrice": 1498.222641,
+                    "totalInactivitySecs": 4324778.908,
+                    "currency": "EUR",
+                    "count": 500
+                  },
+                  "result": [
+                    {
+                      "issuer": true,
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 7157518,
+                      "timestamp": "2021-03-05T16:37:56.000Z",
+                      "stateOfCharge": 0,
+                      "timezone": "###",
+                      "currentStateOfCharge": 0,
+                      "currentTotalInactivitySecs": 11640,
+                      "currentInactivityStatus": "E",
+                      "currentInstantWatts": 0,
+                      "currentTotalConsumptionWh": 12793,
+                      "currentTotalDurationSecs": 21480,
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "id": 123456789,
+                      "stop": {
+                        "userID": "####",
+                        "timestamp": "2021-02-15T16:05:38.000Z",
+                        "tagID": "####",
+                        "meterStop": 1122046,
+                        "stateOfCharge": 0,
+                        "totalConsumptionWh": 16,
+                        "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 1,
+                        "inactivityStatus": "I",
+                        "totalDurationSecs": 94,
+                        "price": 0.002,
+                        "priceUnit": "EUR",
+                        "roundedPrice": 0,
+                        "user": {
+                          "email": "####",
+                          "firstName": "####",
+                          "name": "####",
+                          "id": "####"
+                        }
+                      },
+                      "billingData": {
+                        "invoiceID": "###"
+                      },
+                      "user": {
+                        "email": "####",
+                        "firstName": "####",
+                        "name": "####",
+                        "id": "####"
+                      },
+                      "car": {
+                        "licensePlate": "####"
+                      },
+                      "carCatalog": {
+                        "vehicleMake": "###",
+                        "vehicleModel": "###",
+                        "vehicleModelVersion": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -2955,7 +3028,7 @@
         }
       }
     },
-    "/api/chargingstations/status/in-error": {
+    "/api/charging-stations/status/in-error": {
       "get": {
         "security": [
           {
@@ -3011,7 +3084,7 @@
         }
       }
     },
-    "/api/chargingstations/action/export": {
+    "/api/charging-stations/action/export": {
       "get": {
         "security": [
           {
@@ -3021,22 +3094,16 @@
         "description": "Export Charging Stations as CSV file",
         "parameters": [
           {
-            "$ref": "#/components/parameters/Search"
-          },
-          {
-            "$ref": "#/components/parameters/ChargingStationIDs"
-          },
-          {
             "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
           },
           {
             "$ref": "#/components/parameters/WithNoSiteArea"
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
-          },
-          {
-            "$ref": "#/components/parameters/WithSite"
           },
           {
             "$ref": "#/components/parameters/SiteAreaIDs"
@@ -3048,6 +3115,12 @@
             "$ref": "#/components/parameters/ConnectorTypes"
           },
           {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/IncludeDeleted"
+          },
+          {
             "$ref": "#/components/parameters/LocLongitude"
           },
           {
@@ -3055,6 +3128,12 @@
           },
           {
             "$ref": "#/components/parameters/LocMaxDistanceMeters"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
           }
         ],
         "tags": [
@@ -3081,7 +3160,7 @@
         }
       }
     },
-    "/api/chargingstations/firmware/download": {
+    "/api/charging-stations/firmware/download": {
       "get": {
         "security": [
           {
@@ -3125,7 +3204,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/connection/check": {
+    "/api/charging-stations/smartcharging/connection/check": {
       "get": {
         "security": [
           {
@@ -3152,7 +3231,7 @@
         }
       }
     },
-    "/api/chargingstations/smartcharging/trigger": {
+    "/api/charging-stations/smartcharging/trigger": {
       "get": {
         "security": [
           {
@@ -3184,7 +3263,7 @@
         }
       }
     },
-    "/api/chargingprofiles": {
+    "/api/charging-profiles": {
       "get": {
         "security": [
           {
@@ -3329,7 +3408,7 @@
         }
       }
     },
-    "/api/chargingprofiles/{id}": {
+    "/api/charging-profiles/{id}": {
       "put": {
         "security": [
           {
@@ -4021,7 +4100,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "required": ["userID", "issuer", "active", "description"],
+                "required": [
+                  "userID",
+                  "issuer",
+                  "active",
+                  "description"
+                ],
                 "properties": {
                   "userID": {
                     "type": "string",
@@ -4159,11 +4243,6 @@
       }
     },
     "schemas": {
-      "ocppChargeBoxID": {
-        "type": "string",
-        "description": "The Charging Station ID",
-        "example": ""
-      },
       "Tenant": {
         "type": "object",
         "required": [
@@ -4549,6 +4628,9 @@
       },
       "Connector": {
         "type": "object",
+        "required": [
+          "connectorId"
+        ],
         "properties": {
           "connectorId": {
             "type": "number",
@@ -4558,16 +4640,34 @@
             "type": "number"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "T2",
+              "CCS",
+              "C",
+              "T1",
+              "T3C",
+              "T1CCS",
+              "D",
+              "U"
+            ]
           },
           "voltage": {
-            "type": "number"
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
           },
           "amperage": {
             "type": "number"
           },
           "currentType": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
           },
           "numberOfConnectedPhase": {
             "type": "number"
@@ -4743,9 +4843,70 @@
           "chargingSchedulePeriod"
         ]
       },
+      "ChargePoint": {
+        "type": "object",
+        "required": [
+          "chargePointID"
+        ],
+        "properties": {
+          "chargePointID": {
+            "type": "number"
+          },
+          "currentType": {
+            "type": "string",
+            "enum": [
+              "AC",
+              "DC"
+            ]
+          },
+          "voltage": {
+            "type": "number",
+            "enum": [
+              110,
+              230
+            ]
+          },
+          "amperage": {
+            "type": "number"
+          },
+          "numberOfConnectedPhase": {
+            "type": "number"
+          },
+          "cannotChargeInParallel": {
+            "type": "boolean"
+          },
+          "sharePowerToAllConnectors": {
+            "type": "boolean"
+          },
+          "excludeFromPowerLimitation": {
+            "type": "boolean"
+          },
+          "ocppParamForPowerLimitation": {
+            "type": "string"
+          },
+          "power": {
+            "type": "number"
+          },
+          "efficiency": {
+            "type": "number"
+          },
+          "connectorIDs": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
       "Tag": {
         "type": "object",
-        "required": ["id", "userID", "issuer", "active", "description"],
+        "required": [
+          "id",
+          "userID",
+          "issuer",
+          "active",
+          "description"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -5087,15 +5248,6 @@
           "type": "string"
         }
       },
-      "ChargeBoxIDs": {
-        "in": "query",
-        "name": "ChargeBoxID",
-        "description": "Pipe separated Charging Station IDs",
-        "required": false,
-        "schema": {
-          "type": "string"
-        }
-      },
       "ConnectorID": {
         "in": "query",
         "name": "ConnectorID",
@@ -5134,7 +5286,8 @@
         "description": "Pipe separated Inactivity Statuses (I, W, E)",
         "required": false,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^([IWE](\\|[IWE])*)?$"
         }
       },
       "chargingProfileID": {
@@ -5231,17 +5384,19 @@
       "ConnectorStatuses": {
         "in": "query",
         "name": "ConnectorStatus",
-        "description": "Pipe separated connector statuses",
+        "description": "Pipe separated connector statuses (Available, Preparing, Charging, Occupied, SuspendedEVSE, SuspendedEV, Finishing, Reserved, Unavailable, Faulted",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^((Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)(\\||Available|Preparing|Charging|Occupied|SuspendedEVSE|SuspendedEV|Finishing|Reserved|Unavailable|Faulted)*)?$"
         }
       },
       "ConnectorTypes": {
         "in": "query",
         "name": "ConnectorType",
-        "description": "Pipe separated connector types",
+        "description": "Pipe separated connector types (T2, CCS, C, T1, T3C, T1CCS, D, U)",
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^((T2|CCS|C|T1|T3C|T1CCS|D|U)(\\||T2|CCS|C|T1|T3C|T1CCS|D|U)*)?$"
         }
       },
       "LocLongitude": {
@@ -5282,6 +5437,15 @@
         "description": "With site attribute",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "RefundStatus": {
+        "in": "query",
+        "name": "RefundStatus",
+        "description": "Pipe separated refund statuses (submitted, notSubmitted, cancelled, approved)",
+        "schema": {
+          "type": "string",
+          "pattern": "^((submitted|notSubmitted|cancelled|approved)(\\||submitted|notSubmitted|cancelled|approved)*)?$"
         }
       },
       "tagID": {

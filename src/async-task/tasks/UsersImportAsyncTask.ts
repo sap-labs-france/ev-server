@@ -1,25 +1,25 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
+import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
-import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'SynchronizeUsersImportTask';
+const MODULE_NAME = 'UsersImportAsyncTask';
 
-export default class ImportUsersTask extends SchedulerTask {
-  public async processTenant(tenant: Tenant, config?: TaskConfig): Promise<void> {
-    const importUsersLock = await LockingHelper.createImportUsersLock(tenant.id);
+export default class UsersImportAsyncTask extends AbstractAsyncTask {
+  protected async executeAsyncTask(): Promise<void> {
+    const importUsersLock = await LockingHelper.createImportUsersLock(this.asyncTask.tenantID);
     if (importUsersLock) {
+      const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedUsers: DataResult<ImportedUser>;
@@ -50,11 +50,8 @@ export default class ImportUsersTask extends SchedulerTask {
                 if (!foundUser.issuer) {
                   throw new Error('User is not local to the organization');
                 }
-                if (foundUser.deleted) {
-                  throw new Error('User is deleted');
-                }
                 if (foundUser.status !== UserStatus.PENDING) {
-                  throw new Error('User account is no longer pending');
+                  throw new Error('User account is already in use');
                 }
                 // Update it
                 foundUser.name = importedUser.name;
@@ -66,25 +63,19 @@ export default class ImportUsersTask extends SchedulerTask {
                 continue;
               }
               // New User
-              const user: Partial<User> = {
-                firstName: importedUser.firstName,
-                name: importedUser.name,
-                email: importedUser.email,
-                locale: null, // Defaults to the browser locale
-                issuer: true,
-                deleted: false,
-                role: UserRole.BASIC,
-                status: UserStatus.ACTIVE,
-                createdBy: { id: importedUser.importedBy },
-                createdOn: importedUser.importedOn,
-                notificationsActive: true
-              };
+              const newUser = UserStorage.createNewUser() as User;
+              // Set
+              newUser.firstName = importedUser.firstName;
+              newUser.name = importedUser.name;
+              newUser.email = importedUser.email;
+              newUser.createdBy = { id: importedUser.importedBy };
+              newUser.createdOn = importedUser.importedOn;
               // Save the new User
-              user.id = await UserStorage.saveUser(tenant.id, user);
+              newUser.id = await UserStorage.saveUser(tenant.id, newUser);
               // Role need to be set separately
-              await UserStorage.saveUserRole(tenant.id, user.id, UserRole.BASIC);
+              await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
+              await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
               // Remove the imported User
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               result.inSuccess++;

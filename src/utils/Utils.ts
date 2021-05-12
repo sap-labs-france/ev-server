@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConnectorSettingsType, CryptoKeyProperties, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
@@ -52,6 +52,17 @@ export default class Utils {
       }
     }
     return connectors;
+  }
+
+  public static convertAddressToOneLine(address: Address): string {
+    const oneLineAddress: string[] = [];
+    if (address?.address1) {
+      oneLineAddress.push(address.address1);
+    }
+    if (address?.address2) {
+      oneLineAddress.push(address.address2);
+    }
+    return oneLineAddress.join(' ');
   }
 
   public static handleAxiosError(axiosError: AxiosError, urlRequest: string, action: ServerAction, module: string, method: string): void {
@@ -651,7 +662,7 @@ export default class Utils {
     return 1;
   }
 
-  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): Voltage {
     if (chargingStation) {
       // Check at charging station level
       if (chargingStation.voltage) {
@@ -690,7 +701,8 @@ export default class Utils {
         }
       }
     }
-    return 0;
+    // Return a sensible default value to avoid divide by zero
+    return Voltage.VOLTAGE_230;
   }
 
   public static getChargingStationCurrentType(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): CurrentType {
@@ -813,10 +825,15 @@ export default class Utils {
         }
       }
     }
+    const amperageMax = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    // Check and default
+    if (amperageLimit === 0 || amperageLimit > amperageMax) {
+      amperageLimit = amperageMax;
+    }
     return amperageLimit;
   }
 
-  public static isEmptyArray(array: any[]): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (!array) {
       return true;
     }
@@ -915,7 +932,7 @@ export default class Utils {
   }
 
   public static buildRestServerURL(): string {
-    const centralSystemRestServer = Configuration.getCentralSystemRestServer();
+    const centralSystemRestServer = Configuration.getCentralSystemRestServerConfig();
     return `${centralSystemRestServer.protocol}://${centralSystemRestServer.host}:${centralSystemRestServer.port}`;
   }
 
@@ -1103,7 +1120,6 @@ export default class Utils {
   }
 
   public static async hashPasswordBcrypt(password: string): Promise<string> {
-    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (error, salt) => {
@@ -1121,7 +1137,6 @@ export default class Utils {
   }
 
   public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
-    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
@@ -1147,8 +1162,7 @@ export default class Utils {
     // Check if GPs are available
     if (!Utils.isEmptyArray(coordinates) && coordinates.length === 2 && coordinates[0] && coordinates[1]) {
       // Check Longitude & Latitude
-      if (new RegExp(Constants.REGEX_VALIDATION_LONGITUDE).test(coordinates[0].toString()) &&
-        new RegExp(Constants.REGEX_VALIDATION_LATITUDE).test(coordinates[1].toString())) {
+      if (validator.isLatLong(coordinates[1].toString() + ',' + coordinates[0].toString())) {
         return true;
       }
     }
@@ -1329,7 +1343,7 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
-        // Car Connector
+      // Car Connector
       case TenantComponents.CAR_CONNECTOR:
         if (!currentSettingContent) {
           // Only Car Connector
@@ -1416,9 +1430,10 @@ export default class Utils {
       processMemoryUsage: process.memoryUsage(),
       processCPUUsage: process.cpuUsage(),
       cpusInfo: os.cpus(),
-      memoryTotalGb: os.totalmem(),
-      memoryFreeGb: os.freemem(),
+      memoryTotalGb: Utils.createDecimal(os.totalmem()).div(Constants.ONE_BILLION).toNumber(),
+      memoryFreeGb: Utils.createDecimal(os.freemem()).div(Constants.ONE_BILLION).toNumber(),
       loadAverageLastMin: os.loadavg()[0],
+      networkInterface: os.networkInterfaces(),
       numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
       source: params.source,
       module: params.module,
@@ -1432,5 +1447,9 @@ export default class Utils {
 
   public static getHostname(): string {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+  }
+
+  public static replaceDoubleQuotes(value: any): string {
+    return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
   }
 }

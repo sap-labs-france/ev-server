@@ -4,6 +4,7 @@ import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectID } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -106,8 +107,8 @@ export default class DatabaseUtils {
   }
 
   public static pushArrayLookupInAggregation(arrayName: string,
-    lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
-    lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
+      lookupMethod: (lookupParams: DbLookup, additionalPipeline?: Record<string, any>[]) => void,
+      lookupParams: DbLookup, additionalParams: { pipeline?: Record<string, any>[], sort?: any } = {}): void {
     // Unwind the source
     lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
@@ -245,7 +246,7 @@ export default class DatabaseUtils {
   }
 
   public static projectFields(aggregation: any[], projectedFields: string[], removedFields: string[] = []): void {
-    if (projectedFields) {
+    if (!Utils.isEmptyArray(projectedFields)) {
       const project = {
         $project: {}
       };
@@ -399,6 +400,17 @@ export default class DatabaseUtils {
           message: `Invalid Tenant ID '${tenantID}'`
         });
       }
+    }
+  }
+
+  public static checkTenantObject(tenant: Tenant): void {
+    if (!tenant) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkTenantObject',
+        message: 'Invalid Tenant'
+      });
     }
   }
 

@@ -42,7 +42,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
           headers: this.buildAuthHeader(token)
         }
       );
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -160,7 +160,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
       this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

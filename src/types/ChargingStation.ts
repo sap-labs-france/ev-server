@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
 
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -24,6 +24,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   chargePointModel: string;
   chargeBoxSerialNumber: string;
   chargePointVendor: string;
+  registrationStatus: RegistrationStatus;
   iccid: string;
   imsi: string;
   meterType: string;
@@ -55,9 +56,11 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
   distanceMeters?: number;
-  ocpiData?: {
-    evse?: OCPIEvse;
-  };
+  ocpiData?: ChargingStationOcpiData;
+}
+
+export interface ChargingStationOcpiData {
+  evses?: OCPIEvse[];
 }
 
 export interface ChargingStationQRCode {
@@ -83,6 +86,7 @@ export interface TemplateUpdate {
 }
 
 export interface TemplateUpdateResult {
+  chargingStationUpdated: boolean;
   technicalUpdated: boolean;
   capabilitiesUpdated: boolean;
   ocppStandardUpdated: boolean;
@@ -111,7 +115,7 @@ export enum Command {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT_PER_PHASE = 13,
+  MIN_LIMIT_PER_PHASE = 6,
 }
 
 export interface Connector {
@@ -195,6 +199,7 @@ export interface ChargePoint {
 }
 
 export enum Voltage {
+  VOLTAGE_400 = 400,
   VOLTAGE_230 = 230,
   VOLTAGE_110 = 110,
 }
@@ -289,10 +294,12 @@ export type OCPPParams = {
 
 export enum ChargerVendor {
   BENDER = 'Bender GmbH Co. KG',
+  DBTCEV = 'DBT-CEV',
   EBEE = 'Ebee',
   ENPLUS = 'EN+',
   EXADYS = 'EXADYS',
   EVBOX = 'EV-BOX',
+  EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
   IES = 'IES',

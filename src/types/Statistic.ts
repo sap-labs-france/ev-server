@@ -1,3 +1,4 @@
+import User from './User';
 
 export default interface StatisticFilter {
   year?: number;
@@ -28,3 +29,35 @@ export enum StatsGroupBy {
   PRICING = 'P',
 }
 
+export enum StatsDataCategory {
+  CHARGING_STATION = 'C',
+  USER = 'U',
+}
+
+export enum StatsDataType {
+  CONSUMPTION = 'Consumption',
+  USAGE = 'Usage',
+  INACTIVITY = 'Inactivity',
+  TRANSACTION = 'Transactions',
+  PRICING = 'Pricing',
+}
+
+export enum StatsDataScope {
+  YEAR = 'year',
+  MONTH = 'month',
+}
+
+export interface ChargingStationStats {
+  chargeBox: string;
+  month: number;
+  total: number;
+  unit: string;
+}
+
+export interface UserStats {
+  userID: string;
+  user?: User;
+  month: number;
+  total: number;
+  unit: string;
+}

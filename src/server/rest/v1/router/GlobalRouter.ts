@@ -24,7 +24,6 @@ export default class GlobalRouter {
     this.buildRouteAPI();
     this.buildRouteUtils();
     this.buildRouteDocs();
-    this.buildRouteBilling();
     this.buildUnknownRoute();
     return this.router;
   }
@@ -34,13 +33,17 @@ export default class GlobalRouter {
   }
 
   protected buildRouteAPI(): void {
-    this.router.use('/api', AuthService.authenticate(), [
-      new ChargingStationRouter().buildRoutes(),
-      new TagRouter().buildRoutes(),
-      new TenantRouter().buildRoutes(),
-      new TransactionRouter().buildRoutes(),
-      new UserRouter().buildRoutes(),
-    ]);
+    this.router.use('/api',
+      AuthService.authenticate(),
+      AuthService.checkSessionHash.bind(this),
+      [
+        new ChargingStationRouter().buildRoutes(),
+        new TagRouter().buildRoutes(),
+        new TenantRouter().buildRoutes(),
+        new TransactionRouter().buildRoutes(),
+        new UserRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
+      ]);
   }
 
   protected buildRouteUtils(): void {
@@ -49,10 +52,6 @@ export default class GlobalRouter {
 
   protected buildRouteDocs(): void {
     this.router.use('/docs', new SwaggerRouter().buildRoutes());
-  }
-
-  protected buildRouteBilling(): void {
-    this.router.use('/docs', new BillingRouter().buildRoutes());
   }
 
   protected buildUnknownRoute(): void {

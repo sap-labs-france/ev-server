@@ -46,7 +46,7 @@ export default class UserStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (eulasMDB && eulasMDB.length > 0) {
+    if (!Utils.isEmptyArray(eulasMDB)) {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
@@ -107,7 +107,7 @@ export default class UserStorage {
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-    params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
+      params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID, {
       userIDs: [id],
       withImage: params.withImage,
@@ -146,7 +146,7 @@ export default class UserStorage {
     // User provided?
     if (userID) {
       // At least one Site
-      if (siteIDs && siteIDs.length > 0) {
+      if (!Utils.isEmptyArray(siteIDs)) {
         // Create the lis
         await global.database.getCollection<User>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
@@ -164,7 +164,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // At least one Site
-    if (siteIDs && siteIDs.length > 0) {
+    if (!Utils.isEmptyArray(siteIDs)) {
       const siteUsersMDB = [];
       // Create the list
       for (const siteID of siteIDs) {
@@ -182,7 +182,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
-  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage = false): Promise<string> {
+  public static async saveUser(tenantID: string, userToSave: User, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUser');
     // Check Tenant
@@ -241,8 +241,7 @@ export default class UserStorage {
         sendBillingNewInvoice: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingNewInvoice) : false,
         sendAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAccountVerificationNotification) : false,
         sendAdminAccountVerificationNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendAdminAccountVerificationNotification) : false,
-      },
-      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false,
+      }
     };
     if (userToSave.address) {
       userMDB.address = {
@@ -343,10 +342,10 @@ export default class UserStorage {
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
-    params: {
-      password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
-      passwordBlockedUntil?: Date;
-    }): Promise<void> {
+      params: {
+        password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+        passwordBlockedUntil?: Date;
+      }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserPassword');
     // Check Tenant
@@ -386,7 +385,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
+      params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserMobileToken');
     // Check Tenant
@@ -400,7 +399,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobilePhone(tenantID: string, userID: string,
-    params: { mobile?: string; phone?: string; }): Promise<void> {
+      params: { mobile?: string; phone?: string; }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserMobilePhone');
     // Check Tenant
@@ -427,7 +426,7 @@ export default class UserStorage {
   }
 
   public static async saveUserEULA(tenantID: string, userID: string,
-    params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+      params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserRole');
     // Check Tenant
@@ -441,7 +440,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAccountVerification(tenantID: string, userID: string,
-    params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
+      params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserAccountVerification');
     // Check Tenant
@@ -455,7 +454,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-    params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+      params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
@@ -489,6 +488,7 @@ export default class UserStorage {
     const updatedUserMDB: any = {
       billingData: {
         customerID: billingData.customerID,
+        liveMode: Utils.convertToBoolean(billingData.liveMode),
         hasSynchroError: billingData.hasSynchroError,
         invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
         lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
@@ -527,14 +527,14 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: {
-      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
-      userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-      statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-      notifications?: any; noLoginSince?: Date;
-    },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+      params: {
+        notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
+        includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
+        userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
+        notifications?: any; noLoginSince?: Date;
+      },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUsers');
     // Check Tenant
@@ -557,8 +557,6 @@ export default class UserStorage {
         { 'plateID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
@@ -588,7 +586,7 @@ export default class UserStorage {
       filters['billingData.customerID'] = params.billingUserID;
     }
     // Status (Previously getUsersInError)
-    if (params.statuses && params.statuses.length > 0) {
+    if (!Utils.isEmptyArray(params.statuses)) {
       filters.status = { $in: params.statuses };
     }
     // Notifications
@@ -672,7 +670,7 @@ export default class UserStorage {
       // Return only the count
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsers', uniqueTimerID, usersCountMDB);
       return {
-        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(usersCountMDB) ? usersCountMDB[0].count : 0),
         result: []
       };
     }
@@ -709,7 +707,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsers', uniqueTimerID, usersMDB);
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
@@ -728,8 +726,8 @@ export default class UserStorage {
   }
 
   public static async getImportedUsers(tenantID: string,
-    params: { status?: ImportStatus; search?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
+      params: { status?: ImportStatus; search?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedUsers');
     // Check Tenant
@@ -773,7 +771,7 @@ export default class UserStorage {
       // Return only the count
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedUsers', uniqueTimerID, usersImportCountMDB);
       return {
-        count: (usersImportCountMDB.length > 0 ? usersImportCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(usersImportCountMDB) ? usersImportCountMDB[0].count : 0),
         result: []
       };
     }
@@ -812,15 +810,15 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUsersImport', uniqueTimerID, usersImportMDB);
     // Ok
     return {
-      count: (usersImportCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(usersImportCountMDB) ?
         (usersImportCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersImportCountMDB[0].count) : 0),
       result: usersImportMDB
     };
   }
 
   public static async getUsersInError(tenantID: string,
-    params: { search?: string; roles?: string[]; errorTypes?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
+      params: { search?: string; roles?: string[]; errorTypes?: string[] },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUsers');
     // Check Tenant
@@ -846,8 +844,6 @@ export default class UserStorage {
     }
     // Issuer
     filters.issuer = true;
-    // Remove deleted
-    filters.deleted = { '$ne': true };
     // Roles
     if (params.roles) {
       filters.role = { '$in': params.roles };
@@ -924,15 +920,18 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteUser');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    // Delete User Image
+    await global.database.getCollection<any>(tenantID, 'userimages')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
-    // Delete Image
-    await global.database.getCollection<any>(tenantID, 'userimages')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete Connections
+    await global.database.getCollection<any>(tenantID, 'connections')
+      .deleteMany({ 'userId': Utils.convertToObjectID(id) });
     // Delete User
     await global.database.getCollection<any>(tenantID, 'users')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
@@ -941,8 +940,8 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenantID: string,
-    params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
+      params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserSites');
     // Check Tenant
@@ -997,7 +996,7 @@ export default class UserStorage {
     if (dbParams.onlyRecordCount) {
       await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, sitesCountMDB);
       return {
-        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        count: (!Utils.isEmptyArray(sitesCountMDB) ? sitesCountMDB[0].count : 0),
         result: []
       };
     }
@@ -1034,7 +1033,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserSites', uniqueTimerID, siteUsersMDB);
     // Ok
     return {
-      count: (sitesCountMDB.length > 0 ?
+      count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: siteUsersMDB
     };
@@ -1059,6 +1058,11 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
+        sendUserAccountInactivity: true,
+        sendPreparingSessionNotStarted: true,
+        sendSessionNotStarted: true,
+        sendBillingNewInvoice: true,
+        // Admin
         sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
@@ -1066,16 +1070,12 @@ export default class UserStorage {
         sendOcpiPatchStatusError: false,
         sendOicpPatchStatusError: false,
         sendSmtpError: false,
-        sendUserAccountInactivity: false,
-        sendPreparingSessionNotStarted: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
-        sendSessionNotStarted: false,
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,
-        sendBillingNewInvoice: false,
-        sendAccountVerificationNotification: true,
+        sendAccountVerificationNotification: false,
         sendAdminAccountVerificationNotification: false,
       },
       role: UserRole.BASIC,

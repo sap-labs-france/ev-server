@@ -36,7 +36,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
 
   private async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<void> {
     // Get the lock
-    const ocpiLock = await LockingHelper.createOCPICheckCpoCdrsLock(tenant.id, ocpiEndpoint);
+    const ocpiLock = await LockingHelper.createOCPICheckCdrsLock(tenant.id, ocpiEndpoint);
     if (ocpiLock) {
       try {
         // Check if OCPI endpoint is registered
@@ -62,7 +62,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
-          message: `The check CDRs process for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `The check of CDRs for endpoint '${ocpiEndpoint.name}' is being processed...`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -71,7 +71,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
-          message: `The check CDRs process for endpoint '${ocpiEndpoint.name}' is completed`,
+          message: `The check of CDRs for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

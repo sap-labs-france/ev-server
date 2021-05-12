@@ -1,8 +1,8 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
+import { ServerAction, WSServerProtocol } from '../../../../src/types/Server';
 
 import OCPPService from '../OCPPService';
-import { ServerAction } from '../../../../src/types/Server';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import { WSClientOptions } from '../../../../src/types/WebSocket';
@@ -15,7 +15,6 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public constructor(serverUrl: string, requestHandler) {
     super(serverUrl);
-    // eslint-disable-next-line no-undef
     this.wsSessions = new Map<string, { connection: WSClient, requests: any }>();
     this.requestHandler = requestHandler;
   }
@@ -25,12 +24,11 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   public async openConnection(chargeBoxIdentity: string): Promise<{ connection: WSClient, requests: any }> {
-    // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
       const wsClientOptions: WSClientOptions = {
-        protocols: 'ocpp1.6',
+        protocols: WSServerProtocol.OCPP16,
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
         autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
       };
@@ -81,8 +79,9 @@ export default class OCPPJsonService16 extends OCPPService {
 
   public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     let result = {};
-    if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
-      result = await this.requestHandler['handle' + commandName](commandPayload);
+    const methodName = `handle${commandName}`;
+    if (this.requestHandler && typeof this.requestHandler[methodName] === 'function') {
+      result = await this.requestHandler[methodName](commandPayload);
     }
     await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
   }
@@ -165,7 +164,6 @@ export default class OCPPJsonService16 extends OCPPService {
     });
     if (message[0] === OCPPMessageType.CALL_MESSAGE) {
       // Return a promise
-      // eslint-disable-next-line no-undef
       return new Promise((resolve, reject) => {
         // Set the resolve function
         this.wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };

@@ -109,7 +109,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       this.axiosInstance.post(`${this.connection.url}/GetToken`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

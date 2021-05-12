@@ -1,18 +1,19 @@
 import AuthenticationApi from '../AuthenticationApi';
 import BaseApi from './BaseApi';
+import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
 
 export default class AuthenticatedBaseApi extends BaseApi {
   private _authenticationApi: AuthenticationApi;
-  private _user;
-  private _password;
-  private _tenant;
-  private _token;
-  private _decodedToken;
-  private _tenantID;
+  private _user: string;
+  private _password: string;
+  private _tenant: string;
+  private _token: string;
+  private _decodedToken: string;
+  private _tenantID: string;
 
-  public constructor(baseURL, user, password, tenant) {
+  public constructor(baseURL: string, user: string, password: string, tenant: string) {
     super(baseURL);
     this._authenticationApi = new AuthenticationApi(new BaseApi(baseURL));
     this._user = user;
@@ -22,35 +23,35 @@ export default class AuthenticatedBaseApi extends BaseApi {
     this._tenantID = null;
   }
 
-  public async getTenantID() {
+  public async getTenantID(): Promise<string> {
     if (!this._tenantID) {
       await this.authenticate();
     }
     return this._tenantID;
   }
 
-  public async getTenant() {
+  public async getTenant(): Promise<string> {
     if (!this._tenantID) {
       await this.authenticate();
     }
     return this._tenant;
   }
 
-  public async authenticate(force = false) {
+  public async authenticate(force = false): Promise<void> {
     // Already logged?
     if (!this._token || force) {
       // No, try to log in
       const response = await this._authenticationApi.login(this._user, this._password, true, this._tenant);
       // Keep the token
-      expect(response.status).to.be.eql(200);
+      expect(response.status).to.be.eql(StatusCodes.OK);
       expect(response.data).to.have.property('token');
       this._token = response.data.token;
-      this._decodedToken = jwt.decode(this._token);
+      this._decodedToken = jwt.decode(this._token) as string;
       this._tenantID = jwt.decode(this._token)['tenantID'];
     }
   }
 
-  public async send(data) {
+  public async send(data: any): Promise<any> {
     // Authenticate first
     await this.authenticate();
     // Init Headers

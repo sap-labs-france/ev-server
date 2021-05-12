@@ -1,9 +1,10 @@
+import AsyncTaskConfiguration from './AsyncTaskConfiguration';
 import AuthorizationConfiguration from './AuthorizationConfiguration';
 import AxiosConfiguration from './AxiosConfiguration';
 import CentralSystemConfiguration from './CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
-import CentralSystemServerConfiguration from './CentralSystemServer';
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
 import ChargingStationConfiguration from './ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from './ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from './ClusterConfiguration';
@@ -50,6 +51,7 @@ export interface Configuration {
   ChargingStation: ChargingStationConfiguration;
   Locales?: LocalesConfiguration;
   Scheduler: SchedulerConfiguration;
+  AsyncTask: AsyncTaskConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;

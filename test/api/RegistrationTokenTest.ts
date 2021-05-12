@@ -1,10 +1,10 @@
-import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
-
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import RegistrationToken from '../types/RegistrationToken';
+import { HTTPError } from '../../src/types/HTTPError';
+import RegistrationToken from '../../src/types/RegistrationToken';
+import { StatusCodes } from 'http-status-codes';
 import { expect } from 'chai';
 import faker from 'faker';
 import moment from 'moment';
@@ -164,7 +164,7 @@ describe('Registration token tests', function() {
           testData.newRegistrationToken,
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       // Check readById
@@ -176,7 +176,7 @@ describe('Registration token tests', function() {
           testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.be.eq(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.be.eq(StatusCodes.FORBIDDEN);
       });
 
       // Check readAll
@@ -187,7 +187,7 @@ describe('Registration token tests', function() {
           testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       // Update
@@ -201,7 +201,7 @@ describe('Registration token tests', function() {
           testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
       // Delete
@@ -212,7 +212,7 @@ describe('Registration token tests', function() {
           testData.createdRegistrationTokens[1],
           false
         );
-        expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+        expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
     });
   });

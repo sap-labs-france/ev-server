@@ -1,9 +1,9 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethodResult, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-/* eslint-disable @typescript-eslint/member-ordering */
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
-import { BillingSetting } from '../../types/Setting';
+import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -18,27 +18,17 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingIntegration';
 
-export default abstract class BillingIntegration<T extends BillingSetting> {
+export default abstract class BillingIntegration {
 
-  // TO BE REMOVED - flag to switch ON/OFF some STRIPE integration logic not yet finalized!
-  protected readonly __liveMode: boolean = false;
+  // Production Mode is set to true when the STRIPE account is a live one!
+  protected productionMode = false;
 
   protected readonly tenantID: string; // Assuming UUID or other string format ID
-  protected settings: T;
+  protected settings: BillingSettings;
 
-  protected constructor(tenantID: string, settings: T) {
+  protected constructor(tenantID: string, settings: BillingSettings) {
     this.tenantID = tenantID;
     this.settings = settings;
-  }
-
-  private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenantID,
-      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
-      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
-    if (newUsers.count > 0) {
-      return newUsers.result;
-    }
-    return [];
   }
 
   public async synchronizeUsers(): Promise<BillingUserSynchronizeAction> {
@@ -48,35 +38,34 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       inSuccess: 0,
       inError: 0
     };
-    // Sync e-Mobility Users with no billing data
-    const users: User[] = await this._getUsersWithNoBillingData();
-    if (users.length > 0) {
-      // Process them
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-        module: MODULE_NAME, method: 'synchronizeUsers',
-        message: `${users.length} new user(s) are going to be synchronized`
-      });
-      // Check LIVE MODE
-      if (!this.__liveMode) {
-        await Logging.logWarning({
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+      // Sync e-Mobility Users with no billing data
+      const users = await this._getUsersWithNoBillingData();
+      if (!Utils.isEmptyArray(users)) {
+        // Process them
+        await Logging.logInfo({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USERS,
           module: MODULE_NAME, method: 'synchronizeUsers',
-          message: 'Live Mode is OFF - operation has been aborted'
+          message: `${users.length} new user(s) are going to be synchronized`
         });
-      } else {
         for (const user of users) {
-        // Synchronize user
+          // Synchronize user
           if (await this.synchronizeUser(user)) {
             actionsDone.inSuccess++;
           } else {
             actionsDone.inError++;
           }
         }
+      } else {
+        await Logging.logWarning({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          module: MODULE_NAME, method: 'synchronizeUsers',
+          message: 'Feature is switched OFF - operation has been aborted'
+        });
       }
     }
     // Log
@@ -88,35 +77,44 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       'All the users are up to date'
     );
     // Update last synchronization
-    const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-    billingSettings.stripe.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
+    this.settings.billing.usersLastSynchronizedOn = new Date();
+    await SettingStorage.saveBillingSetting(this.tenantID, this.settings);
     // Result
     return actionsDone;
   }
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
-    try {
-      billingUser = await this._synchronizeUser(user);
-      await Logging.logInfo({
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+      try {
+        billingUser = await this._synchronizeUser(user);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
+        });
+        return billingUser;
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          actionOnUser: user,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_USER,
+          module: MODULE_NAME, method: 'synchronizeUser',
+          message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    } else {
+      await Logging.logWarning({
         tenantID: this.tenantID,
-        actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
-      });
-      return billingUser;
-    } catch (error) {
-      await Logging.logError({
-        tenantID: this.tenantID,
-        actionOnUser: user,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_USER,
-        module: MODULE_NAME, method: 'synchronizeUser',
-        message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        message: 'Feature is switched OFF - operation has been aborted'
       });
     }
     return billingUser;
@@ -157,127 +155,19 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     return billingUser;
   }
 
-  private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
-    // Check if we need to create or update a STRIPE customer
-    let billingUser: BillingUser = null;
-    if (!forceMode) {
-      // ------------------
-      // Regular Situation
-      // ------------------
-      const exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
-      if (!exists) {
-        billingUser = await this.createUser(user);
-      } else {
-        billingUser = await this.updateUser(user);
-      }
-    } else {
-      // ----------------------------------------------------------------------------------------------
-      // Specific use-case - Trying to REPAIR inconsistencies
-      // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
-      // ----------------------------------------------------------------------------------------------
-      let exists;
-      try {
-        exists = await this.getUser(user);
-        if (!exists) {
-          billingUser = await this.createUser(user);
-        } else {
-          billingUser = await this.updateUser(user);
-        }
-      } catch (error) {
-        // Let's repair it
-        billingUser = await this.repairUser(user);
-      }
-    }
-    return billingUser;
-  }
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async synchronizeInvoices(user?: User): Promise<BillingUserSynchronizeAction> {
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
       inError: 0
     };
-    // Check LIVE MODE
-    if (!this.__liveMode) {
-      await Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        message: 'Live Mode is OFF - operation has been aborted'
-      });
-      return actionsDone;
-    }
-    // Check billing settings consistency
-    await this.checkConnection();
-    // Let's make sure the billing data is consistent
-    let billingUser: BillingUser = null;
-    if (user) {
-      billingUser = await this.checkUser(user);
-    }
-    // Fetch the list of updated invoice
-    const invoiceIDs: string[] = await this.getUpdatedInvoiceIDsInBilling(billingUser);
-    if (invoiceIDs?.length > 0) {
-      await Logging.logInfo({
-        tenantID: this.tenantID,
-        user: user,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        message: `${invoiceIDs.length} billing invoice(s) are going to be synchronized`
-      });
-      for (const invoiceID of invoiceIDs) {
-        try {
-          // Let's replicate invoice data as a Billing Invoice
-          const billingInvoice = await this.synchronizeAsBillingInvoice(invoiceID, true /* checkUserExists */);
-          // Make sure we get the actual user - the one the invoice refers to
-          const userInInvoice = await UserStorage.getUser(this.tenantID, billingInvoice.userID);
-          // Update user billing data
-          const billingData = {
-            ...userInInvoice.billingData,
-            invoicesLastSynchronizedOn: new Date()
-          };
-          // Update the invoicesLastSynchronizedOn property of the user
-          userInInvoice.billingData.invoicesLastSynchronizedOn = new Date();
-          await UserStorage.saveUserBillingData(this.tenantID, billingInvoice.userID, billingData);
-          // Ok
-          actionsDone.inSuccess++;
-          await Logging.logDebug({
-            tenantID: this.tenantID,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-            module: MODULE_NAME, method: 'synchronizeInvoices',
-            message: `Invoice with ID '${invoiceID}' has been replicated in e-Mobility`,
-            detailedMessages: { billingInvoice, userInInvoice }
-          });
-        } catch (error) {
-          actionsDone.inError++;
-          await Logging.logError({
-            tenantID: this.tenantID,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-            module: MODULE_NAME, method: 'synchronizeInvoices',
-            message: `Unable to process the invoice with ID '${invoiceID}'`,
-            detailedMessages: { error: error.message, stack: error.stack, invoiceID }
-          });
-        }
-      }
-    }
-    // Log
-    await Logging.logActionsResponse(this.tenantID, ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-      MODULE_NAME, 'synchronizeInvoices', actionsDone,
-      '{{inSuccess}} invoice(s) were successfully synchronized',
-      '{{inError}} invoice(s) failed to be synchronized',
-      '{{inSuccess}} invoice(s) were successfully synchronized and {{inError}} failed to be synchronized',
-      'All the invoices are up to date'
-    );
-    if (!user) {
-      // Update global last synchronization timestamp
-      const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-      billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
-      await SettingStorage.saveBillingSettings(this.tenantID, billingSettings);
-    }
+    await Logging.logWarning({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+      module: MODULE_NAME, method: 'synchronizeInvoices',
+      message: 'Method is deprecated - operation skipped'
+    });
     return actionsDone;
   }
 
@@ -359,19 +249,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    // Check Charging Station
-    if (transaction?.billingData?.invoiceID) {
-      throw new BackendError({
-        message: 'Transaction has already billing data',
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'checkStopTransaction',
-        action: ServerAction.BILLING_TRANSACTION
-      });
-    }
-    if (this.__liveMode) {
-      // Check Billing Data (only in Live Mode)
-      if (!transaction.user.billingData) {
+    // Check Billing Data
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
           message: 'User has no Billing Data',
           source: Constants.CENTRAL_SERVER,
@@ -380,14 +260,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStopTransaction',
-        message: 'Live Mode is OFF - checkStopTransaction is being performed without checking billing data'
-      });
     }
   }
 
@@ -402,67 +274,66 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         action: ServerAction.BILLING_TRANSACTION
       });
     }
-    if (this.__liveMode) {
-      // Check Billing Data (only in Live Mode)
-      const billingUser = transaction.user;
-      if (!billingUser.billingData || !billingUser.billingData.customerID) {
+    // Check Billing Data (only in Live Mode)
+    if (!transaction.user?.billingData?.customerID) {
+      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
-          message: 'Transaction user has no billing method or no customer in Stripe',
+          message: 'User has no billing data or no customer in Stripe',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'checkStartTransaction',
           action: ServerAction.BILLING_TRANSACTION
         });
       }
-    } else {
-      void Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'checkStartTransaction',
-        message: 'Live Mode is OFF - checkStartTransaction is being performed without checking billing data'
-      });
     }
   }
 
-  private async checkUser(user: User): Promise<BillingUser> {
-    // Check the user data
-    if (!user?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in e-Mobility',
-        detailedMessages: { user }
-      });
+  private async _getUsersWithNoBillingData(): Promise<User[]> {
+    const newUsers = await UserStorage.getUsers(this.tenantID,
+      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
+      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+    if (newUsers.count > 0) {
+      return newUsers.result;
     }
-    // Check billing user data
-    const billingUser = await this.getUser(user);
-    if (!billingUser?.billingData?.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'User has no billing data in billing system',
-        detailedMessages: { user, billingUser }
-      });
-    }
-    if (user.billingData.customerID !== billingUser.billingData.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        user: user,
-        module: MODULE_NAME, method: 'synchronizeInvoices',
-        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
-        message: 'Billing data is inconsistent',
-        detailedMessages: { user, billingUser }
-      });
+    return [];
+  }
+
+  private async _synchronizeUser(user: User, forceMode = false): Promise<BillingUser> {
+    // Check if we need to create or update a STRIPE customer
+    let billingUser: BillingUser = null;
+    if (!forceMode) {
+      // ------------------
+      // Regular Situation
+      // ------------------
+      const exists = await this.isUserSynchronized(user); // returns false when the customerID is not set
+      if (!exists) {
+        billingUser = await this.createUser(user);
+      } else {
+        billingUser = await this.updateUser(user);
+      }
+    } else {
+      // ----------------------------------------------------------------------------------------------
+      // Specific use-case - Trying to REPAIR inconsistencies
+      // e.g.: CustomerID is set, but the corresponding data does not exist anymore on the STRIPE side
+      // ----------------------------------------------------------------------------------------------
+      try {
+        billingUser = await this.getUser(user);
+        if (!billingUser) {
+          billingUser = await this.createUser(user);
+        } else {
+          billingUser = await this.updateUser(user);
+        }
+      } catch (error) {
+        // Let's repair it
+        billingUser = await this.repairUser(user);
+      }
     }
     return billingUser;
   }
 
   abstract checkConnection(): Promise<void>;
+
+  abstract checkActivationPrerequisites(): Promise<void>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
@@ -492,8 +363,6 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
-  abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
-
   abstract synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists: boolean): Promise<BillingInvoice>;
 
   abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
@@ -506,7 +375,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
-  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethodResult>;
+  abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
-  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingPaymentMethodResult>;
+  abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+
+
 }

@@ -1,8 +1,24 @@
+import Company from './Company';
+import Site from './Site';
+import SiteArea from './SiteArea';
 import { Transaction } from '@google-cloud/firestore';
 
 export interface DataResult<T> {
   count: number;
   result: T[];
+}
+
+export interface CompanyDataResult extends DataResult<Company>{
+  canCreate: boolean;
+}
+export interface SiteDataResult extends DataResult<Site>{
+  canCreate: boolean;
+  canAssignUsers: boolean;
+  canUnassignUsers: boolean;
+}
+
+export interface SiteAreaDataResult extends DataResult<SiteArea>{
+  canCreate: boolean;
 }
 
 export interface TransactionDataResult {

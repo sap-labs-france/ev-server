@@ -37,7 +37,7 @@ export default class ContextProvider {
     return ContextProvider._defaultInstance;
   }
 
-  async _init() {
+  async _init(): Promise<void> {
     if (!this.initialized) {
       // Read all tenants
       this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({ WithComponents: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
@@ -45,7 +45,7 @@ export default class ContextProvider {
     this.initialized = true;
   }
 
-  async prepareContexts(tenantContextNames?: string[]) {
+  async prepareContexts(tenantContextNames?: string[]): Promise<void> {
     await this._init();
     // Prepare list of tenants to create
     let tenantContexts = ContextDefinition.TENANT_CONTEXT_LIST;
@@ -63,7 +63,7 @@ export default class ContextProvider {
     }
   }
 
-  async getTenantContext(tenantContextName) {
+  async getTenantContext(tenantContextName): Promise<TenantContext> {
     await this._init();
     const tenantContext = this._getTenantContext(tenantContextName);
 
@@ -76,7 +76,7 @@ export default class ContextProvider {
     return this._tenantEntityContext(this._getTenantContextDef(tenantContextName));
   }
 
-  async _tenantEntityContext(tenantContextDef) {
+  async _tenantEntityContext(tenantContextDef): Promise<TenantContext> {
     // Check if tenant exist
     const tenantEntity = this.tenantEntities.find((tenant) => tenant.name === tenantContextDef.tenantName);
     expect(tenantEntity).to.not.be.empty;
@@ -144,6 +144,10 @@ export default class ContextProvider {
     await newTenantContext.addChargingStation(invalidChargingStation15);
     const invalidChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: OCPPVersion.VERSION_16 });
     await newTenantContext.addChargingStation(invalidChargingStation16);
+    const unknownChargingStation15 = await Factory.chargingStation.buildChargingStationUnknown({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNKNOWN_OCPP15, ocppVersion: OCPPVersion.VERSION_15 });
+    await newTenantContext.addChargingStation(unknownChargingStation15);
+    const unknownChargingStation16 = await Factory.chargingStation.buildChargingStationUnknown({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNKNOWN_OCPP16, ocppVersion: OCPPVersion.VERSION_16 });
+    await newTenantContext.addChargingStation(unknownChargingStation16);
 
     return newTenantContext;
   }

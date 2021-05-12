@@ -1,25 +1,25 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 import Tag, { ImportedTag } from '../../types/Tag';
 
+import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
 import TagStorage from '../../storage/mongodb/TagStorage';
-import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'SynchronizeUsersImportTask';
+const MODULE_NAME = 'TagsImportAsyncTask';
 
-export default class ImportTagsTask extends SchedulerTask {
-  public async processTenant(tenant: Tenant, config?: TaskConfig): Promise<void> {
-    const importTagsLock = await LockingHelper.createImportTagsLock(tenant.id);
+export default class TagsImportAsyncTask extends AbstractAsyncTask {
+  protected async executeAsyncTask(): Promise<void> {
+    const importTagsLock = await LockingHelper.createImportTagsLock(this.asyncTask.tenantID);
     if (importTagsLock) {
+      const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedTags: DataResult<ImportedTag>;
@@ -44,20 +44,20 @@ export default class ImportTagsTask extends SchedulerTask {
           for (const importedTag of importedTags.result) {
             try {
               // Existing tags
-              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id);
+              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
               if (foundTag) {
                 // Check tag is already in use
                 if (!foundTag.issuer) {
                   throw new Error('Tag is not local to the organization');
-                }
-                if (foundTag.deleted) {
-                  throw new Error('Tag is deleted');
                 }
                 if (foundTag.userID) {
                   throw new Error('Tag is already assigned to an user');
                 }
                 if (foundTag.active) {
                   throw new Error('Tag is already active');
+                }
+                if (foundTag.transactionsCount > 0) {
+                  throw new Error(`Tag is already used in ${foundTag.transactionsCount} transaction(s)`);
                 }
                 // Update it
                 await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
@@ -71,7 +71,6 @@ export default class ImportTagsTask extends SchedulerTask {
                 id: importedTag.id,
                 description: importedTag.description,
                 issuer: true,
-                deleted: false,
                 active: false,
                 createdBy: { id: importedTag.importedBy },
                 createdOn: importedTag.importedOn,
@@ -99,7 +98,7 @@ export default class ImportTagsTask extends SchedulerTask {
             }
           }
           // Log
-          if (importedTags.result.length > 0 && (result.inError + result.inSuccess) > 0) {
+          if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
               tenantID: tenant.id,

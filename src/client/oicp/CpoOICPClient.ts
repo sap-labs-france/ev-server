@@ -13,6 +13,7 @@ import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
+import { OCPILocationOptions } from '../../types/ocpi/OCPILocation';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OICPAcknowledgment } from '../../types/oicp/OICPAcknowledgment';
 import { OICPAuthorizationStatus } from '../../types/oicp/OICPAuthentication';
@@ -57,7 +58,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       siteArea = chargingStation.siteArea;
     }
-    const options = {
+    const options: OCPILocationOptions = {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
       addChargeBoxID: true
@@ -228,7 +229,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
@@ -272,7 +273,7 @@ export default class CpoOICPClient extends OICPClient {
     // Only one post request to Hubject for multiple EVSEs
     result.total = evsesToProcess.length;
     if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
-      // Incase of multiple batches:
+      // In case of multiple batches:
       // delete all EVSEs on Hubject by overwriting with empty array
       // set action type to insert to avoid overwriting each batch with a full load request
       await this.pushEvseData([], OICPActionType.FULL_LOAD);
@@ -363,7 +364,7 @@ export default class CpoOICPClient extends OICPClient {
     // Perfs trace
     const startTime = new Date().getTime();
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
@@ -493,7 +494,7 @@ export default class CpoOICPClient extends OICPClient {
       });
     }
     // Define get option
-    const options = {
+    const options: OCPILocationOptions = {
       addChargeBoxID: true,
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
@@ -690,7 +691,7 @@ export default class CpoOICPClient extends OICPClient {
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
-        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction thought OICP protocol due to missing Authorization`,
+        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction through OICP protocol due to missing Authorization`,
         detailedMessages: {
           response: authorizeResponse
         }
@@ -700,7 +701,7 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
-        message: `User with Authorization '${tagID}' authorized thought OICP protocol`,
+        message: `User with Authorization '${tagID}' authorized through OICP protocol`,
         module: MODULE_NAME, method: 'authorizeStart',
         detailedMessages: { authorizeResponse }
       });
@@ -776,7 +777,7 @@ export default class CpoOICPClient extends OICPClient {
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
-        message: `User '${user.id}' cannot ${TransactionAction.STOP} Transaction thought OICP protocol due to missing Authorization`,
+        message: `User '${user.id}' cannot ${TransactionAction.STOP} Transaction through OICP protocol due to missing Authorization`,
         detailedMessages: {
           response: authorizeResponse
         }
@@ -1310,7 +1311,7 @@ export default class CpoOICPClient extends OICPClient {
     // Build params
     const params = { 'dateFrom': lastPatchJobOn };
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant, params, Constants.DB_PARAMS_MAX_LIMIT);
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);

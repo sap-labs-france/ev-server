@@ -89,6 +89,7 @@ export enum ServerAction {
   PERFORMANCES = 'Performances',
 
   SCHEDULER = 'Scheduler',
+  ASYNC_TASK = 'AsyncTask',
 
   REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
   EMAIL_NOTIFICATION = 'EmailNotification',
@@ -121,9 +122,14 @@ export enum ServerAction {
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
+  OCPI_COMMAND = 'OcpiCommand',
+  OCPI_PUT_TOKEN = 'OcpiPutToken',
   OCPI_PATCH_TOKEN = 'OcpiPatchToken',
-  OCPI_PATCH_LOCATIONS = 'OcpiPatchLocations',
+  OCPI_PATCH_LOCATION = 'OcpiPatchLocation',
   OCPI_PATCH_STATUS = 'OcpiPatchStatus',
+  OCPI_PATCH_SESSION = 'OcpiPatchSession',
+  OCPI_PUT_LOCATION = 'OcpiPutLocation',
+  OCPI_PUT_SESSION = 'OcpiPutSession',
   OCPI_CHECK_CDRS = 'OcpiCheckCdrs',
   OCPI_CHECK_SESSIONS = 'OcpiCheckSessions',
   OCPI_CHECK_LOCATIONS = 'OcpiCheckLocations',
@@ -144,6 +150,7 @@ export enum ServerAction {
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
+  OCPI_GET_TOKEN = 'OcpiGetToken',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
   OCPI_GET_TARIFFS = 'OcpiGetTariffs',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
@@ -199,6 +206,7 @@ export enum ServerAction {
   SOCKET_IO = 'SocketIO',
 
   // OCPP server commands
+  BOOT_NOTIFICATION = 'BootNotification',
   AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
   DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
@@ -206,7 +214,7 @@ export enum ServerAction {
   STATUS_NOTIFICATION = 'StatusNotification',
   START_TRANSACTION = 'StartTransaction',
   STOP_TRANSACTION = 'StopTransaction',
-  METERVALUES = 'MeterValues',
+  METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
@@ -235,10 +243,6 @@ export enum ServerAction {
   WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
   WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',
-
-  BOOT_NOTIFICATION = 'BootNotification',
-
-  METER_VALUES = 'MeterValues',
 
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
@@ -387,6 +391,7 @@ export enum ServerAction {
   TAG_DELETE = 'TagDelete',
   TAGS_DELETE = 'TagsDelete',
   TAGS_IMPORT = 'TagsImport',
+  TAGS_EXPORT = 'TagsExport',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
@@ -443,40 +448,40 @@ export enum ServerRoute {
   REST_MAIL_CHECK = 'mail/check',
   REST_MAIL_RESEND = 'mail/resend',
 
-  REST_CHARGING_STATIONS = 'chargingstations',
-  REST_CHARGING_STATION = 'chargingstations/:id',
+  REST_CHARGING_STATIONS = 'charging-stations',
+  REST_CHARGING_STATION = 'charging-stations/:id',
 
-  REST_CHARGING_STATIONS_RESET = 'chargingstations/:id/reset',
-  REST_CHARGING_STATIONS_CACHE_CLEAR = 'chargingstations/:id/cache/clear',
-  REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'chargingstations/:id/configuration/retrieve',
-  REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'chargingstations/:id/configuration',
-  REST_CHARGING_STATIONS_REMOTE_START = 'chargingstations/:id/remote/start',
-  REST_CHARGING_STATIONS_REMOTE_STOP = 'chargingstations/:id/remote/stop',
-  REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'chargingstations/:id/connectors/:connectorId/unlock',
-  REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'chargingstations/:id/compositeschedule',
-  REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'chargingstations/:id/diagnostics',
-  REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'chargingstations/:id/firmware/update',
-  REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'chargingstations/:id/availability/change',
+  REST_CHARGING_STATIONS_RESET = 'charging-stations/:id/reset',
+  REST_CHARGING_STATIONS_CACHE_CLEAR = 'charging-stations/:id/cache/clear',
+  REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'charging-stations/:id/configuration/retrieve',
+  REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'charging-stations/:id/configuration',
+  REST_CHARGING_STATIONS_REMOTE_START = 'charging-stations/:id/remote/start',
+  REST_CHARGING_STATIONS_REMOTE_STOP = 'charging-stations/:id/remote/stop',
+  REST_CHARGING_STATIONS_UNLOCK_CONNECTOR = 'charging-stations/:id/connectors/:connectorId/unlock',
+  REST_CHARGING_STATIONS_GET_COMPOSITE_SCHEDULE = 'charging-stations/:id/compositeschedule',
+  REST_CHARGING_STATIONS_GET_DIAGNOSTICS = 'charging-stations/:id/diagnostics',
+  REST_CHARGING_STATIONS_FIRMWARE_UPDATE = 'charging-stations/:id/firmware/update',
+  REST_CHARGING_STATIONS_CHANGE_AVAILABILITY = 'charging-stations/:id/availability/change',
 
-  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'chargingstations/firmware/download',
-  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'chargingstations/:id/connectors/:connectorId/qrcode/generate',
-  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'chargingstations/qrcode/download',
+  REST_CHARGING_STATIONS_DOWNLOAD_FIRMWARE = 'charging-stations/firmware/download',
+  REST_CHARGING_STATIONS_QRCODE_GENERATE = 'charging-stations/:id/connectors/:connectorId/qrcode/generate',
+  REST_CHARGING_STATIONS_QRCODE_DOWNLOAD = 'charging-stations/qrcode/download',
 
-  REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'chargingstations/:id/ocpp/parameters',
-  REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters',
-  REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS = 'chargingstations/ocpp/parameters/export',
+  REST_CHARGING_STATION_GET_OCPP_PARAMETERS = 'charging-stations/:id/ocpp/parameters',
+  REST_CHARGING_STATIONS_REQUEST_OCPP_PARAMETERS = 'charging-stations/ocpp/parameters',
+  REST_CHARGING_STATIONS_EXPORT_OCPP_PARAMETERS = 'charging-stations/ocpp/parameters/export',
 
-  REST_CHARGING_STATIONS_UPDATE_PARAMETERS = 'chargingstations/:id/parameters',
-  REST_CHARGING_STATIONS_POWER_LIMIT = 'chargingstations/:id/power/limit',
-  REST_CHARGING_STATIONS_TRANSACTIONS = 'chargingstations/:id/transactions',
-  REST_CHARGING_STATIONS_IN_ERROR = 'chargingstations/status/in-error',
-  REST_CHARGING_STATIONS_EXPORT = 'chargingstations/action/export',
+  REST_CHARGING_STATIONS_UPDATE_PARAMETERS = 'charging-stations/:id/parameters',
+  REST_CHARGING_STATIONS_POWER_LIMIT = 'charging-stations/:id/power/limit',
+  REST_CHARGING_STATIONS_TRANSACTIONS = 'charging-stations/:id/transactions',
+  REST_CHARGING_STATIONS_IN_ERROR = 'charging-stations/status/in-error',
+  REST_CHARGING_STATIONS_EXPORT = 'charging-stations/action/export',
 
-  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'chargingstations/smartcharging/connection/check',
-  REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'chargingstations/smartcharging/trigger',
+  REST_CHARGING_STATION_CHECK_SMART_CHARGING_CONNECTION = 'charging-stations/smartcharging/connection/check',
+  REST_CHARGING_STATION_TRIGGER_SMART_CHARGING = 'charging-stations/smartcharging/trigger',
 
-  REST_CHARGING_PROFILES = 'chargingprofiles',
-  REST_CHARGING_PROFILE = 'chargingprofiles/:id',
+  REST_CHARGING_PROFILES = 'charging-profiles',
+  REST_CHARGING_PROFILE = 'charging-profiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
   REST_TRANSACTION = 'transactions/:id',
@@ -492,6 +497,27 @@ export enum ServerRoute {
 
   REST_TENANTS = 'tenants',
 
-  // shouldn't we have this rest here ?? for the route building
-  // REST_BILLING_PAYMENT_METHODS = 'billing/paymentmethods'
+  // BILLING URLs for CRUD operations on PAYMENT METHODS
+  REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
+  REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
+
+  // BILLING URLs for Non-CRUD Operations on PAYMENT METHODS
+  REST_BILLING_PAYMENT_METHOD_SETUP = 'users/:userID/payment-methods/setup',
+  REST_BILLING_PAYMENT_METHOD_ATTACH = 'users/:userID/payment-methods/:paymentMethodID/attach',
+  REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
+
+  REST_BILLING_SETTING = 'billing-setting', // GET and PUT
+  REST_BILLING_CHECK = 'billing/check'
+}
+
+export enum ServerProtocol {
+  HTTP = 'http',
+  HTTPS = 'https',
+  WS = 'ws',
+  WSS = 'wss'
+}
+
+export enum WSServerProtocol {
+  OCPP16 = 'ocpp1.6',
+  REST = 'rest'
 }

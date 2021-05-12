@@ -29,7 +29,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointDeleteRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteOicpEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canDeleteOicpEndpoint(req.user)) {
+    if (!await Authorizations.canDeleteOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -40,7 +40,7 @@ export default class OICPEndpointService {
     }
     // Get
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteOicpEndpoint', req.user);
     // Delete
     await OICPEndpointStorage.deleteOicpEndpoint(req.tenant.id, oicpEndpoint.id);
@@ -62,7 +62,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.CREATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleCreateOicpEndpoint');
     // Check auth
-    if (!Authorizations.canCreateOicpEndpoint(req.user)) {
+    if (!await Authorizations.canCreateOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -116,7 +116,7 @@ export default class OICPEndpointService {
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Check auth
-    if (!Authorizations.canUpdateOicpEndpoint(req.user)) {
+    if (!await Authorizations.canUpdateOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -127,7 +127,7 @@ export default class OICPEndpointService {
     }
     // Get OicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateOicpEndpoint', req.user);
     // Update timestamp
     oicpEndpoint.lastChangedBy = { 'id': req.user.id };
@@ -155,7 +155,7 @@ export default class OICPEndpointService {
     const endpointID = OICPEndpointSecurity.filterOicpEndpointRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, endpointID, MODULE_NAME, 'handleGetOicpEndpoint', req.user);
     // Check auth
-    if (!Authorizations.canReadOicpEndpoint(req.user)) {
+    if (!await Authorizations.canReadOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -170,7 +170,7 @@ export default class OICPEndpointService {
         'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
         'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
       ]);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${endpointID}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${endpointID}' does not exist`,
       MODULE_NAME, 'handleGetOicpEndpoint', req.user);
     res.json(oicpEndpoint);
     next();
@@ -181,7 +181,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.LIST, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleGetOicpEndpoints');
     // Check auth
-    if (!Authorizations.canListOicpEndpoints(req.user)) {
+    if (!await Authorizations.canListOicpEndpoints(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -191,7 +191,7 @@ export default class OICPEndpointService {
     }
     // Check User
     let userProject: string[] = [];
-    if (Authorizations.canListUsers(req.user)) {
+    if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Filter
@@ -221,7 +221,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -236,7 +236,7 @@ export default class OICPEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
     // Get oicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getCpoOicpClient(req.tenant, oicpEndpoint);
@@ -252,7 +252,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.READ, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleSendEVSEsOicpEndpoint');
     // Check auth
-    if (!Authorizations.canTriggerJobOicpEndpoint(req.user)) {
+    if (!await Authorizations.canTriggerJobOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -267,7 +267,7 @@ export default class OICPEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
     // Get oicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getCpoOicpClient(req.tenant, oicpEndpoint);
@@ -283,7 +283,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handlePingOicpEndpoint');
     // Check auth
-    if (!Authorizations.canPingOicpEndpoint(req.user)) {
+    if (!await Authorizations.canPingOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -333,7 +333,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleUnregisterOicpEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -346,7 +346,7 @@ export default class OICPEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
     // Get OicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(req.tenant, oicpEndpoint);
@@ -382,7 +382,7 @@ export default class OICPEndpointService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.OICP,
       Action.UPDATE, Entity.OICP_ENDPOINT, MODULE_NAME, 'handleRegisterOicpEndpoint');
     // Check auth
-    if (!Authorizations.canRegisterOicpEndpoint(req.user)) {
+    if (!await Authorizations.canRegisterOicpEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -395,7 +395,7 @@ export default class OICPEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
     // Get OicpEndpoint
     const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(action, oicpEndpoint, `OICPEndpoint with ID '${filteredRequest.id}' does not exist`,
+    UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(req.tenant, oicpEndpoint);

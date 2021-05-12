@@ -28,9 +28,16 @@
       "format": "email",
       "sanitize": "mongo"
     },
+    "authSubdomain": {
+      "type": "string",
+      "pattern": "^[a-z0-9]*$",
+      "maxLength": 20,
+      "sanitize": "mongo"
+    },
     "subdomain": {
       "type": "string",
       "pattern": "^[a-z0-9]*$",
+      "minLength": 1,
       "maxLength": 20,
       "sanitize": "mongo"
     },
@@ -105,7 +112,8 @@
     },
     "password": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\\$%\\^&\\*\\.\\?\\-_\\+\\=\\(\\)])(?=.{8,})"
     },
     "captcha": {
       "type": "string",

@@ -3,7 +3,8 @@ import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
-import { HTTPAuthError } from '../../src/types/HTTPError';
+import { HTTPError } from '../../src/types/HTTPError';
+import { StatusCodes } from 'http-status-codes';
 import TenantContext from './context/TenantContext';
 import TestUtils from './TestUtils';
 import { TransactionInErrorType } from '../../src/types/InError';
@@ -74,18 +75,18 @@ export default class TransactionCommonTests {
   }
 
   public async testReadNonExistingTransaction() {
-    const response = await this.transactionUserService.transactionApi.readById(faker.random.number(100000));
-    expect(response.status).to.equal(550);
+    const response = await this.transactionUserService.transactionApi.readById(faker.datatype.number(100000));
+    expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
   }
 
   public async testReadTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testReadTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.readById(null);
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testReadTransactionOfUser(allowed = true, transactionTag: string) {
@@ -100,11 +101,11 @@ export default class TransactionCommonTests {
 
     const transactionResponse = await this.transactionUserService.transactionApi.readById(response.transactionId);
     if (allowed) {
-      expect(transactionResponse.status).eq(200);
+      expect(transactionResponse.status).eq(StatusCodes.OK);
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.tagID).eq(tagId);
     } else {
-      expect(transactionResponse.status).eq(HTTPAuthError.FORBIDDEN);
+      expect(transactionResponse.status).eq(StatusCodes.FORBIDDEN);
       expect(transactionResponse.data).not.null;
       expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.transactionId}'`);
     }
@@ -113,7 +114,7 @@ export default class TransactionCommonTests {
   public async testReadStartedTransactionWithoutMeterValue() {
     const connectorId = 1;
     const tagId = this.transactionUser.tags[0].id;
-    const meterStart = faker.random.number({ min: 0, max: 1000 });
+    const meterStart = faker.datatype.number({ min: 0, max: 1000 });
     const startDate = moment();
     const startTransactionResponse = await this.chargingStationContext.startTransaction(
       connectorId, tagId, meterStart, startDate.toDate());
@@ -121,7 +122,7 @@ export default class TransactionCommonTests {
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId = startTransactionResponse.transactionId;
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       timestamp: startDate.toISOString(),
@@ -163,7 +164,7 @@ export default class TransactionCommonTests {
     );
     expect(meterValueResponse).to.eql({});
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       timestamp: startDate.toISOString(),
@@ -219,7 +220,7 @@ export default class TransactionCommonTests {
     );
     expect(meterValueResponse).to.eql({});
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       currentInstantWatts: load,
@@ -275,7 +276,7 @@ export default class TransactionCommonTests {
       transactionId, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       meterStart: meterStart,
@@ -300,8 +301,8 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
-    expect(transactions.status).to.equal(200);
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(0);
   }
 
@@ -329,8 +330,8 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
-    expect(transactions.status).to.equal(200);
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.stats).to.containSubset({ count: 2 });
     expect(transactions.data.result).to.containSubset([{
@@ -382,10 +383,10 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted({
-      ChargeBoxID: this.chargingStationContext.getChargingStation().id,
+      ChargingStationID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'history'
     });
-    expect(transactions.status).to.equal(200);
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
@@ -445,10 +446,10 @@ export default class TransactionCommonTests {
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllCompleted({
       UserId: this.transactionUser.id,
-      ChargeBoxID: this.chargingStationContext.getChargingStation().id,
+      ChargingStationID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'refund'
     });
-    expect(transactions.status).to.equal(200);
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.stats).to.containSubset({
       totalConsumptionWattHours: 2000,
@@ -496,8 +497,8 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id });
-    expect(transactions.status).to.equal(200);
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id });
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(0);
   }
 
@@ -525,8 +526,8 @@ export default class TransactionCommonTests {
       transactionId2, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactions = await this.transactionUserService.transactionApi.readAllInError(
-      { ChargeBoxID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
-    expect(transactions.status).to.equal(200);
+      { ChargingStationID: this.chargingStationContext.getChargingStation().id, ErrorType: TransactionInErrorType.NO_CONSUMPTION });
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([{
       id: transactionId1,
@@ -546,7 +547,7 @@ export default class TransactionCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     const consumptions = await this.transactionUserService.transactionApi.readAllConsumption(
       { TransactionId: transactionId });
-    expect(consumptions.status).to.equal(200);
+    expect(consumptions.status).to.equal(StatusCodes.OK);
     expect(consumptions.data).to.containSubset({
       id: transactionId,
       values: []
@@ -586,11 +587,11 @@ export default class TransactionCommonTests {
       expect(meterValueResponse).to.eql({});
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     const transaction = transactionResponse.data as Transaction;
     const consumptions = await this.transactionUserService.transactionApi.readAllConsumption(
       { TransactionId: transactionId });
-    expect(consumptions.status).to.equal(200);
+    expect(consumptions.status).to.equal(StatusCodes.OK);
     expect(consumptions.data).to.containSubset({
       id: transactionId,
       values: [
@@ -966,7 +967,7 @@ export default class TransactionCommonTests {
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const consumption = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
-    expect(consumption.status).to.equal(200);
+    expect(consumption.status).to.equal(StatusCodes.OK);
     expect(consumption.data).to.containSubset({
       id: transactionId,
       values: [
@@ -985,8 +986,8 @@ export default class TransactionCommonTests {
   }
 
   public async testReadActiveTransactionsWithoutActiveTransactions() {
-    const response = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
-    expect(response.status).to.equal(200);
+    const response = await this.transactionUserService.transactionApi.readAllActive({ ChargingStationID: this.chargingStationContext.getChargingStation().id });
+    expect(response.status).to.equal(StatusCodes.OK);
     expect(response.data.count).to.equal(0);
   }
 
@@ -1012,8 +1013,8 @@ export default class TransactionCommonTests {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(startTransactionResponse).to.be.transactionValid;
     const transactionId3 = startTransactionResponse.transactionId;
-    const transactions = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
-    expect(transactions.status).to.equal(200);
+    const transactions = await this.transactionUserService.transactionApi.readAllActive({ ChargingStationID: this.chargingStationContext.getChargingStation().id });
+    expect(transactions.status).to.equal(StatusCodes.OK);
     expect(transactions.data.count).to.equal(2);
     expect(transactions.data.result).to.containSubset([
       {
@@ -1025,18 +1026,18 @@ export default class TransactionCommonTests {
   }
 
   public async testDeleteNotExistingTransaction() {
-    const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
-    expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+    const response = await this.transactionUserService.transactionApi.delete(faker.datatype.number(100000));
+    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
   }
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(HTTPAuthError.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
@@ -1050,15 +1051,15 @@ export default class TransactionCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     const transactionDeleted = await this.transactionUserService.transactionApi.delete(transactionId);
     if (allowed) {
-      expect(transactionDeleted.status).to.equal(200);
+      expect(transactionDeleted.status).to.equal(StatusCodes.OK);
     } else {
-      expect(transactionDeleted.status).to.equal(HTTPAuthError.FORBIDDEN);
+      expect(transactionDeleted.status).to.equal(StatusCodes.FORBIDDEN);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(550);
+      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     } else {
-      expect(transactionResponse.status).to.equal(200);
+      expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
   }
 
@@ -1077,21 +1078,21 @@ export default class TransactionCommonTests {
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactionDeleted = await this.transactionUserService.transactionApi.delete(transactionId);
     if (allowed) {
-      expect(transactionDeleted.status).to.equal(200);
+      expect(transactionDeleted.status).to.equal(StatusCodes.OK);
     } else {
-      expect(transactionDeleted.status).to.equal(HTTPAuthError.FORBIDDEN);
+      expect(transactionDeleted.status).to.equal(StatusCodes.FORBIDDEN);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(550);
+      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     } else {
-      expect(transactionResponse.status).to.equal(200);
+      expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
   }
 
   public async testMultiDeleteNotFoundTransactions() {
-    const response = await this.transactionUserService.transactionApi.deleteMany([faker.random.number(100000), faker.random.number(100000)]);
-    expect(response.status).to.equal(200);
+    const response = await this.transactionUserService.transactionApi.deleteMany([faker.datatype.number(100000), faker.datatype.number(100000)]);
+    expect(response.status).to.equal(StatusCodes.OK);
     expect(response.data.inSuccess).to.equal(0);
     expect(response.data.inError).to.equal(2);
   }
@@ -1109,19 +1110,19 @@ export default class TransactionCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
-    const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.random.number(100000)]);
+    const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.datatype.number(100000)]);
     if (allowed) {
-      expect(transactionsDeleted.status).to.equal(200);
+      expect(transactionsDeleted.status).to.equal(StatusCodes.OK);
       expect(transactionsDeleted.data.inSuccess).to.equal(1);
       expect(transactionsDeleted.data.inError).to.equal(1);
     } else {
-      expect(transactionsDeleted.status).to.equal(HTTPAuthError.FORBIDDEN);
+      expect(transactionsDeleted.status).to.equal(StatusCodes.FORBIDDEN);
     }
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
     if (allowed) {
-      expect(transactionResponse.status).to.equal(550);
+      expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     } else {
-      expect(transactionResponse.status).to.equal(200);
+      expect(transactionResponse.status).to.equal(StatusCodes.OK);
     }
   }
 
@@ -1143,13 +1144,13 @@ export default class TransactionCommonTests {
     expect(startTransactionResponse).to.be.transactionValid;
     const secondTransactionId = startTransactionResponse.transactionId;
     const transactionsDeleted = await this.transactionUserService.transactionApi.deleteMany([transactionId, secondTransactionId]);
-    expect(transactionsDeleted.status).to.equal(200);
+    expect(transactionsDeleted.status).to.equal(StatusCodes.OK);
     expect(transactionsDeleted.data.inSuccess).to.equal(2);
     expect(transactionsDeleted.data.inError).to.equal(0);
     let transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(550);
+    expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
     transactionResponse = await this.transactionUserService.transactionApi.readById(secondTransactionId);
-    expect(transactionResponse.status).to.equal(550);
+    expect(transactionResponse.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
 
   }
 
@@ -1203,7 +1204,7 @@ export default class TransactionCommonTests {
     const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour').toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       stop: {
@@ -1267,7 +1268,7 @@ export default class TransactionCommonTests {
       transactionId, tagId, cumulated, currentDate.add(1, 'hour').toDate());
     expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     const transactionResponse = await this.transactionUserService.transactionApi.readById(transactionId);
-    expect(transactionResponse.status).to.equal(200);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
     expect(transactionResponse.data).to.containSubset({
       id: transactionId,
       stop: {
@@ -1368,7 +1369,7 @@ export default class TransactionCommonTests {
     const transactionsToRefund = await this.centralUserService.transactionApi.readAllToRefund(params);
     const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
 
-    expect(response.status).eq(200);
+    expect(response.status).eq(StatusCodes.OK);
     expect(response.data).not.null;
     expect(responseFileArray.length).to.be.eql(transactionsToRefund.data.result.length);
   }

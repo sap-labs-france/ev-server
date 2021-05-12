@@ -1,3 +1,4 @@
+import { StatsDataCategory, StatsDataScope, StatsDataType } from '../Statistic';
 
 export default interface HttpStatisticsRequest {
   Year?: number;
@@ -8,13 +9,13 @@ export default interface HttpStatisticsRequest {
   PeriodInMonth?: string|number;
   SiteAreaID?: string;
   SiteAreaIDs?: string[];
-  ChargeBoxID?: string;
-  ChargeBoxIDs?: string[];
+  ChargingStationID?: string;
+  ChargingStationIDs?: string[];
   UserID?: string;
   UserIDs?: string[];
-  DataType?: string;
-  DataCategory?: string;
-  DataScope?: string;
+  DataType?: StatsDataType;
+  DataCategory?: StatsDataCategory;
+  DataScope?: StatsDataScope;
 }
 
 export interface HttpMetricsStatisticsRequest {
