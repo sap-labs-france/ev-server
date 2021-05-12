@@ -98,7 +98,7 @@ export default class ChargingStationService {
           source: chargingStation.id,
           action: action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-          message: `Cannot set charging station ${chargingStation.id} attached to a non public site ${site.name} public`,
+          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${site.name} public`,
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user
         });
