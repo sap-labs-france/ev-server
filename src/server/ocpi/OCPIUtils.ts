@@ -102,8 +102,8 @@ export default class OCPIUtils {
     return Buffer.from(base64, 'base64').toString('binary');
   }
 
-  public static btoa(string: string): string {
-    return Buffer.from(string).toString('base64');
+  public static btoa(str: string): string {
+    return Buffer.from(str).toString('base64');
   }
 
   public static getOCPITokenTypeFromID(tagID: string): OCPITokenType {
