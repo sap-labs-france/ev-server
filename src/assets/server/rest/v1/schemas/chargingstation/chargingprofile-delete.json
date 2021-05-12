@@ -1,5 +1,5 @@
 {
-  "title": "Delete a Charging Profile Request",
+  "title": "Delete a Charging Profile",
   "type": "object",
   "properties": {
     "ID": {
