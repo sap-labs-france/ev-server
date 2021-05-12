@@ -143,6 +143,8 @@
       },
       "required": [
         "id",
+        "connectorID",
+        "chargePointID",
         "chargingStationID",
         "profile"
       ]
