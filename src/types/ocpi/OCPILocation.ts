@@ -1,4 +1,5 @@
 import { OCPIBusinessDetails } from './OCPIBusinessDetails';
+import { OCPIDisplayText } from './OCPIDisplayText';
 import { OCPIEvse } from './OCPIEvse';
 
 export interface OCPIPeriod {
@@ -25,7 +26,10 @@ export interface OCPILocation {
     longitude: string;
   };
   operator?: OCPIBusinessDetails;
+  suboperator?: OCPIBusinessDetails;
+  owner?: OCPIBusinessDetails;
   evses: OCPIEvse[];
+  directions?: OCPIDisplayText[];
   last_updated: Date;
   // OCPI specify that attribute as optional but Gireve requires it
   opening_times: OCPIOpeningTimes;

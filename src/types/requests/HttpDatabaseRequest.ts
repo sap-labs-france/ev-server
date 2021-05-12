@@ -6,5 +6,6 @@ export default interface HttpDatabaseRequest extends HttpDatabaseProjectRequest 
   Limit?: number;
   OnlyRecordCount?: boolean;
   SortFields: any;
+  WithUser: boolean;
 }
 

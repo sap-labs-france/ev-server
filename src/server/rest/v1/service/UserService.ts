@@ -858,7 +858,7 @@ export default class UserService {
               result.inError++;
             }
             // Insert batched
-            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
             }
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
