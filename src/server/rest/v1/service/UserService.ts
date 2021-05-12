@@ -1341,7 +1341,7 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: Utils.escapeCsvValues(importedUser.name),
+        name: Utils.escapeCsvValues(importedUser.name.toUpperCase()),
         firstName: Utils.escapeCsvValues(importedUser.firstName),
         email: Utils.escapeCsvValues(importedUser.email),
       };
