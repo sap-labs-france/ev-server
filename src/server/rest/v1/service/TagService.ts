@@ -715,7 +715,7 @@ export default class TagService {
         tag.user?.name,
         tag.user?.email
       ].map((value) => Utils.escapeCsvValues(value));
-     return row;
+      return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
