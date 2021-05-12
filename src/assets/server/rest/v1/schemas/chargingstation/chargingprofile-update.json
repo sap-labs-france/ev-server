@@ -1,5 +1,4 @@
 {
   "title": "Update a Charging Profile",
-  "type": "object",
   "$ref": "chargingstation.json#/definitions/chargingProfile"
 }

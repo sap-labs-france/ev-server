@@ -25,8 +25,7 @@
           "$ref": "#/definitions/connector/properties/connectorId"
         },
         "chargePointID": {
-          "type": "number",
-          "sanitize": "mongo"
+          "$ref": "#/definitions/chargePoint/properties/chargePointID"
         },
         "profile": {
           "type": "object",
@@ -44,15 +43,29 @@
             },
             "chargingProfilePurpose": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "ChargePointMaxProfile",
+                "TxDefaultProfile",
+                "TxProfile"
+              ]
             },
             "chargingProfileKind": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "Absolute",
+                "Recurring",
+                "Relative"
+              ]
             },
             "recurrencyKind": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "Daily",
+                "Weekly"
+              ]
             },
             "validFrom": {
               "type": "string",
@@ -78,7 +91,11 @@
                 },
                 "chargingRateUnit": {
                   "type": "string",
-                  "sanitize": "mongo"
+                  "sanitize": "mongo",
+                  "enum": [
+                    "W",
+                    "A"
+                  ]
                 },
                 "chargingSchedulePeriod": {
                   "type": "array",
@@ -125,7 +142,6 @@
         }
       },
       "required": [
-        "id",
         "chargingStationID",
         "profile"
       ]
