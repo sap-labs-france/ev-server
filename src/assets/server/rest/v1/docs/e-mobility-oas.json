@@ -4803,6 +4803,7 @@
         "required": [
           "chargingStationID",
           "chargePointID",
+          "connectorID",
           "profile"
         ],
         "properties": {
