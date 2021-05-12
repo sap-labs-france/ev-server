@@ -1444,7 +1444,14 @@ export default class Utils {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  public static replaceDoubleQuotes(value: any): string {
+  public static escapeCsvValues(value: any): string {
+    // replace starting and ending double quotes by nothing
+    // replace double quotes inside value to double double quotes to display double quote in csv editor
     return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
+  }
+
+  public static unEscapeCsvValues(value: any): string {
+    // replace double double quotes inside value into simple double quotes
+    return typeof value === 'string' ? value.replace(/""/g, '"') : value;
   }
 }
