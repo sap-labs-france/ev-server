@@ -721,7 +721,7 @@ export default class TagService {
 
   private static async getTags(req: Request): Promise<DataResult<Tag>> {
     // Check auth
-    if (!await Authorizations.canExportTags(req.user)) {
+    if (!await Authorizations.canListTags(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -729,6 +729,15 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleGetTags'
       });
     }
+    // // Check auth
+    // if (!await Authorizations.canExportTags(req.user)) {
+    //   throw new AppAuthError({
+    //     errorCode: HTTPAuthError.FORBIDDEN,
+    //     user: req.user,
+    //     action: Action.LIST, entity: Entity.TAGS,
+    //     module: MODULE_NAME, method: 'handleGetTags'
+    //   });
+    // }
     // Filter
     const filteredRequest = TagSecurity.filterTagsRequest(req.query);
     let userID: string;
