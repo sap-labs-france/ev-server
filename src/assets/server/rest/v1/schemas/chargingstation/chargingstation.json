@@ -142,6 +142,7 @@
         }
       },
       "required": [
+        "id",
         "chargingStationID",
         "profile"
       ]
