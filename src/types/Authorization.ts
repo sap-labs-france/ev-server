@@ -154,7 +154,7 @@ export enum Action {
   ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
   UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
-  GENERATE_QR = 'GenerateQRCode',
+  GENERATE_QR = 'GenerateQrCode',
 }
 
 export interface AuthorizationContext {
