@@ -61,8 +61,13 @@ export default class TagService {
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tagsIDs = TagSecurity.filterTagRequestByIDs(req.body);
-    // Check auth
-    if (!await Authorizations.canDeleteTag(req.user)) {
+    try {
+      tagsIDs.forEach(async (tagID): Promise<void> => {
+        // Check and Get Tag
+        await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, tagID, Action.READ, action,
+          { }, true);
+      });
+    } catch {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -82,7 +87,7 @@ export default class TagService {
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DELETE, action,
-      { withUser: true }, true);
+      { }, true);
     // Delete
     await TagService.deleteTags(action, req.user, [tag.id]);
     // Return
