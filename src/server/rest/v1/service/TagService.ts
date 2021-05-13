@@ -28,6 +28,7 @@ import { StatusCodes } from 'http-status-codes';
 import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TagValidator from '../validator/TagValidator';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
@@ -61,23 +62,9 @@ export default class TagService {
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const tagsIDs = TagSecurity.filterTagRequestByIDs(req.body);
-    try {
-      tagsIDs.forEach(async (tagID): Promise<void> => {
-        // Check and Get Tag
-        await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, tagID, Action.READ, action,
-          { }, true);
-      });
-    } catch {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleDeleteTags',
-        value: tagsIDs.toString()
-      });
-    }
     // Delete
-    const result = await TagService.deleteTags(action, req.user, tagsIDs);
+    const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
+    // Return
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -85,16 +72,14 @@ export default class TagService {
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
-    // Check and Get Tag
-    const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DELETE, action,
-      { }, true);
     // Delete
-    await TagService.deleteTags(action, req.user, [tag.id]);
+    await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
     // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
+  // todo: refactor
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     if (!await Authorizations.canCreateTag(req.user)) {
@@ -215,6 +200,7 @@ export default class TagService {
     next();
   }
 
+  // todo: refactor
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     if (!await Authorizations.canUpdateTag(req.user)) {
@@ -353,6 +339,7 @@ export default class TagService {
     next();
   }
 
+  // todo: refactor
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
@@ -553,6 +540,7 @@ export default class TagService {
     }
   }
 
+  // todo: refactor
   public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Export with users
     await UtilsService.exportToCSV(req, res, 'exported-tags.csv',
@@ -560,6 +548,7 @@ export default class TagService {
       TagService.convertToCSV.bind(this));
   }
 
+  // todo: refactor
   private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);
@@ -580,15 +569,16 @@ export default class TagService {
     tagsToBeImported.length = 0;
   }
 
-  private static async deleteTags(action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
+  private static async deleteTags(tenant: Tenant, action: ServerAction, loggedUser: UserToken, tagsIDs: string[]): Promise<ActionsResponse> {
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
     // Delete Tags
     for (const tagID of tagsIDs) {
-      // Get Tag
-      const tag = await TagStorage.getTag(loggedUser.tenantID, tagID, { withUser: true });
+      // Check and Get Tag
+      const tag = await UtilsService.checkAndGetTagAuthorization(tenant, loggedUser, tagID, Action.DELETE, action,
+        { withUser: true }, true);
       // Not Found
       if (!tag) {
         result.inError++;
@@ -617,15 +607,15 @@ export default class TagService {
       // OCPI
       if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
         try {
-          const tenant = await TenantStorage.getTenant(loggedUser.tenantID);
-          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          const userTenant = await TenantStorage.getTenant(loggedUser.tenantID);
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(userTenant, OCPIRole.EMSP) as EmspOCPIClient;
           if (ocpiClient) {
             await ocpiClient.pushToken({
               uid: tag.id,
               type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
               auth_id: tag.userID,
               visual_number: tag.userID,
-              issuer: tenant.name,
+              issuer: userTenant.name,
               valid: false,
               whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
               last_updated: new Date()
