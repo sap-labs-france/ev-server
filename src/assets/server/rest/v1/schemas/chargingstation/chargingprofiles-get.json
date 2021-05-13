@@ -1,0 +1,41 @@
+{
+  "title": "Get Charging Profiles",
+  "type": "object",
+  "properties": {
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "ChargingStationID": {
+      "$ref": "chargingstation.json#/definitions/ids"
+    },
+    "ConnectorID": {
+      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+    },
+    "WithChargingStation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "SiteID": {
+      "$ref": "common.json#/definitions/ids"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  }
+}

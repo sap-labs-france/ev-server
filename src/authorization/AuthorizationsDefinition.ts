@@ -67,7 +67,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn'
         ]
       },
-      { resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      {
+        resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
       {
         resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
@@ -80,8 +83,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ]
       },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
-        Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'] },
+      {
+        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
       {
         resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR],
         attributes: [
@@ -165,11 +171,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-        // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-        // condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
     ]
   },
   basic: {
@@ -214,20 +216,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: ['id', 'name', 'issuer', 'logo', 'address']
       },
-      // -----------------------------------------------------------------------------------------------
-      // TODO - put it back as soon as BILLING has been validated on SLF
-      // -----------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      // {
-      //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // {
-      //   resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-      // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // -----------------------------------------------------------------------------------------------
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
       {
         resource: Entity.SITES, action: Action.LIST,
         condition: {
