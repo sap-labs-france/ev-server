@@ -67,7 +67,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn'
         ]
       },
-      { resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      {
+        resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
       {
         resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
@@ -80,8 +83,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ]
       },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
-        Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'] },
+      {
+        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
       {
         resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR],
         attributes: [
