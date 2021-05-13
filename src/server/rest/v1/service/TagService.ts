@@ -42,31 +42,11 @@ const MODULE_NAME = 'TagService';
 export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter request
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
-    // Check auth
-    if (!await Authorizations.canReadTag(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleGetTag'
-      });
-    }
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTag', req.user);
-    // Get authorization filters
-    const authorizationTagFilters = await AuthorizationService.checkAndGetTagAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
-    // Get the tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.ID, { withUser: true },
-      authorizationTagFilters.projectFields
-    );
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetTag', req.user);
-    // Check Users
-    if (!await Authorizations.canReadUser(req.user)) {
-      delete tag.userID;
-      delete tag.user;
-    }
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
+      { withUser: true }, true);
     // Return
     res.json(tag);
     next();

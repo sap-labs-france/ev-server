@@ -11,7 +11,6 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
-import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
@@ -25,12 +24,12 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
 import { ServerAction } from '../../../../types/Server';
-import { Setting } from '../../../../types/Setting';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
+import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import { TransactionInErrorType } from '../../../../types/InError';
@@ -475,7 +474,7 @@ export default class UtilsService {
         value: siteAreaID
       });
     }
-    // Get SiteArea
+    // Get SiteArea & check it exists
     const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, siteAreaID,
       {
         ...additionalFilters,
@@ -510,6 +509,43 @@ export default class UtilsService {
       });
     }
     return siteArea;
+  }
+
+  public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Tag> {
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, tagID, MODULE_NAME, 'checkAndGetTagAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizationFilters(tenant, userToken,
+      { ID: tagID }, Action.READ);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'checkAndGetTagAuthorization',
+        value: tagID
+      });
+    }
+    // Get the Tag & check it exists
+    const tag = await TagStorage.getTag(userToken.tenantID, tagID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, tag, `Tag ID '${tagID}' does not exist`,
+      MODULE_NAME, 'handleGetTag', userToken);
+    // Check Users
+    // Get authorization filters for users
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+      tenant, userToken);
+    if (!authorizationUsersFilters.authorized) {
+      delete tag.userID;
+      delete tag.user;
+    }
+    return tag;
   }
 
   public static sendEmptyDataResult(res: Response, next: NextFunction): void {

@@ -410,19 +410,15 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpByIDRequest): Promise<AuthorizationFilter> {
+      filteredRequest: HttpByIDRequest, action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'],
-      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+      projectFields: [],
+      authorized: false
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, null, authorizationFilters);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, action, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

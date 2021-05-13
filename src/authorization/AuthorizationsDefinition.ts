@@ -68,7 +68,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT], attributes: ['*'] },
-      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
@@ -330,10 +335,18 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser'] }
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
         }
       },
-      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
@@ -554,16 +567,25 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
-      {
-        resource: Entity.TAGS, action: Action.LIST, attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-          'createdOn', 'lastChangedOn'
-        ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SiteAdminUsers'] }
-        }
-      },
+      // {
+      //   resource: Entity.TAG, action: Action.READ, attributes: [
+      //     'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+      //   ],
+      //   condition: {
+      //     Fn: 'custom:dynamicAuthorizationFilters',
+      //     args: { filters: ['SiteAdminUsers'] }
+      //   }
+      // },
+      // {
+      //   resource: Entity.TAGS, action: Action.LIST, attributes: [
+      //     'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+      //     'createdOn', 'lastChangedOn'
+      //   ],
+      //   condition: {
+      //     Fn: 'custom:dynamicAuthorizationFilters',
+      //     args: { filters: ['SiteAdminUsers'] }
+      //   }
+      // },
       { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
     ]
   },
