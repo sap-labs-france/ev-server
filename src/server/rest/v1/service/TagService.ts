@@ -720,35 +720,41 @@ export default class TagService {
   }
 
   private static async getTags(req: Request): Promise<DataResult<Tag>> {
-    // Check auth
-    if (!await Authorizations.canListTags(req.user)) {
+    // Filter
+    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
+    // Get authorization filters
+    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
+      req.tenant, req.user, filteredRequest);
+    if (!authorizationTagsFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
         action: Action.LIST, entity: Entity.TAGS,
-        module: MODULE_NAME, method: 'handleGetTags'
+        module: MODULE_NAME, method: 'getTags'
       });
     }
-    // // Check auth
-    // if (!await Authorizations.canExportTags(req.user)) {
-    //   throw new AppAuthError({
-    //     errorCode: HTTPAuthError.FORBIDDEN,
-    //     user: req.user,
-    //     action: Action.LIST, entity: Entity.TAGS,
-    //     module: MODULE_NAME, method: 'handleGetTags'
-    //   });
+    // Get authorization filters
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+      req.tenant, req.user);
+    if (authorizationUsersFilters.authorized) {
+      authorizationTagsFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
+    }
+    // todo: refactor
+    // if (await Authorizations.canListUsers(userToken)) {
+    //   authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
+    //     'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     // }
-    // Filter
-    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
+    // todo: dynamic filters
+    // // Handle Sites
+    // await AuthorizationService.checkAssignedSiteAdminsAndOwners(
+    //   tenant, userToken, null, authorizationFilters);
     let userID: string;
     if (Authorizations.isBasic(req.user)) {
       userID = req.user.id;
     } else {
       userID = filteredRequest.UserID;
     }
-    // Get authorization filters
-    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
     // Get the tags
     const tags = await TagStorage.getTags(req.user.tenantID,
       {
@@ -758,7 +764,12 @@ export default class TagService {
         active: filteredRequest.Active,
         withUser: filteredRequest.WithUser,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
       authorizationTagsFilters.projectFields,
     );
     // Return

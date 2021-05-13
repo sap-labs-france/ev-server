@@ -338,23 +338,16 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest?: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-        'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-        'billingData.customerID', 'billingData.lastChangedOn'
-      ],
-      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+      projectFields: [],
+      authorized: false
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, filteredRequest, authorizationFilters);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -407,22 +400,12 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-        'createdOn', 'lastChangedOn'
-      ],
-      authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
+      projectFields: [],
+      authorized: false
     };
-    if (await Authorizations.canListUsers(userToken)) {
-      authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-        'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
-    }
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, null, authorizationFilters);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.TAGS, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -452,8 +435,8 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.COMPANIES, Action.LIST, authorizationFilters, filteredRequest);
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANIES, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
