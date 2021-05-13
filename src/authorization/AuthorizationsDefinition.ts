@@ -323,7 +323,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
       {
         resource: Entity.TAGS, action: Action.LIST, attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
@@ -331,9 +330,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['OwnUser'] }
         }
       },
+      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
@@ -553,6 +553,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['*'],
         args: { 'sites': '$.site' }
+      },
+      {
+        resource: Entity.TAGS, action: Action.LIST, attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SiteAdminUsers'] }
+        }
       },
       { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
     ]

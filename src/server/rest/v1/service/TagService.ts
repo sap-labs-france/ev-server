@@ -733,36 +733,21 @@ export default class TagService {
         module: MODULE_NAME, method: 'getTags'
       });
     }
-    // Get authorization filters
+    // Get authorization filters for users
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       req.tenant, req.user);
     if (authorizationUsersFilters.authorized) {
       authorizationTagsFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
     }
-    // todo: refactor
-    // if (await Authorizations.canListUsers(userToken)) {
-    //   authorizationFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
-    //     'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');
-    // }
-    // todo: dynamic filters
-    // // Handle Sites
-    // await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-    //   tenant, userToken, null, authorizationFilters);
-    let userID: string;
-    if (Authorizations.isBasic(req.user)) {
-      userID = req.user.id;
-    } else {
-      userID = filteredRequest.UserID;
-    }
     // Get the tags
     const tags = await TagStorage.getTags(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: userID ? userID.split('|') : null,
         issuer: filteredRequest.Issuer,
         active: filteredRequest.Active,
         withUser: filteredRequest.WithUser,
+        ...authorizationTagsFilters.filters
       },
       {
         limit: filteredRequest.Limit,

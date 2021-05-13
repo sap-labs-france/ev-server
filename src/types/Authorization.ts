@@ -195,6 +195,8 @@ export enum DynamicAuthorizationFilterName {
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
   ASSIGNED_SITES = 'AssignedSites',
+  SITE_ADMIN_USERS = 'SiteAdminUsers',
+  OWN_USER = 'OwnUser',
 }
 
 export enum DynamicAuthorizationDataSourceName {
@@ -202,6 +204,8 @@ export enum DynamicAuthorizationDataSourceName {
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
   ASSIGNED_SITES = 'AssignedSites',
+  SITE_ADMIN_USERS = 'SiteAdminUsers',
+  OWN_USER = 'OwnUser',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -220,4 +224,12 @@ export interface AssignedSiteAreasDynamicAuthorizationDataSourceData extends Dyn
 
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
+}
+
+export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  userIDs?: string[];
+}
+
+export interface OwnUserDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  userID?: string;
 }
