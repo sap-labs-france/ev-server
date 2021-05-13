@@ -1,5 +1,5 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
-import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
+import { CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
@@ -22,6 +22,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import Tag from '../../../../types/Tag';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -420,6 +421,29 @@ export default class AuthorizationService {
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, action, authorizationFilters, filteredRequest);
     return authorizationFilters;
+  }
+
+  public static async addTagsAuthorizations(tenant: Tenant, userToken: UserToken, tags: TagDataResult,
+      authorizationFilter: AuthorizationFilter, filteredRequest: HttpTagsRequest): Promise<void> {
+    // // Add canCreate flag to root
+    // tags.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.CREATE, authorizationFilter);
+    // Enrich
+    for (const tag of tags.result) {
+      await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
+    }
+  }
+
+  public static async addTagAuthorizations(tenant: Tenant, userToken: UserToken, tag: Tag, authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Enrich
+    if (!tag.issuer) {
+      tag.canRead = true;
+      // tag.canUpdate = false;
+      tag.canDelete = false;
+    } else {
+      tag.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.READ, authorizationFilter);
+      tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter);
+      // tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter);
+    }
   }
 
   public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken,

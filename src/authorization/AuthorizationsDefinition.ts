@@ -348,6 +348,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
+        resource: Entity.TAG, action: Action.DELETE, attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
+      {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
         attributes: ['*'],

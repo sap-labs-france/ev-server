@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { DataResult, TagDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Tag, { ImportedTag, TagRequiredImportProperties } from '../../../../types/Tag';
@@ -13,7 +14,6 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -80,19 +80,12 @@ export default class TagService {
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteTag', req.user);
-    // Check auth
-    if (!await Authorizations.canDeleteTag(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleDeleteTag',
-        value: filteredRequest.ID
-      });
-    }
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.DELETE, action,
+      { withUser: true }, true);
     // Delete
-    await TagService.deleteTags(action, req.user, [filteredRequest.ID]);
+    await TagService.deleteTags(action, req.user, [tag.id]);
+    // Return
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -737,6 +730,9 @@ export default class TagService {
       },
       authorizationTagsFilters.projectFields,
     );
+    // Add Auth flags
+    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult,
+      authorizationUsersFilters, filteredRequest);
     // Return
     return tags;
   }

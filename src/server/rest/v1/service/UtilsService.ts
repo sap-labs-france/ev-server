@@ -545,6 +545,19 @@ export default class UtilsService {
       delete tag.userID;
       delete tag.user;
     }
+    // Add actions
+    await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);
+    // Check
+    const authorized = AuthorizationService.canPerformAction(tag, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.TAG,
+        module: MODULE_NAME, method: 'checkAndGetTagAuthorization',
+        value: tagID
+      });
+    }
     return tag;
   }
 
