@@ -431,9 +431,9 @@ export default class AuthorizationService {
   }
 
   public static async addTagsAuthorizations(tenant: Tenant, userToken: UserToken, tags: TagDataResult,
-      authorizationFilter: AuthorizationFilter, filteredRequest: HttpTagsRequest): Promise<void> {
-    // // Add canCreate flag to root
-    // tags.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.CREATE, authorizationFilter);
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add canCreate flag to root
+    tags.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.CREATE, authorizationFilter);
     // Enrich
     for (const tag of tags.result) {
       await AuthorizationService.addTagAuthorizations(tenant, userToken, tag, authorizationFilter);

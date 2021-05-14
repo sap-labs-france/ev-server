@@ -737,8 +737,7 @@ export default class TagService {
       authorizationTagsFilters.projectFields,
     );
     // Add Auth flags
-    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult,
-      authorizationUsersFilters, filteredRequest);
+    await AuthorizationService.addTagsAuthorizations(req.tenant, req.user, tags as TagDataResult, authorizationUsersFilters);
     // Return
     return tags;
   }
