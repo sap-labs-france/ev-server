@@ -109,9 +109,16 @@ export default class AuthorizationService {
       site.canUnassignUsers = false;
     } else {
       filteredRequest.SiteID = site.id;
-      site.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.READ, authorizationFilter, filteredRequest);
-      site.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.DELETE, authorizationFilter, filteredRequest);
-      site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.UPDATE, authorizationFilter, filteredRequest);
+      site.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.READ,
+        authorizationFilter, filteredRequest);
+      site.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.DELETE,
+        authorizationFilter, filteredRequest);
+      site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.UPDATE,
+        authorizationFilter, filteredRequest);
+      site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS,
+        authorizationFilter, filteredRequest);
+      site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR,
+        authorizationFilter, filteredRequest);
       site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.ASSIGN,
         authorizationFilter, filteredRequest);
       site.canUnassignUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.UNASSIGN,
@@ -567,9 +574,12 @@ export default class AuthorizationService {
       const enhancedFilters: Record<string, any> = filteredRequest;
       enhancedFilters.SiteAreaID = siteArea.id;
       enhancedFilters.SiteID = siteArea.siteID;
-      siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ, authorizationFilter, enhancedFilters);
-      siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE, authorizationFilter, enhancedFilters);
-      siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE, authorizationFilter, enhancedFilters);
+      siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ,
+        authorizationFilter, enhancedFilters);
+      siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE,
+        authorizationFilter, enhancedFilters);
+      siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE,
+        authorizationFilter, enhancedFilters);
       siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
         Action.ASSIGN_ASSETS, authorizationFilter, enhancedFilters);
       siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
@@ -578,6 +588,10 @@ export default class AuthorizationService {
         Action.ASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
       siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
         Action.UNASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
+      siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.EXPORT_OCPP_PARAMS, authorizationFilter, enhancedFilters);
+      siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.GENERATE_QR, authorizationFilter, enhancedFilters);
     }
   }
 
