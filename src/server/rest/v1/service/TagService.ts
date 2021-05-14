@@ -79,10 +79,15 @@ export default class TagService {
     next();
   }
 
-  // todo: refactor
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TagSecurity.filterTagCreateRequest(req.body, req.user);
     // Check
-    if (!await Authorizations.canCreateTag(req.user)) {
+    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizationFilters(req.tenant, req.user,
+      filteredRequest, Action.CREATE);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -90,10 +95,6 @@ export default class TagService {
         module: MODULE_NAME, method: 'handleCreateTag'
       });
     }
-    // Filter
-    const filteredRequest = TagSecurity.filterTagCreateRequest(req.body, req.user);
-    // Check
-    UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
     const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
@@ -118,8 +119,18 @@ export default class TagService {
         action: action
       });
     }
+    // Get authorization filters
+    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.userID });
+    // Get the user
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID,
+      {
+        withImage: true,
+        ...authorizationUserFilters.filters
+      },
+      authorizationUserFilters.projectFields
+    );
     // Check User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleCreateTag', req.user);
     // Only current organization User can be assigned to Tag

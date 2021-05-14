@@ -418,7 +418,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpByIDRequest, action: Action): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<Tag>, action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
