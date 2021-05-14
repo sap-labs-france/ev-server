@@ -24,6 +24,7 @@ export default class PerformanceStorage {
       module: performanceRecord.module,
       method: performanceRecord.method,
       action: performanceRecord.action,
+      group: performanceRecord.group,
     };
     // Add user only if provided
     if (performanceRecord.userID) {

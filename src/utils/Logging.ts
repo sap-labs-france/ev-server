@@ -15,6 +15,7 @@ import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
+import { PerformanceRecordGroup } from '../types/Performance';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
@@ -100,6 +101,7 @@ export default class Logging {
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
+          group: PerformanceRecordGroup.MONGO_DB,
           durationMs: executionDurationMillis,
           sizeKb: sizeOfDataKB,
           source: Constants.DATABASE_SERVER,
@@ -371,6 +373,7 @@ export default class Logging {
         void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantID,
+            group: Utils.getPerformanceRecordGroupFromURL(req.url),
             httpUrl: req.url,
             httpCode: res.statusCode,
             httpMethod: req.method,
@@ -471,6 +474,7 @@ export default class Logging {
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
+          group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
           httpUrl: response.config.url,
           httpCode: response.status,
           httpMethod: response.config.method.toLocaleUpperCase(),
@@ -962,6 +966,7 @@ export default class Logging {
     await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
         tenantID, chargingStationID,
+        group: PerformanceRecordGroup.OCPP,
         durationMs: executionDurationMillis,
         source: Constants.OCPP_SERVER,
         module: module, method: 'traceChargingStationActionEnd',
