@@ -449,7 +449,7 @@ export default class AuthorizationService {
     } else {
       tag.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.READ, authorizationFilter);
       tag.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.DELETE, authorizationFilter);
-      // tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter);
+      tag.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.TAG, Action.UPDATE, authorizationFilter);
     }
   }
 

@@ -566,26 +566,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
-      // {
-      //   resource: Entity.TAG, action: Action.READ, attributes: [
-      //     'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
-      //   ],
-      //   condition: {
-      //     Fn: 'custom:dynamicAuthorizationFilters',
-      //     args: { filters: ['SiteAdminUsers'] }
-      //   }
-      // },
-      // {
-      //   resource: Entity.TAGS, action: Action.LIST, attributes: [
-      //     'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-      //     'createdOn', 'lastChangedOn'
-      //   ],
-      //   condition: {
-      //     Fn: 'custom:dynamicAuthorizationFilters',
-      //     args: { filters: ['SiteAdminUsers'] }
-      //   }
-      // },
       { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: Action.UPDATE, attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SiteAdminUsers'] }
+        }
+      },
     ]
   },
   siteOwner: {

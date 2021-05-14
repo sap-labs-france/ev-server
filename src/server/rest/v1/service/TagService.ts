@@ -119,7 +119,7 @@ export default class TagService {
         action: action
       });
     }
-    // Get authorization filters
+    // Get User authorization filters
     const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
       req.tenant, req.user, { ID: filteredRequest.userID });
     // Get the user
@@ -211,39 +211,26 @@ export default class TagService {
     next();
   }
 
-  // todo: refactor
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check
-    if (!await Authorizations.canUpdateTag(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleUpdateTag'
-      });
-    }
     // Filter
     const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
-    let formerTagUserID: string;
-    let formerTagDefault: boolean;
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
-    // Get Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id, { withNbrTransactions: true, withUser: true });
-    UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateTag', req.user);
-    // Only current organization Tag can be updated
-    if (!tag.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Tag ID '${tag.id}' not issued by the organization`,
-        module: MODULE_NAME, method: 'handleUpdateTag',
-        user: req.user
-      });
-    }
-    // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    // Check and Get Tag
+    const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
+      { withNbrTransactions: true, withUser: true }, true);
+    // Get User authorization filters
+    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      req.tenant, req.user, { ID: filteredRequest.userID });
+    // Get the user
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID,
+      {
+        withImage: true,
+        ...authorizationUserFilters.filters
+      },
+      authorizationUserFilters.projectFields
+    );
+    // Check User
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleUpdateTag', req.user);
     // Only current organization User can be assigned to Tag
@@ -257,6 +244,8 @@ export default class TagService {
         action: action
       });
     }
+    let formerTagUserID: string;
+    let formerTagDefault: boolean;
     // Check User reassignment
     if (tag.userID !== filteredRequest.userID) {
       // Has transactions
