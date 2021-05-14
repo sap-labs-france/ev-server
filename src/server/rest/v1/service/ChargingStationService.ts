@@ -32,7 +32,6 @@ import { OICPActionType } from '../../../../types/oicp/OICPEvseData';
 import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
 import OICPMapping from '../../../oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
 import { ServerAction } from '../../../../types/Server';
-import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
@@ -66,14 +65,12 @@ export default class ChargingStationService {
         action: action
       });
     }
-    let site: Site = null;
     let siteArea: SiteArea = null;
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
-      site = await SiteStorage.getSite(req.user.tenantID, siteArea.siteID);
     }
     // Check Auth
     if (!await Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
@@ -93,12 +90,12 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !site?.public) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !siteArea.site?.public) {
         throw new AppError({
           source: chargingStation.id,
           action: action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${site.name} public`,
+          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user
         });
