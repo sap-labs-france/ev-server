@@ -1,8 +1,9 @@
-import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity } from '../../../../types/Authorization';
+import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
 import { CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
-import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import { HttpSiteAssignUsersRequest, HttpSitesRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
@@ -16,7 +17,6 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -33,16 +33,24 @@ import _ from 'lodash';
 const MODULE_NAME = 'AuthorizationService';
 
 export default class AuthorizationService {
-  public static canPerfomAction(entity: AuthorizationActions, authAction: Action): boolean {
-    switch (authAction) {
+  public static canPerformAction(authActions: AuthorizationActions | SiteAreaAuthorizationActions, action: Action): boolean {
+    switch (action) {
       case Action.READ:
-        return entity.canRead;
+        return authActions.canRead;
       case Action.UPDATE:
-        return entity.canUpdate;
+        return authActions.canUpdate;
       case Action.CREATE:
-        return entity.canCreate;
+        return authActions.canCreate;
       case Action.DELETE:
-        return entity.canDelete;
+        return authActions.canDelete;
+      case Action.ASSIGN_CHARGING_STATIONS:
+        return (authActions as SiteAreaAuthorizationActions).canAssignChargingStations;
+      case Action.UNASSIGN_CHARGING_STATIONS:
+        return (authActions as SiteAreaAuthorizationActions).canUnassignChargingStations;
+      case Action.ASSIGN_ASSETS:
+        return (authActions as SiteAreaAuthorizationActions).canAssignAssets;
+      case Action.UNASSIGN_ASSETS:
+        return (authActions as SiteAreaAuthorizationActions).canUnassignAssets;
       default:
         return false;
     }
@@ -90,9 +98,9 @@ export default class AuthorizationService {
         authorizationFilter, filteredRequest);
       site.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.UPDATE,
         authorizationFilter, filteredRequest);
-      site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.GENERATE_QR,
+      site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.EXPORT_OCPP_PARAMS,
         authorizationFilter, filteredRequest);
-      site.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.EXPORT_OCPP_PARAMS,
+      site.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.GENERATE_QR,
         authorizationFilter, filteredRequest);
       site.canAssignUsers = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.ASSIGN,
         authorizationFilter, filteredRequest);
@@ -204,51 +212,8 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAssignSiteAreaChargingStationsAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
-      siteArea: SiteArea, filteredRequest: HttpAssignChargingStationToSiteAreaRequest): Promise<AuthorizationFilter> {
-    const authorizationFilters: AuthorizationFilter = {
-      filters: {},
-      dataSources: new Map(),
-      projectFields: [],
-      authorized: userToken.role === UserRole.ADMIN,
-    };
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get Site IDs for which user is admin from db
-      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-      // Check Site
-      if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
-        // Site Authorized, now check Assets
-        if (!Utils.isEmptyArray(filteredRequest.chargingStationIDs)) {
-          let foundInvalidChargingStationID = false;
-          // Get Charging Station IDs already assigned to the Site
-          const chargingStationIDs = await AuthorizationService.getAssignedChargingStationIDs(tenant.id, siteArea.siteID);
-          // Check if any of the Charging Stations we want to unassign are missing
-          for (const chargingStationID of filteredRequest.chargingStationIDs) {
-            switch (action) {
-              case ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA:
-                if (chargingStationIDs.includes(chargingStationID)) {
-                  foundInvalidChargingStationID = true;
-                }
-                break;
-              case ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA:
-                if (!chargingStationIDs.includes(chargingStationID)) {
-                  foundInvalidChargingStationID = true;
-                }
-                break;
-            }
-          }
-          if (!foundInvalidChargingStationID) {
-            authorizationFilters.authorized = true;
-          }
-        }
-      }
-    }
-    return authorizationFilters;
-  }
-
-  public static async checkAndAssignUserSitesAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
-      filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
+  public static async checkAndAssignUserSitesAuthorizationFilters(
+      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -352,21 +317,16 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetAssetsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpAssetsRequest): Promise<AuthorizationFilter> {
+      filteredRequest?: HttpAssetsRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-        'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [ ],
+      authorized: false,
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields,
-      filteredRequest.ProjectFields);
-    // Handle Sites
-    await AuthorizationService.checkAssignedSites(tenant, userToken, filteredRequest, authorizationFilters);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.ASSETS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -507,92 +467,78 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreaRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<SiteArea>,
+      action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
-        'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields,
-      filteredRequest.ProjectFields);
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteAreaIDs) && siteAreaIDs.includes(filteredRequest.ID)) {
-        authorizationFilters.authorized = true;
-      }
-    }
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, action,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
-  public static async checkAndGetSiteAreasAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteAreasRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetSiteAreasAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpSiteAreasRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-        'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false,
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields,
-      filteredRequest.ProjectFields);
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      // Get assigned SiteArea IDs
-      const siteAreaIDs = await AuthorizationService.getAssignedSiteAreaIDs(tenant.id, userToken);
-      if (!Utils.isEmptyArray(siteAreaIDs)) {
-        // Force the filter
-        authorizationFilters.filters.siteAreaIDs = siteAreaIDs;
-        // Check if filter is provided
-        if (Utils.objectHasProperty(filteredRequest, 'SiteAreaID') &&
-              !Utils.isNullOrUndefined(filteredRequest['SiteAreaID'])) {
-          const filteredSiteAreaIDs: string[] = filteredRequest['SiteAreaID'].split('|');
-          // Override
-          authorizationFilters.filters.siteAreaIDs = filteredSiteAreaIDs.filter(
-            (siteAreaID) => authorizationFilters.filters.siteAreaIDs.includes(siteAreaID));
-        }
-      }
-      if (!Utils.isEmptyArray(authorizationFilters.filters.siteAreaIDs)) {
-        authorizationFilters.authorized = true;
-      }
-    }
-
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREAS, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
-  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult): Promise<void> {
-    // Get Site Admins
-    const siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+  public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult,
+      authorizationFilter: AuthorizationFilter, filteredRequest: HttpSiteAreasRequest): Promise<void> {
     // Add canCreate flag to root
-    siteAreas.canCreate = await Authorizations.canCreateSite(userToken);
+    siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
+
     // Enrich
     for (const siteArea of siteAreas.result) {
-      await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, siteAdminIDs);
+      await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter, filteredRequest);
     }
   }
 
-  public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, siteAdminIDs?: string[]): Promise<void> {
-    // Get Site Admins
-    if (Utils.isEmptyArray(siteAdminIDs)) {
-      siteAdminIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-    }
+  public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter,
+      filteredRequest: HttpSiteAreasRequest | HttpSiteAreaRequest): Promise<void> {
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
       siteArea.canUpdate = false;
       siteArea.canDelete = false;
+      siteArea.canAssignAssets = false;
+      siteArea.canUnassignAssets = false;
+      siteArea.canAssignChargingStations = false;
+      siteArea.canUnassignChargingStations = false;
     } else {
-      const isSiteAdmin = siteAdminIDs.includes(siteArea.siteID) || (userToken.role === UserRole.ADMIN);
-      siteArea.canRead = await Authorizations.canReadSiteArea(userToken);
-      siteArea.canUpdate = await Authorizations.canUpdateSiteArea(userToken) && isSiteAdmin;
-      siteArea.canDelete = await Authorizations.canDeleteSiteArea(userToken) && isSiteAdmin;
+      // Downcast & enhance filters with values needed in dynamic filters
+      const enhancedFilters: Record<string, any> = filteredRequest;
+      enhancedFilters.SiteAreaID = siteArea.id;
+      enhancedFilters.SiteID = siteArea.siteID;
+      siteArea.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.READ,
+        authorizationFilter, enhancedFilters);
+      siteArea.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.DELETE,
+        authorizationFilter, enhancedFilters);
+      siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE,
+        authorizationFilter, enhancedFilters);
+      siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.ASSIGN_ASSETS, authorizationFilter, enhancedFilters);
+      siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.UNASSIGN_ASSETS, authorizationFilter, enhancedFilters);
+      siteArea.canAssignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.ASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
+      siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.UNASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
+      siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.EXPORT_OCPP_PARAMS, authorizationFilter, enhancedFilters);
+      siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
+        Action.GENERATE_QR, authorizationFilter, enhancedFilters);
     }
   }
 
@@ -620,6 +566,20 @@ export default class AuthorizationService {
       await AuthorizationService.checkAssignedSites(
         tenant, userToken, null, authorizationFilters);
     }
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetChargingStationsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest?: HttpChargingStationsRequest):Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CHARGING_STATIONS, Action.LIST, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

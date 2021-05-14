@@ -1,0 +1,12 @@
+{
+  "title": "Delete a Charging Profile",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "chargingstation.json#/definitions/chargingProfile/properties/id"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}
