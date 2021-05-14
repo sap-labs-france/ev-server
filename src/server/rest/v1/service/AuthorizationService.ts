@@ -296,7 +296,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest?: HttpUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest?: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
