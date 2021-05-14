@@ -24,6 +24,10 @@ export interface BillingInvoiceSynchronizationTaskConfig extends TaskConfig {
   attemptPayment?: boolean;
 }
 
+export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
+  attemptPayment?: boolean;
+}
+
 export interface OCPIGetTokensTaskConfig extends TaskConfig {
   partial?: boolean;
 }

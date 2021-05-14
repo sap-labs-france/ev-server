@@ -1072,6 +1072,7 @@ export default class UserStorage {
         sendSmtpError: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
+        sendBillingPeriodicOperationFailed: false,
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,

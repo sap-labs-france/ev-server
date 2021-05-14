@@ -397,14 +397,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     const operationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
     if (!operationResult?.succeeded && operationResult?.error) {
-      await Logging.logError({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'billInvoiceItem',
-        message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
-        detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
-      });
+      if (StripeHelpers.isResourceMissingError(operationResult.error)) {
+        await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
+        throw operationResult.error;
+      } else {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'chargeInvoice',
+          message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
+          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+        });
+      }
     }
 
     billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);

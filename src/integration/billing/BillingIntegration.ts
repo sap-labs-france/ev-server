@@ -186,6 +186,7 @@ export default abstract class BillingIntegration {
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CHARGE_INVOICE,
+          actionOnUser: openInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoices',
           message: `Successfully charged invoice '${openInvoice.id}'`
         });
@@ -195,7 +196,8 @@ export default abstract class BillingIntegration {
         await Logging.logError({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
+          actionOnUser: openInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoices',
           message: `Failed to charge invoice '${openInvoice.id}'`,
           detailedMessages: { error: error.message, stack: error.stack }

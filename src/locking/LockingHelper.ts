@@ -72,6 +72,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async createBillingPeriodicOperationLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'periodic-billing');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   public static async createAssetRetrieveConsumptionsLock(tenantID: string, asset: Asset): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASSET, `${asset.id}-consumptions`);
     if (!(await LockingManager.acquire(lock))) {
