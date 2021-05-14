@@ -416,7 +416,7 @@ export default class AuthorizationService {
   public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken,
       companies: CompanyDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
-    companies.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE, ]
+    companies.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE,
       authorizationFilter);
     // Enrich
     for (const company of companies.result) {
