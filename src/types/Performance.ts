@@ -25,6 +25,7 @@ export default interface PerformanceRecord {
   httpUrl?: string;
   httpMethod?: string;
   httpCode?: number;
+  chargingStationID?: string;
   userID?: string;
   parentID?: string;
 }

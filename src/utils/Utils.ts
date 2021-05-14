@@ -1413,7 +1413,7 @@ export default class Utils {
   public static buildPerformanceRecord(params: {
     tenantID: string; durationMs: number; sizeKb?: number;
     source?: string; module: string; method: string; action: ServerAction|string;
-    httpUrl?: string; httpMethod?: string; httpCode?: number;
+    httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
     return {
       tenantID: params.tenantID,
@@ -1434,6 +1434,7 @@ export default class Utils {
       module: params.module,
       method: params.method,
       action: params.action,
+      chargingStationID: params.chargingStationID,
       httpUrl: params.httpUrl,
       httpMethod: params.httpMethod,
       httpCode: params.httpCode,
