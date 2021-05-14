@@ -339,7 +339,6 @@ export default class TagService {
     next();
   }
 
-  // todo: refactor
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
@@ -540,15 +539,22 @@ export default class TagService {
     }
   }
 
-  // todo: refactor
   public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!await Authorizations.canExportTags(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.IMPORT, entity: Entity.TAGS,
+        module: MODULE_NAME, method: 'handleImportTags'
+      });
+    }
     // Export with users
     await UtilsService.exportToCSV(req, res, 'exported-tags.csv',
       TagService.getTags.bind(this),
       TagService.convertToCSV.bind(this));
   }
 
-  // todo: refactor
   private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);

@@ -24,6 +24,8 @@ export interface SiteAreaDataResult extends DataResult<SiteArea>{
 
 export interface TagDataResult extends DataResult<Tag>{
   canCreate: boolean;
+  canImport: boolean;
+  canExport: boolean;
 }
 
 export interface TransactionDataResult {

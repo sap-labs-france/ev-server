@@ -568,7 +568,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
       {
-        resource: Entity.TAG, action: Action.UPDATE, attributes: ['*'],
+        resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SiteAdminUsers'] }
