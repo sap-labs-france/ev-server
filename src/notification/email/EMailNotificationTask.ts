@@ -403,6 +403,8 @@ export default class EMailNotificationTask implements NotificationTask {
       let htmlTemp: string;
       if (templateName === 'end-of-signed-session') {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
+      } else if (templateName === 'billing-new-invoice') {
+        htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-invoice.template`, 'utf8'), emailTemplate);
       } else {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }

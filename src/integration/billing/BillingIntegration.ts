@@ -216,13 +216,13 @@ export default abstract class BillingIntegration {
         billingInvoice.id,
         billingInvoice.user,
         {
-          // TODO: delete unused built urls
           user: billingInvoice.user,
           evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
-          evseDashboardPayURL: Utils.buildEvseBillingPayURL(tenant.subdomain, billingInvoice.id),
-          invoice: billingInvoice
+          // Empty url allows to decide wether to display "pay" button in the email
+          payInvoiceUrl: billingInvoice.status === 'open' ? billingInvoice.payInvoiceUrl : '',
+          invoice: billingInvoice,
         }
       );
     }

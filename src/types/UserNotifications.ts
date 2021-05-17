@@ -268,7 +268,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   user: User;
   invoice: BillingInvoice;
   invoiceDownloadUrl: string;
-  evseDashboardPayURL: string;
+  payInvoiceUrl: string;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {

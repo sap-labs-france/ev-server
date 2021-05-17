@@ -1074,24 +1074,11 @@ export default class NotificationHandler {
               // Enabled?
               if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
                 if (sourceData.invoice?.status) {
-                  switch (sourceData.invoice.status) {
-                    case BillingInvoiceStatus.PAID:
-                      // Save
-                      await NotificationHandler.saveNotification(
-                        tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE_PAID, { user });
-                      // Send
-                      await notificationSource.notificationTask.sendBillingNewInvoicePaid(
-                        sourceData, user, tenant, NotificationSeverity.INFO);
-                    break;
-                    case BillingInvoiceStatus.OPEN:
-                      // Save
-                      await NotificationHandler.saveNotification(
-                        tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE_OPEN, { user });
-                      // Send
-                      await notificationSource.notificationTask.sendBillingNewInvoiceOpen(
-                        sourceData, user, tenant, NotificationSeverity.INFO);
-                    break;
-                  }
+                  await NotificationHandler.saveNotification(
+                    tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
+                  // Send
+                  await notificationSource.notificationTask.sendBillingNewInvoice(
+                    sourceData, user, tenant, NotificationSeverity.INFO);
                 }
               }
             }

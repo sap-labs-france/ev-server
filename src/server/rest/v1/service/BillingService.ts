@@ -644,7 +644,7 @@ export default class BillingService {
     // Send the Document
     if (invoiceDocument && invoiceDocument.content) {
       const base64RawData = invoiceDocument.content.split(`;${invoiceDocument.encoding},`).pop();
-      const filename = 'invoice_' + billingInvoice.id + '.' + invoiceDocument.type;
+      const filename = 'invoice_' + billingInvoice.number + '.' + invoiceDocument.type;
       fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
         if (err) {
           console.error(err);
