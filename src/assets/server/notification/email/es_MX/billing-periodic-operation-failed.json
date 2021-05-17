@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - Periodic Operations Failed",
+  "subject": "Billing - Periodic Operation Failed",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - Periodic Operations Failed",
+      "title": "Billing - Periodic Operation Failed",
       "image": {
         "left": {
           "height": 60,

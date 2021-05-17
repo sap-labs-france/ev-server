@@ -1,10 +1,10 @@
 {
-  "subject": "Facturation - Les opérations périodiques ont échoués",
+  "subject": "Facturation - Echec de l'opération périodique de facturation",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Facturation - Les opérations périodiques ont échoués",
+      "title": "L'opération périodique de facturation a échoué",
       "image": {
         "left": {
           "height": 60,
