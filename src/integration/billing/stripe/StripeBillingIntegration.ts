@@ -415,6 +415,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
     billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
+    // Send a notification to the user
+    void this.sendInvoiceNotification(billingInvoice);
     return billingInvoice;
   }
 
