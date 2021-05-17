@@ -714,7 +714,7 @@ export default class TagService {
         tag.user?.firstName,
         tag.user?.name,
         tag.user?.email
-      ].map((value) => Utils.escapeCsvValues(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -761,10 +761,10 @@ export default class TagService {
     try {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
-        description: importedTag.description ? Utils.escapeCsvValues(importedTag.description) : `Badge ID '${importedTag.id}'`,
-        name: Utils.escapeCsvValues(importedTag.name.toUpperCase()),
-        firstName: Utils.escapeCsvValues(importedTag.firstName),
-        email: Utils.escapeCsvValues(importedTag.email),
+        description: importedTag.description ? Utils.escapeCsvValue(importedTag.description) : `Badge ID '${importedTag.id}'`,
+        name: Utils.escapeCsvValue(importedTag.name.toUpperCase()),
+        firstName: Utils.escapeCsvValue(importedTag.firstName),
+        email: Utils.escapeCsvValue(importedTag.email),
       };
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);

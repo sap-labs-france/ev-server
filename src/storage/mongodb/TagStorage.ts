@@ -42,10 +42,10 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTag');
     const tagMDB = {
       _id: importedTagToSave.id,
-      description: Utils.unEscapeCsvValues(importedTagToSave.description),
-      name: Utils.unEscapeCsvValues(importedTagToSave.name),
-      firstName: Utils.unEscapeCsvValues(importedTagToSave.firstName),
-      email: Utils.unEscapeCsvValues(importedTagToSave.email),
+      description: Utils.unescapeCsvValue(importedTagToSave.description),
+      name: Utils.unescapeCsvValue(importedTagToSave.name),
+      firstName: Utils.unescapeCsvValue(importedTagToSave.firstName),
+      email: Utils.unescapeCsvValue(importedTagToSave.email),
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
       importedOn: Utils.convertToDate(importedTagToSave.importedOn),
@@ -65,10 +65,10 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTags');
     const importedTagsToSaveMDB: any = importedTagsToSave.map((importedTagToSave) => ({
       _id: importedTagToSave.id,
-      description: Utils.unEscapeCsvValues(importedTagToSave.description),
-      name: Utils.unEscapeCsvValues(importedTagToSave.name),
-      firstName: Utils.unEscapeCsvValues(importedTagToSave.firstName),
-      email: Utils.unEscapeCsvValues(importedTagToSave.email),
+      description: Utils.unescapeCsvValue(importedTagToSave.description),
+      name: Utils.unescapeCsvValue(importedTagToSave.name),
+      firstName: Utils.unescapeCsvValue(importedTagToSave.firstName),
+      email: Utils.unescapeCsvValue(importedTagToSave.email),
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
       importedOn: Utils.convertToDate(importedTagToSave.importedOn),

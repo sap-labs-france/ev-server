@@ -1276,7 +1276,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => Utils.escapeCsvValues(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1341,9 +1341,9 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: Utils.escapeCsvValues(importedUser.name.toUpperCase()),
-        firstName: Utils.escapeCsvValues(importedUser.firstName),
-        email: Utils.escapeCsvValues(importedUser.email),
+        name: Utils.escapeCsvValue(importedUser.name.toUpperCase()),
+        firstName: Utils.escapeCsvValue(importedUser.firstName),
+        email: Utils.escapeCsvValue(importedUser.email),
       };
 
       // Validate User data
