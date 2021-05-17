@@ -134,17 +134,13 @@
       "title": "Profili di ricarica falliti",
       "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
     },
-    "billingNewInvoice": {
-      "title": "Nuova fattura",
-      "body": "Una nuova fattura ({{invoiceNumber}}) è ora disponibile"
-    },
     "billingNewInvoicePaid": {
-      "title": "New invoice",
-      "body": "Your invoice ({{invoiceNumber}}) has been paid and is now available"
+      "title": "New invoice paid",
+      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}}€ has been paid and is now available"
     },
     "billingNewInvoiceOpen": {
-      "title": "New invoice",
-      "body": "A new invoice ({{invoiceNumber}}) is now available. Please check your email to finalize the payment"
+      "title": "New invoice to pay",
+      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}}€ is now available. Please check your email to finalize the payment"
     },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",

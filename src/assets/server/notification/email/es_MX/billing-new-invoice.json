@@ -19,7 +19,10 @@
     "beforeActionLines": [
       "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "<% if(invoice.status === 'paid'){ %> Your invoice <%- invoice.number %> has been paid and is now available. <% } else { %> A new invoice is available : <%- invoice.number %>. <br/><br/> Please follow the link below to finalize the payment <% } %>"
+      "<% if(invoiceStatus === 'paid'){ %> Your invoice <%- invoiceNumber %> has been paid and is now available. <% } else { %> A new invoice is available : <%- invoiceNumber %>. <br/><br/> Please follow the link below to finalize the payment <% } %>"
+    ],
+    "stats": [
+      { "label": "Cost", "value": "<%- invoiceAmount %>€" }
     ],
     "actions": [{
         "title": "Consult invoices list",
