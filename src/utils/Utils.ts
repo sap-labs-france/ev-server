@@ -2,6 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConne
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
@@ -15,7 +16,6 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
 import { ObjectID } from 'mongodb';
-import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -1410,10 +1410,62 @@ export default class Utils {
     };
   }
 
+  public static getPerformanceRecordGroupFromURL(url: string): PerformanceRecordGroup {
+    if (!url) {
+      return PerformanceRecordGroup.UNKNOWN;
+    }
+    // REST API
+    if (url.startsWith('/client/api/') ||
+        url.startsWith('/client/util/') ||
+        url.startsWith('/client/auth/') ||
+        url.startsWith('/v1/api/') ||
+        url.startsWith('/v1/util/') ||
+        url.startsWith('/v1/auth/')) {
+      return PerformanceRecordGroup.REST;
+    }
+    // OCPI
+    if (url.includes('ocpi')) {
+      return PerformanceRecordGroup.OCPI;
+    }
+    // Hubject
+    if (url.includes('hubject')) {
+      return PerformanceRecordGroup.OICP;
+    }
+    // Concur
+    if (url.includes('concursolutions')) {
+      return PerformanceRecordGroup.SAP_CONCUR;
+    }
+    // Recaptcha
+    if (url.includes('recaptcha')) {
+      return PerformanceRecordGroup.RECAPTCHA;
+    }
+    // Greencom
+    if (url.includes('gcn-eibp')) {
+      return PerformanceRecordGroup.GREENCOM;
+    }
+    // Stripe
+    if (url.includes('stripe')) {
+      return PerformanceRecordGroup.STRIPE;
+    }
+    // ioThink
+    if (url.includes('kheiron')) {
+      return PerformanceRecordGroup.IOTHINK;
+    }
+    // EV Database
+    if (url.includes('ev-database')) {
+      return PerformanceRecordGroup.EV_DATABASE;
+    }
+    // SAP Smart Charging
+    if (url.includes('smart-charging')) {
+      return PerformanceRecordGroup.SAP_SMART_CHARGING;
+    }
+    return PerformanceRecordGroup.UNKNOWN;
+  }
+
   public static buildPerformanceRecord(params: {
-    tenantID: string; durationMs: number; sizeKb?: number;
-    source?: string; module: string; method: string; action: ServerAction|string;
-    httpUrl?: string; httpMethod?: string; httpCode?: number;
+    tenantID: string; durationMs: number; sizeKb?: number; source?: string;
+    module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
+    httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
     return {
       tenantID: params.tenantID,
@@ -1434,9 +1486,11 @@ export default class Utils {
       module: params.module,
       method: params.method,
       action: params.action,
+      chargingStationID: params.chargingStationID,
       httpUrl: params.httpUrl,
       httpMethod: params.httpMethod,
       httpCode: params.httpCode,
+      group: params.group,
     };
   }
 
