@@ -24,6 +24,7 @@ export default class PerformanceStorage {
       module: performanceRecord.module,
       method: performanceRecord.method,
       action: performanceRecord.action,
+      group: performanceRecord.group,
     };
     // Add user only if provided
     if (performanceRecord.userID) {
@@ -50,6 +51,10 @@ export default class PerformanceStorage {
       performanceRecordMDB.httpMethod = performanceRecord.httpMethod;
       performanceRecordMDB.httpCode = Utils.convertToInt(performanceRecord.httpCode);
       performanceRecordMDB.httpUrl = performanceRecord.httpUrl;
+    }
+    // Add Charging Station
+    if (performanceRecord.chargingStationID) {
+      performanceRecordMDB.chargingStationID = performanceRecord.chargingStationID;
     }
     // Insert
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'performances')
