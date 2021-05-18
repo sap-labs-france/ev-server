@@ -1007,6 +1007,11 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
+  // TODO uodate the route once we handle the payment ui and delete other unused urls
+  public static buildEvseBillingPayURL(tenantSubdomain: string, invoiceID: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
+  }
+
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
   }
