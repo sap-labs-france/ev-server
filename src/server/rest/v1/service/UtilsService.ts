@@ -106,7 +106,7 @@ export default class UtilsService {
 
   public static async checkAndGetChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
-  // Check dynamic auth
+    // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
@@ -285,7 +285,7 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      tenant, userToken, { id: siteID }, authAction);
+      tenant, userToken, { ID: siteID }, authAction);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

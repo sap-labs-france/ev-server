@@ -57,7 +57,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: Partial<Site>, authAction: Action): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteRequest>, authAction: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
