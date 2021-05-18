@@ -1,10 +1,11 @@
 import AbstractODataEntities from './AbstractODataEntities';
+import SiteArea from '../../../types/SiteArea';
 
 export default class ODataSiteAreas extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  public getObjectKey(siteArea) {
+  public getObjectKey(siteArea: SiteArea): string {
     return siteArea.id;
   }
 

@@ -805,9 +805,9 @@ export default class TransactionStorage {
 
   static async getTransactionsInError(tenantID: string,
       params: {
-        search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
+        search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-        withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
+        withChargingStations?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
       }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
@@ -838,8 +838,8 @@ export default class TransactionStorage {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
     }
     // Charge Box
-    if (params.chargeBoxIDs) {
-      match.chargeBoxID = { $in: params.chargeBoxIDs };
+    if (params.chargingStationIDs) {
+      match.chargeBoxID = { $in: params.chargingStationIDs };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
@@ -877,7 +877,7 @@ export default class TransactionStorage {
       $match: match
     });
     // Charging Station?
-    if (params.withChargeBoxes ||
+    if (params.withChargingStations ||
       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({

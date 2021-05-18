@@ -522,11 +522,10 @@ export default class TransactionService {
       'handleGetConsumptionFromTransaction', req.user);
     let projectFields = [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID', 'currentTotalDurationSecs', 'currentTotalInactivitySecs',
-      'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource',
-      'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
+      'userID',
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
@@ -543,6 +542,13 @@ export default class TransactionService {
           'car.licensePlate',
         ];
       }
+    }
+    if (await Authorizations.canListUsers(req.user)) {
+      projectFields = [
+        ...projectFields,
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
+        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
+      ];
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
@@ -856,7 +862,7 @@ export default class TransactionService {
         errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
         endDateTime: filteredRequest.EndDateTime,
         startDateTime: filteredRequest.StartDateTime,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
@@ -1067,7 +1073,7 @@ export default class TransactionService {
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
       {
         ...extrafilters,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargeBoxIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,

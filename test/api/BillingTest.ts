@@ -10,7 +10,6 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
@@ -132,7 +131,7 @@ class TestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async generateTransaction(user: any): Promise<number> {
+  public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
     // const user:any = this.userContext;
     const connectorId = 1;
     assert((user.tags && user.tags.length), 'User must have a valid tag');
@@ -142,11 +141,12 @@ class TestData {
     const startDate = moment().toDate();
     const stopDate = moment(startDate).add(1, 'hour').toDate();
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(startTransactionResponse).to.be.transactionValid;
+    expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
-    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
-    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    if (expectedStatus === 'Accepted') {
+      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+      expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    }
     return transactionId;
   }
 
@@ -494,7 +494,7 @@ describe('Billing Service', function() {
         }
       });
 
-      it('Should synchronize invoices', async () => {
+      xit('Should synchronize invoices', async () => {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
@@ -693,7 +693,7 @@ describe('Billing Service', function() {
       });
     });
 
-    describe('Negative tests - Invalid Credentials', () => {
+    describe('Negative tests - Wrong Billing Settings', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.adminUserContext;
@@ -710,11 +710,9 @@ describe('Billing Service', function() {
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
       });
 
-      it('Should set a transaction in error', async () => {
-        const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
-        const transactions = await testData.userService.transactionApi.readAllInError({});
-        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      it('Should not be able to start a transaction', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
+        assert(!transactionID, 'Transaction ID should not be set');
       });
 
       it('Should set in error users without Billing data', async () => {
@@ -742,6 +740,29 @@ describe('Billing Service', function() {
         }
         assert(userFound, 'User with no billing data not found in Users In Error');
       });
+
+    });
+
+    describe('Negative tests', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // Set STRIPE credentials
+        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+      });
+
+      after(async () => {
+      });
+
+      xit('Should set a transaction in error', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        const transactions = await testData.userService.transactionApi.readAllInError({});
+        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      });
+
     });
 
   });

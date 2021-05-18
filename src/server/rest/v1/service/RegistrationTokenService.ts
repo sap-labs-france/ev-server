@@ -169,7 +169,7 @@ export default class RegistrationTokenService {
     // Delete
     await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
@@ -214,7 +214,7 @@ export default class RegistrationTokenService {
     registrationToken.lastChangedOn = new Date();
     await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
     // Log
-    Logging.logSecurityInfo({
+    await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
       module: MODULE_NAME, method: 'handleRevokeRegistrationToken',

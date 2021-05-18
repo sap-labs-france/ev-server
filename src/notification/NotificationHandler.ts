@@ -1072,12 +1072,13 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
-                // Save
-                await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
-                // Send
-                await notificationSource.notificationTask.sendBillingNewInvoice(
-                  sourceData, user, tenant, NotificationSeverity.INFO);
+                if (sourceData.invoiceStatus) {
+                  await NotificationHandler.saveNotification(
+                    tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
+                  // Send
+                  await notificationSource.notificationTask.sendBillingNewInvoice(
+                    sourceData, user, tenant, NotificationSeverity.INFO);
+                }
               }
             }
           } catch (error) {

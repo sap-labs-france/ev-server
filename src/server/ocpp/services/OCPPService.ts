@@ -139,6 +139,7 @@ export default class OCPPService {
         chargingStation.createdOn = new Date();
         chargingStation.issuer = true;
         chargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
+        chargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
         // Assign to Site Area
         if (token.siteAreaID) {
           const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID);
@@ -159,7 +160,20 @@ export default class OCPPService {
           (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
-          // FIXME: valid charging stations in DB with modified parameters cannot be registered again without direct access to the DB
+          // FIXME: valid charging stations in DB with modified parameters cannot be registered at boot notification again without direct
+          //        access to the DB, standard charging station replacement is then not possible. The registration status returned should
+          //        be 'Pending' and a way to manually accept or refuse such stations should be offered.
+          const isChargingStationOnline = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').isSameOrBefore(chargingStation.lastSeen);
+          if (isChargingStationOnline && chargingStation.registrationStatus === RegistrationStatus.ACCEPTED) {
+            await Logging.logWarning({
+              tenantID: headers.tenantID,
+              source: chargingStation.id,
+              action: ServerAction.BOOT_NOTIFICATION,
+              module: MODULE_NAME, method: 'handleBootNotification',
+              message: 'Trying to connect a charging station matching an online charging station with identical chargeBoxID, registered boot notification and different attributes',
+              detailedMessages: { headers, bootNotification }
+            });
+          }
           throw new BackendError({
             source: chargingStation.id,
             action: ServerAction.BOOT_NOTIFICATION,
@@ -178,6 +192,7 @@ export default class OCPPService {
         chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
         chargingStation.firmwareVersion = bootNotification.firmwareVersion;
         chargingStation.lastReboot = bootNotification.lastReboot;
+        chargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
         // Back again
         chargingStation.deleted = false;
       }
@@ -206,7 +221,7 @@ export default class OCPPService {
       // Save Boot Notification
       await OCPPStorage.saveBootNotification(tenant, bootNotification);
       // Send Notification (Async)
-      NotificationHandler.sendChargingStationRegistered(
+      void NotificationHandler.sendChargingStationRegistered(
         tenant.id,
         Utils.generateUUID(),
         chargingStation,
@@ -215,8 +230,6 @@ export default class OCPPService {
           evseDashboardURL: Utils.buildEvseURL(currentTenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(currentTenant.subdomain, chargingStation, '#all')
         }
-      ).catch(
-        () => { }
       );
       // Log
       await Logging.logInfo({
@@ -286,7 +299,6 @@ export default class OCPPService {
         error.params.source = headers.chargeBoxIdentity;
       }
       await Logging.logActionExceptionMessage(headers.tenantID, ServerAction.BOOT_NOTIFICATION, error);
-      // FIXME: charging stations in DB with rejected boot notification are still seen as online and usable. OCPP spec is clear on how to handle such case: close websocket, no messages of any kind sent or received, ...
       // Reject
       return {
         status: RegistrationStatus.REJECTED,
@@ -385,7 +397,7 @@ export default class OCPPService {
       // Get the charging station
       const { chargingStation, tenant } = await OCPPUtils.checkAndGetTenantAndChargingStation(headers);
       // Check props
-      OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
+      await OCPPValidation.getInstance().validateMeterValues(tenant.id, chargingStation, meterValues);
       // Normalize Meter Values
       const normalizedMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
@@ -675,8 +687,7 @@ export default class OCPPService {
         }
       }
       // Cleanup ongoing transactions
-      await this.stopOrDeleteActiveTransactions(
-        tenant, chargingStation.id, startTransaction.connectorId);
+      await this.stopOrDeleteActiveTransactions(tenant, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
         id: await TransactionStorage.findAvailableID(tenant.id),

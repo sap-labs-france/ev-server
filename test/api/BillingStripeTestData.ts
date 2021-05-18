@@ -16,9 +16,9 @@ import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
 import User from '../../src/types/User';
 import UserStorage from '../../src/storage/mongodb/UserStorage';
+import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
@@ -219,7 +219,7 @@ export default class StripeIntegrationTestData {
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const beforeInvoiceDateTime = new Date().getTime();
+    const beforeInvoiceDateTime = Utils.createDecimal(new Date().getTime()).div(1000).trunc().toNumber();
     const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
@@ -229,9 +229,9 @@ export default class StripeIntegrationTestData {
     assert(lastPaidInvoice, 'User should have at least a paid invoice');
     // TODO - Why do we get the amount in cents here?
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
-    const lastPaidInvoiceDateTime = new Date(lastPaidInvoice.createdOn).getTime();
     // Stripe is using Unix Epoch for its date - and looses some precision
-    expect(lastPaidInvoiceDateTime).to.be.gte(moment.unix(beforeInvoiceDateTime / 1000).toDate().getTime());
+    const lastPaidInvoiceDateTime = Utils.createDecimal(new Date(lastPaidInvoice.createdOn).getTime()).div(1000).trunc().toNumber();
+    expect(lastPaidInvoiceDateTime).to.be.gte(beforeInvoiceDateTime);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices

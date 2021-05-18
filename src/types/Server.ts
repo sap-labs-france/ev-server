@@ -206,6 +206,7 @@ export enum ServerAction {
   SOCKET_IO = 'SocketIO',
 
   // OCPP server commands
+  BOOT_NOTIFICATION = 'BootNotification',
   AUTHORIZE = 'Authorize',
   HEARTBEAT = 'Heartbeat',
   DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
@@ -213,7 +214,7 @@ export enum ServerAction {
   STATUS_NOTIFICATION = 'StatusNotification',
   START_TRANSACTION = 'StartTransaction',
   STOP_TRANSACTION = 'StopTransaction',
-  METERVALUES = 'MeterValues',
+  METER_VALUES = 'MeterValues',
   DATA_TRANSFER = 'DataTransfer',
 
   EXTRA_INACTIVITY = 'ExtraInactivity',
@@ -242,10 +243,6 @@ export enum ServerAction {
   WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
   WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
   WS_REST_CLIENT_CONNECTION_ERROR = 'WSRestClientConnectionError',
-
-  BOOT_NOTIFICATION = 'BootNotification',
-
-  METER_VALUES = 'MeterValues',
 
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
@@ -394,6 +391,7 @@ export enum ServerAction {
   TAG_DELETE = 'TagDelete',
   TAGS_DELETE = 'TagsDelete',
   TAGS_IMPORT = 'TagsImport',
+  TAGS_EXPORT = 'TagsExport',
   USER = 'User',
   USERS_EXPORT = 'UsersExport',
   USERS_IMPORT = 'UsersImport',
@@ -418,6 +416,8 @@ export enum ServerAction {
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
+  BILLING_NEW_INVOICE_PAID = 'BillingNewInvoicePaid',
+  BILLING_NEW_INVOICE_OPEN = 'BillingNewInvoiceOpen',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
@@ -507,10 +507,7 @@ export enum ServerRoute {
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
-  REST_BILLING_CHECK = 'billing/check',
-  REST_BILLING_CHECK_CONNECTION = 'billing/check-connection',
-  REST_BILLING_CHECK_PREREQUISITES = 'billing/check-prerequisites',
-  REST_BILLING_ACTIVATE = 'billing/activate',
+  REST_BILLING_CHECK = 'billing/check'
 }
 
 export enum ServerProtocol {

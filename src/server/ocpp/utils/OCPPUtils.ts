@@ -1,7 +1,7 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
-import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
+import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
@@ -331,14 +331,21 @@ export default class OCPPUtils {
               lastUpdate: new Date()
             };
           } catch (error) {
+            const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
+            });
+            // Prevent from starting a transaction when Billing prerequisites are not met
+            throw new BackendError({
+              user: transaction.user,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -352,14 +359,14 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -374,14 +381,14 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -1561,7 +1568,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'chargeBoxIdentity\'!'
       });
     }
@@ -1569,7 +1576,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Should have the required property \'tenantID\'!'
       });
     }
@@ -1579,7 +1586,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
       });
     }
@@ -1590,17 +1597,26 @@ export default class OCPPUtils {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station does not exist'
       });
     }
     // Deleted?
-    if (chargingStation.deleted) {
+    if (chargingStation?.deleted) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
-        method: 'checkAndGetChargingStation',
+        method: 'checkAndGetTenantAndChargingStation',
         message: 'Charging Station is deleted'
+      });
+    }
+    // Boot Notification accepted?
+    if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
+      throw new BackendError({
+        source: ocppHeader.chargeBoxIdentity,
+        module: MODULE_NAME,
+        method: 'checkAndGetTenantAndChargingStation',
+        message: 'Charging Station boot notification not accepted'
       });
     }
     return {
@@ -2224,12 +2240,12 @@ export default class OCPPUtils {
   }
 
   private static async setConnectorPhaseAssignment(tenantID: string, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
-    const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+    const csNumberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     if (chargingStation.siteAreaID) {
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
       if (siteArea.numberOfPhases === 3) {
-        switch (numberOfPhases) {
+        switch (csNumberOfPhases) {
           // Tri-phased
           case 3:
             connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
@@ -2247,7 +2263,7 @@ export default class OCPPUtils {
       }
     // Organization setting not enabled or charging station not assigned to a site area
     } else {
-      switch (numberOfPhases) {
+      switch (csNumberOfPhases) {
         // Tri-phased
         case 3:
           connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };

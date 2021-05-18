@@ -55,7 +55,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Initialize Stripe
     if (!this.stripe) {
       try {
-        this.settings.stripe.secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        const secretKey = await Cypher.decrypt(this.tenantID, this.settings.stripe.secretKey);
+        this.stripe = new Stripe(secretKey, {
+          apiVersion: '2020-08-27',
+        });
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -67,9 +70,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       // Try to connect
       try {
-        this.stripe = new Stripe(this.settings.stripe.secretKey, {
-          apiVersion: '2020-08-27',
-        });
         // Let's make sure the connection works as expected
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
       } catch (error) {
@@ -278,7 +278,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Destructuring the STRIPE invoice to extract the required information
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata } = stripeInvoice;
+    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
@@ -306,7 +306,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
       // eslint-disable-next-line id-blacklist
       userID, invoiceID, customerID, liveMode, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
-      status: status as BillingInvoiceStatus,
+      status: status as BillingInvoiceStatus, payInvoiceUrl,
     };
     // Let's persist the up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
@@ -473,13 +473,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     if (!customerID) {
-      throw new BackendError({
-        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'getPaymentMethods',
-        action: ServerAction.BILLING_TRANSACTION
-      });
+      // TODO: For now, we do not complain when the user is not in sync! Just return an empty list instead
+      return [];
+      // throw new BackendError({
+      //   message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+      //   source: Constants.CENTRAL_SERVER,
+      //   module: MODULE_NAME,
+      //   method: 'getPaymentMethods',
+      //   action: ServerAction.BILLING_TRANSACTION
+      // });
     }
     // Let's do it!
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
@@ -545,6 +547,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerID
       });
+
+      // Add billing_details to the payment method
+      // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2) in the address
+      // await this.stripe.paymentMethods.update(
+      //   paymentMethodId, {
+      //     billing_details: StripeHelpers.buildBillingDetails(user)
+      //   }
+      // );
+
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -809,7 +820,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check whether the billing was activated on start transaction
-    if (!transaction.billingData.withBillingActive) {
+    if (!transaction.billingData?.withBillingActive) {
       return {
         status: BillingStatus.UNBILLED
       };
@@ -1099,7 +1110,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Checks create a new STRIPE customer
     const customer: Stripe.Customer = await this.stripe.customers.create({
-      ...this._buildCustomerCommonProperties(user),
+      ...StripeHelpers.buildCustomerCommonProperties(user),
       metadata: {
         tenantID: this.tenantID,
         userID: user.id // IMPORTANT - keep track on the stripe side of the original eMobility user
@@ -1136,7 +1147,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Update user data
     const updateParams: Stripe.CustomerUpdateParams = {
-      ...this._buildCustomerCommonProperties(user),
+      ...StripeHelpers.buildCustomerCommonProperties(user),
     };
     // Update changed data
     customer = await this.stripe.customers.update(customerID, updateParams);
@@ -1145,16 +1156,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenantID, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
-  }
-
-  private _buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string } {
-    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
-    return {
-      name: Utils.buildUserFullName(user, false, false),
-      description: i18nManager.translate('billing.generatedUser', { email: user.email }),
-      preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
-      email: user.email
-    };
   }
 
   public async deleteUser(user: User): Promise<void> {
