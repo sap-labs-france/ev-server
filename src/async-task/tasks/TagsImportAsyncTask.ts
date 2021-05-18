@@ -44,6 +44,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         do {
           // Get the imported tags
           importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
+          let tagToSave: Tag;
           for (const importedTag of importedTags.result) {
             try {
               // Existing tags
@@ -62,32 +63,24 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 if (foundTag.transactionsCount > 0) {
                   throw new Error(`Tag is already used in ${foundTag.transactionsCount} transaction(s)`);
                 }
-                // Save user if any and get the ID to assign tag
-                if (importedTag.email && importedTag.name && importedTag.firstName) {
-                  await this.assignTag(tenant, importedTag, foundTag);
-                }
-                // Update it
-                await TagStorage.saveTag(tenant.id, { ...foundTag, ...importedTag });
-                // Remove the imported Tag
-                await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
-                result.inSuccess++;
-                continue;
+                tagToSave = { ...foundTag, ...importedTag };
+              } else {
+                // New Tag
+                tagToSave = {
+                  id: importedTag.id,
+                  description: importedTag.description,
+                  issuer: true,
+                  active: false,
+                  createdBy: { id: importedTag.importedBy },
+                  createdOn: importedTag.importedOn,
+                };
               }
-              // New Tag
-              const tag: Tag = {
-                id: importedTag.id,
-                description: importedTag.description,
-                issuer: true,
-                active: false,
-                createdBy: { id: importedTag.importedBy },
-                createdOn: importedTag.importedOn,
-              };
               // Save user if any and get the ID to assign tag
               if (importedTag.email && importedTag.name && importedTag.firstName) {
-                await this.assignTag(tenant, importedTag, tag);
+                await this.assignTag(tenant, importedTag, tagToSave);
               }
               // Save the new Tag
-              await TagStorage.saveTag(tenant.id, tag);
+              await TagStorage.saveTag(tenant.id, tagToSave);
               // Remove the imported Tag
               await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
               result.inSuccess++;
@@ -106,7 +99,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
                 detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
               });
-            }
+            } // Do we add a finally that delete tags if the error comes from "foundTag" ? for now the found tags are left as is in the importedTag collection
           }
           // Log
           if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
