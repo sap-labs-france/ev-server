@@ -1341,9 +1341,9 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: Utils.escapeCsvValue(importedUser.name.toUpperCase()),
-        firstName: Utils.escapeCsvValue(importedUser.firstName),
-        email: Utils.escapeCsvValue(importedUser.email),
+        name: Utils.unescapeCsvValue(importedUser.name.toUpperCase()),
+        firstName: Utils.unescapeCsvValue(importedUser.firstName),
+        email: Utils.unescapeCsvValue(importedUser.email),
       };
 
       // Validate User data
