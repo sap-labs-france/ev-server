@@ -416,6 +416,8 @@ export enum ServerAction {
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_CREATE_TRANSACTION_INVOICE = 'BillingCreateTransactionInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
+  BILLING_NEW_INVOICE_PAID = 'BillingNewInvoicePaid',
+  BILLING_NEW_INVOICE_OPEN = 'BillingNewInvoiceOpen',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
