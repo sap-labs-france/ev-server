@@ -75,6 +75,7 @@ export interface BillingInvoice {
   downloadUrl?: string;
   sessions?: BillingSessionData[];
   lastError?: BillingError;
+  payInvoiceUrl?: string;
 }
 
 export interface BillingInvoiceItem {
