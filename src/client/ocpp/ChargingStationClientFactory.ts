@@ -19,14 +19,14 @@ export default class ChargingStationClientFactory {
     let chargingClient = null;
 
     if (chargingStation.issuer) {
-      if (chargingStation.registrationStatus !== RegistrationStatus.ACCEPTED) {
-        throw new BackendError({
-          source: chargingStation.id,
-          module: MODULE_NAME,
-          method: 'getChargingStationClient',
-          message: 'Cannot instantiate charging station client: boot notification not accepted'
-        });
-      }
+      // if (chargingStation.registrationStatus !== RegistrationStatus.ACCEPTED) {
+      //   throw new BackendError({
+      //     source: chargingStation.id,
+      //     module: MODULE_NAME,
+      //     method: 'getChargingStationClient',
+      //     message: 'Cannot instantiate charging station client: boot notification not accepted'
+      //   });
+      // }
       // Check protocol
       switch (chargingStation.ocppProtocol) {
         // JSON
