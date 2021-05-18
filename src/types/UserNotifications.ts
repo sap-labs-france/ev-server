@@ -2,6 +2,7 @@ import User, { UserStatus } from './User';
 
 import { BillingInvoice } from './Billing';
 import ChargingStation from './ChargingStation';
+import Decimal from 'decimal.js';
 import NotificationTask from '../notification/NotificationTask';
 import { SMTPError } from 'emailjs';
 
@@ -261,12 +262,16 @@ export interface BillingInvoiceSynchronizationFailedNotification extends BaseNot
   evseDashboardBillingURL: string;
 }
 
+// TODO: delete unused Utils.build urls
 export interface BillingNewInvoiceNotification extends BaseNotification {
   evseDashboardURL: string;
   evseDashboardInvoiceURL: string;
   user: User;
-  invoice: BillingInvoice;
   invoiceDownloadUrl: string;
+  payInvoiceUrl: string;
+  invoiceNumber: string;
+  invoiceAmount: Decimal;
+  invoiceStatus: string;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {
