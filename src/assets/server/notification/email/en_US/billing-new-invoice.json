@@ -17,17 +17,23 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName?user.firstName:user.name) %>,",
+      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "A new invoice is available : <%- invoice.number %>."
+      "<% if(invoiceStatus === 'paid'){ %> Your invoice <%- invoiceNumber %> has been paid and is now available. <% } else { %> A new invoice is available : <%- invoiceNumber %>. <br/><br/> Please follow the link below to finalize the payment <% } %>"
+    ],
+    "stats": [
+      { "label": "Cost", "value": "<%- invoiceAmount %>€" }
     ],
     "actions": [{
-      "title": "Consult",
-      "url": "<%- evseDashboardInvoiceURL %>"
-    }, {
-      "title": "Download",
-      "url": "<%- invoiceDownloadUrl %>"
-    }],
+        "title": "Consult invoices list",
+        "url": "<%- evseDashboardInvoiceURL %>"
+      }, {
+        "title": "Download invoice",
+        "url": "<%- invoiceDownloadUrl %>"
+      }, {
+        "title": "Pay invoice",
+        "url": "<%- payInvoiceUrl %>"
+      }],
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."
