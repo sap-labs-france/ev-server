@@ -13,7 +13,8 @@ export default class TagSecurity {
       Search: sanitize(request.Search),
       UserID: sanitize(request.UserID),
       Issuer: Utils.objectHasProperty(request, 'Issuer') ? UtilsSecurity.filterBoolean(request.Issuer) : null,
-      Active: Utils.objectHasProperty(request, 'Active') ? UtilsSecurity.filterBoolean(request.Active) : null
+      Active: Utils.objectHasProperty(request, 'Active') ? UtilsSecurity.filterBoolean(request.Active) : null,
+      WithUser: Utils.objectHasProperty(request, 'WithUser') ? UtilsSecurity.filterBoolean(request.WithUser) : null,
     } as HttpTagsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

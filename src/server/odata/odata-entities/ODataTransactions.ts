@@ -1,4 +1,5 @@
 import AbstractODataEntities from './AbstractODataEntities';
+import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
 export default class ODataTransactions extends AbstractODataEntities {
@@ -7,8 +8,8 @@ export default class ODataTransactions extends AbstractODataEntities {
   public convertTimestamp: any;
   public buildDateObject: any;
 
-  public getObjectKey(transaction) {
-    return transaction.id;
+  public getObjectKey(transaction: Transaction): string {
+    return transaction.id.toString();
   }
 
   public async getTransactionsCompleted(centralServiceApi, query, req, cb) {
