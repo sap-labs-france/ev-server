@@ -177,18 +177,24 @@ export default abstract class BillingIntegration {
       inError: 0
     };
     await this.checkConnection();
-    const openedInvoices = await BillingStorage.getInvoicesToPay(this.tenantID);
-    // Let's now try to pay opened invoices
-    for (const openInvoice of openedInvoices.result) {
+
+    let invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
+    if (this.settings.billing?.periodicBillingAllowed) {
+      invoices = await BillingStorage.getInvoicesToProcess(this.tenantID);
+    } else {
+      invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
+    }
+    // Let's now finalize all invoices and attempt to get it paid
+    for (const invoice of invoices.result) {
       try {
-        await this.chargeInvoice(openInvoice);
+        await this.chargeInvoice(invoice);
         await Logging.logInfo({
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: openInvoice.user,
+          actionOnUser: invoice.user,
           module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Successfully charged invoice '${openInvoice.id}'`
+          message: `Successfully charged invoice '${invoice.id}'`
         });
         actionsDone.inSuccess++;
       } catch (error) {
@@ -197,9 +203,9 @@ export default abstract class BillingIntegration {
           tenantID: this.tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: openInvoice.user,
+          actionOnUser: invoice.user,
           module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Failed to charge invoice '${openInvoice.id}'`,
+          message: `Failed to charge invoice '${invoice.id}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
