@@ -6,6 +6,7 @@ import BackendError from '../../exception/BackendError';
 import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -178,10 +179,12 @@ export default abstract class BillingIntegration {
     };
     await this.checkConnection();
 
-    let invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
+    let invoices: DataResult<BillingInvoice>;
     if (this.settings.billing?.periodicBillingAllowed) {
+      // Fetch DRAFT and OPEN invoices
       invoices = await BillingStorage.getInvoicesToProcess(this.tenantID);
     } else {
+      // Fetch OPEN invoices only
       invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
     }
     // Let's now finalize all invoices and attempt to get it paid
