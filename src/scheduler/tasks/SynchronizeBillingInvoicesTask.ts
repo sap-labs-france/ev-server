@@ -29,22 +29,6 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
               }
             );
           }
-          // Attempt payment - once a month! - A second task with a dedicated configuration to trigger the payment attempts
-          if (taskConfig && taskConfig[tenant.subdomain]?.attemptPayment) { // TODO - For troubleshooting with dedicated tenants - to be removed
-            // Attempt to pay invoices with status OPEN
-            const chargeActionResults = await billingImpl.chargeInvoices();
-            if (chargeActionResults.inError > 0) {
-              // TODO - dedicated notification type is required here!!!
-              await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
-                tenant.id,
-                {
-                  nbrInvoicesInError: chargeActionResults.inError,
-                  evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                  evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
-                }
-              );
-            }
-          }
         }
       } catch (error) {
         // Log error
