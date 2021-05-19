@@ -70,8 +70,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationReset(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RESET}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
       req.body.chargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_RESET, req, res, next);
     });
@@ -79,8 +77,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationClearCache(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_CACHE_CLEAR}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
       req.body.chargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_CLEAR_CACHE, req, res, next);
     });
@@ -102,8 +98,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationRemoteStart(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_REMOTE_START}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
       req.body.chargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, req, res, next);
     });
@@ -111,8 +105,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationRemoteStop(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_REMOTE_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
       req.body.chargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, req, res, next);
     });
@@ -120,8 +112,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationUnlockConnector(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_UNLOCK_CONNECTOR}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
       req.body.chargingStationID = req.params.id;
       req.body.args = { ...req.body.args, connectorId: req.params.connectorId };
       await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, req, res, next);
@@ -172,8 +162,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationGetOCPPParameters(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION_GET_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
       req.query.ChargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
         ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS, req, res, next);
