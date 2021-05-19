@@ -148,7 +148,13 @@ export enum Action {
   REGISTER = 'Register',
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
-  IMPORT = 'Import'
+  IMPORT = 'Import',
+  ASSIGN_ASSETS = 'AssignAssets',
+  UNASSIGN_ASSETS = 'UnassignAssets',
+  ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
+  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
+  EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
+  GENERATE_QR = 'GenerateQrCode',
 }
 
 export interface AuthorizationContext {
@@ -174,22 +180,34 @@ export interface AuthorizationActions {
   canUpdate?: boolean;
   canDelete?: boolean;
 }
+export interface SiteAreaAuthorizationActions extends AuthorizationActions {
+  canAssignAssets?: boolean;
+  canUnassignAssets?: boolean;
+  canAssignChargingStations?: boolean;
+  canUnassignChargingStations?: boolean;
+  canExportOCPPParams?: boolean;
+  canGenerateQrCode?:boolean;
+}
 
 export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
+  canExportOCPPParams?: boolean;
+  canGenerateQrCode?:boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
-  ASSIGNED_SITES = 'AssignedSites',
   SITES_ADMIN = 'SitesAdmin',
+  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  ASSIGNED_SITES = 'AssignedSites',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
-  ASSIGNED_SITES = 'AssignedSites',
   SITES_ADMIN = 'SitesAdmin',
+  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  ASSIGNED_SITES = 'AssignedSites',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -198,10 +216,14 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
   companyIDs?: string[];
 }
 
-export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
 
-export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+export interface AssignedSiteAreasDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteAreaIDs?: string[];
+}
+
+export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }

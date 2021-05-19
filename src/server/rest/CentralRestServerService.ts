@@ -160,6 +160,7 @@ class RequestMapper {
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
           [ServerAction.TAG]: TagService.handleGetTag.bind(this),
+          [ServerAction.TAGS_EXPORT]: TagService.handleExportTags.bind(this),
           [ServerAction.USER_DEFAULT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),

@@ -171,7 +171,7 @@ export default class OCPIUtilsService {
   }
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
+      options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -865,6 +865,12 @@ export default class OCPIUtilsService {
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
+      // Exadys
+      case '5ff4c5ca1804a20013ce8a23':
+        return 'FR*EXA_Tarif_Standard';
+      // Inouid
+      case '602e260fa9b0290023fb68d2':
+        return 'FR*ISE_Payant1';
     }
     return '';
   }

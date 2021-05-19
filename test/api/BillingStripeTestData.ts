@@ -219,7 +219,7 @@ export default class StripeIntegrationTestData {
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const beforeInvoiceDateTime = Utils.createDecimal(new Date().getTime()).div(1000).toNumber();
+    const beforeInvoiceDateTime = Utils.createDecimal(new Date().getTime()).div(1000).trunc().toNumber();
     const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
@@ -230,7 +230,7 @@ export default class StripeIntegrationTestData {
     // TODO - Why do we get the amount in cents here?
     expect(lastPaidInvoice.amount).to.be.eq(expectedTotal); // 480 cents - TODO - Billing Invoice exposing cents???
     // Stripe is using Unix Epoch for its date - and looses some precision
-    const lastPaidInvoiceDateTime = Utils.createDecimal(new Date(lastPaidInvoice.createdOn).getTime()).div(1000).toNumber();
+    const lastPaidInvoiceDateTime = Utils.createDecimal(new Date(lastPaidInvoice.createdOn).getTime()).div(1000).trunc().toNumber();
     expect(lastPaidInvoiceDateTime).to.be.gte(beforeInvoiceDateTime);
     const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
