@@ -59,15 +59,15 @@ export default abstract class BillingIntegration {
             actionsDone.inError++;
           }
         }
-      } else {
-        await Logging.logWarning({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
-          module: MODULE_NAME, method: 'synchronizeUsers',
-          message: 'Feature is switched OFF - operation has been aborted'
-        });
       }
+    } else {
+      await Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+        module: MODULE_NAME, method: 'synchronizeUsers',
+        message: 'Feature is switched OFF - operation has been aborted'
+      });
     }
     // Log
     await Logging.logActionsResponse(this.tenantID, ServerAction.BILLING_SYNCHRONIZE_USERS,
