@@ -104,7 +104,8 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1, issuer: 1 } }
+      { fields: { userID: 1, issuer: 1 } },
+      { fields: { visualID: 1 }, options: { unique: true } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [

@@ -132,11 +132,23 @@ export default class TagService {
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
+    let tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
+        message: `Tag with ID '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check Tag
+     tag = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
+    if (tag) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
@@ -195,6 +207,7 @@ export default class TagService {
       createdOn: new Date(),
       userID: filteredRequest.userID,
       default: filteredRequest.default,
+      visualID: filteredRequest.visualID
     } as Tag;
     // Save
     await TagStorage.saveTag(req.user.tenantID, newTag);
@@ -461,7 +474,7 @@ export default class TagService {
             if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
             }
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async (error: CSVError) => {
             // Release the lock
             await LockingManager.release(importTagsLock);
@@ -478,8 +491,8 @@ export default class TagService {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
               res.end();
             }
-          // Completed
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // Completed
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async () => {
             // Consider the connection closed
             connectionClosed = true;
@@ -699,16 +712,18 @@ export default class TagService {
     if (writeHeader) {
       headers = [
         'id',
+        'visual ID',
         'description',
         'firstName',
         'name',
-        'email'
+        'email',
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = tags.map((tag) => {
       const row = [
         tag.id,
+        tag.visualID,
         tag.description,
         tag.user?.firstName,
         tag.user?.name,
