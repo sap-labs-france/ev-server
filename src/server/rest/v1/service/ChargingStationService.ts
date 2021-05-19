@@ -68,7 +68,7 @@ export default class ChargingStationService {
     let siteArea: SiteArea = null;
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
@@ -90,6 +90,16 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !siteArea.site?.public) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: action,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user
+        });
+      }
       if (filteredRequest.public !== chargingStation.public) {
         // OCPI handling
         if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
@@ -102,7 +112,7 @@ export default class ChargingStationService {
               status = OCPIEvseStatus.REMOVED;
             }
             if (ocpiClient) {
-              await ocpiClient.udpateChargingStationStatus(chargingStation, status);
+              await ocpiClient.updateChargingStationStatus(chargingStation, status);
             }
           } catch (error) {
             await Logging.logError({
