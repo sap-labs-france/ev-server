@@ -13,11 +13,11 @@ export default class AssignedSitesDynamicAuthorizationDataSource
   }
 
   public async loadData(): Promise<void> {
-    const assignedSitesCompaniesData: AssignedSitesDynamicAuthorizationDataSourceData = {};
+    const assignedSitesData: AssignedSitesDynamicAuthorizationDataSourceData = {};
     // Get Site IDs from Site Admin flag
-    assignedSitesCompaniesData.siteIDs = await this.getAssignedSiteIDs();
+    assignedSitesData.siteIDs = await this.getAssignedSiteIDs();
     // Set
-    this.setData(assignedSitesCompaniesData);
+    this.setData(assignedSitesData);
   }
 
   private async getAssignedSiteIDs(): Promise<string[]> {
