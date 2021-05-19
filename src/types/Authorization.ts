@@ -193,7 +193,7 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
   canExportOCPPParams?: boolean;
-  canGenerateQrCode?:boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
