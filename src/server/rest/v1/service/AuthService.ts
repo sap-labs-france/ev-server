@@ -10,6 +10,7 @@ import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
+import Cypher from '../../../../utils/Cypher';
 import { HTTPError } from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
@@ -208,6 +209,7 @@ export default class AuthService {
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
+      visualID: Cypher.hash(newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString()),
       active: true,
       issuer: true,
       userID: newUser.id,
