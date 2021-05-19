@@ -1,10 +1,10 @@
 {
-  "subject": "Account <%- (user.status === 'A' ? 'Activated' : 'Suspended'); %>",
+  "subject": "Account <%- (user.status === 'A' ? 'Aktiviert' : 'Gesperrt'); %>",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Suspended'); %>",
+      "title": "Account <%- (user.status === 'A' ? 'Aktiv' : 'Gesperrt'); %>",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hallo <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Ihr Account wurde von einem Administrator <strong><%- (user.status === 'A' ? 'aktiviert' : 'ausgesetzt'); %></strong>."
+      "Ihr Account wurde von einem Administrator <strong><%- (user.status === 'A' ? 'aktiviert' : 'gesperrt'); %></strong>."
     ],
     "actions": [{
       "title": "e-Mobility",
