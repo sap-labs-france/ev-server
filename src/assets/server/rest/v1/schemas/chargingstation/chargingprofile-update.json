@@ -1,0 +1,4 @@
+{
+  "title": "Update a Charging Profile",
+  "$ref": "chargingstation.json#/definitions/chargingProfile"
+}

@@ -17,9 +17,12 @@
       }
     },
     "beforeActionLines": [
-      "Cher <%- (user.firstName?user.firstName:user.name) %>,",
+      "Cher <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Une nouvelle facture est disponible : <%- invoice.number %>."
+      "<% if(invoiceStatus === 'paid'){ %> Votre facture <%- invoiceNumber %> a été payée et est maintenant disponible. <% } else { %> Une nouvelle facture est disponible : <%- invoiceNumber %>. <br/><br/> Cliquez sur le lien ci-dessous pour finaliser le paiement. <% } %>"
+    ],
+    "stats": [
+      { "label": "Coût", "value": "<%- invoiceAmount %>€" }
     ],
     "actions": [{
       "title": "Consulter",
@@ -27,6 +30,9 @@
     }, {
       "title": "Télécharger",
       "url": "<%- invoiceDownloadUrl %>"
+    }, {
+      "title": "Pay invoice",
+      "url": "<%- payInvoiceUrl %>"
     }],
     "afterActionLines": [
       "Cordialement,",
