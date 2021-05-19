@@ -46,7 +46,7 @@ const MODULE_NAME = 'UtilsService';
 export default class UtilsService {
 
   public static async checkAndGetChargingStationAuthorization(tenant: Tenant, userToken: UserToken, chargingStationID: string,
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation> {
     // Check static auth for reading Charging Station
     if (!await Authorizations.canReadChargingStation(userToken)) {
       throw new AppAuthError({
@@ -106,7 +106,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
-    additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
+      additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
     // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetChargingStationsAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
@@ -129,8 +129,8 @@ export default class UtilsService {
     return chargingStations.result;
   }
 
-  public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
-    additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Asset[]> {
+  public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken,action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
     // Check dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken);
     if (!authorizationFilter.authorized) {
@@ -154,7 +154,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Company> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'checkAndGetCompanyAuthorization', userToken);
     // Get dynamic auth
@@ -204,7 +204,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
@@ -257,7 +257,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
@@ -310,7 +310,7 @@ export default class UtilsService {
   }
 
   public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, site.id, MODULE_NAME, 'checkSiteUsersAuthorization', userToken);
     if (Utils.isEmptyArray(userIDs)) {
@@ -372,7 +372,7 @@ export default class UtilsService {
   }
 
   public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Asset[]> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Asset[]> {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaAssetsAuthorization', userToken);
     if (Utils.isEmptyArray(assetIDs)) {
@@ -414,7 +414,7 @@ export default class UtilsService {
   }
 
   public static async checkSiteAreaChargingStationsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, chargingStationIDs: string[],
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<ChargingStation[]> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteArea.id, MODULE_NAME, 'checkSiteAreaChargingStationsAuthorization', userToken);
     if (Utils.isEmptyArray(chargingStationIDs)) {
@@ -460,7 +460,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAreaAuthorization(tenant: Tenant, userToken: UserToken, siteAreaID: string, authAction: Action,
-    action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<SiteArea> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'checkAndGetSiteAreaAuthorization', userToken);
     // Get dynamic auth
@@ -548,7 +548,7 @@ export default class UtilsService {
     return allTypes;
   }
 
-  public static assertIdIsProvided(action: ServerAction, id: string | number, module: string, method: string, userToken: UserToken): void {
+  public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken): void {
     if (!id) {
       // Object does not exist
       throw new AppError({
@@ -724,7 +724,7 @@ export default class UtilsService {
   }
 
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
-    action: Action, entity: Entity, module: string, method: string): void {
+      action: Action, entity: Entity, module: string, method: string): void {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
@@ -740,8 +740,8 @@ export default class UtilsService {
   }
 
   public static async exportToCSV(req: Request, res: Response, attachmentName: string,
-    handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
+      handleGetData: (req: Request) => Promise<DataResult<any>>,
+      handleConvertToCSV: (req: Request, data: any[], writeHeader: boolean) => string): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PAGE_SIZE.toString();
     // Set the attachment name
@@ -781,8 +781,8 @@ export default class UtilsService {
   }
 
   public static async exportToPDF(req: Request, res: Response, attachementName: string,
-    handleGetData: (req: Request) => Promise<DataResult<any>>,
-    handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
+      handleGetData: (req: Request) => Promise<DataResult<any>>,
+      handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
@@ -823,7 +823,7 @@ export default class UtilsService {
   }
 
   public static checkIfChargingProfileIsValid(chargingStation: ChargingStation, chargePoint: ChargePoint,
-    filteredRequest: ChargingProfile, req: Request): void {
+      filteredRequest: ChargingProfile, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1232,7 +1232,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
         user: req.user.id
       });
-    }
+        }
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;
@@ -1570,7 +1570,7 @@ export default class UtilsService {
   // eslint-disable-next-line @typescript-eslint/ban-types
   public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
     // Process the sensitive data (if any)
-    const sensitivePropertyNames: string[] = _.get(currentProperties, 'sensitiveData');
+    const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
@@ -1591,14 +1591,14 @@ export default class UtilsService {
           if (currentValue && typeof currentValue === 'string') {
             const currentHash = Cypher.hash(currentValue);
             if (newValue !== currentHash) {
-              // Yes: Encrypt
+            // Yes: Encrypt
               _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
             } else {
-              // No: Put back the encrypted value
+            // No: Put back the encrypted value
               _.set(newProperties, propertyName, currentValue);
             }
           } else {
-            // Value in db is empty then encrypt
+          // Value in db is empty then encrypt
             _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
           }
         } else {
@@ -1616,7 +1616,7 @@ export default class UtilsService {
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   public static hashSensitiveData(tenantID: string, properties: object): unknown {
-    const sensitivePropertyNames: string[] = _.get(properties, 'sensitiveData');
+    const sensitivePropertyNames: string [] = _.get(properties, 'sensitiveData');
     if (sensitivePropertyNames) {
       if (!Array.isArray(sensitivePropertyNames)) {
         throw new AppError({
