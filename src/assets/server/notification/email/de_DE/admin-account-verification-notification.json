@@ -1,15 +1,15 @@
 {
-  "subject": "User Account Verification",
+  "subject": "Nutzer Account Verifizierung",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "User Account Verification",
+      "title": "Nutzer Account Verifizierung",
       "image": {
         "left": {
           "height": 60,
           "url": "<%- tenantLogoURL %>"
-        },  
+        },
         "right": {
           "height": 50,
           "url": "<%- evseDashboardURL %>/assets/img/info.png"
@@ -17,18 +17,18 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Sehr geehrter Administrator,",
       "",
-      "A new user with email '<%- user.email %>' has just created an account.",
+      "Ein neuer Nutzer mit der E-Mail '<%- user.email %>' hat gerade einen Account erstellt.",
       "",
-      "Please follow the link below to review and activate it."
+      "Bitte folgen Sie dem unten stehenden Link, um den Account zu überprüfen und zu aktivieren."
     ],
     "actions": [{
-      "title": "Verify account",
+      "title": "Account verifizieren",
       "url": "<%- evseUserToVerifyURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {
