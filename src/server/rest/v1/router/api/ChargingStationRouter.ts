@@ -162,8 +162,6 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationGetOCPPParameters(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATION_GET_OCPP_PARAMETERS}`, async (req: Request, res: Response, next: NextFunction) => {
-      // Backward compatibility for the mobile application
-      req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
       req.query.ChargingStationID = req.params.id;
       await RouterUtils.handleServerAction(ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
         ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS, req, res, next);
