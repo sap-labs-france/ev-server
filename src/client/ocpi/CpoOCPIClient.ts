@@ -427,7 +427,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  public async udpateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
+  public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     if (!chargingStation.siteAreaID) {
       throw new BackendError({
         source: chargingStation.id,

@@ -365,7 +365,7 @@ The users can have differents roles:
 * Basic (**B**)
 * Demo (**D**)
 
-##### Authorisation Matrix
+##### Authorization Matrix
 
 |                  |            SuperAdmin          |                                                       Admin                                                       |                   Basic                 |      Demo     |
 |------------------|:------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
@@ -429,8 +429,8 @@ Here are the charging station parameters:
 Here are the default delivered locales:
 
 ```json
- "Locales": {
- 	"default": "en_US",
+  "Locales": {
+    "default": "en_US",
     "supported": [
       "en_US",
       "fr_FR",
@@ -439,7 +439,7 @@ Here are the default delivered locales:
       "pt_PT",
       "it_IT",
     ]
- },
+  },
 ```
 
 ## The Charging Stations
