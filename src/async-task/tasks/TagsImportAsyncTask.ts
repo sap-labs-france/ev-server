@@ -99,7 +99,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
                 detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
               });
-            } // Do we add a finally that delete tags if the error comes from "foundTag" ? for now the found tags are left as is in the importedTag collection
+            }
           }
           // Log
           if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {

@@ -761,10 +761,10 @@ export default class TagService {
     try {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
-        description: importedTag.description ? Utils.escapeCsvValue(importedTag.description) : `Badge ID '${importedTag.id}'`,
-        name: Utils.escapeCsvValue(importedTag.name.toUpperCase()),
-        firstName: Utils.escapeCsvValue(importedTag.firstName),
-        email: Utils.escapeCsvValue(importedTag.email),
+        description: importedTag.description ? Utils.unescapeCsvValue(importedTag.description) : `Badge ID '${importedTag.id}'`,
+        name: Utils.unescapeCsvValue(importedTag.name.toUpperCase()),
+        firstName: Utils.unescapeCsvValue(importedTag.firstName),
+        email: Utils.unescapeCsvValue(importedTag.email),
       };
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
@@ -778,6 +778,13 @@ export default class TagService {
         newImportedTag.email = '';
         newImportedTag.name = '';
         newImportedTag.firstName = '';
+        await Logging.logWarning({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'processTag',
+          action: action,
+          message: `User cannot be imported tag ${newImportedTag.id}`,
+          detailedMessages: { tag: newImportedTag, error: error.message, stack: error.stack }
+        });
       }
       // Save it later on
       tagsToBeImported.push(newImportedTag);

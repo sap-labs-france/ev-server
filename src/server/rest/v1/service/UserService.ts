@@ -1345,7 +1345,6 @@ export default class UserService {
         firstName: Utils.unescapeCsvValue(importedUser.firstName),
         email: Utils.unescapeCsvValue(importedUser.email),
       };
-
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties
