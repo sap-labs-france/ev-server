@@ -1,7 +1,7 @@
 import OCPPError from '../../exception/OcppError';
 import { ServerAction } from '../Server';
 
-export type OCPPRequest = [(payload?: Record<string, unknown>) => void, (reason?: OCPPError) => void];
+export type OCPPRequest = [(payload?: Record<string, unknown> | string) => void, (reason?: OCPPError) => void];
 
 export type OCPPIncomingRequest = [OCPPMessageType, string, ServerAction, Record<string, unknown> | string, Record<string, unknown>];
 

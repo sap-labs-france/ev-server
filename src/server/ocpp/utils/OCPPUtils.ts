@@ -1611,14 +1611,14 @@ export default class OCPPUtils {
       });
     }
     // Boot Notification accepted?
-    if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
-      throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Charging Station boot notification not accepted'
-      });
-    }
+    // if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
+    //   throw new BackendError({
+    //     source: ocppHeader.chargeBoxIdentity,
+    //     module: MODULE_NAME,
+    //     method: 'checkAndGetTenantAndChargingStation',
+    //     message: 'Charging Station boot notification not accepted'
+    //   });
+    // }
     return {
       tenant,
       chargingStation,
