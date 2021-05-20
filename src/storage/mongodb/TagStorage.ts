@@ -263,12 +263,20 @@ export default class TagStorage {
 
   public static async getTagByVisualID(tenantID: string, visualID: string,
       params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
-    const tagMDB = await TagStorage.getTags(tenantID, {
-      visualID: [visualID],
+    const tagMDB = await TagStorage.getTagByVisualIDs(tenantID, [visualID], {
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
+  }
+
+  public static async getTagByVisualIDs(tenantID: string, visualIDs: string[],
+      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
+    return await TagStorage.getTags(tenantID, {
+      visualIDs: visualIDs,
+      withUser: params.withUser,
+      withNbrTransactions: params.withNbrTransactions,
+    }, dbParams, projectFields);
   }
 
   public static async getFirstActiveUserTag(tenantID: string, userID: string,
@@ -294,8 +302,8 @@ export default class TagStorage {
 
   public static async getTags(tenantID: string,
       params: {
-        issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-        withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean, visualID?: string[]
+        issuer?: boolean; tagIDs?: string[]; visualIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+        withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTags');
@@ -324,8 +332,8 @@ export default class TagStorage {
       filters._id = { $in: params.tagIDs };
     }
     // Visual Tag IDs
-    if (!Utils.isEmptyArray(params.visualID)) {
-      filters.visualID = { $in: params.visualID };
+    if (!Utils.isEmptyArray(params.visualIDs)) {
+      filters.visualID = { $in: params.visualIDs };
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {

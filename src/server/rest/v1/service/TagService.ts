@@ -149,7 +149,7 @@ export default class TagService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
-        message: `Tag with ID '${filteredRequest.id}' already exists`,
+        message: `Tag with visual ID '${filteredRequest.id}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
         action: action
@@ -474,7 +474,7 @@ export default class TagService {
             if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
             }
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async (error: CSVError) => {
             // Release the lock
             await LockingManager.release(importTagsLock);
@@ -491,8 +491,8 @@ export default class TagService {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
               res.end();
             }
-            // Completed
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          // Completed
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async () => {
             // Consider the connection closed
             connectionClosed = true;
