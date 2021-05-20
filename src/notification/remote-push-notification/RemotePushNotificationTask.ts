@@ -371,12 +371,45 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
     // Get Message Text
-    const title = i18nManager.translate('notifications.billingNewInvoice.title');
-    const body = i18nManager.translate('notifications.billingNewInvoice.body',
-      { invoiceNumber: data.invoice.number });
+    let title: string;
+    let body: string;
+    if (data.invoiceStatus === 'paid') {
+      title = i18nManager.translate('notifications.billingNewInvoicePaid.title');
+      body = i18nManager.translate('notifications.billingNewInvoicePaid.body',
+        { invoiceNumber: data.invoiceNumber, amount: data.invoiceAmount });
+    } else {
+      // if status is 'open'
+      title = i18nManager.translate('notifications.billingNewInvoiceOpen.title');
+      body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
+        { invoiceNumber: data.invoiceNumber, amount: data.invoiceAmount });
+    }
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
-      title, body, user, { 'invoiceNumber': data.invoice.number.toString() }, severity);
+      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
+  }
+
+  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.billingNewInvoicePaid.title');
+    const body = i18nManager.translate('notifications.billingNewInvoicePaid.body',
+      { invoiceNumber: data.invoiceNumber });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
+      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
+  }
+
+  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // Get Message Text
+    const title = i18nManager.translate('notifications.billingNewInvoiceOpen.title');
+    const body = i18nManager.translate('notifications.billingNewInvoiceOpen.body',
+      { invoiceNumber: data.invoiceNumber });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_NEW_INVOICE,
+      title, body, user, { 'invoiceNumber': data.invoiceNumber }, severity);
   }
 
   public async sendAccountVerificationNotification(data: AccountVerificationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {

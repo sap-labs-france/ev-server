@@ -1007,6 +1007,11 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
+  // TODO uodate the route once we handle the payment ui and delete other unused urls
+  public static buildEvseBillingPayURL(tenantSubdomain: string, invoiceID: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
+  }
+
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
   }
@@ -1498,7 +1503,15 @@ export default class Utils {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  public static replaceDoubleQuotes(value: any): string {
-    return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
+  // when exporting values
+  public static escapeCsvValue(value: any): string {
+    // add double quote start and end
+    // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
+    return typeof value === 'string' ? '"' + value.replace(/"/g, '""') + '"' : value;
+  }
+
+  // when importing values
+  public static unescapeCsvValue(value: any): void {
+    // double quotes are handle by csvToJson
   }
 }

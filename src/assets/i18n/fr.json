@@ -138,9 +138,13 @@
       "title": "Profils de charge",
       "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
     },
-    "billingNewInvoice": {
-      "title": "Nouvelle facture",
-      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
+    "billingNewInvoicePaid": {
+      "title": "Nouvelle facture payée",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ a été payée et est maintenant disponible"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "Nouvelle facture a payer",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",

@@ -68,7 +68,7 @@ export default class ChargingStationService {
     let siteArea: SiteArea = null;
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
@@ -90,6 +90,16 @@ export default class ChargingStationService {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.public && !siteArea.site?.public) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: action,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          message: `Cannot set charging station ${chargingStation.id} attached to the non public site ${siteArea.site.name} public`,
+          module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+          user: req.user
+        });
+      }
       if (filteredRequest.public !== chargingStation.public) {
         // OCPI handling
         if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
@@ -102,7 +112,7 @@ export default class ChargingStationService {
               status = OCPIEvseStatus.REMOVED;
             }
             if (ocpiClient) {
-              await ocpiClient.udpateChargingStationStatus(chargingStation, status);
+              await ocpiClient.updateChargingStationStatus(chargingStation, status);
             }
           } catch (error) {
             await Logging.logError({
@@ -697,6 +707,8 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Backward compatibility for the mobile application
+    req.query.ChargeBoxID && (req.query.ChargingStationID = req.query.ChargeBoxID);
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationOcppParametersGetReq(req.query);
     // Check
@@ -1117,6 +1129,8 @@ export default class ChargingStationService {
   }
 
   public static async handleAction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Backward compatibility for the mobile application
+    req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice(15) as Command;
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
@@ -1455,7 +1469,7 @@ export default class ChargingStationService {
         Utils.replaceSpecialCharsInCSVValueParam(param.value),
         ocppParams.siteAreaName,
         ocppParams.siteName,
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1519,7 +1533,7 @@ export default class ChargingStationService {
         i18nManager.formatDateTime(chargingStation.lastReboot, 'L') + ' ' + i18nManager.formatDateTime(chargingStation.lastReboot, 'LT'),
         chargingStation.maximumPower,
         chargingStation.powerLimitUnit
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);

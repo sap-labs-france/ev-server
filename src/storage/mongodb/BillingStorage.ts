@@ -185,7 +185,8 @@ export default class BillingStorage {
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
       downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
-      downloadUrl: invoiceToSave.downloadUrl
+      downloadUrl: invoiceToSave.downloadUrl,
+      payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndUpdate(
