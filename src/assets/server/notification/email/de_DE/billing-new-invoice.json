@@ -1,10 +1,10 @@
 {
-  "subject": "Billing - New invoice",
+  "subject": "Neue Rechnung",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Billing - New invoice",
+      "title": "Neue Rechnung",
       "image": {
         "left": {
           "height": 60,
@@ -17,25 +17,25 @@
       }
     },
     "beforeActionLines": [
-      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Hallo <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "<% if(invoiceStatus === 'paid'){ %> Your invoice <%- invoiceNumber %> has been paid and is now available. <% } else { %> A new invoice is available : <%- invoiceNumber %>. <br/><br/> Please follow the link below to finalize the payment <% } %>"
+      "<% if(invoiceStatus === 'paid'){ %> Ihre Rechnung <%- invoiceNumber %> wurde bezahlt und ist jetzt verfügbar. <% } else { %> Eine neue Rechnung ist verfügbar : <%- invoiceNumber %>. <br/><br/> Bitte folgen Sie dem unten stehenden Link, um die Zahlung abzuschließen <% } %>"
     ],
     "stats": [
-      { "label": "Cost", "value": "<%- invoiceAmount %>€" }
+      { "label": "Kosten", "value": "<%- invoiceAmount %>€" }
     ],
     "actions": [{
-        "title": "Consult invoices list",
+        "title": "Rechnungen ansehen",
         "url": "<%- evseDashboardInvoiceURL %>"
       }, {
-        "title": "Download invoice",
+        "title": "Rechnung herunterladen",
         "url": "<%- invoiceDownloadUrl %>"
       }, {
-        "title": "Pay invoice",
+        "title": "Rechnung zahlen",
         "url": "<%- payInvoiceUrl %>"
       }],
     "afterActionLines": [
-      "Best Regards,",
+      "Mit freundlichen Grüßen",
       "EV Admins."
     ],
     "footer": {

@@ -652,7 +652,7 @@ export default class StatisticService {
           year && year !== '0' ? year : '',
           transaction.month > 0 ? transaction.month : '',
           dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransactions) : numberOfTransactions.toString()
-        ].map((value) => Utils.replaceDoubleQuotes(value));
+        ].map((value) => Utils.escapeCsvValue(value));
         return row;
       }).join(Constants.CR_LF);
       return [headers, rows].join(Constants.CR_LF);

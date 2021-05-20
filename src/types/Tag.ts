@@ -23,6 +23,9 @@ export interface ImportedTag {
   importedOn?: Date;
   status?: ImportStatus;
   errorDescription?: string;
+  name?: string;
+  firstName?: string;
+  email?: string;
 }
 
 export const TagRequiredImportProperties = [
