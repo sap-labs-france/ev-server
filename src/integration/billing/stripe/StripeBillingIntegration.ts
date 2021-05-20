@@ -970,7 +970,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billInvoiceItem',
-        message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id }'`
+        message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
       });
     }
     if (!stripeInvoice) {
@@ -988,7 +988,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
-          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id }'`,
+          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
           detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
         });
       }
