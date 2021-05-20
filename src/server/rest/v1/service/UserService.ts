@@ -1262,7 +1262,7 @@ export default class UserService {
       ];
       headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
-    // Content
+    // Conten t
     const rows = users.map((user) => {
       const row = [
         user.id,
@@ -1341,9 +1341,9 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: Utils.unescapeCsvValue(importedUser.name.toUpperCase()),
-        firstName: Utils.unescapeCsvValue(importedUser.firstName),
-        email: Utils.unescapeCsvValue(importedUser.email),
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);

@@ -761,10 +761,10 @@ export default class TagService {
     try {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
-        description: importedTag.description ? Utils.unescapeCsvValue(importedTag.description) : `Badge ID '${importedTag.id}'`,
-        name: Utils.unescapeCsvValue(importedTag.name.toUpperCase()),
-        firstName: Utils.unescapeCsvValue(importedTag.firstName),
-        email: Utils.unescapeCsvValue(importedTag.email),
+        description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
+        name: importedTag.name.toUpperCase(),
+        firstName: importedTag.firstName,
+        email: importedTag.email,
       };
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);

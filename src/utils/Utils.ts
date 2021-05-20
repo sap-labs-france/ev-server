@@ -1512,8 +1512,6 @@ export default class Utils {
 
   // when importing values
   public static unescapeCsvValue(value: any): string {
-    // starting and ending double quotes are handle by csvToJson
-    // replace double double quotes inside value into simple double quotes
-    return typeof value === 'string' ? value.replace(/""/g, '"') : value;
+    // double quotes are handle by csvToJson
   }
 }
