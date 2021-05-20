@@ -1511,7 +1511,7 @@ export default class Utils {
   }
 
   // when importing values
-  public static unescapeCsvValue(value: any): string {
+  public static unescapeCsvValue(value: any): void {
     // double quotes are handle by csvToJson
   }
 }
