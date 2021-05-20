@@ -1232,7 +1232,7 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkIfUserTagIsValid',
         user: req.user.id
       });
-        }
+    }
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;

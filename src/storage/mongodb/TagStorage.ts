@@ -117,8 +117,8 @@ export default class TagStorage {
   }
 
   public static async getImportedTags(tenantID: string,
-    params: { status?: ImportStatus; search?: string },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
+      params: { status?: ImportStatus; search?: string },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ImportedTag>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getImportedTags');
     // Check Tenant
@@ -252,7 +252,7 @@ export default class TagStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
@@ -262,7 +262,7 @@ export default class TagStorage {
   }
 
   public static async getTagByVisualID(tenantID: string, visualID: string,
-    params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       visualID: [visualID],
       withUser: params.withUser,
@@ -272,7 +272,7 @@ export default class TagStorage {
   }
 
   public static async getFirstActiveUserTag(tenantID: string, userID: string,
-    params: { issuer?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { issuer?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       userIDs: [userID],
       issuer: params.issuer,
@@ -282,7 +282,7 @@ export default class TagStorage {
   }
 
   public static async getDefaultUserTag(tenantID: string, userID: string,
-    params: { issuer?: boolean; active?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { issuer?: boolean; active?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       userIDs: [userID],
       issuer: params.issuer,
@@ -293,11 +293,11 @@ export default class TagStorage {
   }
 
   public static async getTags(tenantID: string,
-    params: {
-      issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-      withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean, visualID?: string[]
-    },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
+      params: {
+        issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+        withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean, visualID?: string[]
+      },
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTags');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);

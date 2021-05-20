@@ -144,7 +144,7 @@ export default class TagService {
       });
     }
     // Check Tag
-     tag = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
+    tag = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
