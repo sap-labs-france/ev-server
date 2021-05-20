@@ -258,7 +258,7 @@ export default class TagStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean, userIDs?: string[] } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,

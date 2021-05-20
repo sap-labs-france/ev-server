@@ -627,15 +627,15 @@ export default class TagService {
       // OCPI
       if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
         try {
-          const userTenant = await TenantStorage.getTenant(loggedUser.tenantID);
-          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(userTenant, OCPIRole.EMSP) as EmspOCPIClient;
+          const issuerTenant = await TenantStorage.getTenant(loggedUser.tenantID);
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(issuerTenant, OCPIRole.EMSP) as EmspOCPIClient;
           if (ocpiClient) {
             await ocpiClient.pushToken({
               uid: tag.id,
               type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
               auth_id: tag.userID,
               visual_number: tag.userID,
-              issuer: userTenant.name,
+              issuer: issuerTenant.name,
               valid: false,
               whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
               last_updated: new Date()
