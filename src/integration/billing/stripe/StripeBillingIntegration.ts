@@ -862,13 +862,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async _getLatestDraftInvoice(customerID: string): Promise<Stripe.Invoice> {
+  private async _getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
+    // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
+    // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
       customer: customerID,
       status: BillingInvoiceStatus.DRAFT,
       limit: 1
     });
-    return !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
+    const latestDraftInvoice = !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
+    // Check for the date
+    // We do not want to mix in the same invoice charging sessions from different months
+    if (latestDraftInvoice && moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
+      return latestDraftInvoice;
+    }
+    // The latest DRAFT invoice is too old - don't reuse it!
+    return null;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -941,8 +950,17 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
-    let stripeInvoice = await this._getLatestDraftInvoice(customerID);
-    // Let's create an invoice item (could be a pending one when the stripeInvoice does not yet exist)
+    let stripeInvoice: Stripe.Invoice;
+    if (this.settings.billing?.immediateBillingAllowed) {
+      // immediateBillingAllowed is ON - we want an invoice per transaction
+      // Because of some STRIPE constraints the invoice creation must be postpone!
+      stripeInvoice = null;
+    } else {
+      // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
+      stripeInvoice = await this._getLatestDraftInvoiceOfTheMonth(customerID);
+    }
+    // Let's create an invoice item
+    // When the stripeInvoice is null a pending item is created
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
     const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
     if (!stripeInvoiceItem) {
@@ -956,7 +974,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     }
     if (!stripeInvoice) {
-      // Let's create a new draft invoice (if none has been found)
+      // Let's create a new DRAFT invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
     let operationResult: BillingOperationResult;
@@ -970,7 +988,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
-          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
+          message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id }'`,
           detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
         });
       }
