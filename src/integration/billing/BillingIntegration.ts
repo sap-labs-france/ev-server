@@ -16,6 +16,7 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'BillingIntegration';
 
@@ -190,6 +191,19 @@ export default abstract class BillingIntegration {
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
+        // Make sure to avoid trying to charge it again too soon
+        if (moment(invoice.createdOn).isSame(moment(), 'day')) {
+          actionsDone.inSuccess++;
+          await Logging.logWarning({
+            tenantID: this.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.BILLING_CHARGE_INVOICE,
+            actionOnUser: invoice.user,
+            module: MODULE_NAME, method: 'chargeInvoices',
+            message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+          });
+          continue;
+        }
         await this.chargeInvoice(invoice);
         await Logging.logInfo({
           tenantID: this.tenantID,
