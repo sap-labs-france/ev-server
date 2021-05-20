@@ -134,7 +134,7 @@
       {
         "name": "BillingPeriodicOperationTask",
         "active": false,
-        "periodicity": "0 0 * * *",
+        "periodicity": "0 1 1 * *",
         "config": {}
       },
       {
