@@ -40,7 +40,6 @@ const MODULE_NAME = 'CpoOICPClient';
 
 export default class CpoOICPClient extends OICPClient {
 
-
   constructor(tenant: Tenant, settings: OicpSetting, oicpEndpoint: OICPEndpoint) {
     super(tenant, settings, oicpEndpoint, OICPRole.CPO);
     if (oicpEndpoint.role !== OICPRole.CPO) {

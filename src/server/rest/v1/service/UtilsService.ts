@@ -1290,6 +1290,16 @@ export default class UtilsService {
         user: req.user.id
       });
     }
+    // Check badge visual ID
+    if (!tag.visualID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Tag visual ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfUserTagIsValid',
+        user: req.user.id
+      });
+    }
     // Check description
     if (!tag.description) {
       tag.description = `Tag ID '${tag.id}'`;

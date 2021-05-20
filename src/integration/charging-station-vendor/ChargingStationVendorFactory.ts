@@ -83,7 +83,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.CIRCONTROL:
         chargingStationVendorImpl = new CIRCONTROLChargingStationVendorIntegration(chargingStation);
         break;
-      // FIXME: adding a default vendor class to only require a vendor class when existing methods need adaptation needs more work
+      // FIXME: adding a default vendor class to only require a vendor class when existing methods need more adaptation to work
       // default:
       //   chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
       //   break;
