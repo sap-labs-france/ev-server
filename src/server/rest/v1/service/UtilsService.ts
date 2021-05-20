@@ -128,6 +128,30 @@ export default class UtilsService {
     return chargingStations.result;
   }
 
+  public static async checkAndGetUsersAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
+    // Check dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant, userToken, {});
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.USERS,
+        module: MODULE_NAME, method: 'checkAndGetUsersAuthorization',
+      });
+    }
+    // Get Users
+    const users = await UserStorage.getUsers(tenant.id,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    return users.result;
+  }
+
   public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken,action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
     // Check dynamic auth
@@ -261,12 +285,12 @@ export default class UtilsService {
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      tenant, userToken, { ID: siteID });
+      tenant, userToken, { ID: siteID }, authAction);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: Action.READ, entity: Entity.SITE,
+        action: authAction, entity: Entity.SITE,
         module: MODULE_NAME, method: 'checkAndGetSiteAuthorization',
         value: siteID
       });
@@ -333,17 +357,11 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Get Users
-    const users = await UserStorage.getUsers(tenant.id,
-      {
-        userIDs,
-        ...additionalFilters,
-        ...authorizationFilter.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizationFilter.projectFields : null
-    );
+    // Get users
+    const users = await this.checkAndGetUsersAuthorization(tenant, userToken, action,
+      { userIDs, ...additionalFilters }, applyProjectFields);
     // Must have the same result
-    if (userIDs.length !== users.result.length) {
+    if (userIDs.length !== users.length) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
@@ -353,7 +371,7 @@ export default class UtilsService {
       });
     }
     // Check
-    for (const user of users.result) {
+    for (const user of users) {
       // External User
       if (!user.issuer) {
         throw new AppError({
@@ -367,7 +385,7 @@ export default class UtilsService {
         });
       }
     }
-    return users.result;
+    return users;
   }
 
   public static async checkSiteAreaAssetsAuthorization(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, assetIDs: string[],

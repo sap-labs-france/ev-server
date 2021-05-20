@@ -58,40 +58,24 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpSiteRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteRequest>, authAction: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
       authorized: false,
     };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authResult = await Authorizations.canReadSite(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'checkAndGetSiteAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.SITE,
-      authorizationFilters, authorizationContext, { SiteID: filteredRequest.ID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, authAction,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter,
       filteredRequest: HttpSitesRequest): Promise<void> {
     // Add canCreate flag to root
-    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE, authorizationFilter);
-
+    sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
+      authorizationFilter);
     // Enrich
     for (const site of sites.result) {
       await AuthorizationService.addSiteAuthorizations(tenant, userToken, site, authorizationFilter, filteredRequest);
@@ -126,8 +110,8 @@ export default class AuthorizationService {
     }
   }
 
-  public static async checkAndGetSitesAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetSitesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -135,8 +119,8 @@ export default class AuthorizationService {
       authorized: false,
     };
     // Check static & dynamic authorization
-    await this.canPerformAuthorizationAction(
-      tenant, userToken, Entity.SITES, Action.LIST, authorizationFilters, filteredRequest);
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.SITES, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
@@ -148,30 +132,14 @@ export default class AuthorizationService {
       projectFields: [ ],
       authorized: false,
     };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authResult = await Authorizations.canListUsersSites(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.READ, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkAndGetSiteUsersAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.USERS_SITES,
-      authorizationFilters, authorizationContext, { SiteID: filteredRequest.SiteID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
-  public static async checkAndGetUserSitesAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetUserSitesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -181,49 +149,29 @@ export default class AuthorizationService {
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields, filteredRequest.ProjectFields);
     // Handle Sites
-    await AuthorizationService.checkAssignedSiteAdminsAndOwners(
-      tenant, userToken, null, authorizationFilters);
+    await AuthorizationService.checkAssignedSiteAdminsAndOwners(tenant, userToken, null, authorizationFilters);
     return authorizationFilters;
   }
 
-  public static async checkAssignSiteUsersAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
+  public static async checkAssignSiteUsersAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
+      filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
       authorized: false,
     };
-    // Check static auth
-    const authorizationContext: AuthorizationContext = {};
-    const authResult = action === ServerAction.ADD_USERS_TO_SITE ?
-      await Authorizations.canAssignUsersSites(userToken, authorizationContext) :
-      await Authorizations.canUnassignUsersSites(userToken, authorizationContext);
-    authorizationFilters.authorized = authResult.authorized;
-    // Check
-    if (!authorizationFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'checkAssignSiteUsersAuthorizationFilters',
-      });
-    }
-    // Process dynamic filters
-    await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.SITE,
-      authorizationFilters, authorizationContext, { SiteID: filteredRequest.siteID });
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+    // Check static & dynamic authorization
+    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, authAction,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
-  public static async checkAssignSiteAreaAssetsAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, siteArea: SiteArea, filteredRequest: HttpAssignAssetsToSiteAreaRequest): Promise<AuthorizationFilter> {
+  public static async checkAssignSiteAreaAssetsAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
+      siteArea: SiteArea, filteredRequest: HttpAssignAssetsToSiteAreaRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -302,8 +250,8 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetUsersInErrorAuthorizationFilters(
-      tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetUsersInErrorAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -314,39 +262,42 @@ export default class AuthorizationService {
       authorized: userToken.role === UserRole.ADMIN,
     };
     // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authorizationFilters.projectFields, filteredRequest.ProjectFields);
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields,
+      filteredRequest.ProjectFields);
     // Get authorization filters from users
-    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
-      tenant, userToken, filteredRequest);
+    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant,
+      userToken, filteredRequest);
     // Override
     authorizationFilters.authorized = usersAuthorizationFilters.authorized;
     authorizationFilters.filters = usersAuthorizationFilters.filters;
     return authorizationFilters;
   }
 
-  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[], authorizationFilter: AuthorizationFilter): Promise<void> {
+  public static async addUsersAuthorizations(tenant: Tenant, userToken: UserToken, users: User[],
+      authorizationFilter: AuthorizationFilter): Promise<void> {
     // Enrich
     for (const user of users) {
       await AuthorizationService.addUserAuthorizations(tenant, userToken, user, authorizationFilter);
     }
   }
 
-  public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User, authorizationFilter: AuthorizationFilter): Promise<void> {
+  public static async addUserAuthorizations(tenant: Tenant, userToken: UserToken, user: User,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
     // Enrich
     if (!user.issuer) {
       user.canRead = true;
       user.canUpdate = false;
       user.canDelete = false;
     } else {
-      user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ, authorizationFilter);
+      user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ,
+        authorizationFilter);
       user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
       user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
     }
   }
 
   public static async checkAndGetUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest?: HttpUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -398,8 +349,8 @@ export default class AuthorizationService {
     await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.USER,
       authorizationFilters, authorizationContext, { UserID: filteredRequest.ID });
     // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authResult.fields,
+      filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
@@ -473,7 +424,8 @@ export default class AuthorizationService {
   public static async addCompaniesAuthorizations(tenant: Tenant, userToken: UserToken,
       companies: CompanyDataResult, authorizationFilter: AuthorizationFilter): Promise<void> {
     // Add canCreate flag to root
-    companies.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE, authorizationFilter);
+    companies.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.COMPANY, Action.CREATE,
+      authorizationFilter);
     // Enrich
     for (const company of companies.result) {
       await AuthorizationService.addCompanyAuthorizations(tenant, userToken, company, authorizationFilter);
@@ -518,8 +470,8 @@ export default class AuthorizationService {
     await AuthorizationService.processDynamicFilters(tenant, userToken, Action.READ, Entity.COMPANY,
       authorizationFilters, authorizationContext, { CompanyID: filteredRequest.ID });
     // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(
-      authResult.fields, filteredRequest.ProjectFields);
+    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authResult.fields,
+      filteredRequest.ProjectFields);
     return authorizationFilters;
   }
 
