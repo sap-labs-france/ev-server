@@ -6,6 +6,7 @@ import User from './User';
 export default interface Tag extends CreatedUpdatedProps {
   id: string;
   description?: string;
+  visualID?: string;
   issuer: boolean;
   active: boolean;
   userID?: string;
