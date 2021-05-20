@@ -558,7 +558,7 @@ export default class UtilsService {
     // Check Users
     // Get authorization filters for users
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
-      tenant, userToken);
+      tenant, userToken, {});
     if (!authorizationUsersFilters.authorized) {
       delete tag.userID;
       delete tag.user;

@@ -709,7 +709,7 @@ export default class TagService {
     }
     // Get authorization filters for users
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
-      req.tenant, req.user);
+      req.tenant, req.user, {});
     if (authorizationUsersFilters.authorized) {
       authorizationTagsFilters.projectFields.push('userID', 'user.id', 'user.name', 'user.firstName', 'user.email',
         'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName');

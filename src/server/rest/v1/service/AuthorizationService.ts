@@ -688,7 +688,7 @@ export default class AuthorizationService {
         const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
         const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
-          // Force the filterß
+          // Force the filters
           authorizationFilters.filters.siteIDs = allSites;
           // Check if filter is provided
           if (filteredRequest?.SiteID) {
