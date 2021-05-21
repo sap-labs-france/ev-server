@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingStopSiteArea": "Consommation de {{totalConsumption}} kWh sur la zone {{siteArea}} (terminé à {{time}})",
-    "chargingStopChargeBox": "Consommation de {{totalConsumption}} kWh à la borne {{chargeBox}} (terminé à {{time}})"
+    "chargingAtSiteArea": "Session : {{sessionID}} - Date : {{startDate}} at {startTime} - Energie Consommée : {{totalConsumption}} kWh sur le zone {{siteAreaName}}",
+    "chargingAtChargeBox": "Session : {{sessionID}} - Date : {{startDate}} at {{startTime}} - Energie Consommée : {{totalConsumption}} kWh à la borne {{chargeBoxID}}",
+    "chargingStopSiteArea": "Consommation de {{totalConsumption}} kWh sur la zone {{siteAreaName}} (terminé à {{stopTime}})",
+    "chargingStopChargeBox": "Consommation de {{totalConsumption}} kWh à la borne {{chargeBoxID}} (terminé à {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Numéro de série de la borne",

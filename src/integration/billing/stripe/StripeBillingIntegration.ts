@@ -771,6 +771,27 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
+  private _buildInvoiceItemParkTimeParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
+    const { parkingData, taxes } = billingInvoiceItem;
+    const currency = parkingData.pricingData.currency.toLowerCase();
+    // Build stripe parameters for the parking time
+    const parameters: Stripe.InvoiceItemCreateParams = {
+      invoice: invoiceID,
+      customer: customerID,
+      currency,
+      description: parkingData.description,
+      tax_rates: taxes,
+      // quantity: 1, //Cannot be set separately
+      amount: new Decimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      metadata: { ...billingInvoiceItem?.metadata }
+    };
+    if (!parameters.invoice) {
+      // STRIPE throws an exception when invoice is set to null.
+      delete parameters.invoice;
+    }
+    return parameters;
+  }
+
   private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
@@ -942,6 +963,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
         end: timestamp?.valueOf()
       }
     };
+    // Add Parking Time information
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME)) {
+      // TODO - draft implementation - behind a feature toggle - not yet activated
+      billingInvoiceItem.parkingData = {
+        description: this.buildLineItemParkingTimeDescription(transaction),
+        pricingData: {
+          quantity: 1,
+          amount: 0,
+          currency
+        }
+      };
+    }
+    // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
 
@@ -961,8 +995,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's create an invoice item
     // When the stripeInvoice is null a pending item is created
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME) && billingInvoiceItem.parkingData) {
+      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParkTimeParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
+      const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'parkTime'));
+      if (!stripeInvoiceItem) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          user: user.id,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billInvoiceItem',
+          message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
+        });
+      }
+    }
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
+    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
     if (!stripeInvoiceItem) {
       await Logging.logError({
         tenantID: this.tenantID,
@@ -1001,37 +1049,64 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string, forLineItem = false): string {
+  private buildIdemPotencyKey(uniqueId: string, prefix = 'invoice'): string {
     if (uniqueId) {
-      return (forLineItem) ? 'item_' + uniqueId : 'invoice_' + uniqueId;
+      return `${prefix}_${uniqueId}`;
     }
     return null;
   }
 
+  private buildLineItemParkingTimeDescription(transaction: Transaction) {
+    const sessionID = String(transaction?.id);
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO - behind a feature toggle - translate it before activating the feature
+    // TODO - handle the corresponding pricing - for now this is free!
+    const description = `Charging Session: ${sessionID} - Free parking time: ${timeSpent}`;
+    return description;
+  }
+
   private buildLineItemDescription(transaction: Transaction) {
-    let description: string;
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+    const sessionID = String(transaction?.id);
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
     const consumptionkWh = this.convertConsumptionToKWh(transaction);
-
-    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      description = i18nManager.translate('billing.chargingStopSiteArea', {
-        totalConsumption: consumptionkWh,
-        siteArea:
-        chargeBox.siteArea,
-        time: time
-      });
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO: Determine the description pattern to use according to the billing settings
+    let descriptionPattern;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_START_DATE)) {
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
     } else {
-      description = i18nManager.translate('billing.chargingStopChargeBox', {
-        totalConsumption: consumptionkWh, chargeBox: transaction.chargeBoxID, time: time
-      });
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingStopSiteArea' : 'billing.chargingStopChargeBox';
     }
+    // Get the translated line item description
+    const description = i18nManager.translate(descriptionPattern, {
+      sessionID,
+      startDate,
+      startTime,
+      timeSpent,
+      totalConsumption: consumptionkWh,
+      siteAreaName: chargeBox?.siteArea?.name,
+      chargeBoxID: transaction?.chargeBoxID,
+      stopTime,
+    });
     return description;
   }
 
   private convertConsumptionToKWh(transaction: Transaction): number {
     return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
