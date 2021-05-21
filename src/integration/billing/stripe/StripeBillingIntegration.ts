@@ -771,6 +771,27 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
+  private _buildInvoiceItemParkTimeParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
+    const { parkingData, taxes } = billingInvoiceItem;
+    const currency = parkingData.pricingData.currency.toLowerCase();
+    // Build stripe parameters for the parking time
+    const parameters: Stripe.InvoiceItemCreateParams = {
+      invoice: invoiceID,
+      customer: customerID,
+      currency,
+      description: parkingData.description,
+      tax_rates: taxes,
+      // quantity: 1, //Cannot be set separately
+      amount: new Decimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      metadata: { ...billingInvoiceItem?.metadata }
+    };
+    if (!parameters.invoice) {
+      // STRIPE throws an exception when invoice is set to null.
+      delete parameters.invoice;
+    }
+    return parameters;
+  }
+
   private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
@@ -942,6 +963,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
         end: timestamp?.valueOf()
       }
     };
+    // Add Parking Time information
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME)) {
+      // TODO - draft implementation - behind a feature toggle - not yet activated
+      billingInvoiceItem.parkingData = {
+        description: this.buildLineItemParkingTimeDescription(transaction),
+        pricingData: {
+          quantity: 1,
+          amount: 0,
+          currency
+        }
+      };
+    }
+    // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
 
@@ -961,8 +995,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Let's create an invoice item
     // When the stripeInvoice is null a pending item is created
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME) && billingInvoiceItem.parkingData) {
+      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParkTimeParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
+      const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'parkTime'));
+      if (!stripeInvoiceItem) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          user: user.id,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billInvoiceItem',
+          message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
+        });
+      }
+    }
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
+    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
     if (!stripeInvoiceItem) {
       await Logging.logError({
         tenantID: this.tenantID,
@@ -1001,11 +1049,20 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string, forLineItem = false): string {
+  private buildIdemPotencyKey(uniqueId: string, prefix:string = null): string {
     if (uniqueId) {
-      return (forLineItem) ? 'item_' + uniqueId : 'invoice_' + uniqueId;
+      return (prefix ? prefix + '_' + uniqueId : 'invoice_' + uniqueId);
     }
     return null;
+  }
+
+  private buildLineItemParkingTimeDescription(transaction: Transaction) {
+    const sessionID = String(transaction?.id);
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO - behind a feature toggle - translate it before activating the feature
+    // TODO - handle the corresponding pricing - for now this is free!
+    const description = `Charging Session: ${sessionID} - Free parking time: ${timeSpent}`;
+    return description;
   }
 
   private buildLineItemDescription(transaction: Transaction) {
