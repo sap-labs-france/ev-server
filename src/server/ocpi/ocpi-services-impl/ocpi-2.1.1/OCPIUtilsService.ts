@@ -913,7 +913,7 @@ export default class OCPIUtilsService {
         endedAt: new Date(session.last_updated),
         consumptionWh: transaction.currentConsumptionWh,
         instantWatts: Math.floor(transaction.currentInstantWatts),
-        instantAmps: Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
+        instantAmps: Math.floor(transaction.currentInstantAmps) ?? Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
         cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
         cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / Voltage.VOLTAGE_230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
