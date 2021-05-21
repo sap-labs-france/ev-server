@@ -136,6 +136,10 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('billing-invoice-synchronization-failed', data, user, tenant, severity);
   }
 
+  public async sendBillingPeriodicOperationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
+  }
+
   // TODO : Delete sendBillingNewInvoice ??
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-new-invoice', data, user, tenant, severity);

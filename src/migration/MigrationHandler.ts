@@ -16,6 +16,7 @@ import AddSiteIDToChargingStationTask from './tasks/AddSiteIDToChargingStationTa
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import AddUserInTransactionsTask from './tasks/AddUserInTransactionsTask';
+import AddVisualIDPropertyToTagsTask from './tasks/AddVisualIDPropertyToTagsTask';
 import AlignTagsWithUsersIssuerTask from './tasks/AlignTagsWithUsersIssuerTask';
 import ChangeAssetIssuerFieldTask from './tasks/ChangeAssetIssuerFieldTask';
 import ChangeCryptoKeyTask from './tasks/ChangeCryptoKeyTask';
@@ -129,6 +130,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new CleanUpLogicallyDeletedUsersTask());
         currentMigrationTasks.push(new CleanUpCarUsersWithDeletedUsersTask());
         currentMigrationTasks.push(new ChangeAssetIssuerFieldTask());
+        currentMigrationTasks.push(new AddVisualIDPropertyToTagsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

@@ -1,5 +1,5 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
-import { BillingInvoiceSynchronizationTaskConfig } from '../../types/TaskConfig';
+import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -9,21 +9,21 @@ import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
-export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, taskConfig: BillingInvoiceSynchronizationTaskConfig): Promise<void> {
+export default class BillingPeriodicOperationTask extends SchedulerTask {
+  async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
     // Get the lock
-    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(tenant.id);
+    const billingLock = await LockingHelper.createBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
         if (billingImpl) {
-          // Synchronize new Invoices and Invoices changes
-          const synchronizeActionResults = await billingImpl.synchronizeInvoices();
-          if (synchronizeActionResults.inError > 0) {
-            await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
+          // Attempt to finalize and pay invoices
+          const chargeActionResults = await billingImpl.chargeInvoices();
+          if (chargeActionResults.inError > 0) {
+            await NotificationHandler.sendBillingPeriodicOperationFailed(
               tenant.id,
               {
-                nbrInvoicesInError: synchronizeActionResults.inError,
+                nbrInvoicesInError: chargeActionResults.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
                 evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
               }
@@ -32,7 +32,7 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
         }
       } catch (error) {
         // Log error
-        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SYNCHRONIZE_INVOICES, error);
+        await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_PERFORM_OPERATIONS, error);
       } finally {
         // Release the lock
         await LockingManager.release(billingLock);
