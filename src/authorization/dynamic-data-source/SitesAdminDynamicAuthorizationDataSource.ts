@@ -12,11 +12,11 @@ export default class SitesAdminDynamicAuthorizationDataSource
   }
 
   public async loadData(): Promise<void> {
-    const assignedSitesCompaniesData: SitesAdminDynamicAuthorizationDataSourceData = {};
+    const sitesAdminData: SitesAdminDynamicAuthorizationDataSourceData = {};
     // Get Site IDs from Site Admin flag
-    assignedSitesCompaniesData.siteIDs = await this.getSitesAdminSiteIDs();
+    sitesAdminData.siteIDs = await this.getSitesAdminSiteIDs();
     // Set
-    this.setData(assignedSitesCompaniesData);
+    this.setData(sitesAdminData);
   }
 
   private async getSitesAdminSiteIDs(): Promise<string[]> {

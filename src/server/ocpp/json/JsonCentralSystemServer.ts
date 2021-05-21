@@ -47,7 +47,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     const id = `${tenantID}~${chargingStationID}`;
     // Get the Json Web Socket
     let jsonWebSocket: JsonWSConnection;
-    for (const [wsClientID, wsClient] of this.jsonChargingStationClients) {
+    const jsonChargingStationClientsReversedMap = new Map<string, JsonWSConnection>(Array.from(this.jsonChargingStationClients).reverse());
+    for (const [wsClientID, wsClient] of jsonChargingStationClientsReversedMap) {
       if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
         jsonWebSocket = wsClient;
         break;
