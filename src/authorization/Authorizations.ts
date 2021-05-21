@@ -10,6 +10,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
+import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
@@ -876,6 +877,7 @@ export default class Authorizations {
       // Create the tag as inactive
       tag = {
         id: tagID,
+        visualID: Cypher.hash(tagID),
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
