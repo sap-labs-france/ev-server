@@ -1,4 +1,5 @@
 import AssetGetConsumptionTask from './tasks/AssetGetConsumptionTask';
+import BillingPeriodicOperationTask from './tasks/BillingPeriodicOperationTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 import CheckChargingStationTemplateTask from './tasks/CheckChargingStationTemplateTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
@@ -115,6 +116,9 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeBillingInvoicesTask':
             schedulerTask = new SynchronizeBillingInvoicesTask();
+            break;
+          case 'BillingPeriodicOperationTask':
+            schedulerTask = new BillingPeriodicOperationTask();
             break;
           case 'SynchronizeCarsTask':
             schedulerTask = new SynchronizeCarsTask();
