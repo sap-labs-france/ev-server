@@ -30,7 +30,8 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.SITE
+      Entity.SITE,
+      Entity.USERS
     ];
   }
 

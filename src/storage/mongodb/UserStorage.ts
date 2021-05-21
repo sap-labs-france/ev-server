@@ -234,6 +234,7 @@ export default class UserStorage {
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
         sendBillingSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingSynchronizationFailed) : false,
+        sendBillingPeriodicOperationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingPeriodicOperationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
         sendCarCatalogSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarCatalogSynchronizationFailed) : false,
         sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
@@ -532,7 +533,7 @@ export default class UserStorage {
         includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date;
+        notifications?: any; noLoginSince?: Date; tagIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -638,6 +639,15 @@ export default class UserStorage {
       // Add
       aggregation.push({
         $match: notAssignedToCarIDFilter
+      });
+    }
+    // Add Tags
+    if (params.tagIDs) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
+      });
+      aggregation.push({
+        $match: { 'tag.id': { $in: params.tagIDs } }
       });
     }
     // Add Site
@@ -1072,6 +1082,7 @@ export default class UserStorage {
         sendSmtpError: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
+        sendBillingPeriodicOperationFailed: false,
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,

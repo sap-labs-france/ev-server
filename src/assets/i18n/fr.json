@@ -130,6 +130,10 @@
       "title": "Synchro factures",
       "body": "Impossible de synchroniser {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Opération de facturation périodique",
+      "body": "Le traitement de {{nbrInvoicesInError}} facture(s) a échoué dans l'organisation '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Profils de charge",
       "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"

@@ -43,6 +43,7 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTag');
     const tagMDB = {
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
       name: importedTagToSave.name,
       firstName: importedTagToSave.firstName,
@@ -66,6 +67,7 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTags');
     const importedTagsToSaveMDB: any = importedTagsToSave.map((importedTagToSave) => ({
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
       name: importedTagToSave.name,
       firstName: importedTagToSave.firstName,
@@ -258,11 +260,12 @@ export default class TagStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
+      userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }

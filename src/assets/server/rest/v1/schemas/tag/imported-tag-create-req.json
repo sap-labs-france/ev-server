@@ -11,10 +11,14 @@
     },
     "description": {
       "type": "string"
+    },
+    "visualID": {
+      "type": "string"
     }
   },
   "required": [
     "id",
+    "visualID",
     "description"
   ]
 }
