@@ -1049,9 +1049,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string, prefix:string = null): string {
+  private buildIdemPotencyKey(uniqueId: string, prefix = 'invoice'): string {
     if (uniqueId) {
-      return (prefix ? prefix + '_' + uniqueId : 'invoice_' + uniqueId);
+      return `${prefix}_${uniqueId}`;
     }
     return null;
   }
