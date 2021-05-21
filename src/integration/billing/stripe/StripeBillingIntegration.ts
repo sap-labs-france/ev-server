@@ -985,6 +985,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private buildLineItemDescription(transaction: Transaction) {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
+    const sessionID = String(transaction?.id);
     const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
     const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LTS');
     const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
@@ -999,13 +1000,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Get the translated line item description
     const description = i18nManager.translate(descriptionPattern, {
+      sessionID,
       startDate,
       startTime,
       timeSpent,
       totalConsumption: consumptionkWh,
-      siteArea: chargeBox?.siteArea?.name,
-      chargeBox: transaction?.chargeBoxID,
-      time: stopTime,
+      siteAreaName: chargeBox?.siteArea?.name,
+      chargeBoxID: transaction?.chargeBoxID,
+      stopTime,
     });
     return description;
   }
