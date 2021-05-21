@@ -43,6 +43,7 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTag');
     const tagMDB = {
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
       name: importedTagToSave.name,
       firstName: importedTagToSave.firstName,
@@ -66,6 +67,7 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTags');
     const importedTagsToSaveMDB: any = importedTagsToSave.map((importedTagToSave) => ({
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
       name: importedTagToSave.name,
       firstName: importedTagToSave.firstName,

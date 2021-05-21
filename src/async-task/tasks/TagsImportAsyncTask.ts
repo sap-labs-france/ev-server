@@ -48,7 +48,8 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
           for (const importedTag of importedTags.result) {
             try {
               // Existing tags
-              const foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
+              let foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
+              foundTag = foundTag ? foundTag : await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID);
               if (foundTag) {
                 // Check tag is already in use
                 if (!foundTag.issuer) {
@@ -63,11 +64,15 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 if (foundTag.transactionsCount > 0) {
                   throw new Error(`Tag is already used in ${foundTag.transactionsCount} transaction(s)`);
                 }
+                if (foundTag.id !== importedTag.id) {
+                  throw new Error('Tag VisualID is already assigned to another tag');
+                }
                 tagToSave = { ...foundTag, ...importedTag };
               } else {
                 // New Tag
                 tagToSave = {
                   id: importedTag.id,
+                  visualID: importedTag.visualID,
                   description: importedTag.description,
                   issuer: true,
                   active: false,
@@ -132,7 +137,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
 
   private async assignTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
     // Save user if any and get the ID to assign tag
-    const foundUser = await UserStorage.getUserByEmail(tenant.id,importedTag.email);
+    const foundUser = await UserStorage.getUserByEmail(tenant.id, importedTag.email);
     if (!foundUser) {
       const user = {
         name: importedTag.name,
