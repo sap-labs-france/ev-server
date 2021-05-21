@@ -776,6 +776,7 @@ export default class TagService {
     try {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
+        visualID: importedTag.visualID,
         description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
         name: importedTag.name.toUpperCase(),
         firstName: importedTag.firstName,

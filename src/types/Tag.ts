@@ -18,6 +18,7 @@ export default interface Tag extends CreatedUpdatedProps {
 
 export interface ImportedTag {
   id: string;
+  visualID?: string;
   description: string;
   importedBy?: string;
   importedOn?: Date;
