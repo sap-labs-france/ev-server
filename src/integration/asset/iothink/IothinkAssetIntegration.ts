@@ -29,6 +29,10 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   }
 
   public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
+      return [];
+    }
     // Set new Token
     const token = await this.connect();
     // Calculate timestamp of the last consumption in seconds from 1.1.2000, if not available get start of day
