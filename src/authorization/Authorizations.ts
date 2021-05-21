@@ -316,8 +316,8 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.LIST, authContext);
   }
 
-  public static async canListUsers(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
+  public static async canListUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.LIST, authContext);
   }
 
   public static async canListUsersInErrors(loggedUser: UserToken): Promise<boolean> {
@@ -344,12 +344,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
-  public static async canImportTags(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
+  public static async canImportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.TAGS, Action.IMPORT, authContext);
+    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
-  public static async canExportTags(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.EXPORT);
+  public static async canExportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.TAGS, Action.EXPORT, authContext);
+    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.EXPORT);
   }
 
   public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
