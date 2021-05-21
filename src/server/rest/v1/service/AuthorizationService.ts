@@ -723,7 +723,9 @@ export default class AuthorizationService {
 
   private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, action: Action, entity: Entity,
       authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, extraFilters?: Record<string, any>): Promise<void> {
-    if (!Utils.isEmptyArray(authorizationContext.filters)) {
+    // TODO: find a better way to address filter overlapping in case one user has multiple roles (like admin+siteOwner)
+    // userToken.role !== UserRole.ADMIN check should be removed then
+    if (userToken.role !== UserRole.ADMIN && !Utils.isEmptyArray(authorizationContext.filters)) {
       for (const filter of authorizationContext.filters) {
         // Reset to false
         authorizationFilters.authorized = false;
