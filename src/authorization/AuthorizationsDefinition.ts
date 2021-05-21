@@ -63,14 +63,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TAGS, action: Action.LIST, attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ]
       },
       { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT], attributes: ['*'] },
       {
         resource: Entity.TAG, action: Action.READ, attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
         ]
       },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -334,7 +334,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TAGS, action: Action.LIST, attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ],
         condition: {
@@ -344,7 +344,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TAG, action: Action.READ, attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
