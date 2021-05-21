@@ -509,8 +509,7 @@ export default class OCPPUtils {
       transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
     }
     transaction.currentTotalDurationSecs = moment.duration(
-      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(
-        moment(transaction.timestamp))).asSeconds();
+      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(moment(transaction.timestamp))).asSeconds();
     transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
@@ -619,7 +618,7 @@ export default class OCPPUtils {
             chargeBoxID: transaction.chargeBoxID,
           };
           // Create last meter values based on history of transaction/stopTransaction
-          const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
+          const stopMeterValues = await OCPPUtils.createTransactionStopMeterValues(tenant.id, transaction, stopTransaction);
           // Create last consumption
           const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
             tenant.id, chargingStation, transaction, stopMeterValues);
@@ -695,10 +694,9 @@ export default class OCPPUtils {
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
-  public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
-      user: User, alternateUser: User, tagId: string): void {
+  public static updateTransactionWithStopTransactionAndStopMeterValues(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
+      stopMeterValues: OCPPNormalizedMeterValue[], user: User, alternateUser: User, tagId: string): void {
     // Handle Signed Data
-    const stopMeterValues = this.createTransactionStopMeterValues(transaction, stopTransaction);
     for (const meterValue of (stopMeterValues)) {
       this.updateSignedData(transaction, meterValue);
     }
@@ -717,8 +715,8 @@ export default class OCPPUtils {
     };
   }
 
-  public static createTransactionStopMeterValues(transaction: Transaction,
-      stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
+  public static async createTransactionStopMeterValues(tenantID: string, transaction: Transaction,
+      stopTransaction: OCPPStopTransactionRequestExtended): Promise<OCPPNormalizedMeterValue[]> {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
       chargeBoxID: transaction.chargeBoxID,
@@ -726,7 +724,7 @@ export default class OCPPUtils {
       transactionId: transaction.id,
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
     };
-    let id = 696969;
+    let id = Utils.getRandomIntSafe();
     // Energy
     stopMeterValues.push({
       id: (id++).toString(),
@@ -822,7 +820,9 @@ export default class OCPPUtils {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: (transaction.currentInstantAmps ? transaction.currentInstantAmps : transaction.currentInstantAmpsDC),
+        value: (transaction.currentInstantAmps
+          ? transaction.currentInstantAmps / Utils.getNumberOfConnectedPhases(await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID), null, transaction.connectorId)
+          : transaction.currentInstantAmpsDC),
         attribute: Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE
       });
     }
@@ -900,8 +900,7 @@ export default class OCPPUtils {
       // Meter Value Handling
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.createConsumptionFromMeterValue(
-          tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
+        const consumption: Consumption = await this.createConsumptionFromMeterValue(tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
         if (consumption) {
           // Existing Consumption created?
           const existingConsumption = consumptions.find(
@@ -1034,7 +1033,8 @@ export default class OCPPUtils {
                 consumption.instantAmpsL3 = amperage;
                 break;
               default:
-                consumption.instantAmps = amperage;
+                // MeterValue Current.Import is per phase and consumption currentInstantAmps attribute expect the total amperage
+                consumption.instantAmps = amperage * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId);
                 break;
             }
             break;

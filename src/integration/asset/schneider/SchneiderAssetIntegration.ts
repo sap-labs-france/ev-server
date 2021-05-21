@@ -38,7 +38,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
           headers: this.buildAuthHeader(token)
         }
       );
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
