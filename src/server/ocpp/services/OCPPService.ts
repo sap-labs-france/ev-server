@@ -951,7 +951,7 @@ export default class OCPPService {
         }
       }
       // Create last meter values
-      const stopMeterValues = await OCPPUtils.createTransactionStopMeterValues(tenant.id, transaction, stopTransaction);
+      const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(tenant.id, chargingStation, transaction, stopTransaction);
       // Build final Consumptions
       const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, stopMeterValues);
       // Update

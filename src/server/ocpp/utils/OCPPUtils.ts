@@ -618,7 +618,7 @@ export default class OCPPUtils {
             chargeBoxID: transaction.chargeBoxID,
           };
           // Create last meter values based on history of transaction/stopTransaction
-          const stopMeterValues = await OCPPUtils.createTransactionStopMeterValues(tenant.id, transaction, stopTransaction);
+          const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(tenant.id, chargingStation, transaction, stopTransaction);
           // Create last consumption
           const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
             tenant.id, chargingStation, transaction, stopMeterValues);
@@ -715,8 +715,8 @@ export default class OCPPUtils {
     };
   }
 
-  public static async createTransactionStopMeterValues(tenantID: string, transaction: Transaction,
-      stopTransaction: OCPPStopTransactionRequestExtended): Promise<OCPPNormalizedMeterValue[]> {
+  public static createTransactionStopMeterValues(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
+      stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
       chargeBoxID: transaction.chargeBoxID,
@@ -821,7 +821,7 @@ export default class OCPPUtils {
         id: (id++).toString(),
         ...meterValueBasedProps,
         value: (transaction.currentInstantAmps
-          ? transaction.currentInstantAmps / Utils.getNumberOfConnectedPhases(await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID), null, transaction.connectorId)
+          ? transaction.currentInstantAmps / Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)
           : transaction.currentInstantAmpsDC),
         attribute: Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE
       });
