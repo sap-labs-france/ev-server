@@ -132,6 +132,10 @@
       "title": "Sincronizzazione Fattura Fallita",
       "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Profili di ricarica falliti",
       "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
