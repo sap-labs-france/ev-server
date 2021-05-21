@@ -94,6 +94,7 @@ export interface BillingParkingData {
   description: string;
   pricingData: BillingPricingData;
 }
+
 export interface BillingSessionData {
   transactionID: number;
   description: string;
