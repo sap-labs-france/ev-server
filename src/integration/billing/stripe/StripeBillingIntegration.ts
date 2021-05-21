@@ -983,29 +983,45 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private buildLineItemDescription(transaction: Transaction) {
-    let description: string;
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LTS');
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
     const consumptionkWh = this.convertConsumptionToKWh(transaction);
-
-    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      description = i18nManager.translate('billing.chargingStopSiteArea', {
-        totalConsumption: consumptionkWh,
-        siteArea:
-        chargeBox.siteArea,
-        time: time
-      });
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO: Determine the description pattern to use according to the billing settings
+    let descriptionPattern;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_START_DATE)) {
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
     } else {
-      description = i18nManager.translate('billing.chargingStopChargeBox', {
-        totalConsumption: consumptionkWh, chargeBox: transaction.chargeBoxID, time: time
-      });
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingStopSiteArea' : 'billing.chargingStopChargeBox';
     }
+    // Get the translated line item description
+    const description = i18nManager.translate(descriptionPattern, {
+      startDate,
+      startTime,
+      timeSpent,
+      totalConsumption: consumptionkWh,
+      siteArea: chargeBox?.siteArea?.name,
+      chargeBox: transaction?.chargeBoxID,
+      time: stopTime,
+    });
     return description;
   }
 
   private convertConsumptionToKWh(transaction: Transaction): number {
     return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
