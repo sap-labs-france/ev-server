@@ -170,4 +170,9 @@ export default class StripeHelpers {
     };
     return address;
   }
+
+  public static isResourceMissingError(error: any): boolean {
+    // TODO - Find a better way to handle such specific Stripe Errors
+    return (error.statusCode === 404 && error.code === 'resource_missing');
+  }
 }
