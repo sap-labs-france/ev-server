@@ -532,7 +532,7 @@ export default class UserStorage {
         includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date;
+        notifications?: any; noLoginSince?: Date; tagID?: string;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -638,6 +638,15 @@ export default class UserStorage {
       // Add
       aggregation.push({
         $match: notAssignedToCarIDFilter
+      });
+    }
+    // Add Tags
+    if (params.tagID) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
+      });
+      aggregation.push({
+        $match: { 'tag.id': { $eq: params.tagID } }
       });
     }
     // Add Site
