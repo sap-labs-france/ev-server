@@ -73,7 +73,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         const consumption = {} as AbstractCurrentConsumption;
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
-            consumption.currentInstantWatts = Utils.convertToFloat(dataset.V);
+            consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(1000).toNumber();
             consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
               mul(Utils.createDecimal(this.connection.witConnection.refreshInterval / 60)).toNumber() ;
             consumption.lastConsumption = {
@@ -82,7 +82,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
             };
             break;
           case AssetType.PRODUCTION:
-            consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(-1).toNumber();
+            consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(-1000).toNumber();
             consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
               mul(Utils.createDecimal(this.connection.witConnection.refreshInterval / 60)).toNumber() ;
             consumption.lastConsumption = {
