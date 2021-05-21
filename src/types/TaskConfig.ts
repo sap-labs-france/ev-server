@@ -20,7 +20,11 @@ export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConf
   checkPastAuthorizeMins?: number;
 }
 
-export interface BillingInvoiceSynchonizationTaskConfig extends TaskConfig {
+export interface BillingInvoiceSynchronizationTaskConfig extends TaskConfig {
+  attemptPayment?: boolean;
+}
+
+export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
   attemptPayment?: boolean;
 }
 

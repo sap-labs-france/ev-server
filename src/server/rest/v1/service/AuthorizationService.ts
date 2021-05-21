@@ -367,7 +367,7 @@ export default class AuthorizationService {
       dataSources: new Map(),
       projectFields: [
         'id', 'userID', 'active', 'ocpiToken', 'description', 'issuer', 'default',
-        'createdOn', 'lastChangedOn'
+        'createdOn', 'lastChangedOn', 'visualID'
       ],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
@@ -388,7 +388,7 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'],
+      projectFields: ['id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'],
       authorized: userToken.role === UserRole.ADMIN || userToken.role === UserRole.SUPER_ADMIN,
     };
     // Filter projected fields

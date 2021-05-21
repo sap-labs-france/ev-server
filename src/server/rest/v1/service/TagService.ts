@@ -134,12 +134,24 @@ export default class TagService {
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check Tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
+    let tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_ALREADY_EXIST_ERROR,
         message: `Tag with ID '${filteredRequest.id}' already exists`,
+        module: MODULE_NAME, method: 'handleCreateTag',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check Tag
+    tag = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
+    if (tag) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
+        message: `Tag with visual ID '${filteredRequest.id}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
         action: action
@@ -197,6 +209,7 @@ export default class TagService {
       createdOn: new Date(),
       userID: filteredRequest.userID,
       default: filteredRequest.default,
+      visualID: filteredRequest.visualID
     } as Tag;
     // Save
     await TagStorage.saveTag(req.user.tenantID, newTag);
@@ -700,16 +713,18 @@ export default class TagService {
     if (writeHeader) {
       headers = [
         'id',
+        'visual ID',
         'description',
         'firstName',
         'name',
-        'email'
+        'email',
       ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = tags.map((tag) => {
       const row = [
         tag.id,
+        tag.visualID,
         tag.description,
         tag.user?.firstName,
         tag.user?.name,
