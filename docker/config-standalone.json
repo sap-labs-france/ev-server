@@ -132,6 +132,12 @@
         "config": {}
       },
       {
+        "name": "BillingPeriodicOperationTask",
+        "active": false,
+        "periodicity": "0 1 1 * *",
+        "config": {}
+      },
+      {
         "name": "LoggingDatabaseTableCleanupTask",
         "active": true,
         "periodicity": "0 0 * * 1",

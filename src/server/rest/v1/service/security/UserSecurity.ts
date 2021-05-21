@@ -125,6 +125,7 @@ export default class UserSecurity {
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
       sendBillingSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed) : false,
+      sendBillingPeriodicOperationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingPeriodicOperationFailed) : false,
       sendBillingNewInvoice: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingNewInvoice) : false,
       sendNewRegisteredUser: false,
       sendUnknownUserBadged: false,

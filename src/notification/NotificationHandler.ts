@@ -908,6 +908,45 @@ export default class NotificationHandler {
     }
   }
 
+  public static async sendBillingPeriodicOperationFailed(tenantID: string, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
+      sourceData.tenantLogoURL = tenant.logo;
+      // Enrich with admins
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      if (!Utils.isEmptyArray(adminUsers)) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+                tenantID, notificationSource.channel, ServerAction.BILLING_PERFORM_OPERATIONS);
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.BILLING_PERFORM_OPERATIONS);
+                // Send
+                for (const adminUser of adminUsers) {
+                  // Enabled?
+                  if (adminUser.notificationsActive && adminUser.notifications.sendBillingPeriodicOperationFailed) {
+                    await notificationSource.notificationTask.sendBillingPeriodicOperationFailed(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
+                }
+              }
+            } catch (error) {
+              await Logging.logActionExceptionMessage(tenantID, ServerAction.BILLING_PERFORM_OPERATIONS, error);
+            }
+          }
+        }
+      }
+    }
+  }
+
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
     // Get admin users
     const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
