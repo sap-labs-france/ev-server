@@ -8,6 +8,7 @@ import global from '../../../../types/GlobalType';
 export default class AuthValidator extends SchemaValidator {
   private static instance: AuthValidator|null = null;
   private authSignIn: Schema;
+  private authSignInXSUAA: Schema;
   private authSignOn: Schema;
   private authResetPassword: Schema;
   private authCheckEula: Schema;
@@ -18,6 +19,7 @@ export default class AuthValidator extends SchemaValidator {
   private constructor() {
     super('AuthValidator');
     this.authSignIn = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signin.json`, 'utf8'));
+    this.authSignInXSUAA = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signinXSUAA.json`, 'utf8'));
     this.authSignOn = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-signon.json`, 'utf8'));
     this.authResetPassword = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-reset-password.json`, 'utf8'));
     this.authCheckEula = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/auth/auth-check-eula.json`, 'utf8'));
@@ -36,6 +38,12 @@ export default class AuthValidator extends SchemaValidator {
   public validateAuthSignIn(data: HttpLoginRequest): HttpLoginRequest {
     // Validate schema
     this.validate(this.authSignIn, data);
+    return data;
+  }
+
+  public validateAuthSignInXSUAA(data: HttpLoginRequest): HttpLoginRequest {
+    // Validate schema
+    this.validate(this.authSignInXSUAA, data);
     return data;
   }
 

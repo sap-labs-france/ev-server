@@ -30,8 +30,12 @@ import UtilsService from './UtilsService';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
+import { JWTStrategy } from '@sap/xssec';
+import { getServices } from '@sap/xsenv';
+import { AuthServiceType } from '../../../../types/configuration/AdvancedConfiguration';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+const _advancedConfig = Configuration.getAdvancedConfig();
 let jwtOptions;
 
 // Init JWT auth options
@@ -42,10 +46,14 @@ if (_centralSystemRestConfig) {
     secretOrKey: _centralSystemRestConfig.userTokenKey
   };
   // Use
-  passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
-    // Return the token decoded right away
-    done(null, jwtPayload)
-  ));
+  if(_advancedConfig.globalAuthenticationService === AuthServiceType.XSUAA) {
+    passport.use(new JWTStrategy(getServices({uaa:{tag:'xsuaa'}}).uaa));
+  } else {
+    passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
+      // Return the token decoded right away
+      done(null, jwtPayload)
+    ));
+  }
 }
 
 const MODULE_NAME = 'AuthService';
@@ -56,7 +64,33 @@ export default class AuthService {
   }
 
   public static authenticate(): RequestHandler {
-    return passport.authenticate('jwt', { session: false });
+    if(_advancedConfig.globalAuthenticationService === AuthServiceType.XSUAA) {
+      return passport.authenticate('JWT', { session: false });
+    } else {
+      return passport.authenticate('jwt', { session: false });
+    }
+  }
+
+  public static async readSpecialHeader(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+    //in case of XSUAA authentication, we transport the eMobility token in the header "emobilitytoken"
+    //console.log("readSpecialHeader = " + JSON.stringify(req.headers));
+    if (req.headers?.emobilitytoken) {
+      // Decode the token (REST)
+      let usrToken;
+      try {
+        //validate the signature of the token
+        usrToken = jwt.decode(req.headers.emobilitytoken);
+      } catch (error) {
+        // Try Base 64 decoding (OCPI)
+        usrToken = JSON.parse(Buffer.from(req.headers.emobilitytoken, 'base64').toString());
+      }
+      let ustTokenObj : UserToken = usrToken as UserToken;
+      //console.log("ustTokenObj.name = " + ustTokenObj.name);
+      req.user = ustTokenObj;
+    }
+
+    next();
   }
 
   public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -128,6 +162,35 @@ export default class AuthService {
       // Nbr trials OK: Check user
       await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
     }
+  }
+
+  public static async handleLogInXSUAA(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+
+    //console.log("user = " + JSON.stringify(req.user));
+
+    // Filter
+    const filteredRequest = AuthValidator.getInstance().validateAuthSignInXSUAA(req.body);
+    // Get Tenant
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with Email '${req.user.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: MODULE_NAME,
+        method: 'handleLogIn',
+        action: action
+      });
+    }
+    //???????????????????   useless ??? ->  req.user = { tenantID };
+
+    const user = await UserStorage.getUserByEmail(tenantID, req.user.id);
+    UtilsService.assertObjectExists(action, user, `User with email '${req.user.id}' does not exist`,
+      MODULE_NAME, 'handleLogIn', req.user);
+    // Check user
+    AuthService.checkUserStatus(user);
+    // Login OK
+    await AuthService.userLoginSucceeded(action, tenantID, user, req, res, next);
   }
 
   public static async handleRegisterUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -793,50 +856,53 @@ export default class AuthService {
     }
     // Check password hash
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
-      // Check status
-      switch (user.status) {
-        case UserStatus.PENDING:
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
-            message: 'Account is pending! User must activate his account in his email',
-            module: MODULE_NAME,
-            method: 'checkUserLogin',
-            user: user
-          });
-        case UserStatus.LOCKED:
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
-            message: `Account is locked ('${user.status}')`,
-            module: MODULE_NAME,
-            method: 'checkUserLogin',
-            user: user
-          });
-        case UserStatus.INACTIVE:
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
-            message: `Account is inactive ('${user.status}')`,
-            module: MODULE_NAME,
-            method: 'checkUserLogin',
-            user: user
-          });
-        case UserStatus.BLOCKED:
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_ACCOUNT_BLOCKED_ERROR,
-            message: `Account is blocked ('${user.status}')`,
-            module: MODULE_NAME,
-            method: 'checkUserLogin',
-            user: user
-          });
-      }
+      this.checkUserStatus(user);
       // Login OK
       await AuthService.userLoginSucceeded(action, tenantID, user, req, res, next);
     } else {
       // Login KO
       await AuthService.userLoginWrongPassword(action, tenantID, user, req, res, next);
+    }
+  }
+
+  public static async checkUserStatus(user: User): Promise<void> {
+    switch (user.status) {
+      case UserStatus.PENDING:
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
+          message: 'Account is pending! User must activate his account in his email',
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      case UserStatus.LOCKED:
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
+          message: `Account is locked ('${user.status}')`,
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      case UserStatus.INACTIVE:
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
+          message: `Account is inactive ('${user.status}')`,
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
+      case UserStatus.BLOCKED:
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_ACCOUNT_BLOCKED_ERROR,
+          message: `Account is blocked ('${user.status}')`,
+          module: MODULE_NAME,
+          method: 'checkUserLogin',
+          user: user
+        });
     }
   }
 }

@@ -34,6 +34,7 @@ import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfig
 import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
+import AdvancedConfiguration, { AuthServiceType } from '../types/configuration/AdvancedConfiguration';
 
 export default class Configuration {
   private static config: ConfigurationData;
@@ -423,6 +424,17 @@ export default class Configuration {
       Configuration.getConfig().Axios.retries = 0;
     }
     return Configuration.getConfig().Axios;
+  }
+
+  public static getAdvancedConfig(): AdvancedConfiguration {
+    // Read conf and set defaults values
+    if (Configuration.isUndefined(Configuration.getConfig().Advanced)) {
+      Configuration.getConfig().Advanced = {} as AdvancedConfiguration;
+    }
+    if (Configuration.isUndefined(this.getConfig().Advanced.globalAuthenticationService)) {
+      this.getConfig().Advanced.globalAuthenticationService = AuthServiceType.BUILT_IN;
+    }
+    return Configuration.getConfig().Advanced;
   }
 
   private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {

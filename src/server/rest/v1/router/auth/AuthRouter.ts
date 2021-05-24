@@ -3,16 +3,25 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import AuthService from '../../service/AuthService';
 import RouterUtils from '../RouterUtils';
+import AdvancedConfiguration, { AuthServiceType } from '../../../../../types/configuration/AdvancedConfiguration';
+import Configuration from '../../../../../utils/Configuration';
 
 export default class AuthRouter {
   private router: express.Router;
+  private advancedConfig: AdvancedConfiguration;
 
   public constructor() {
     this.router = express.Router();
+    this.advancedConfig = Configuration.getAdvancedConfig();
   }
 
   public buildRoutes(): express.Router {
-    this.buildRouteSignIn();
+    if(this.advancedConfig.globalAuthenticationService === AuthServiceType.XSUAA) {
+      this.buildRouteSignInXSUAA();
+    } else {
+      this.buildRouteSignIn();
+    }
+
     this.buildRouteSignOn();
     this.buildRouteSignOut();
     this.buildRoutePasswordReset();
@@ -21,6 +30,12 @@ export default class AuthRouter {
     this.buildRouteEndUserLicenseAgreement();
     this.buildRouteCheckEndUserLicenseAgreement();
     return this.router;
+  }
+
+  protected buildRouteSignInXSUAA(): void {
+    this.router.post(`/${ServerRoute.REST_SIGNINXSUAA}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AuthService.handleLogInXSUAA.bind(this), ServerAction.LOGIN, req, res, next);
+    });
   }
 
   protected buildRouteSignIn(): void {

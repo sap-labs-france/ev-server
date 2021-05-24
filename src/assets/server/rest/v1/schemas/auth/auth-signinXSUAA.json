@@ -1,0 +1,11 @@
+{
+  "title": "Sign in XSUAA",
+  "type": "object",
+  "properties": {
+    "tenant": {
+      "$ref": "common.json#/definitions/authSubdomain"
+    }
+  },
+  "required": [
+  ]
+}

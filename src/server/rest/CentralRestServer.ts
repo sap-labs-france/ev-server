@@ -47,6 +47,7 @@ export default class CentralRestServer {
     // Secured API
     this.expressApplication.all('/client/api/:action',
       AuthService.authenticate(),
+      AuthService.readSpecialHeader.bind(this),
       CentralRestServerService.restServiceSecured.bind(this));
     // Util API
     this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
