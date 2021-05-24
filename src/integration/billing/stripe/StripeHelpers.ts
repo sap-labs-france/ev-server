@@ -1,6 +1,7 @@
 import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import Constants from '../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
 import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
@@ -131,7 +132,7 @@ export default class StripeHelpers {
     const customer: any = {
       name: Utils.buildUserFullName(user, false, false),
       description: i18nManager.translate('billing.generatedUser', { email: user.email }),
-      preferred_locales: [ Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase() ],
+      preferred_locales: [ Utils.getLanguageFromLocale(user.locale) ],
       email: user.email,
     };
     // Assign the address (if any)
@@ -158,33 +159,33 @@ export default class StripeHelpers {
       return null;
     }
     const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
-    const countryAlpha2Code = StripeHelpers.getCountryCode(country, user?.locale);
+    const countryAlpha2Code = StripeHelpers.getAlpha2CountryCode(country, user?.locale);
     const address: Stripe.Address = {
       line1,
       line2,
       postal_code,
       city,
       state: region,
-      country: countryAlpha2Code // Stripe may throw exceptions when the country code is inconsistent!
+      country: countryAlpha2Code // Stripe may throw exceptions when the country code is inconsistent! - null is supported
     };
     return address;
   }
 
-  public static getCountryCode(countryName: string, locale: string): string {
+  public static getAlpha2CountryCode(countryName: string, locale: string): string {
     // -----------------------------------------------------------------
     // Stripe expects a Two-letter country code (ISO 3166-1 alpha-2)
     // -----------------------------------------------------------------
-    let countryCode: string;
+    let countryCode: string = null;
     countryName = countryName?.trim();
     if (countryName) {
       if (locale) {
         // Try it with the user language
-        const lang = locale.toLocaleLowerCase();
+        const lang = Utils.getLanguageFromLocale(locale);
         countryCode = Countries.getAlpha2Code(countryName, lang); // converts 'Deutschland' to 'DE' when lang is 'de'
       }
-      if (!countryCode && locale !== 'en') {
+      if (!countryCode && locale !== Constants.DEFAULT_LOCALE) {
         // Fallback - try it again with the 'en' language
-        countryCode = Countries.getAlpha2Code(countryName, 'en'); // converts 'Germany' to 'DE' when lang is 'en'
+        countryCode = Countries.getAlpha2Code(countryName, Constants.DEFAULT_LANGUAGE); // converts 'Germany' to 'DE' when lang is 'en'
       }
     }
     return countryCode;
