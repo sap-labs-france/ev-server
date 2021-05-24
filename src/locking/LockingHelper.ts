@@ -160,6 +160,14 @@ export default class LockingHelper {
     return lock;
   }
 
+  public static async createBillTransactionLock(tenantID: string, transactionID: number): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `bill-transaction-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
   private static async createOCPIEndpointActionLock(tenantID: string, ocpiEndpoint: OCPIEndpoint, action: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.OCPI_ENDPOINT, `${ocpiEndpoint.id}-${action}`);
     if (!(await LockingManager.acquire(lock))) {
