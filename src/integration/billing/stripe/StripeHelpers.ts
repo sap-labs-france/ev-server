@@ -1,6 +1,7 @@
 import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import Countries from 'i18n-iso-countries';
 import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
 import User from '../../../types/User';
@@ -144,7 +145,6 @@ export default class StripeHelpers {
     if (!user.address) {
       return null;
     }
-
     return {
       name: Utils.buildUserFullName(user, false, false),
       email: user.email,
@@ -158,17 +158,36 @@ export default class StripeHelpers {
       return null;
     }
     const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
-    // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2)
-    // It throws an exception when the code is inconsistent!
+    const countryAlpha2Code = StripeHelpers.getCountryCode(country, user?.locale);
     const address: Stripe.Address = {
       line1,
       line2,
       postal_code,
       city,
       state: region,
-      country: country
+      country: countryAlpha2Code // Stripe may throw exceptions when the country code is inconsistent!
     };
     return address;
+  }
+
+  public static getCountryCode(countryName: string, locale: string): string {
+    // -----------------------------------------------------------------
+    // Stripe expects a Two-letter country code (ISO 3166-1 alpha-2)
+    // -----------------------------------------------------------------
+    let countryCode: string;
+    countryName = countryName?.trim();
+    if (countryName) {
+      if (locale) {
+        // Try it with the user language
+        const lang = locale.toLocaleLowerCase();
+        countryCode = Countries.getAlpha2Code(countryName, lang); // converts 'Deutschland' to 'DE' when lang is 'de'
+      }
+      if (!countryCode && locale !== 'en') {
+        // Fallback - try it again with the 'en' language
+        countryCode = Countries.getAlpha2Code(countryName, 'en'); // converts 'Germany' to 'DE' when lang is 'en'
+      }
+    }
+    return countryCode;
   }
 
   public static isResourceMissingError(error: any): boolean {
