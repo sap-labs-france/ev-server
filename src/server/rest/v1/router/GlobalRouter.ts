@@ -11,12 +11,16 @@ import TenantRouter from './api/TenantRouter';
 import TransactionRouter from './api/TransactionRouter';
 import UserRouter from './api/UserRouter';
 import UtilRouter from './util/UtilRouter';
+import Configuration from '../../../../utils/Configuration';
+import AdvancedConfiguration, { AuthServiceType } from '../../../../types/configuration/AdvancedConfiguration';
 
 export default class GlobalRouter {
   private router: express.Router;
+  private advancedConfig: AdvancedConfiguration;
 
   public constructor() {
     this.router = express.Router();
+    this.advancedConfig = Configuration.getAdvancedConfig();
   }
 
   public buildRoutes(): express.Router {
@@ -29,7 +33,16 @@ export default class GlobalRouter {
   }
 
   protected buildRouteAuth(): void {
-    this.router.use('/auth', new AuthRouter().buildRoutes());
+    if(this.advancedConfig.globalAuthenticationService === AuthServiceType.XSUAA) {
+      //inject the AuthService.authenticate() call to validate the xsuaa token
+      this.router.use('/auth',
+        AuthService.authenticate(),
+        [
+          new AuthRouter().buildRoutes()
+        ]);
+    } else {
+      this.router.use('/auth', new AuthRouter().buildRoutes());
+    }
   }
 
   protected buildRouteAPI(): void {
