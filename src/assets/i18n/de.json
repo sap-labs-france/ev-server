@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Erstellter Benutzer für '{{email}}'",
-    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
-    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteAreaName}} (beendet um {{stopTime}})",
+    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBoxID}} (beendet um {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Seriennummer Ladestation",
@@ -129,6 +131,10 @@
     "billingInvoiceSynchronizationFailed": {
       "title": "Rechnungssynchronisierung fehlgeschlagen",
       "body": "Die Synchronisierung von {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
+    },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles fehlgeschlagen",

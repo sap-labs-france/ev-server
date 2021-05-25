@@ -87,6 +87,12 @@ export interface BillingInvoiceItem {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+  parkingData?: BillingParkingData
+}
+
+export interface BillingParkingData {
+  description: string;
+  pricingData: BillingPricingData;
 }
 
 export interface BillingSessionData {

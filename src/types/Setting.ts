@@ -275,6 +275,7 @@ export interface AssetConnectionSetting {
   url: string;
   timestamp: Date;
   type: AssetConnectionType;
+  refreshIntervalMins?: number;
   schneiderConnection?: AssetSchneiderConnectionType;
   greencomConnection?: AssetGreencomConnectionType;
   iothinkConnection?: AssetIothinkConnectionType;

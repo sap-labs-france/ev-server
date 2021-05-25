@@ -39,6 +39,7 @@ export default class TagSecurity {
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
+        visualID: sanitize(tag.visualID),
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),

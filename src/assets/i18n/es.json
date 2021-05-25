@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Usuario generado por '{{email}}'",
-    "chargingStopSiteArea": "Cargando {{totalConsumption}} kWh en {{siteArea}} (finalizado a {{time}})",
-    "chargingStopChargeBox": "Cargando {{totalConsumption}} kWh en la estación de carga {{chargeBox}} (finalizado a {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Cargando {{totalConsumption}} kWh en {{siteAreaName}} (finalizado a {{stopTime}})",
+    "chargingStopChargeBox": "Cargando {{totalConsumption}} kWh en la estación de carga {{chargeBoxID}} (finalizado a {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -129,6 +131,10 @@
     "billingInvoiceSynchronizationFailed": {
       "title": "La sincronización de la factura falló",
       "body": "No ha sido posible sincronizar {{nbrInvoicesInError}} facturas con el servicio del proveedor de facturación de la organización '{{tenantName}}'"
+    },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles failed",

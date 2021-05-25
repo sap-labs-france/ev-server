@@ -7,7 +7,13 @@ import Constants from '../utils/Constants';
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.USERS, action: Action.LIST, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ]
+      },
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
@@ -30,7 +36,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USERS, action: [Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
+      {
+        resource: Entity.USERS, action: Action.LIST, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ]
+      },
+      { resource: Entity.USERS, action: [Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
@@ -48,8 +61,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
-      { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT, Action.EXPORT], attributes: ['*'] },
-      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
+      {
+        resource: Entity.TAGS, action: Action.LIST, attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ]
+      },
+      { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT], attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
@@ -177,6 +201,18 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
+        resource: Entity.USERS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        },
+      },
+      {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
@@ -296,8 +332,32 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.TAGS, action: Action.LIST, attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE], attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
@@ -440,7 +500,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       'basic': {}
     },
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.USER, action: [Action.READ], attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -508,6 +567,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         args: { 'sites': '$.site' }
       },
       { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SiteAdminUsers'] }
+        }
+      },
     ]
   },
   siteOwner: {
@@ -515,7 +581,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       'basic': {}
     },
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',

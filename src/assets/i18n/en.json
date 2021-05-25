@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Generated user for '{{email}}'",
-    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
-    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteAreaName}} (finished at {{stopTime}})",
+    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBoxID}} (finished at {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -129,6 +131,10 @@
     "billingInvoiceSynchronizationFailed": {
       "title": "Invoice Synchro Failed",
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
+    },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles failed",

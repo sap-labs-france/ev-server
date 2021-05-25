@@ -433,8 +433,7 @@ export default class OCPPService {
           // Update Transaction
           this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
           // Create Consumptions
-          const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(
-            tenant.id, chargingStation, transaction, normalizedMeterValues.values);
+          const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, normalizedMeterValues.values);
           // Price/Bill Transaction and Save the Consumptions
           for (const consumption of consumptions) {
             // Update Transaction with Consumption
@@ -739,7 +738,7 @@ export default class OCPPService {
         tenant.id, chargingStation, transaction,
         { timestamp: transaction.timestamp, value: transaction.meterStart },
         {
-          id: '666',
+          id: Utils.getRandomIntSafe().toString(),
           chargeBoxID: transaction.chargeBoxID,
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -952,16 +951,15 @@ export default class OCPPService {
         }
       }
       // Create last meter values
-      const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
+      const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(tenant.id, chargingStation, transaction, stopTransaction);
       // Build final Consumptions
-      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(
-        tenant.id, chargingStation, transaction, stopMeterValues);
+      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, stopMeterValues);
       // Update
       for (const consumption of consumptions) {
         // Update Transaction with Consumption
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         // Update Transaction with Stop Transaction
-        OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagId);
+        OCPPUtils.updateTransactionWithStopTransactionAndStopMeterValues(transaction, stopTransaction, stopMeterValues, user, alternateUser, tagId);
         // Price & Bill
         if (consumption.toPrice) {
           await OCPPUtils.priceTransaction(tenant.id, transaction, consumption, TransactionAction.STOP);
@@ -1486,7 +1484,8 @@ export default class OCPPService {
                   transaction.currentInstantAmpsL3 = amperage;
                   break;
                 default:
-                  transaction.currentInstantAmps = amperage;
+                  // MeterValue Current.Import is per phase and consumption currentInstantAmps attribute expect the total amperage
+                  transaction.currentInstantAmps = amperage * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId);
                   break;
               }
               break;

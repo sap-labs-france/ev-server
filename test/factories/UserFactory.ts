@@ -30,6 +30,7 @@ const userFactory = Factory.define('user')
     sendPreparingSessionNotStarted: false,
     sendOfflineChargingStations: false,
     sendBillingSynchronizationFailed: false,
+    sendBillingPeriodicOperationFailed: false,
     sendSessionNotStarted: false,
     sendCarCatalogSynchronizationFailed: false,
     sendEndUserErrorNotification: false,
