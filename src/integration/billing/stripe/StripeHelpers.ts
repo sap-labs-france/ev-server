@@ -185,7 +185,7 @@ export default class StripeHelpers {
         countryCode = Countries.getAlpha2Code(countryName, lang); // converts 'Deutschland' to 'DE' when lang is 'de'
       }
       if (!countryCode && locale !== Constants.DEFAULT_LOCALE) {
-        // Fallback - try it again with the 'en' language
+        // Fallback - try it again with the default language
         countryCode = Countries.getAlpha2Code(countryName, Constants.DEFAULT_LANGUAGE); // converts 'Germany' to 'DE' when lang is 'en'
       }
     }
