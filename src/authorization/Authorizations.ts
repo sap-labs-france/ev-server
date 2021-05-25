@@ -713,6 +713,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
+  public static async canReadInvoiceBilling(loggedUser: UserToken, userID: string): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.READ,
+      { user: userID, owner: loggedUser.id });
+  }
+
   public static async canSynchronizeInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
   }

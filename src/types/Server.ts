@@ -508,7 +508,10 @@ export enum ServerRoute {
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
-  REST_BILLING_CHECK = 'billing/check'
+  REST_BILLING_CHECK = 'billing/check',
+  REST_BILLING_INVOICES = 'invoices',
+  REST_BILLING_INVOICE = 'invoices/:invoiceID',
+  REST_BILLING_DOWNLOAD_INVOICE = 'invoices/:invoiceID/download',
 }
 
 export enum ServerProtocol {

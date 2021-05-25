@@ -277,7 +277,7 @@ export default class BillingService {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
-    const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
@@ -299,6 +299,39 @@ export default class BillingService {
       ]);
     // Return
     res.json(invoices);
+    next();
+  }
+
+  public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+    // Filter
+    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check Users
+    let userProject: string[] = [];
+    if (await Authorizations.canListUsers(req.user)) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
+    }
+    // Get invoice
+    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID,
+      [
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
+        ...userProject
+      ]);
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check auth
+    if (!await Authorizations.canReadInvoiceBilling(req.user, invoice.userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.READ,
+        module: MODULE_NAME, method: 'handleGetInvoice',
+      });
+    }
+    // Return
+    res.json(invoice);
     next();
   }
 
