@@ -28,13 +28,13 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
-    if (asset.lastConsumption?.timestamp && moment(asset.lastConsumption.timestamp).add(this.connection.witConnection.refreshInterval, 'minutes') > moment()) {
+    if (asset.lastConsumption?.timestamp && moment(asset.lastConsumption.timestamp).add(this.connection.refreshIntervalMins, 'minutes') > moment()) {
       return [];
     }
     // Set new Token
     const token = await this.connect();
     const request = manualCall ?
-      `${this.connection.url}/${asset.meterID}?From=${moment().subtract(this.connection.witConnection.refreshInterval, 'minutes').toISOString()}` :
+      `${this.connection.url}/${asset.meterID}?From=${moment().subtract(this.connection.refreshIntervalMins, 'minutes').toISOString()}` :
       // Check if it is first consumption for this asset
       `${this.connection.url}/${asset.meterID}?From=${(asset.lastConsumption?.timestamp) ? asset.lastConsumption.timestamp.toISOString() : moment().startOf('day').toISOString()}`;
     try {
@@ -75,7 +75,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
           case AssetType.CONSUMPTION:
             consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(1000).toNumber();
             consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
-              mul(Utils.createDecimal(this.connection.witConnection.refreshInterval / 60)).toNumber() ;
+              mul(Utils.createDecimal(this.connection.refreshIntervalMins / 60)).toNumber() ;
             consumption.lastConsumption = {
               timestamp: dataset.T,
               value: consumption.currentConsumptionWh
@@ -84,7 +84,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
           case AssetType.PRODUCTION:
             consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(-1000).toNumber();
             consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
-              mul(Utils.createDecimal(this.connection.witConnection.refreshInterval / 60)).toNumber() ;
+              mul(Utils.createDecimal(this.connection.refreshIntervalMins / 60)).toNumber() ;
             consumption.lastConsumption = {
               timestamp: dataset.T,
               value: consumption.currentConsumptionWh
