@@ -33,8 +33,8 @@ export default class BillingRouter {
     // ROUTES for INVOICES
     // -----------------------------------
     this.buildRouteBillingInvoices();
-    // not yet implemented in dashboard - working
-    // this.buildRouteBillingInvoice();
+    // implemented in dashboard - working but never used yet
+    this.buildRouteBillingInvoice();
     // not yet implemented in dashboard - needs to be tested
     // this.buildRouteBillingInvoiceDownload();
     return this.router;
@@ -118,11 +118,11 @@ export default class BillingRouter {
   }
 
   // not yet implemented in dashboard - needs to be tested
-  protected buildRouteBillingInvoiceDownload(): void {
-    this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
-      // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
-      req.query.ID = req.params.invoiceID;
-      void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
-    });
-  }
+  // protected buildRouteBillingInvoiceDownload(): void {
+  //   this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+  //     // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
+  //     req.query.ID = req.params.invoiceID;
+  //     void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
+  //   });
+  // }
 }
