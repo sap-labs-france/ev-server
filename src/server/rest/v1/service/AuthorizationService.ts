@@ -1,7 +1,7 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
 import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import { HttpCarCatalogsRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogsRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
@@ -675,6 +675,19 @@ export default class AuthorizationService {
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATIONS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetCarUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersCarsRequest) {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_CARS, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

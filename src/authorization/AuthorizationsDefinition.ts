@@ -234,7 +234,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ]
       },
-      { resource: Entity.USERS_CARS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.USERS_CARS, action: Action.LIST,
+        attributes: ['id', 'carID', 'default', 'owner', 'user.id', 'user.name', 'user.firstName', 'user.email' ]
+      },
       { resource: Entity.USERS_CARS, action: Action.ASSIGN, attributes: ['*'] },
       { resource: Entity.NOTIFICATION, action: Action.CREATE, attributes: ['*'] },
       {

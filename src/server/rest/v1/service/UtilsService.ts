@@ -533,7 +533,7 @@ export default class UtilsService {
   public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Car> {
   // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'handleGetCar', userToken);
+    UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilters(
       tenant, userToken, { ID: carID }, Action.READ);
@@ -569,7 +569,7 @@ export default class UtilsService {
     // Add Actions
     await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter, { ID: carID });
     // Check
-    const authorized = AuthorizationService.canPerfomAction(car, authAction);
+    const authorized = AuthorizationService.canPerformAction(car, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,

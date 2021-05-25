@@ -77,6 +77,9 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.CAR_CATALOG,
+      MODULE_NAME, 'handleGetCarCatalogImage');
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     // Check mandatory fields
@@ -197,7 +200,6 @@ export default class CarService {
   }
 
   public static async handleCreateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let newCar: Car;
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
@@ -217,8 +219,8 @@ export default class CarService {
       });
     }
     // Check and get CarCatalog
-    // todo: update when working on car catalogs
-    const carCatalog = await CarStorage.getCarCatalog(filteredRequest.carCatalogID);
+    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
+      { withImage: true }, true);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
     // Keep the current user to add for Basic role
@@ -229,6 +231,7 @@ export default class CarService {
         withUsers: Authorizations.isBasic(req.user) ? true : false,
       });
 
+    let newCar: Car;
     if (car) {
       // If Admin, car already exits!
       if (Authorizations.isAdmin(req.user)) {
@@ -304,34 +307,21 @@ export default class CarService {
     next();
   }
 
-  // todo: refactor
   public static async handleUpdateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
-    // ID is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, 'CarSecurity', 'filterCarUpdateRequest', req.user);
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
-    // Check auth
-    if (!await Authorizations.canUpdateCar(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleUpdateCar',
-        value: filteredRequest.id
-      });
-    }
-    // Check Car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id, {
-      withUsers: Authorizations.isBasic(req.user) ? true : false,
-      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
-    });
-    UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateCar', req.user);
+    // Check and Get Car
+    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
+      {
+        withUsers: Authorizations.isBasic(req.user) ? true : false,
+        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+      }, true);
+    // todo: dynamic filter?
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {
@@ -360,6 +350,7 @@ export default class CarService {
         });
       }
     }
+    // todo: dynamic filter?
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Ok: Update & Save
@@ -456,57 +447,60 @@ export default class CarService {
     next();
   }
 
-  // todo: refactor
   public static async handleGetCarUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
       MODULE_NAME, 'handleGetCarUsers');
-    // Check auth
-    if (!await Authorizations.canListUsersCars(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS_CARS,
-        module: MODULE_NAME, method: 'handleGetCarUsers'
-      });
-    }
+    // Filter request
     const filteredRequest = CarSecurity.filterCarUsersRequest(req.query);
-    // CarID is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, 'CarSecurity', 'filterCarUsersRequest', req.user);
+    // Check Car
+    try {
+      await UtilsService.checkAndGetCarAuthorization(
+        req.tenant, req.user, filteredRequest.CarID, Action.READ, action, {}, true);
+    } catch (error) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
+    // Check dynamic auth for reading Users
+    const authorizationCarUsersFilter = await AuthorizationService.checkAndGetCarUsersAuthorizationFilters(req.tenant,
+      req.user, filteredRequest);
+    if (!authorizationCarUsersFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get cars
     const usersCars = await CarStorage.getCarUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        carIDs: [filteredRequest.CarID]
+        carIDs: [filteredRequest.CarID],
+        ...authorizationCarUsersFilter.filters
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'carID', 'default', 'owner', 'user.id', 'user.name', 'user.firstName', 'user.email' ]);
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.SortFields,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      authorizationCarUsersFilter.projectFields
+    );
     // Return
     res.json(usersCars);
     next();
   }
 
-  // todo: refactor
   public static async handleDeleteCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.USERS_CARS,
+      MODULE_NAME, 'handleDeleteCar');
     // Filter
     const carId = CarSecurity.filterCarRequest(req.query).ID;
-    // Check auth
-    if (!await Authorizations.canDeleteCar(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleDeleteCar',
-        value: carId
-      });
-    }
-    // Get
-    const car = await CarStorage.getCar(req.user.tenantID, carId, {
-      withUsers: Authorizations.isBasic(req.user) ? true : false,
-      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
-    });
-    UtilsService.assertObjectExists(action, car, `Car ID '${carId}' does not exist`,
-      MODULE_NAME, 'handleDeleteCar', req.user);
+    // Check and Get Car
+    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, carId, Action.DELETE, action,
+      {
+        withUsers: Authorizations.isBasic(req.user) ? true : false,
+        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+      }, true);
+    // todo: dynamic filter?
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {
@@ -522,6 +516,7 @@ export default class CarService {
         });
       }
     }
+    // todo: dynamic filter?
     // Basic User
     if (Authorizations.isBasic(req.user) && !carUser.owner) {
       // Delete the association
@@ -534,6 +529,7 @@ export default class CarService {
         detailedMessages: { car }
       });
     }
+    // todo: dynamic filter?
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Check if Transaction exist (to Be implemented later)
@@ -553,9 +549,13 @@ export default class CarService {
     next();
   }
 
-  // todo: refactor
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
       car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
+      MODULE_NAME, 'handleGetCarUsers');
+    // todo: refactor
+
     // Filter only allowed assignments
     if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];
