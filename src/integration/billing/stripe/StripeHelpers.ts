@@ -143,15 +143,16 @@ export default class StripeHelpers {
   }
 
   public static buildBillingDetails(user: User): Stripe.PaymentMethodUpdateParams.BillingDetails {
-    if (!user.address) {
-      return null;
-    }
-    return {
+    const billingDetails: Stripe.PaymentMethodUpdateParams.BillingDetails = {
       name: Utils.buildUserFullName(user, false, false),
       email: user.email,
       /* phone: user.phone, */
-      address: StripeHelpers.buildStripeAddress(user)
     };
+    const address = StripeHelpers.buildStripeAddress(user);
+    if (address) {
+      billingDetails.address = address;
+    }
+    return billingDetails;
   }
 
   public static buildStripeAddress(user: User): Stripe.Address {
