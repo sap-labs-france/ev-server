@@ -331,14 +331,21 @@ export default class OCPPUtils {
               lastUpdate: new Date()
             };
           } catch (error) {
+            const message = `Billing - startTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
+            });
+            // Prevent from starting a transaction when Billing prerequisites are not met
+            throw new BackendError({
+              user: transaction.user,
+              action: ServerAction.BILLING_TRANSACTION,
+              module: MODULE_NAME, method: 'billTransaction',
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -352,14 +359,14 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - updateTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -374,14 +381,14 @@ export default class OCPPUtils {
               transaction.billingData.lastUpdate = new Date();
             }
           } catch (error) {
+            const message = `Billing - stopTransaction failed - transaction ID '${transaction.id}'`;
             await Logging.logError({
               tenantID: tenantID,
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'billTransaction',
-              message: `Failed to bill the Transaction ID '${transaction.id}'`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
           break;
@@ -502,8 +509,7 @@ export default class OCPPUtils {
       transaction.stateOfCharge = Utils.convertToInt(transaction.currentStateOfCharge);
     }
     transaction.currentTotalDurationSecs = moment.duration(
-      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(
-        moment(transaction.timestamp))).asSeconds();
+      moment(transaction.lastConsumption ? transaction.lastConsumption.timestamp : new Date()).diff(moment(transaction.timestamp))).asSeconds();
     transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
       chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs);
   }
@@ -612,7 +618,7 @@ export default class OCPPUtils {
             chargeBoxID: transaction.chargeBoxID,
           };
           // Create last meter values based on history of transaction/stopTransaction
-          const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(transaction, stopTransaction);
+          const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(tenant.id, chargingStation, transaction, stopTransaction);
           // Create last consumption
           const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
             tenant.id, chargingStation, transaction, stopMeterValues);
@@ -688,10 +694,9 @@ export default class OCPPUtils {
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
-  public static updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
-      user: User, alternateUser: User, tagId: string): void {
+  public static updateTransactionWithStopTransactionAndStopMeterValues(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended,
+      stopMeterValues: OCPPNormalizedMeterValue[], user: User, alternateUser: User, tagId: string): void {
     // Handle Signed Data
-    const stopMeterValues = this.createTransactionStopMeterValues(transaction, stopTransaction);
     for (const meterValue of (stopMeterValues)) {
       this.updateSignedData(transaction, meterValue);
     }
@@ -710,7 +715,7 @@ export default class OCPPUtils {
     };
   }
 
-  public static createTransactionStopMeterValues(transaction: Transaction,
+  public static createTransactionStopMeterValues(tenantID: string, chargingStation: ChargingStation, transaction: Transaction,
       stopTransaction: OCPPStopTransactionRequestExtended): OCPPNormalizedMeterValue[] {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
@@ -719,7 +724,7 @@ export default class OCPPUtils {
       transactionId: transaction.id,
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
     };
-    let id = 696969;
+    let id = Utils.getRandomIntSafe();
     // Energy
     stopMeterValues.push({
       id: (id++).toString(),
@@ -815,7 +820,9 @@ export default class OCPPUtils {
       stopMeterValues.push({
         id: (id++).toString(),
         ...meterValueBasedProps,
-        value: (transaction.currentInstantAmps ? transaction.currentInstantAmps : transaction.currentInstantAmpsDC),
+        value: (transaction.currentInstantAmps
+          ? transaction.currentInstantAmps / Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)
+          : transaction.currentInstantAmpsDC),
         attribute: Constants.OCPP_CURRENT_IMPORT_ATTRIBUTE
       });
     }
@@ -893,8 +900,7 @@ export default class OCPPUtils {
       // Meter Value Handling
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.createConsumptionFromMeterValue(
-          tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
+        const consumption: Consumption = await this.createConsumptionFromMeterValue(tenantID, chargingStation, transaction, transaction.lastConsumption, meterValue);
         if (consumption) {
           // Existing Consumption created?
           const existingConsumption = consumptions.find(
@@ -1027,7 +1033,8 @@ export default class OCPPUtils {
                 consumption.instantAmpsL3 = amperage;
                 break;
               default:
-                consumption.instantAmps = amperage;
+                // MeterValue Current.Import is per phase and consumption currentInstantAmps attribute expect the total amperage
+                consumption.instantAmps = amperage * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId);
                 break;
             }
             break;
@@ -1604,14 +1611,14 @@ export default class OCPPUtils {
       });
     }
     // Boot Notification accepted?
-    if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
-      throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Charging Station boot notification not accepted'
-      });
-    }
+    // if (chargingStation?.registrationStatus !== RegistrationStatus.ACCEPTED) {
+    //   throw new BackendError({
+    //     source: ocppHeader.chargeBoxIdentity,
+    //     module: MODULE_NAME,
+    //     method: 'checkAndGetTenantAndChargingStation',
+    //     message: 'Charging Station boot notification not accepted'
+    //   });
+    // }
     return {
       tenant,
       chargingStation,
@@ -2233,12 +2240,12 @@ export default class OCPPUtils {
   }
 
   private static async setConnectorPhaseAssignment(tenantID: string, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
-    const numberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
+    const csNumberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     if (chargingStation.siteAreaID) {
       const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
       // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
       if (siteArea.numberOfPhases === 3) {
-        switch (numberOfPhases) {
+        switch (csNumberOfPhases) {
           // Tri-phased
           case 3:
             connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };
@@ -2256,7 +2263,7 @@ export default class OCPPUtils {
       }
     // Organization setting not enabled or charging station not assigned to a site area
     } else {
-      switch (numberOfPhases) {
+      switch (csNumberOfPhases) {
         // Tri-phased
         case 3:
           connector.phaseAssignmentToGrid = { csPhaseL1: OCPPPhase.L1, csPhaseL2: OCPPPhase.L2, csPhaseL3: OCPPPhase.L3 };

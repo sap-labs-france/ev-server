@@ -212,6 +212,7 @@ export default class SettingSecurity {
               description: sanitize(connection.description),
               url: sanitize(connection.url),
               type: sanitize(connection.type),
+              refreshIntervalMins: sanitize(connection.refreshIntervalMins),
               timestamp: new Date(),
             };
             // Check type

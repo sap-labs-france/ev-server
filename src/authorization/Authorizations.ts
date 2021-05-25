@@ -10,6 +10,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
+import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
@@ -315,8 +316,8 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USERS_SITES, Action.LIST, authContext);
   }
 
-  public static async canListUsers(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.LIST);
+  public static async canListUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.LIST, authContext);
   }
 
   public static async canListUsersInErrors(loggedUser: UserToken): Promise<boolean> {
@@ -343,8 +344,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.TAG, Action.UPDATE);
   }
 
-  public static async canImportTags(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
+  public static async canImportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.TAGS, Action.IMPORT, authContext);
+    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
+  }
+
+  public static async canExportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.TAGS, Action.EXPORT, authContext);
+    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.EXPORT);
   }
 
   public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -520,26 +527,40 @@ export default class Authorizations {
     });
   }
 
-  public static async canListSiteAreas(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREAS, Action.LIST);
+  public static async canListSiteAreas(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREAS, Action.LIST, authContext);
   }
 
-  public static async canReadSiteArea(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.READ);
+  public static async canReadSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.READ, authContext);
   }
 
-  public static async canCreateSiteArea(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE);
+  public static async canCreateSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.CREATE, authContext);
   }
 
-  public static async canUpdateSiteArea(loggedUser: UserToken, siteID?: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.UPDATE, {
-      site: siteID, sites: loggedUser.sitesAdmin
-    });
+  public static async canUpdateSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UPDATE, authContext);
   }
 
-  public static async canDeleteSiteArea(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE);
+  public static async canDeleteSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.DELETE, authContext);
+  }
+
+  public static async canAssignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS, authContext);
+  }
+
+  public static async canUnassignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS, authContext);
+  }
+
+  public static async canAssignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS, authContext);
+  }
+
+  public static async canUnassignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS, authContext);
   }
 
   public static async canListCompanies(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -858,6 +879,7 @@ export default class Authorizations {
       // Create the tag as inactive
       tag = {
         id: tagID,
+        visualID: Cypher.hash(tagID),
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,

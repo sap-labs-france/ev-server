@@ -278,7 +278,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Destructuring the STRIPE invoice to extract the required information
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata } = stripeInvoice;
+    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
@@ -306,7 +306,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
       // eslint-disable-next-line id-blacklist
       userID, invoiceID, customerID, liveMode, number, amount, amountPaid, currency, createdOn, downloadUrl, downloadable: !!downloadUrl,
-      status: status as BillingInvoiceStatus,
+      status: status as BillingInvoiceStatus, payInvoiceUrl,
     };
     // Let's persist the up-to-date data
     const freshInvoiceId = await BillingStorage.saveInvoice(this.tenantID, invoiceToSave);
@@ -397,18 +397,26 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     const operationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
     if (!operationResult?.succeeded && operationResult?.error) {
-      await Logging.logError({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'billInvoiceItem',
-        message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
-        detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
-      });
+      if (StripeHelpers.isResourceMissingError(operationResult.error)) {
+        await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
+        throw operationResult.error;
+      } else {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          actionOnUser: billingInvoice.user,
+          module: MODULE_NAME, method: 'chargeInvoice',
+          message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
+          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+        });
+      }
     }
 
     billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
+    // Send a notification to the user
+    void this.sendInvoiceNotification(billingInvoice);
     return billingInvoice;
   }
 
@@ -763,6 +771,27 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
+  private _buildInvoiceItemParkTimeParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
+    const { parkingData, taxes } = billingInvoiceItem;
+    const currency = parkingData.pricingData.currency.toLowerCase();
+    // Build stripe parameters for the parking time
+    const parameters: Stripe.InvoiceItemCreateParams = {
+      invoice: invoiceID,
+      customer: customerID,
+      currency,
+      description: parkingData.description,
+      tax_rates: taxes,
+      // quantity: 1, //Cannot be set separately
+      amount: new Decimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      metadata: { ...billingInvoiceItem?.metadata }
+    };
+    if (!parameters.invoice) {
+      // STRIPE throws an exception when invoice is set to null.
+      delete parameters.invoice;
+    }
+    return parameters;
+  }
+
   private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
@@ -820,7 +849,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check whether the billing was activated on start transaction
-    if (!transaction.billingData.withBillingActive) {
+    if (!transaction.billingData?.withBillingActive) {
       return {
         status: BillingStatus.UNBILLED
       };
@@ -854,13 +883,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async _getLatestDraftInvoice(customerID: string): Promise<Stripe.Invoice> {
+  private async _getLatestDraftInvoiceOfTheMonth(customerID: string): Promise<Stripe.Invoice> {
+    // Fetch the invoice list - c.f.: https://stripe.com/docs/api/invoices/list
+    // The invoices are returned sorted by creation date, with the most recent ones appearing first.
     const list = await this.stripe.invoices.list({
       customer: customerID,
       status: BillingInvoiceStatus.DRAFT,
       limit: 1
     });
-    return !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
+    const latestDraftInvoice = !Utils.isEmptyArray((list.data)) ? list.data[0] : null;
+    // Check for the date
+    // We do not want to mix in the same invoice charging sessions from different months
+    if (latestDraftInvoice && moment.unix(latestDraftInvoice.created).isSame(moment(), 'month')) {
+      return latestDraftInvoice;
+    }
+    // The latest DRAFT invoice is too old - don't reuse it!
+    return null;
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -925,6 +963,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
         end: timestamp?.valueOf()
       }
     };
+    // Add Parking Time information
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME)) {
+      // TODO - draft implementation - behind a feature toggle - not yet activated
+      billingInvoiceItem.parkingData = {
+        description: this.buildLineItemParkingTimeDescription(transaction),
+        pricingData: {
+          quantity: 1,
+          amount: 0,
+          currency
+        }
+      };
+    }
+    // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
 
@@ -933,10 +984,33 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
-    let stripeInvoice = await this._getLatestDraftInvoice(customerID);
-    // Let's create an invoice item (could be a pending one when the stripeInvoice does not yet exist)
+    let stripeInvoice: Stripe.Invoice;
+    if (this.settings.billing?.immediateBillingAllowed) {
+      // immediateBillingAllowed is ON - we want an invoice per transaction
+      // Because of some STRIPE constraints the invoice creation must be postpone!
+      stripeInvoice = null;
+    } else {
+      // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
+      stripeInvoice = await this._getLatestDraftInvoiceOfTheMonth(customerID);
+    }
+    // Let's create an invoice item
+    // When the stripeInvoice is null a pending item is created
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME) && billingInvoiceItem.parkingData) {
+      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParkTimeParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
+      const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'parkTime'));
+      if (!stripeInvoiceItem) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          user: user.id,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billInvoiceItem',
+          message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
+        });
+      }
+    }
     const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, true));
+    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
     if (!stripeInvoiceItem) {
       await Logging.logError({
         tenantID: this.tenantID,
@@ -944,15 +1018,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billInvoiceItem',
-        message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id }'`
+        message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
       });
     }
     if (!stripeInvoice) {
-      // Let's create a new draft invoice (if none has been found)
+      // Let's create a new DRAFT invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
     let operationResult: BillingOperationResult;
-    if (this.settings.billing.immediateBillingAllowed) {
+    if (this.settings.billing?.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
       operationResult = await this._chargeStripeInvoice(stripeInvoice.id);
       if (!operationResult?.succeeded && operationResult?.error) {
@@ -975,37 +1049,64 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string, forLineItem = false): string {
+  private buildIdemPotencyKey(uniqueId: string, prefix = 'invoice'): string {
     if (uniqueId) {
-      return (forLineItem) ? 'item_' + uniqueId : 'invoice_' + uniqueId;
+      return `${prefix}_${uniqueId}`;
     }
     return null;
   }
 
+  private buildLineItemParkingTimeDescription(transaction: Transaction) {
+    const sessionID = String(transaction?.id);
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO - behind a feature toggle - translate it before activating the feature
+    // TODO - handle the corresponding pricing - for now this is free!
+    const description = `Charging Session: ${sessionID} - Free parking time: ${timeSpent}`;
+    return description;
+  }
+
   private buildLineItemDescription(transaction: Transaction) {
-    let description: string;
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
-    const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+    const sessionID = String(transaction?.id);
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
     const consumptionkWh = this.convertConsumptionToKWh(transaction);
-
-    if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      description = i18nManager.translate('billing.chargingStopSiteArea', {
-        totalConsumption: consumptionkWh,
-        siteArea:
-        chargeBox.siteArea,
-        time: time
-      });
+    const timeSpent = this.convertTimeSpentToString(transaction);
+    // TODO: Determine the description pattern to use according to the billing settings
+    let descriptionPattern;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_START_DATE)) {
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
     } else {
-      description = i18nManager.translate('billing.chargingStopChargeBox', {
-        totalConsumption: consumptionkWh, chargeBox: transaction.chargeBoxID, time: time
-      });
+      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingStopSiteArea' : 'billing.chargingStopChargeBox';
     }
+    // Get the translated line item description
+    const description = i18nManager.translate(descriptionPattern, {
+      sessionID,
+      startDate,
+      startTime,
+      timeSpent,
+      totalConsumption: consumptionkWh,
+      siteAreaName: chargeBox?.siteArea?.name,
+      chargeBoxID: transaction?.chargeBoxID,
+      stopTime,
+    });
     return description;
   }
 
   private convertConsumptionToKWh(transaction: Transaction): number {
     return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    let totalDuration: number;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-unused-vars

@@ -26,9 +26,18 @@ export default class BillingStorage {
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
-  public static async getInvoicesToPay(tenantID: string): Promise<DataResult<BillingInvoice>> {
+  public static async getInvoicesToProcess(tenantID: string): Promise<DataResult<BillingInvoice>> {
+    // Returns all invoices that are to be finalized and paid
     const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
       invoiceStatus: [BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN]
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    return invoicesMDB;
+  }
+
+  public static async getInvoicesToPay(tenantID: string): Promise<DataResult<BillingInvoice>> {
+    // Returns invoices that are already finalized and are to be paid
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
+      invoiceStatus: [BillingInvoiceStatus.OPEN]
     }, Constants.DB_PARAMS_MAX_LIMIT);
     return invoicesMDB;
   }
@@ -176,7 +185,8 @@ export default class BillingStorage {
       currency: invoiceToSave.currency,
       createdOn: Utils.convertToDate(invoiceToSave.createdOn),
       downloadable: Utils.convertToBoolean(invoiceToSave.downloadable),
-      downloadUrl: invoiceToSave.downloadUrl
+      downloadUrl: invoiceToSave.downloadUrl,
+      payInvoiceUrl: invoiceToSave.payInvoiceUrl
     };
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndUpdate(

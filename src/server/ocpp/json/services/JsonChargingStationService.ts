@@ -45,7 +45,7 @@ export default class JsonChargingStationService {
 
   public async handleMeterValues(headers: OCPPHeader, payload: OCPPMeterValuesRequest): Promise<OCPPMeterValuesResponse> {
     // Forward
-    await this.handle(ServerAction.METERVALUES, headers, payload);
+    await this.handle(ServerAction.METER_VALUES, headers, payload);
     // Return the response
     return {};
   }

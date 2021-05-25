@@ -2,6 +2,7 @@ import User, { UserStatus } from './User';
 
 import { BillingInvoice } from './Billing';
 import ChargingStation from './ChargingStation';
+import Decimal from 'decimal.js';
 import NotificationTask from '../notification/NotificationTask';
 import { SMTPError } from 'emailjs';
 
@@ -23,6 +24,7 @@ export default interface UserNotifications {
   sendOfflineChargingStations: boolean;
   sendBillingSynchronizationFailed: boolean;
   sendBillingNewInvoice: boolean;
+  sendBillingPeriodicOperationFailed: boolean;
   sendCarCatalogSynchronizationFailed: boolean;
   sendComputeAndApplyChargingProfilesFailed: boolean;
   sendSessionNotStarted: boolean;
@@ -73,6 +75,7 @@ export enum UserNotificationType {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
+  BILLING_PERIODIC_OPERATION_FAILED = 'BillingPeriodicOperationFailed',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
   CHECK_AND_APPLY_SMART_CHARGING_FAILED = 'ComputeAndApplyChargingProfilesFailed',
@@ -261,12 +264,22 @@ export interface BillingInvoiceSynchronizationFailedNotification extends BaseNot
   evseDashboardBillingURL: string;
 }
 
+export interface BillingPeriodicOperationFailedNotification extends BaseNotification {
+  nbrInvoicesInError: number;
+  evseDashboardURL: string;
+  evseDashboardBillingURL: string;
+}
+
+// TODO: delete unused Utils.build urls
 export interface BillingNewInvoiceNotification extends BaseNotification {
   evseDashboardURL: string;
   evseDashboardInvoiceURL: string;
   user: User;
-  invoice: BillingInvoice;
   invoiceDownloadUrl: string;
+  payInvoiceUrl: string;
+  invoiceNumber: string;
+  invoiceAmount: Decimal;
+  invoiceStatus: string;
 }
 
 export interface CarCatalogSynchronizationFailedNotification extends BaseNotification {

@@ -184,7 +184,7 @@ export default class AssetService {
       const consumption = consumptions[0];
       // Assign
       if (consumption) {
-        asset.lastConsumption = consumption.lastConsumption;
+        // Do not save last consumption on manual call to not disturb refresh interval (no consumption is created here)
         asset.currentConsumptionWh = consumption.currentConsumptionWh;
         asset.currentInstantAmps = consumption.currentInstantAmps;
         asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;

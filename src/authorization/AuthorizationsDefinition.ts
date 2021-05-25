@@ -7,7 +7,13 @@ import Constants from '../utils/Constants';
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.USERS, action: Action.LIST, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ]
+      },
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
@@ -47,7 +53,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   },
   admin: {
     grants: [
-      { resource: Entity.USERS, action: [Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
+      {
+        resource: Entity.USERS, action: Action.LIST, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ]
+      },
+      { resource: Entity.USERS, action: [Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT], attributes: ['*'] },
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
@@ -65,8 +78,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
-      { resource: Entity.TAGS, action: [Action.LIST, Action.IMPORT], attributes: ['*'] },
-      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE, Action.READ], attributes: ['*'] },
+      {
+        resource: Entity.TAGS, action: Action.LIST, attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ]
+      },
+      { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT], attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ]
+      },
+      { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CHARGING_PROFILE, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.COMPANY, action: Action.READ, attributes: ['id', 'name', 'issuer', 'logo', 'address'] },
@@ -84,10 +108,38 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn'
         ]
       },
-      { resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
-      { resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
+      {
+        resource: Entity.SITE, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
+      {
+        resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+        ]
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.READ, attributes: [
+          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+        ]
+      },
+      {
+        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS,
+          Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
+      },
+      {
+        resource: Entity.CHARGING_STATIONS, action: [Action.LIST, Action.IN_ERROR],
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       {
         resource: Entity.CHARGING_STATION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
@@ -102,9 +154,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.READ, Action.UPDATE, Action.DELETE, Action.REFUND_TRANSACTION],
         attributes: ['*']
       },
-      {
-        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
-      },
+      { resource: Entity.REPORT, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE], attributes: ['*'] },
@@ -121,7 +171,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
       },
-      { resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR], attributes: ['*'] },
+      {
+        resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR],
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
@@ -188,15 +244,23 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.USERS_SITES, action: [Action.ASSIGN, Action.UNASSIGN], attributes: ['*'] },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
-      {
-        resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-        // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-        // condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
     ]
   },
   basic: {
     grants: [
+      {
+        resource: Entity.USERS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        },
+      },
       {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -209,7 +273,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.ASSETS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       {
         resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
@@ -263,20 +333,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: ['id', 'name', 'issuer', 'logo', 'address']
       },
-      // -----------------------------------------------------------------------------------------------
-      // TODO - put it back as soon as BILLING has been validated on SLF
-      // -----------------------------------------------------------------------------------------------
-      // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
-      // {
-      //   resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'],
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // {
-      //   resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'],
-      // TODO - rewrite delete method to send also the current user so basic can only delete its payment methods
-      //   condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
-      // },
-      // -----------------------------------------------------------------------------------------------
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
       {
         resource: Entity.SITES, action: Action.LIST,
         condition: {
@@ -299,9 +359,39 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ]
       },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.SITE_AREAS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSiteAreas'] }
+        },
+        attributes: [
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+        ]
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSiteAreas'] }
+        },
+        attributes: [
+          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATIONS, action: Action.LIST,
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: [Action.READ], attributes: ['*'] },
       {
         resource: Entity.CHARGING_STATION,
@@ -323,8 +413,32 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           ]
         }
       },
-      { resource: Entity.TAG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.TAGS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.TAGS, action: Action.LIST, attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: Action.READ, attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
+      {
+        resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE], attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        }
+      },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
@@ -382,8 +496,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
+      {
+        resource: Entity.ASSETS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+        ]
+      },
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
       {
         resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: [
@@ -441,9 +561,29 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ]
       },
-      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
+      {
+        resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+        ]
+      },
+      {
+        resource: Entity.SITE_AREA, action: Action.READ, attributes: [
+          'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
+          'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
+        ]
+      },
+      {
+        resource: Entity.CHARGING_STATIONS, action: Action.LIST,
+        attributes: [
+          'id', 'inactive', 'public', 'chargingStationURL', 'issuer', 'maximumPower', 'excludeFromSmartCharging', 'lastReboot',
+          'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.smartCharging', 'siteArea.siteID',
+          'siteArea.site.id', 'siteArea.site.name', 'siteID', 'voltage', 'coordinates', 'forceInactive', 'manualConfiguration', 'firmwareUpdateStatus',
+          'capabilities', 'endpoint', 'chargePointVendor', 'chargePointModel', 'ocppVersion', 'ocppProtocol', 'lastSeen',
+          'firmwareVersion', 'currentIPAddress', 'ocppStandardParameters', 'ocppVendorParameters', 'connectors', 'chargePoints',
+          'createdOn', 'chargeBoxSerialNumber', 'chargePointSerialNumber', 'powerLimitUnit'
+        ]
+      },
       { resource: Entity.CHARGING_STATION, action: Action.READ, attributes: ['*'] },
       { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
@@ -471,7 +611,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       'basic': {}
     },
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.USER, action: [Action.READ], attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -500,8 +639,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
         },
-        attributes: ['*'] },
-      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+        attributes: ['*']
+      },
+      {
+        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
+          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        },
+      },
       {
         resource: Entity.CHARGING_STATION,
         action: [Action.UPDATE, Action.DELETE, Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION,
@@ -520,9 +667,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TRANSACTION, action: [Action.READ], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
-      {
-        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
-      },
+      { resource: Entity.REPORT, action: [Action.READ], attributes: ['*'] },
       { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'], args: { 'sites': '$.site' } },
       { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
@@ -532,6 +677,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
+      { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
+      {
+        resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SiteAdminUsers'] }
+        }
+      },
     ]
   },
   siteOwner: {
@@ -539,7 +692,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       'basic': {}
     },
     grants: [
-      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -550,9 +702,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
       },
-      {
-        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
-      },
+      { resource: Entity.REPORT, action: [Action.READ], attributes: ['*'] },
     ]
   },
 };

@@ -858,7 +858,7 @@ export default class UserService {
               result.inError++;
             }
             // Insert batched
-            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
             }
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -1262,7 +1262,7 @@ export default class UserService {
       ];
       headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
-    // Content
+    // Conten t
     const rows = users.map((user) => {
       const row = [
         user.id,
@@ -1276,7 +1276,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1316,6 +1316,7 @@ export default class UserService {
         issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
@@ -1341,11 +1342,10 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
-        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
-        email: importedUser.email.replace(/^"|"$/g, ''),
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
-
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties
