@@ -28,9 +28,11 @@ const MODULE_NAME = 'CarService';
 
 export default class CarService {
   public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
+    }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
     // Check auth
@@ -63,9 +65,11 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
+    }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     // Check and get Car cATALOG
@@ -77,9 +81,11 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.CAR_CATALOG,
-      MODULE_NAME, 'handleGetCarCatalogImage');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.CAR_CATALOG,
+        MODULE_NAME, 'handleGetCarCatalogImage');
+    }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     // Check mandatory fields
@@ -106,9 +112,11 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
+    }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
     // Check mandatory fields
@@ -136,9 +144,11 @@ export default class CarService {
   }
 
   public static async handleSynchronizeCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
+    }
     // Check auth
     if (!await Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
@@ -179,9 +189,11 @@ export default class CarService {
   }
 
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
+    }
     // Filter
     const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Check auth
