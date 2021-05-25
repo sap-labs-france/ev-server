@@ -35,12 +35,15 @@ export default class BillingSecurity {
     if (Utils.objectHasProperty(requestQuery, 'Search')) {
       filteredRequest.Search = sanitize(requestQuery.Search);
     }
-    if (Utils.objectHasProperty(requestQuery, 'ID')) {
-      filteredRequest.ID = sanitize(requestQuery.ID);
-    }
     UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
     UtilsSecurity.filterSort(requestQuery, filteredRequest);
     return filteredRequest;
+  }
+
+  static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
+    return {
+      ID: sanitize(requestQuery.ID)
+    } as HttpBillingInvoiceRequest;
   }
 
   static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {

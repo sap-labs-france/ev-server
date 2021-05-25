@@ -307,7 +307,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
     // Filter
-    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
+    const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
     // Check Users
     let userProject: string[] = [];
