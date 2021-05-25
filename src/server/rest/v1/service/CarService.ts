@@ -219,7 +219,7 @@ export default class CarService {
       });
     }
     // Check and get CarCatalog
-    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
+    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action,
       { withImage: true }, true);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
@@ -551,11 +551,6 @@ export default class CarService {
 
   private static async handleAssignCarUsers(action: ServerAction, tenantID: string, loggedUser: UserToken,
       car: Car, usersToUpsert: UserCar[] = [], usersToDelete: UserCar[] = []): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
-      MODULE_NAME, 'handleGetCarUsers');
-    // todo: refactor
-
     // Filter only allowed assignments
     if (!Authorizations.isAdmin(loggedUser)) {
       usersToDelete = [];
