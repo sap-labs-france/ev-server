@@ -1,4 +1,4 @@
-import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
@@ -131,6 +131,17 @@ class TestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
+  public async checkTransactionBillingData(transactionId: number) {
+    // Check the transaction status
+    const transactionResponse = await this.adminUserService.transactionApi.readById(transactionId);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
+    // TODO - Transaction billing data are not part of the projection! - no further check consistency for now
+    expect(transactionResponse.data?.billingData).not.to.be.null;
+    const billingDataStop: BillingDataTransactionStop = transactionResponse.data.billingData;
+    expect(billingDataStop?.status).to.equal(BillingStatus.BILLED);
+    expect(billingDataStop?.invoiceID).not.to.be.null;
+  }
+
   public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
     // const user:any = this.userContext;
     const connectorId = 1;
@@ -146,6 +157,10 @@ class TestData {
     if (expectedStatus === 'Accepted') {
       const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    }
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
+      // Give some time to the asyncTask to bill the transaction
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     return transactionId;
   }
@@ -394,6 +409,7 @@ describe('Billing Service', function() {
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         assert(transactionID, 'transactionID should not be null');
+        // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
