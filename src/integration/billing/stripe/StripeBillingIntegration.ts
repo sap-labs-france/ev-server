@@ -546,15 +546,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerID
       });
-
       // Add billing_details to the payment method
-      // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2) in the address
-      // await this.stripe.paymentMethods.update(
-      //   paymentMethodId, {
-      //     billing_details: StripeHelpers.buildBillingDetails(user)
-      //   }
-      // );
-
+      const billingDetails: Stripe.PaymentMethodUpdateParams.BillingDetails = StripeHelpers.buildBillingDetails(user);
+      let paymentMethodUpdateParams: Stripe.PaymentMethodUpdateParams;
+      if (billingDetails) {
+        paymentMethodUpdateParams = {
+          billing_details: billingDetails
+        };
+      }
+      await this.stripe.paymentMethods.update(paymentMethodId, paymentMethodUpdateParams);
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,

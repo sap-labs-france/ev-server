@@ -15,6 +15,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
+import Logging from './Logging';
 import { ObjectID } from 'mongodb';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -38,6 +39,8 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+
+const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -1076,7 +1079,20 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    return JSON.parse(JSON.stringify(object)) as T;
+    let cloneObject: T;
+    try {
+      cloneObject = _.clone(object);
+    } catch (error) {
+      void Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'cloneObject',
+        action: ServerAction.LOGGING,
+        message: `Failed to clone object with error: ${error}`,
+        detailedMessages: { error }
+      });
+    }
+    return cloneObject;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {

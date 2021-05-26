@@ -10,7 +10,6 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
-import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
@@ -20,6 +19,7 @@ import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
 import { OICPRole } from '../types/oicp/OICPRole';
+import { ObjectID } from 'mongodb';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -884,7 +884,7 @@ export default class Authorizations {
       // Create the tag as inactive
       tag = {
         id: tagID,
-        visualID: Cypher.hash(tagID),
+        visualID: new ObjectID().toString(),
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
