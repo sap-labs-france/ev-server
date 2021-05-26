@@ -156,7 +156,8 @@ export default class StripeHelpers {
   }
 
   public static buildStripeAddress(user: User): Stripe.Address {
-    if (!user.address) {
+    if (!user.address?.country) {
+      // Stripe does not support addresses where the country is not set!
       return null;
     }
     const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
