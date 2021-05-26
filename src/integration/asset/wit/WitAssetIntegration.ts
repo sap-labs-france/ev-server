@@ -1,4 +1,4 @@
-import Asset, { AssetType } from '../../../types/Asset';
+import Asset, { AssetType, WitDataSet } from '../../../types/Asset';
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
 
 import { AbstractCurrentConsumption } from '../../../types/Consumption';
@@ -66,33 +66,32 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
     }
   }
 
-  private filterConsumptionRequest(asset: Asset, data: any, manualCall: boolean): AbstractCurrentConsumption[] {
+  private filterConsumptionRequest(asset: Asset, data: WitDataSet[], manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     if (!Utils.isEmptyArray(data)) {
       for (const dataset of data) {
         const consumption = {} as AbstractCurrentConsumption;
+        // Create helper which contains minutes from last consumption.
+        const timePeriod = moment(dataset.T).diff(consumptions[consumptions.length - 1]?.lastConsumption?.timestamp ?? (asset.lastConsumption?.timestamp ?? dataset.T), 'minutes');
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
             consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(1000).toNumber();
-            consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
-              mul(Utils.createDecimal(this.connection.refreshIntervalMins / 60)).toNumber() ;
-            consumption.lastConsumption = {
-              timestamp: dataset.T,
-              value: consumption.currentConsumptionWh
-            };
             break;
           case AssetType.PRODUCTION:
             consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(-1000).toNumber();
-            consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).
-              mul(Utils.createDecimal(this.connection.refreshIntervalMins / 60)).toNumber() ;
-            consumption.lastConsumption = {
-              timestamp: dataset.T,
-              value: consumption.currentConsumptionWh
-            };
             break;
           case AssetType.CONSUMPTION_AND_PRODUCTION:
             throw new Error('Asset connection does not support producing and consuming assets');
         }
+        if (asset.siteArea?.voltage) {
+          consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
+        }
+        // Calculate consumption wh with period in minutes from last consumption
+        consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).mul(Utils.createDecimal(timePeriod / 60)).toNumber();
+        consumption.lastConsumption = {
+          timestamp: dataset.T,
+          value: consumption.currentConsumptionWh
+        };
         consumptions.push(consumption);
       }
     }
