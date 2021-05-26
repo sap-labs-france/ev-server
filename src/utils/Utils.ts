@@ -1081,7 +1081,7 @@ export default class Utils {
     }
     let cloneObject: T;
     try {
-      cloneObject = _.clone(object);
+      cloneObject = _.cloneDeep(object);
     } catch (error) {
       void Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
