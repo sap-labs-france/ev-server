@@ -33,10 +33,8 @@ export default class BillingRouter {
     // ROUTES for INVOICES
     // -----------------------------------
     this.buildRouteBillingInvoices();
-    // implemented in dashboard - working but never used yet
     this.buildRouteBillingInvoice();
-    // not yet implemented in dashboard - needs to be tested
-    // this.buildRouteBillingInvoiceDownload();
+    this.buildRouteBillingInvoiceDownload();
     return this.router;
   }
 
@@ -94,7 +92,7 @@ export default class BillingRouter {
 
   protected buildRouteBillingPaymentMethodDetach(): void {
     this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD_DETACH}`, (req: Request, res: Response, next: NextFunction) => {
-      // POST {{base_url}}/v1/api/billing/users/5be451dad0685c19bff48856/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/detach
+      // POST {{base_url}}/v1/api/users/5be451dad0685c19bff48856/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/detach
       // Detach a payment method from the user:
       req.body.userID = req.params.userID;
       req.body.paymentMethodId = req.params.paymentMethodID;
@@ -108,21 +106,19 @@ export default class BillingRouter {
     });
   }
 
-  // not yet implemented in dashboard - working
   protected buildRouteBillingInvoice(): void {
     this.router.get(`/${ServerRoute.REST_BILLING_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
-      // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
+      // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c
       req.query.ID = req.params.invoiceID;
       void RouterUtils.handleServerAction(BillingService.handleGetInvoice.bind(this), ServerAction.BILLING_INVOICE, req, res, next);
     });
   }
 
-  // not yet implemented in dashboard - needs to be tested
-  // protected buildRouteBillingInvoiceDownload(): void {
-  //   this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
-  //     // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
-  //     req.query.ID = req.params.invoiceID;
-  //     void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
-  //   });
-  // }
+  protected buildRouteBillingInvoiceDownload(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+      // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c/download
+      req.query.ID = req.params.invoiceID;
+      void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
+    });
+  }
 }

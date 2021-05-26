@@ -30,19 +30,10 @@ export interface ActionsResponse {
   inError: number;
 }
 
-export enum DocumentType {
-  PDF = 'pdf',
-}
-
-export enum DocumentEncoding {
-  BASE64 = 'base64',
-}
-
 export enum ImportStatus {
   READY = 'R',
   ERROR = 'E',
 }
-
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;
