@@ -5,6 +5,8 @@ export enum ServerAction {
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
 
+  OBJECT_CLONE = 'ObjectClone',
+
   CHARGING_STATION_CLIENT_INITIALIZATION = 'ChargingStationClientInitialization',
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
