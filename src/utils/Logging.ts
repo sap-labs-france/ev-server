@@ -21,7 +21,6 @@ import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
-import _ from 'lodash';
 import chalk from 'chalk';
 import cluster from 'cluster';
 import sizeof from 'object-sizeof';
@@ -804,17 +803,7 @@ export default class Logging {
     if (log.detailedMessages) {
       // Anonymize message
       if (!Utils.isDevelopmentEnv()) {
-        try {
-          log.detailedMessages = _.clone(log.detailedMessages);
-        } catch (error) {
-          await Logging.logError({
-            tenantID: log.tenantID,
-            module: MODULE_NAME,
-            method: '_log',
-            action: ServerAction.LOGGING,
-            message: 'Failed to clone log detailed message attribute'
-          });
-        }
+        log.detailedMessages = Utils.cloneObject(log.detailedMessages);
         log.detailedMessages = await Logging.anonymizeSensitiveData(log.detailedMessages);
       }
       // Array?
