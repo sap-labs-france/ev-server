@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
-import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -332,22 +331,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return []; // No tax rates so far!
   }
 
-  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
+  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
       // Get document
       const response = await this.axiosInstance.get(invoice.downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
-      const base64Image = Buffer.from(response.data).toString('base64');
-      const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-      return {
-        id: invoice.id,
-        invoiceID: invoice.invoiceID,
-        content: content,
-        type: DocumentType.PDF,
-        encoding: DocumentEncoding.BASE64
-      };
+      return Buffer.from(response.data);
     }
   }
 
