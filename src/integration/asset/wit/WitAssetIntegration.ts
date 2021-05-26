@@ -28,7 +28,8 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   }
 
   public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
-    if (asset.lastConsumption?.timestamp && moment(asset.lastConsumption.timestamp).add(this.connection.refreshIntervalMins, 'minutes') > moment()) {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
     }
     // Set new Token
