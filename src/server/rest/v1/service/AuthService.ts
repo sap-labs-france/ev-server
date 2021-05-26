@@ -24,7 +24,6 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import jwt from 'jsonwebtoken';
@@ -746,7 +745,7 @@ export default class AuthService {
     // Get the tags (limited) to avoid an overweighted token
     const tags = await TagStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
-    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
+    const payload = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token
     let token: string;
     // Role Demo?
@@ -774,7 +773,8 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
-  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User,
+      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({
