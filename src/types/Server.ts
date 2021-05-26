@@ -5,6 +5,8 @@ export enum ServerAction {
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
 
+  OBJECT_CLONE = 'ObjectClone',
+
   CHARGING_STATION_CLIENT_INITIALIZATION = 'ChargingStationClientInitialization',
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
@@ -409,8 +411,8 @@ export enum ServerAction {
   BILLING_FORCE_SYNCHRONIZE_USER = 'BillingForceSynchronizeUser',
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
-  BILLING_INVOICES = 'BillingUserInvoices',
-  BILLING_USER_INVOICE = 'BillingUserInvoice',
+  BILLING_INVOICES = 'BillingInvoices',
+  BILLING_INVOICE = 'BillingInvoice',
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_PERFORM_OPERATIONS = 'BillingPeriodicOperations',
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
@@ -508,7 +510,15 @@ export enum ServerRoute {
   REST_BILLING_PAYMENT_METHOD_DETACH = 'users/:userID/payment-methods/:paymentMethodID/detach',
 
   REST_BILLING_SETTING = 'billing-setting', // GET and PUT
-  REST_BILLING_CHECK = 'billing/check'
+  REST_BILLING_CHECK = 'billing/check',
+
+  // BILLING URLs for CRUD operations on INVOICES
+  REST_BILLING_INVOICES = 'invoices',
+  REST_BILLING_INVOICE = 'invoices/:invoiceID',
+
+  // BILLING URLs for Non-CRUD operations on INVOICES
+  // not yet implemented
+  // REST_BILLING_DOWNLOAD_INVOICE = 'invoices/:invoiceID/download',
 }
 
 export enum ServerProtocol {

@@ -29,6 +29,14 @@ export default class BillingRouter {
     this.buildRouteBillingPaymentMethodSetup();
     this.buildRouteBillingPaymentMethodAttach();
     this.buildRouteBillingPaymentMethodDetach();
+    // -----------------------------------
+    // ROUTES for INVOICES
+    // -----------------------------------
+    this.buildRouteBillingInvoices();
+    // implemented in dashboard - working but never used yet
+    this.buildRouteBillingInvoice();
+    // not yet implemented in dashboard - needs to be tested
+    // this.buildRouteBillingInvoiceDownload();
     return this.router;
   }
 
@@ -93,4 +101,28 @@ export default class BillingRouter {
       void RouterUtils.handleServerAction(BillingService.handleBillingDeletePaymentMethod.bind(this), ServerAction.BILLING_DELETE_PAYMENT_METHOD, req, res, next);
     });
   }
+
+  protected buildRouteBillingInvoices(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_INVOICES}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleGetInvoices.bind(this), ServerAction.BILLING_INVOICES, req, res, next);
+    });
+  }
+
+  // not yet implemented in dashboard - working
+  protected buildRouteBillingInvoice(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+      // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
+      req.query.ID = req.params.invoiceID;
+      void RouterUtils.handleServerAction(BillingService.handleGetInvoice.bind(this), ServerAction.BILLING_INVOICE, req, res, next);
+    });
+  }
+
+  // not yet implemented in dashboard - needs to be tested
+  // protected buildRouteBillingInvoiceDownload(): void {
+  //   this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+  //     // GET {{base_url}}/v1/api/billing/invoices/606193168f22ac7f02223c8c
+  //     req.query.ID = req.params.invoiceID;
+  //     void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
+  //   });
+  // }
 }

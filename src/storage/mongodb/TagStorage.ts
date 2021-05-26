@@ -331,7 +331,8 @@ export default class TagStorage {
     if (params.search) {
       filters.$or = [
         { '_id': { $regex: params.search, $options: 'i' } },
-        { 'description': { $regex: params.search, $options: 'i' } }
+        { 'description': { $regex: params.search, $options: 'i' } },
+        { 'visualID': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Remove deleted

@@ -12,10 +12,10 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
+  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
       invoiceIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 

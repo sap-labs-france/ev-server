@@ -10,6 +10,7 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;
+  ID?: string;
 }
 
 export interface HttpBillingWebHookRequest {
