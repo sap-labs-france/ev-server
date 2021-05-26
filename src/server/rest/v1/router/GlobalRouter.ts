@@ -48,6 +48,7 @@ export default class GlobalRouter {
   protected buildRouteAPI(): void {
     this.router.use('/api',
       AuthService.authenticate(),
+      AuthService.readSpecialHeader.bind(this),
       AuthService.checkSessionHash.bind(this),
       [
         new ChargingStationRouter().buildRoutes(),
