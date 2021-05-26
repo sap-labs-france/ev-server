@@ -10,7 +10,6 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
@@ -20,7 +19,6 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tag from '../../../../types/Tag';
 import Tenant from '../../../../types/Tenant';
@@ -640,19 +638,6 @@ export default class AuthorizationService {
     return assets.result.map((asset) => asset.id);
   }
 
-  private static async getAssignedChargingStationIDs(tenantID: string, siteID: string): Promise<string[]> {
-    // Get the Charging Stations assigned to the Site
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
-      {
-        siteIDs: [siteID],
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return chargingStations.result.map(
-      (chargingStation) => chargingStation.id);
-  }
-
   private static async checkAssignedSites(tenant: Tenant, userToken: UserToken,
       filteredRequest: { SiteID?: string }, authorizationFilters: AuthorizationFilter): Promise<void> {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
@@ -707,18 +692,6 @@ export default class AuthorizationService {
     }
   }
 
-  private static async getAssignedSiteAreaIDs(tenantID: string, userToken: UserToken, siteID?: string) {
-    // Get the SiteArea IDs from sites assigned to the user
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID,
-      {
-        siteIDs: Authorizations.getAuthorizedSiteIDs(userToken, siteID ? [siteID] : null),
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return _.uniq(_.map(siteAreas.result, 'id'));
-  }
-
   private static filterProjectFields(authFields: string[], httpProjectField: string): string[] {
     let fields = authFields;
     const httpProjectFields = UtilsService.httpFilterProjectToArray(httpProjectField);
@@ -731,9 +704,7 @@ export default class AuthorizationService {
 
   private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, action: Action, entity: Entity,
       authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, extraFilters?: Record<string, any>): Promise<void> {
-    // TODO: find a better way to address filter overlapping in case one user has multiple roles (like admin+siteOwner)
-    // userToken.role !== UserRole.ADMIN check should be removed then
-    if (userToken.role !== UserRole.ADMIN && !Utils.isEmptyArray(authorizationContext.filters)) {
+    if (!Utils.isEmptyArray(authorizationContext.filters)) {
       for (const filter of authorizationContext.filters) {
         // Reset to false
         authorizationFilters.authorized = false;
