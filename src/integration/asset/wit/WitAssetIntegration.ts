@@ -70,16 +70,16 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   private filterConsumptionRequest(asset: Asset, data: WitDataSet[], manualCall: boolean): AbstractCurrentConsumption[] {
     const consumptions: AbstractCurrentConsumption[] = [];
     if (!Utils.isEmptyArray(data)) {
-      for (const dataset of data) {
+      for (const dataSet of data) {
         const consumption = {} as AbstractCurrentConsumption;
         // Create helper which contains minutes from last consumption.
-        const timePeriod = moment(dataset.T).diff(consumptions[consumptions.length - 1]?.lastConsumption?.timestamp ?? (asset.lastConsumption?.timestamp ?? dataset.T), 'minutes');
+        const timePeriod = moment(dataSet.T).diff(consumptions[consumptions.length - 1]?.lastConsumption?.timestamp ?? (asset.lastConsumption?.timestamp ?? dataSet.T), 'minutes');
         switch (asset.assetType) {
           case AssetType.CONSUMPTION:
-            consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(1000).toNumber();
+            consumption.currentInstantWatts = Utils.createDecimal(dataSet.V).mul(1000).toNumber();
             break;
           case AssetType.PRODUCTION:
-            consumption.currentInstantWatts = Utils.createDecimal(dataset.V).mul(-1000).toNumber();
+            consumption.currentInstantWatts = Utils.createDecimal(dataSet.V).mul(-1000).toNumber();
             break;
           case AssetType.CONSUMPTION_AND_PRODUCTION:
             throw new Error('Asset connection does not support producing and consuming assets');
@@ -90,7 +90,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         // Calculate consumption wh with period in minutes from last consumption
         consumption.currentConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).mul(Utils.createDecimal(timePeriod / 60)).toNumber();
         consumption.lastConsumption = {
-          timestamp: dataset.T,
+          timestamp: dataSet.T,
           value: consumption.currentConsumptionWh
         };
         consumptions.push(consumption);
