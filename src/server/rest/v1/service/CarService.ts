@@ -330,10 +330,8 @@ export default class CarService {
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
       {
-        withUsers: Authorizations.isBasic(req.user) ? true : false,
-        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+        withUsers: Authorizations.isBasic(req.user) ? true : false
       }, true);
-    // todo: dynamic filter?
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {
@@ -362,7 +360,6 @@ export default class CarService {
         });
       }
     }
-    // todo: dynamic filter?
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Ok: Update & Save
@@ -415,17 +412,15 @@ export default class CarService {
     if (await Authorizations.canListUsers(req.user)) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
-      // todo: is it ok like this?
       authorizationCarsFilter.projectFields = authorizationCarsFilter.projectFields.concat(userProject);
     }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        // todo: should this be replaced by a dynamic filter?
-        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
-        withUsers: filteredRequest.WithUsers
+        withUsers: filteredRequest.WithUsers,
+        ...authorizationCarsFilter.filters
       },
       {
         limit: filteredRequest.Limit,
@@ -452,7 +447,6 @@ export default class CarService {
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
       withUsers: true ,
-      userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null // todo: dynamic filter?
     }, true);
     // Return
     res.json(car);
@@ -509,10 +503,8 @@ export default class CarService {
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, carId, Action.DELETE, action,
       {
-        withUsers: Authorizations.isBasic(req.user) ? true : false,
-        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+        withUsers: Authorizations.isBasic(req.user) ? true : false
       }, true);
-    // todo: dynamic filter?
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {
@@ -528,7 +520,6 @@ export default class CarService {
         });
       }
     }
-    // todo: dynamic filter?
     // Basic User
     if (Authorizations.isBasic(req.user) && !carUser.owner) {
       // Delete the association
@@ -541,7 +532,6 @@ export default class CarService {
         detailedMessages: { car }
       });
     }
-    // todo: dynamic filter?
     // Owner?
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Check if Transaction exist (to Be implemented later)

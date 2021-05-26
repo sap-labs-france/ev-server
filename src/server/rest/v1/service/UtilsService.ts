@@ -552,7 +552,6 @@ export default class UtilsService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
-      // todo: is it ok like this?
       authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
     }
     // Get Car
@@ -609,7 +608,6 @@ export default class UtilsService {
     // Check it exists
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
-    // todo: check if extra auth is needed?
     // Return
     return carCatalog;
   }

@@ -303,7 +303,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
           'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
         ]
-      }, { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      }, {
+        resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
+      },
       {
         resource: Entity.CAR, action: Action.READ, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
@@ -311,14 +317,20 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
           'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
-        ]
+        ], condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
       },
       {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
-        ]
+        ], condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
       },
       {
         resource: Entity.COMPANIES, action: Action.LIST,
