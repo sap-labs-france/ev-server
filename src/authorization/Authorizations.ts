@@ -400,7 +400,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTINGS, Action.LIST);
   }
 
-  public static async canReadSetting(loggedUser: UserToken, context?): Promise<boolean> {
+  public static async canReadSetting(loggedUser: UserToken, context?: AuthorizationContext): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ, context);
   }
 
