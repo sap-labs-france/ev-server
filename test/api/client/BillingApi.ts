@@ -44,4 +44,7 @@ export default class BillingApi extends CrudApi {
     return await super.update(params, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_SETTING));
   }
 
+  public async readInvoices(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, super.buildRestEndpointUrl(ServerRoute.REST_BILLING_INVOICES));
+  }
 }

@@ -305,7 +305,7 @@ export default class StripeIntegrationTestData {
     const params = { Status: state, UserID: [userId] };
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: '-createdOn' }];
-    const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    const response = await this.adminUserService.billingApi.readInvoices(params, paging, ordering);
     return response?.data?.result;
   }
 
