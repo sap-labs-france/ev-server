@@ -22,7 +22,7 @@ export default class FeatureToggles {
     Feature.BILLING_CHECK_USER_DEFAULT_PAYMENT_METHOD,
     // Feature.BILLING_ITEM_WITH_PARKING_TIME,
     Feature.BILLING_ITEM_WITH_START_DATE,
-    // Feature.BILLING_ASYNC_BILL_TRANSACTION,
+    Feature.BILLING_ASYNC_BILL_TRANSACTION,
   ];
 
   // Check whether the feature is active or not!

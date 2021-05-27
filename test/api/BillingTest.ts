@@ -160,7 +160,7 @@ class TestData {
     }
     if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
       // Give some time to the asyncTask to bill the transaction
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     }
     return transactionId;
   }
