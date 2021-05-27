@@ -32,13 +32,16 @@ export default class AssignedSiteAreasDynamicAuthorizationDataSource
       ['id']
     );
     const siteIDs = _.uniq(_.map(sites.result, 'id'));
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
-      {
-        siteIDs: siteIDs,
-        issuer: true,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      ['id']
-    );
-    return _.uniq(_.map(siteAreas.result, 'id'));
+    if (siteIDs.length !== 0) {
+      const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
+        {
+          siteIDs: siteIDs,
+          issuer: true,
+        }, Constants.DB_PARAMS_MAX_LIMIT,
+        ['id']
+      );
+      return _.uniq(_.map(siteAreas.result, 'id'));
+    }
+    return [null];
   }
 }
