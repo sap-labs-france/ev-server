@@ -1453,14 +1453,15 @@ export default class OCPPUtils {
     // Set the Tenant ID
     headers.tenantID = tenantID;
     headers.token = token;
-    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        module: MODULE_NAME,
-        method: 'normalizeAndCheckSOAPParams',
-        message: 'The Charging Station ID is invalid'
-      });
-    }
+    // TODO: To allow to fix a charging station in production, will be reverted shortly after
+    // if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
+    //   throw new BackendError({
+    //     source: headers.chargeBoxIdentity,
+    //     module: MODULE_NAME,
+    //     method: 'normalizeAndCheckSOAPParams',
+    //     message: 'The Charging Station ID is invalid'
+    //   });
+    // }
   }
 
   public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
