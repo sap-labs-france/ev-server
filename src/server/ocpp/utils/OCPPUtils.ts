@@ -620,8 +620,7 @@ export default class OCPPUtils {
           // Create last meter values based on history of transaction/stopTransaction
           const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(tenant.id, chargingStation, transaction, stopTransaction);
           // Create last consumption
-          const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(
-            tenant.id, chargingStation, transaction, stopMeterValues);
+          const lastConsumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, stopMeterValues);
           const lastConsumption = lastConsumptions[0];
           // No consumption or no duration, skip it
           if (!lastConsumption || lastConsumption.startedAt.getTime() === lastConsumption.endedAt.getTime()) {
