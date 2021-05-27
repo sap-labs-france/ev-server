@@ -283,7 +283,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSiteAreas'] }
+          args: { filters: ['AssignedSites'] }
         },
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
@@ -294,7 +294,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSiteAreas'] }
+          args: { filters: ['AssignedSites'] }
         },
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
