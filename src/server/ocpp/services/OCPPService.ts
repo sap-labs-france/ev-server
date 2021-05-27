@@ -428,6 +428,16 @@ export default class OCPPService {
               detailedMessages: { headers, meterValues }
             });
           }
+          if (transaction.transactionEndReceived) {
+            await Logging.logWarning({
+              tenantID: tenant.id,
+              source: chargingStation.id,
+              module: MODULE_NAME, method: 'handleMeterValues',
+              action: ServerAction.METER_VALUES,
+              message: `Received MeterValues attached to an already ended transaction with id ${transaction.id}, skipped from notified consumption calculation. Ask charging station vendor to fix the firmware`,
+              detailedMessages: { headers, meterValues }
+            });
+          }
           // Save Meter Values
           await OCPPStorage.saveMeterValues(tenant, normalizedMeterValues);
           // Update Transaction
@@ -1746,7 +1756,7 @@ export default class OCPPService {
 
   private async stopOrDeleteActiveTransactions(tenant: Tenant, chargeBoxID: string, connectorId: number) {
     // Check
-    let activeTransaction: Transaction, lastCheckedTransactionID;
+    let activeTransaction: Transaction, lastCheckedTransactionID: number;
     do {
       // Check if the charging station has already a transaction
       activeTransaction = await TransactionStorage.getActiveTransaction(tenant.id, chargeBoxID, connectorId);
@@ -1772,13 +1782,13 @@ export default class OCPPService {
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
-            'tenantID': tenant.id,
-            'chargeBoxIdentity': activeTransaction.chargeBoxID
+            tenantID: tenant.id,
+            chargeBoxIdentity: activeTransaction.chargeBoxID
           }, {
-            'chargeBoxID': activeTransaction.chargeBoxID,
-            'transactionId': activeTransaction.id,
-            'meterStop': (activeTransaction.lastConsumption ? activeTransaction.lastConsumption.value : activeTransaction.meterStart),
-            'timestamp': Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
+            chargeBoxID: activeTransaction.chargeBoxID,
+            transactionId: activeTransaction.id,
+            meterStop: (activeTransaction.lastConsumption ? activeTransaction.lastConsumption.value : activeTransaction.meterStart),
+            timestamp: Utils.convertToDate(activeTransaction.lastConsumption ? activeTransaction.lastConsumption.timestamp : activeTransaction.timestamp).toISOString(),
           }, false, true);
           // Check
           if (result.idTagInfo.status === OCPPAuthorizationStatus.INVALID) {
