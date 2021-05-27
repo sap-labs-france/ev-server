@@ -3,6 +3,8 @@ import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
+import { AsyncTaskStatus } from '../../src/types/AsyncTask';
+import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -160,9 +162,24 @@ class TestData {
     }
     if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
       // Give some time to the asyncTask to bill the transaction
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await this.waitForAsyncTasks();
     }
     return transactionId;
+  }
+
+  public async waitForAsyncTasks() {
+    let counter = 0;
+    while (counter++ <= 10) {
+      // Get the number of pending tasks
+      const pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
+      const running = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.RUNNING }, Constants.DB_PARAMS_COUNT_ONLY);
+      if (!pending?.count && !running?.count) {
+        break;
+      }
+      // Give some time to the asyncTask to bill the transaction
+      console.log(`Waiting for async tasks - pending tasks: ${pending.count} - running tasks: ${running.count}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   }
 
   public async checkForDraftInvoices(userId: string): Promise<number> {
