@@ -163,7 +163,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
-        void Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+        await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
