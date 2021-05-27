@@ -1,7 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
-import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
 import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
@@ -334,22 +333,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return []; // No tax rates so far!
   }
 
-  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
+  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
       // Get document
       const response = await this.axiosInstance.get(invoice.downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
-      const base64Image = Buffer.from(response.data).toString('base64');
-      const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-      return {
-        id: invoice.id,
-        invoiceID: invoice.invoiceID,
-        content: content,
-        type: DocumentType.PDF,
-        encoding: DocumentEncoding.BASE64
-      };
+      return Buffer.from(response.data);
     }
   }
 
@@ -557,15 +548,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerID
       });
-
       // Add billing_details to the payment method
-      // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2) in the address
-      // await this.stripe.paymentMethods.update(
-      //   paymentMethodId, {
-      //     billing_details: StripeHelpers.buildBillingDetails(user)
-      //   }
-      // );
-
+      const billingDetails: Stripe.PaymentMethodUpdateParams.BillingDetails = StripeHelpers.buildBillingDetails(user);
+      let paymentMethodUpdateParams: Stripe.PaymentMethodUpdateParams;
+      if (billingDetails) {
+        paymentMethodUpdateParams = {
+          billing_details: billingDetails
+        };
+      }
+      await this.stripe.paymentMethods.update(paymentMethodId, paymentMethodUpdateParams);
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,

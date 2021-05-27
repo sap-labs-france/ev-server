@@ -18,7 +18,6 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -30,6 +29,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { ObjectID } from 'mongodb';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -626,7 +626,7 @@ export default class OCPIUtilsService {
       }
       const tagToSave = {
         id: token.uid,
-        visualID: Cypher.hash(token.uid),
+        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -667,7 +667,7 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenantId, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
-        visualID: Cypher.hash(token.uid),
+        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,

@@ -22,6 +22,12 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   excludeFromSmartCharging?: boolean,
 }
 
+export interface WitDataSet {
+  wType: string,
+  T: Date,
+  V: number,
+}
+
 export enum AssetType {
   CONSUMPTION = 'CO',
   PRODUCTION = 'PR',

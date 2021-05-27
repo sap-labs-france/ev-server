@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
@@ -397,7 +397,7 @@ export default abstract class BillingIntegration {
 
   abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
 
-  abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument>;
+  abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
   abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
 

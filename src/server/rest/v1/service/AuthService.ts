@@ -10,11 +10,11 @@ import AxiosFactory from '../../../../utils/AxiosFactory';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { HTTPError } from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../../../types/Server';
 import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -24,7 +24,6 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import jwt from 'jsonwebtoken';
@@ -209,7 +208,7 @@ export default class AuthService {
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
-      visualID: Cypher.hash(newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString()),
+      visualID: new ObjectID().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
@@ -746,7 +745,7 @@ export default class AuthService {
     // Get the tags (limited) to avoid an overweighted token
     const tags = await TagStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
-    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
+    const payload = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token
     let token: string;
     // Role Demo?
@@ -774,7 +773,8 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
-  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User,
+      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({

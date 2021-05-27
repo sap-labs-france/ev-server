@@ -10,7 +10,6 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import CpoOCPIClient from '../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../client/oicp/CpoOICPClient';
-import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
@@ -20,6 +19,7 @@ import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
 import { OICPRole } from '../types/oicp/OICPRole';
+import { ObjectID } from 'mongodb';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -400,7 +400,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTINGS, Action.LIST);
   }
 
-  public static async canReadSetting(loggedUser: UserToken, context?): Promise<boolean> {
+  public static async canReadSetting(loggedUser: UserToken, context?: AuthorizationContext): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.SETTING, Action.READ, context);
   }
 
@@ -713,6 +713,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
+  public static async canReadInvoiceBilling(loggedUser: UserToken, userID: string): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.READ,
+      { user: userID, owner: loggedUser.id });
+  }
+
   public static async canSynchronizeInvoicesBilling(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE);
   }
@@ -879,7 +884,7 @@ export default class Authorizations {
       // Create the tag as inactive
       tag = {
         id: tagID,
-        visualID: Cypher.hash(tagID),
+        visualID: new ObjectID().toString(),
         description: `Badged on '${chargingStation.id}'`,
         issuer: true,
         active: false,
@@ -1060,9 +1065,6 @@ export default class Authorizations {
     switch (userRole) {
       case UserRole.ADMIN:
         roles.push('admin');
-        if (sitesOwnerCount > 0) {
-          roles.push('siteOwner');
-        }
         break;
       case UserRole.SUPER_ADMIN:
         roles.push('superAdmin');
@@ -1070,11 +1072,12 @@ export default class Authorizations {
       case UserRole.BASIC:
         if (sitesAdminCount > 0) {
           roles.push('siteAdmin');
-        } else {
-          roles.push('basic');
         }
         if (sitesOwnerCount > 0) {
           roles.push('siteOwner');
+        }
+        if (Utils.isEmptyArray(roles)) {
+          roles.push('basic');
         }
         break;
       case UserRole.DEMO:

@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -28,7 +28,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
       for (const tagMDB of tagsMDB) {
         await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
           { _id: tagMDB._id },
-          { $set: { visualID: Cypher.hash(tagMDB._id) } });
+          { $set: { visualID: new ObjectID().toString() } });
         updated++;
       }
     }
@@ -44,7 +44,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.1';
   }
 
   getName(): string {
