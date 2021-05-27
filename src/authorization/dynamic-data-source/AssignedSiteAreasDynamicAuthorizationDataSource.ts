@@ -1,10 +1,10 @@
 import { AssignedSiteAreasDynamicAuthorizationDataSourceData, DynamicAuthorizationDataSourceName } from '../../types/Authorization';
 
-import Authorizations from '../Authorizations';
 import Constants from '../../utils/Constants';
 import DynamicAuthorizationDataSource from '../DynamicAuthorizationDataSource';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Utils from '../../utils/Utils';
 import _ from 'lodash';
 
 export default class AssignedSiteAreasDynamicAuthorizationDataSource
@@ -32,7 +32,7 @@ export default class AssignedSiteAreasDynamicAuthorizationDataSource
       ['id']
     );
     const siteIDs = _.uniq(_.map(sites.result, 'id'));
-    if (siteIDs.length !== 0) {
+    if (!Utils.isEmptyArray(siteIDs)) {
       const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
         {
           siteIDs: siteIDs,
@@ -42,6 +42,6 @@ export default class AssignedSiteAreasDynamicAuthorizationDataSource
       );
       return _.uniq(_.map(siteAreas.result, 'id'));
     }
-    return [null];
+    return [];
   }
 }
