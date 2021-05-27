@@ -232,7 +232,7 @@ export default class StripeIntegrationTestData {
     // Stripe is using Unix Epoch for its date - and looses some precision
     const lastPaidInvoiceDateTime = Utils.createDecimal(new Date(lastPaidInvoice.createdOn).getTime()).div(1000).trunc().toNumber();
     expect(lastPaidInvoiceDateTime).to.be.gte(beforeInvoiceDateTime);
-    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ invoiceID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
     const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
@@ -305,14 +305,14 @@ export default class StripeIntegrationTestData {
     const params = { Status: state, UserID: [userId] };
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: '-createdOn' }];
-    const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    const response = await this.adminUserService.billingApi.readInvoices(params, paging, ordering);
     return response?.data?.result;
   }
 
   public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
     const paidInvoices = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
-    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ invoiceID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
   }
 
