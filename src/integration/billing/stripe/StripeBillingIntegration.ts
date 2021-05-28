@@ -1060,7 +1060,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
-    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
     const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
     const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
     const consumptionkWh = this.convertConsumptionToKWh(transaction);
@@ -1087,7 +1087,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private convertConsumptionToKWh(transaction: Transaction): number {
-    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
+    // ACHTUNG: consumed energy shown in the line item might be slightly different from the billed energy
+    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber();
   }
 
   private convertTimeSpentToString(transaction: Transaction): string {
