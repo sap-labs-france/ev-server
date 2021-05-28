@@ -1363,10 +1363,8 @@ export default class Utils {
   }
 
   public static isChargingStationIDValid(name: string): boolean {
-    // TODO: Put the check after production fix
-    return true;
     // eslint-disable-next-line no-useless-escape
-    // return /^[A-Za-z0-9_\.\-~]*$/.test(name);
+    return /^[A-Za-z0-9_\.\-~]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {
