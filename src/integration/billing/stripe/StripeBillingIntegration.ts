@@ -1063,7 +1063,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
     const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
     const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
-    const consumptionkWh = this.convertConsumptionToKWh(transaction);
+    const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
     // TODO: Determine the description pattern to use according to the billing settings
     let descriptionPattern;
@@ -1078,7 +1078,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       startDate,
       startTime,
       timeSpent,
-      totalConsumption: consumptionkWh,
+      totalConsumption: formattedConsumptionkWh,
       siteAreaName: chargeBox?.siteArea?.name,
       chargeBoxID: transaction?.chargeBoxID,
       stopTime,
@@ -1086,9 +1086,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return description;
   }
 
-  private convertConsumptionToKWh(transaction: Transaction): number {
+  private formatConsumptionToKWh(transaction: Transaction): string {
     // ACHTUNG: consumed energy shown in the line item might be slightly different from the billed energy
-    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber();
+    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber().toLocaleString(this.getUserLocale(transaction));
+  }
+
+  private getUserLocale(transaction: Transaction) {
+    return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
   private convertTimeSpentToString(transaction: Transaction): string {
