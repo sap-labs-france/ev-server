@@ -434,7 +434,7 @@ export default class OCPPService {
               source: chargingStation.id,
               module: MODULE_NAME, method: 'handleMeterValues',
               action: ServerAction.METER_VALUES,
-              message: `Received MeterValues attached to an already ended transaction with id ${transaction.id}, skipped from notified consumption calculation. Ask charging station vendor to fix the firmware`,
+              message: `Received transaction ${transaction.id} MeterValues on connector id ${meterValues.connectorId} after the 'Transaction.End' MeterValues, skipped from consumption in notifications. Ask charging station vendor to fix the firmware`,
               detailedMessages: { headers, meterValues }
             });
           }
@@ -968,7 +968,7 @@ export default class OCPPService {
       for (const consumption of consumptions) {
         // Update Transaction with Consumption
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
-        // Update Transaction with Stop Transaction
+        // Update Transaction with Stop Transaction and Stop MeterValues
         OCPPUtils.updateTransactionWithStopTransactionAndStopMeterValues(transaction, stopTransaction, stopMeterValues, user, alternateUser, tagId);
         // Price & Bill
         if (consumption.toPrice) {
@@ -1233,6 +1233,16 @@ export default class OCPPService {
         }
         // Save
         await TransactionStorage.saveTransaction(tenant.id, lastTransaction);
+      } else {
+        await Logging.logWarning({
+          tenantID: tenant.id,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'checkLastTransaction',
+          action: ServerAction.STATUS_NOTIFICATION,
+          message: `Received status notification ${statusNotification.status} on connector id ${connector.id} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          detailedMessages: { statusNotification }
+        });
+
       }
     }
   }
@@ -1871,17 +1881,17 @@ export default class OCPPService {
         user,
         chargingStation,
         {
-          'user': user,
-          'alternateUser': (alternateUser ? alternateUser : null),
-          'transactionId': transaction.id,
-          'chargeBoxID': chargingStation.id,
-          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
-          'totalDuration': this.buildTransactionDuration(transaction),
-          'totalInactivity': this.transactionInactivityToString(transaction, user),
-          'stateOfCharge': transaction.stop.stateOfCharge,
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
-          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+          user: user,
+          alternateUser: (alternateUser ? alternateUser : null),
+          transactionId: transaction.id,
+          chargeBoxID: chargingStation.id,
+          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
+          totalDuration: this.buildTransactionDuration(transaction),
+          totalInactivity: this.transactionInactivityToString(transaction, user),
+          stateOfCharge: transaction.stop.stateOfCharge,
+          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#history'),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
       if (transaction.stop.signedData !== '') {
@@ -1892,28 +1902,28 @@ export default class OCPPService {
           user,
           chargingStation,
           {
-            'user': user,
-            'alternateUser': (alternateUser ? alternateUser : null),
-            'transactionId': transaction.id,
-            'chargeBoxID': chargingStation.id,
-            'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-            'tagId': transaction.tagID,
-            'startDate': transaction.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            'endDate': transaction.stop.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            'meterStart': (transaction.meterStart / 1000).toLocaleString(
+            user: user,
+            alternateUser: (alternateUser ? alternateUser : null),
+            transactionId: transaction.id,
+            chargeBoxID: chargingStation.id,
+            connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+            tagId: transaction.tagID,
+            startDate: transaction.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+            endDate: transaction.stop.timestamp.toLocaleString(user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+            meterStart: (transaction.meterStart / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'meterStop': (transaction.stop.meterStop / 1000).toLocaleString(
+            meterStop: (transaction.stop.meterStop / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'totalConsumption': (transaction.stop.totalConsumptionWh / 1000).toLocaleString(
+            totalConsumption: (transaction.stop.totalConsumptionWh / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'price': transaction.stop.price,
-            'relativeCost': (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
-            'startSignedData': transaction.signedData,
-            'endSignedData': transaction.stop.signedData,
-            'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+            price: transaction.stop.price,
+            relativeCost: (transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000)),
+            startSignedData: transaction.signedData,
+            endSignedData: transaction.stop.signedData,
+            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
         ).catch(() => { });
       }

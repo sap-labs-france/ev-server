@@ -224,8 +224,7 @@ export default class OCPPUtils {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {
       // Get the last Consumption
-      const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(
-        tenantID, { transactionId: transaction.id });
+      const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenantID, { transactionId: transaction.id });
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
