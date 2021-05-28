@@ -773,7 +773,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description: parkingData.description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: new Decimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(parkingData.pricingData.amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
@@ -805,7 +805,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: new Decimal(pricingData.amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(pricingData.amount).times(100).round().toNumber(), // In cents
       metadata: { ...billingInvoiceItem?.metadata }
     };
 
@@ -813,18 +813,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // // INVESTIGATIONS - Attempts to set both the quantity and the unit_amount
     // // ----------------------------------------------------------------------------------------
     // Quantity must be an Integer! - STRIPE does not support decimals
-    // const quantity = new Decimal(pricingData.quantity).round().toNumber(); // kW.h -
+    // const quantity = Utils.createDecimal(pricingData.quantity).round().toNumber(); // kW.h -
     // if (quantity === 0) {
     //   // ----------------------------------------------------------------------------------------
     //   // The quantity was too small - let's prevent dividing by zero
     //   // parameters.quantity = 0; // Not an option for STRIPE
     //   // ----------------------------------------------------------------------------------------
-    //   parameters.amount = new Decimal(pricingData.amount).times(100).round().toNumber();
+    //   parameters.amount = Utils.createDecimal(pricingData.amount).times(100).round().toNumber();
     // } else {
     //   // ----------------------------------------------------------------------------------------
     //   // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
     //   // ----------------------------------------------------------------------------------------
-    //   const unit_amount_in_cents = new Decimal(pricingData.amount).times(100).dividedBy(quantity);
+    //   const unit_amount_in_cents = Utils.createDecimal(pricingData.amount).times(100).dividedBy(quantity);
     //   // Let's use the more precise option
     //   const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
     //   parameters.quantity = quantity;
@@ -926,7 +926,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
-    const quantity = new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
+    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     const amount = roundedPrice; // Total amount for the line item
     const currency = priceUnit;
     // -------------------------------------------------------------------------------
@@ -1088,7 +1088,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private formatConsumptionToKWh(transaction: Transaction): string {
     // ACHTUNG: consumed energy shown in the line item might be slightly different from the billed energy
-    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber().toLocaleString(this.getUserLocale(transaction));
+    return Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber().toLocaleString(this.getUserLocale(transaction));
   }
 
   private getUserLocale(transaction: Transaction) {
