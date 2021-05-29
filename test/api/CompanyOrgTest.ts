@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
-import Company from '../types/Company';
+import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
