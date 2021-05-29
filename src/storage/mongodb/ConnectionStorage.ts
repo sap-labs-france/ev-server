@@ -28,7 +28,7 @@ export default class ConnectionStorage {
     const result = await global.database.getCollection<any>(tenantID, 'connections').findOneAndUpdate(
       { _id: connectionMDB._id },
       { $set: connectionMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConnection', uniqueTimerID, connectionMDB);
     return result.value._id.toHexString();
   }
