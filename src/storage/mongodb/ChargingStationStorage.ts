@@ -717,7 +717,7 @@ export default class ChargingStationStorage {
       }
     }, {
       upsert: true,
-      returnOriginal: false
+      returnDocument: 'after'
     });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcppParameters', uniqueTimerID, parameters);

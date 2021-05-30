@@ -503,7 +503,7 @@ export default class CarStorage {
     await global.database.getCollection<Car>(tenantID, 'cars').findOneAndUpdate(
       { _id: carMDB._id },
       { $set: carMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCar', uniqueTimerID, carMDB);
@@ -532,7 +532,7 @@ export default class CarStorage {
       },
 
       { $set: carUserMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCarUser', uniqueTimerID, carUserMDB);

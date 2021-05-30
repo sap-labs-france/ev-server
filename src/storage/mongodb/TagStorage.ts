@@ -34,7 +34,7 @@ export default class TagStorage {
     await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
       { '_id': tag.id },
       { $set: tagMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
@@ -56,7 +56,7 @@ export default class TagStorage {
     await global.database.getCollection<any>(tenantID, 'importedtags').findOneAndUpdate(
       { _id: tagMDB._id },
       { $set: tagMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedTag', uniqueTimerID, tagMDB);

@@ -41,7 +41,7 @@ export default class MigrateOcpiTransactionsTask extends MigrationTask {
             ocpiCdr: ''
           }
         },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
       modifiedCount++;
     }

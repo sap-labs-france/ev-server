@@ -192,7 +192,7 @@ export default class BillingStorage {
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
       { $set: invoiceMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
