@@ -18,7 +18,6 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
         if (billingImpl) {
-
           // Get the Transaction to bill
           const transactionID: string = this.asyncTask.parameters.transactionID;
           const transactionLock = await LockingHelper.createBillTransactionLock(tenant.id, Number(transactionID));
@@ -45,8 +44,6 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
         }
       } catch (error) {
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSACTION, error);
-        // TODO - to be clarified - Propagate the error to have the chance to run the task again!
-        throw error;
       }
     }
   }
