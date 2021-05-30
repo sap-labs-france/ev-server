@@ -860,7 +860,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME,
         method: 'stopTransaction',
       });
-      // Inform tha calling layer that the operation has been postponed
+      // Inform the calling layer that the operation has been postponed
       if (!transaction.billingData?.withBillingActive) {
         return {
           status: BillingStatus.PENDING
