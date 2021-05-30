@@ -191,6 +191,10 @@ export default class SiteAreaService {
     // Check dynamic auth
     const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
+    if (!authorizationSiteAreasFilter.authorized) {
+      UtilsService.sendEmptyDataResult(res, next);
+      return;
+    }
     // Get the SiteAreas
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
@@ -199,7 +203,6 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargeBoxes,
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
-        siteIDs: filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
         ...authorizationSiteAreasFilter.filters

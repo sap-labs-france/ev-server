@@ -98,7 +98,7 @@ export default class Authorizations {
       return requestedSites;
     }
     if (Utils.isEmptyArray(requestedSites)) {
-      return loggedUser.sites;
+      return loggedUser.sites.length > 0 ? loggedUser.sites : null;
     }
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
