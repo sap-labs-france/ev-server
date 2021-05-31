@@ -1,7 +1,9 @@
+import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
+import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -845,6 +847,31 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
+      // Create and Save async task
+      await AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.BILL_TRANSACTION,
+        action: ServerAction.BILLING_TRANSACTION,
+        type: AsyncTaskType.TASK,
+        tenantID: this.tenantID,
+        parameters: {
+          transactionID: String(transaction.id),
+        },
+        module: MODULE_NAME,
+        method: 'stopTransaction',
+      });
+      // Inform the calling layer that the operation has been postponed
+      if (!transaction.billingData?.withBillingActive) {
+        return {
+          status: BillingStatus.PENDING
+        };
+      }
+    } else {
+      return await this.billTransaction(transaction);
+    }
+  }
+
+  public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check Stripe
     await this.checkConnection();
     // Check object
@@ -854,7 +881,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
-        const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
+        const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
       }
     } catch (error) {
@@ -868,9 +895,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
-
     return {
-      status: BillingStatus.UNBILLED
+      status: BillingStatus.FAILED
     };
   }
 
@@ -892,7 +918,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+  private async _billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // ACHTUNG: a single transaction may generate several lines in the invoice
     const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
     const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, `${transaction.id}`);
