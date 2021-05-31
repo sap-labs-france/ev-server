@@ -10,6 +10,7 @@ export enum Feature {
   BILLING_ITEM_WITH_PARKING_TIME,
   BILLING_ITEM_WITH_START_DATE,
   BILLING_ASYNC_BILL_TRANSACTION,
+  BILLING_ASYNC_UPDATE_TRANSACTION,
 }
 
 export default class FeatureToggles {
@@ -23,6 +24,7 @@ export default class FeatureToggles {
     // Feature.BILLING_ITEM_WITH_PARKING_TIME,
     Feature.BILLING_ITEM_WITH_START_DATE,
     Feature.BILLING_ASYNC_BILL_TRANSACTION,
+    Feature.BILLING_ASYNC_UPDATE_TRANSACTION,
   ];
 
   // Check whether the feature is active or not!
