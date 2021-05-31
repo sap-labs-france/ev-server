@@ -1,5 +1,5 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
-import { BillingInvoiceSynchonizationTaskConfig } from '../../types/TaskConfig';
+import { BillingInvoiceSynchronizationTaskConfig } from '../../types/TaskConfig';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -10,7 +10,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, taskConfig: BillingInvoiceSynchonizationTaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, taskConfig: BillingInvoiceSynchronizationTaskConfig): Promise<void> {
     // Get the lock
     const billingLock = await LockingHelper.createBillingSyncInvoicesLock(tenant.id);
     if (billingLock) {
@@ -28,22 +28,6 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
                 evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
               }
             );
-          }
-          // Attempt payment - once a month! - A second task with a dedicated configuration to trigger the payment attempts
-          if (taskConfig && taskConfig[tenant.subdomain]?.attemptPayment) { // TODO - For troubleshooting with dedicated tenants - to be removed
-            // Attempt to pay invoices with status OPEN
-            const chargeActionResults = await billingImpl.chargeInvoices();
-            if (chargeActionResults.inError > 0) {
-              // TODO - dedicated notification type is required here!!!
-              await NotificationHandler.sendBillingInvoicesSynchronizationFailed(
-                tenant.id,
-                {
-                  nbrInvoicesInError: chargeActionResults.inError,
-                  evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-                  evseDashboardBillingURL: Utils.buildEvseBillingSettingsURL(tenant.subdomain)
-                }
-              );
-            }
           }
         }
       } catch (error) {

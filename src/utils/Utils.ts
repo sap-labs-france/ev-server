@@ -2,6 +2,7 @@ import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, CarConne
 import { Car, CarCatalog } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion, OCPPVersionURLPath } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, ChargingStationEndpoint, Connector, ConnectorCurrentLimitSource, CurrentType, Voltage } from '../types/ChargingStation';
+import PerformanceRecord, { PerformanceRecordGroup } from '../types/Performance';
 import Transaction, { CSPhasesUsed, InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import crypto, { CipherGCMTypes } from 'crypto';
@@ -14,8 +15,8 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
+import Logging from './Logging';
 import { ObjectID } from 'mongodb';
-import PerformanceRecord from '../types/Performance';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -38,6 +39,8 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+
+const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -1007,6 +1010,11 @@ export default class Utils {
     return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
   }
 
+  // TODO uodate the route once we handle the payment ui and delete other unused urls
+  public static buildEvseBillingPayURL(tenantSubdomain: string, invoiceID: string): string {
+    return `${Utils.buildEvseURL(tenantSubdomain)}/invoices?InvoiceID=${invoiceID}#all`;
+  }
+
   public static buildEvseUserToVerifyURL(tenantSubdomain: string, userId: string): string {
     return `${Utils.buildEvseURL(tenantSubdomain)}/users/${userId}`;
   }
@@ -1071,7 +1079,20 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    return JSON.parse(JSON.stringify(object)) as T;
+    let cloneObject: T;
+    try {
+      cloneObject = _.cloneDeep(object);
+    } catch (error) {
+      void Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'cloneObject',
+        action: ServerAction.LOGGING,
+        message: `Failed to clone object with error: ${error}`,
+        detailedMessages: { error }
+      });
+    }
+    return cloneObject;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1410,10 +1431,62 @@ export default class Utils {
     };
   }
 
+  public static getPerformanceRecordGroupFromURL(url: string): PerformanceRecordGroup {
+    if (!url) {
+      return PerformanceRecordGroup.UNKNOWN;
+    }
+    // REST API
+    if (url.startsWith('/client/api/') ||
+        url.startsWith('/client/util/') ||
+        url.startsWith('/client/auth/') ||
+        url.startsWith('/v1/api/') ||
+        url.startsWith('/v1/util/') ||
+        url.startsWith('/v1/auth/')) {
+      return PerformanceRecordGroup.REST;
+    }
+    // OCPI
+    if (url.includes('ocpi')) {
+      return PerformanceRecordGroup.OCPI;
+    }
+    // Hubject
+    if (url.includes('hubject')) {
+      return PerformanceRecordGroup.OICP;
+    }
+    // Concur
+    if (url.includes('concursolutions')) {
+      return PerformanceRecordGroup.SAP_CONCUR;
+    }
+    // Recaptcha
+    if (url.includes('recaptcha')) {
+      return PerformanceRecordGroup.RECAPTCHA;
+    }
+    // Greencom
+    if (url.includes('gcn-eibp')) {
+      return PerformanceRecordGroup.GREENCOM;
+    }
+    // Stripe
+    if (url.includes('stripe')) {
+      return PerformanceRecordGroup.STRIPE;
+    }
+    // ioThink
+    if (url.includes('kheiron')) {
+      return PerformanceRecordGroup.IOTHINK;
+    }
+    // EV Database
+    if (url.includes('ev-database')) {
+      return PerformanceRecordGroup.EV_DATABASE;
+    }
+    // SAP Smart Charging
+    if (url.includes('smart-charging')) {
+      return PerformanceRecordGroup.SAP_SMART_CHARGING;
+    }
+    return PerformanceRecordGroup.UNKNOWN;
+  }
+
   public static buildPerformanceRecord(params: {
-    tenantID: string; durationMs: number; sizeKb?: number;
-    source?: string; module: string; method: string; action: ServerAction|string;
-    httpUrl?: string; httpMethod?: string; httpCode?: number;
+    tenantID: string; durationMs: number; sizeKb?: number; source?: string;
+    module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
+    httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
     return {
       tenantID: params.tenantID,
@@ -1434,9 +1507,11 @@ export default class Utils {
       module: params.module,
       method: params.method,
       action: params.action,
+      chargingStationID: params.chargingStationID,
       httpUrl: params.httpUrl,
       httpMethod: params.httpMethod,
       httpCode: params.httpCode,
+      group: params.group,
     };
   }
 
@@ -1444,7 +1519,15 @@ export default class Utils {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  public static replaceDoubleQuotes(value: any): string {
-    return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
+  // when exporting values
+  public static escapeCsvValue(value: any): string {
+    // add double quote start and end
+    // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
+    return typeof value === 'string' ? '"' + value.replace(/"/g, '""') + '"' : value;
+  }
+
+  // when importing values
+  public static unescapeCsvValue(value: any): void {
+    // double quotes are handle by csvToJson
   }
 }

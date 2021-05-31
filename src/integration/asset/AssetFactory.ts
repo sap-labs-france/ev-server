@@ -11,6 +11,7 @@ import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import WitAssetIntegration from './wit/WitAssetIntegration';
 
 const MODULE_NAME = 'AssetFactory';
 
@@ -36,6 +37,9 @@ export default class AssetFactory {
               break;
             case AssetConnectionType.IOTHINK:
               assetIntegrationImpl = new IothinkAssetIntegration(tenantID, settings.asset, foundConnection);
+              break;
+            case AssetConnectionType.WIT:
+              assetIntegrationImpl = new WitAssetIntegration(tenantID, settings.asset, foundConnection);
               break;
           }
           return assetIntegrationImpl;

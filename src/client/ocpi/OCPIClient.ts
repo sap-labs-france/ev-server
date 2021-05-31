@@ -134,7 +134,6 @@ export default abstract class OCPIClient {
       const respPostCredentials = await this.postCredentials();
       const credential = respPostCredentials.data;
       // Store information
-      // pragma this.ocpiEndpoint.setBaseUrl(credential.url);
       this.ocpiEndpoint.token = credential.token;
       this.ocpiEndpoint.countryCode = credential.country_code;
       this.ocpiEndpoint.partyId = credential.party_id;

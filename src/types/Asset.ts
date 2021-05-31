@@ -22,6 +22,12 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   excludeFromSmartCharging?: boolean,
 }
 
+export interface WitDataSet {
+  wType: string,
+  T: Date,
+  V: number,
+}
+
 export enum AssetType {
   CONSUMPTION = 'CO',
   PRODUCTION = 'PR',
@@ -44,8 +50,22 @@ export enum SchneiderProperty {
 }
 
 export enum IothinkProperty {
-  POWER_ACTIVE = 'Puissance_active_totale',
   POWER_L1 = 'Puissance_active_de_phase_1',
   POWER_L2 = 'Puissance_active_de_phase_2',
   POWER_L3 = 'Puissance_active_de_phase_3',
+
+  // Generic
+  IO_POW_ACTIVE = 'io-pow-active',
+
+  // Consuming response
+  IO_ENERGY_INPUT = 'io-energy-input',
+  IO_ENERGY_OUTPUT = 'io-energy-output',
+
+  // Producing responses
+  IO_ENERGY = 'io-energy',
+
+  // Battery response
+  IO_ENERGY_CHARGE = 'io-energy-charge',
+  IO_ENERGY_DISCHARGE = 'io-energy-discharge',
+  IO_SOC = 'io-soc',
 }

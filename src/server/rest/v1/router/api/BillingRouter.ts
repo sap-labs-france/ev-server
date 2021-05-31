@@ -29,6 +29,12 @@ export default class BillingRouter {
     this.buildRouteBillingPaymentMethodSetup();
     this.buildRouteBillingPaymentMethodAttach();
     this.buildRouteBillingPaymentMethodDetach();
+    // -----------------------------------
+    // ROUTES for INVOICES
+    // -----------------------------------
+    this.buildRouteBillingInvoices();
+    this.buildRouteBillingInvoice();
+    this.buildRouteBillingInvoiceDownload();
     return this.router;
   }
 
@@ -86,11 +92,33 @@ export default class BillingRouter {
 
   protected buildRouteBillingPaymentMethodDetach(): void {
     this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_METHOD_DETACH}`, (req: Request, res: Response, next: NextFunction) => {
-      // POST {{base_url}}/v1/api/billing/users/5be451dad0685c19bff48856/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/detach
+      // POST {{base_url}}/v1/api/users/5be451dad0685c19bff48856/payment-methods/pm_1Ib3MxF5e1VSb1v6eH3Zhn4K/detach
       // Detach a payment method from the user:
       req.body.userID = req.params.userID;
       req.body.paymentMethodId = req.params.paymentMethodID;
       void RouterUtils.handleServerAction(BillingService.handleBillingDeletePaymentMethod.bind(this), ServerAction.BILLING_DELETE_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingInvoices(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_INVOICES}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleGetInvoices.bind(this), ServerAction.BILLING_INVOICES, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingInvoice(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+      // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c
+      req.query.ID = req.params.invoiceID;
+      void RouterUtils.handleServerAction(BillingService.handleGetInvoice.bind(this), ServerAction.BILLING_INVOICE, req, res, next);
+    });
+  }
+
+  protected buildRouteBillingInvoiceDownload(): void {
+    this.router.get(`/${ServerRoute.REST_BILLING_DOWNLOAD_INVOICE}`, (req: Request, res: Response, next: NextFunction) => {
+      // GET {{base_url}}/v1/api/invoices/606193168f22ac7f02223c8c/download
+      req.query.ID = req.params.invoiceID;
+      void RouterUtils.handleServerAction(BillingService.handleDownloadInvoice.bind(this), ServerAction.BILLING_DOWNLOAD_INVOICE, req, res, next);
     });
   }
 }

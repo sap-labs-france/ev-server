@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingStopSiteArea": "Consommation de {{totalConsumption}} kWh sur la zone {{siteArea}} (terminé à {{time}})",
-    "chargingStopChargeBox": "Consommation de {{totalConsumption}} kWh à la borne {{chargeBox}} (terminé à {{time}})"
+    "chargingAtSiteArea": "Session : {{sessionID}} - Date : {{startDate}} à {startTime} - Energie Consommée : {{totalConsumption}} kWh sur le zone {{siteAreaName}}",
+    "chargingAtChargeBox": "Session : {{sessionID}} - Date : {{startDate}} à {{startTime}} - Energie Consommée : {{totalConsumption}} kWh à la borne {{chargeBoxID}}",
+    "chargingStopSiteArea": "Consommation de {{totalConsumption}} kWh sur la zone {{siteAreaName}} (terminé à {{stopTime}})",
+    "chargingStopChargeBox": "Consommation de {{totalConsumption}} kWh à la borne {{chargeBoxID}} (terminé à {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Numéro de série de la borne",
@@ -130,13 +132,21 @@
       "title": "Synchro factures",
       "body": "Impossible de synchroniser {{nbrInvoicesInError}} facture(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Opération de facturation périodique",
+      "body": "Le traitement de {{nbrInvoicesInError}} facture(s) a échoué dans l'organisation '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Profils de charge",
       "body": "Impossible d'appliquer les profils de charge sur '{{chargeBoxID}}' de la zone '{{siteAreaName}}' dans l'organization '{{tenantName}}'"
     },
-    "billingNewInvoice": {
-      "title": "Nouvelle facture",
-      "body": "Une nouvelle facture ({{invoiceNumber}}) est disponible"
+    "billingNewInvoicePaid": {
+      "title": "Nouvelle facture payée",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ a été payée et est maintenant disponible"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "Nouvelle facture a payer",
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",

@@ -9,7 +9,7 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import MigrationConfiguration from '../../types/configuration/MigrationConfiguration';
 import { ServerAction } from '../../types/Server';
-import StorageCfg from '../../types/configuration/StorageConfiguration';
+import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
@@ -19,11 +19,11 @@ const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
   private db: Db;
-  private readonly dbConfig: StorageCfg;
+  private readonly dbConfig: StorageConfiguration;
   private readonly migrationConfig: MigrationConfiguration;
 
   // Create database access
-  public constructor(dbConfig: StorageCfg) {
+  public constructor(dbConfig: StorageConfiguration) {
     this.dbConfig = dbConfig;
     this.migrationConfig = Configuration.getMigrationConfig();
   }
@@ -104,7 +104,8 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1, issuer: 1 } }
+      { fields: { userID: 1, issuer: 1 } },
+      { fields: { visualID: 1 }, options: { unique: true } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [

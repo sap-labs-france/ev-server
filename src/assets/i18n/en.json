@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Generated user for '{{email}}'",
-    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
-    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteAreaName}} (finished at {{stopTime}})",
+    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBoxID}} (finished at {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -130,13 +132,21 @@
       "title": "Invoice Synchro Failed",
       "body": "Unable to synchronize {{nbrInvoicesInError}} invoice(s) with the billing service provider in organization '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles failed",
       "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
     },
-    "billingNewInvoice": {
-      "title": "New invoice",
-      "body": "A new invoice ({{invoiceNumber}}) is now available"
+    "billingNewInvoicePaid": {
+      "title": "New invoice paid",
+      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}}€ has been paid and is now available"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "New invoice to pay",
+      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}}€ is now available. Please check your email to finalize the payment"
     },
     "endUserErrorNotification": {
       "title": "A User Reported an Error",

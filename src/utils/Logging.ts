@@ -15,6 +15,7 @@ import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { OCPIResult } from '../types/ocpi/OCPIResult';
 import { OCPPStatus } from '../types/ocpp/OCPPClient';
 import { OICPResult } from '../types/oicp/OICPResult';
+import { PerformanceRecordGroup } from '../types/Performance';
 import PerformanceStorage from '../storage/mongodb/PerformanceStorage';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
@@ -63,7 +64,7 @@ export default class Logging {
       console.debug(chalk.green(message));
       if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
         const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -72,16 +73,16 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
         const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-        await Logging.logError({
+        await Logging.logWarning({
           tenantID,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.PERFORMANCES,
@@ -90,16 +91,17 @@ export default class Logging {
           detailedMessages: { error: error.message, stack: error.stack }
         });
         if (Utils.isDevelopmentEnv()) {
-          console.error(chalk.red('===================================='));
-          console.error(chalk.red(`Tenant ID '${tenantID}'`));
-          console.error(chalk.red(error));
-          console.error(chalk.red(message));
-          console.error(chalk.red('===================================='));
+          console.warn(chalk.yellow('===================================='));
+          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+          console.warn(chalk.yellow(error));
+          console.warn(chalk.yellow(message));
+          console.warn(chalk.yellow('===================================='));
         }
       }
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
+          group: PerformanceRecordGroup.MONGO_DB,
           durationMs: executionDurationMillis,
           sizeKb: sizeOfDataKB,
           source: Constants.DATABASE_SERVER,
@@ -321,7 +323,7 @@ export default class Logging {
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
         if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
           const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -330,16 +332,16 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
           const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-          await Logging.logError({
+          await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.PERFORMANCES,
@@ -348,11 +350,11 @@ export default class Logging {
             detailedMessages: { error: error.message, stack: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
-            console.error(chalk.red('===================================='));
-            console.error(chalk.red(`Tenant ID '${tenantID}'`));
-            console.error(chalk.red(error));
-            console.error(chalk.red(message));
-            console.error(chalk.red('===================================='));
+            console.warn(chalk.yellow('===================================='));
+            console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+            console.warn(chalk.yellow(error));
+            console.warn(chalk.yellow(message));
+            console.warn(chalk.yellow('===================================='));
           }
         }
         void Logging.logSecurityDebug({
@@ -371,6 +373,7 @@ export default class Logging {
         void PerformanceStorage.savePerformanceRecord(
           Utils.buildPerformanceRecord({
             tenantID,
+            group: Utils.getPerformanceRecordGroupFromURL(req.url),
             httpUrl: req.url,
             httpCode: res.statusCode,
             httpMethod: req.method,
@@ -420,7 +423,7 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -429,16 +432,16 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -447,11 +450,11 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     try {
@@ -471,6 +474,7 @@ export default class Logging {
       await PerformanceStorage.savePerformanceRecord(
         Utils.buildPerformanceRecord({
           tenantID,
+          group: Utils.getPerformanceRecordGroupFromURL(response.config.url),
           httpUrl: response.config.url,
           httpCode: response.status,
           httpMethod: response.config.method.toLocaleUpperCase(),
@@ -914,21 +918,21 @@ export default class Logging {
     });
   }
 
-  private static async traceChargingStationActionEnd(module: string, tenantID: string, chargeBoxID: string,
+  private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
       action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
-    if (Logging.traceCalls[`${chargeBoxID}~action`]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargeBoxID}~action`]);
-      delete Logging.traceCalls[`${chargeBoxID}~action`];
+    if (Logging.traceCalls[`${chargingStationID}~action`]) {
+      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~action`]);
+      delete Logging.traceCalls[`${chargingStationID}~action`];
       found = true;
     }
-    const message = `${direction} OCPP Request '${action}' on '${chargeBoxID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
+    const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
       const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-      await Logging.logError({
+      await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
@@ -937,31 +941,32 @@ export default class Logging {
         detailedMessages: { error: error.message, stack: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
-        console.error(chalk.red('===================================='));
-        console.error(chalk.red(`Tenant ID '${tenantID}'`));
-        console.error(chalk.red(error));
-        console.error(chalk.red(message));
-        console.error(chalk.red('===================================='));
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
       }
     }
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
         tenantID,
-        source: chargeBoxID,
+        source: chargingStationID,
         module, method: action, action,
         message, detailedMessages
       });
     } else {
       await Logging.logDebug({
         tenantID,
-        source: chargeBoxID,
+        source: chargingStationID,
         module, method: action, action,
         message, detailedMessages
       });
     }
     await PerformanceStorage.savePerformanceRecord(
       Utils.buildPerformanceRecord({
-        tenantID,
+        tenantID, chargingStationID,
+        group: PerformanceRecordGroup.OCPP,
         durationMs: executionDurationMillis,
         source: Constants.OCPP_SERVER,
         module: module, method: 'traceChargingStationActionEnd',

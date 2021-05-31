@@ -212,6 +212,7 @@ export default class SettingSecurity {
               description: sanitize(connection.description),
               url: sanitize(connection.url),
               type: sanitize(connection.type),
+              refreshIntervalMins: sanitize(connection.refreshIntervalMins),
               timestamp: new Date(),
             };
             // Check type
@@ -232,6 +233,15 @@ export default class SettingSecurity {
                 sanitizedConnection.iothinkConnection = {
                   user: sanitize(connection.iothinkConnection.user),
                   password: sanitize(connection.iothinkConnection.password),
+                };
+                break;
+              case AssetConnectionType.WIT:
+                sanitizedConnection.witConnection = {
+                  authenticationUrl: sanitize(connection.witConnection.authenticationUrl),
+                  clientId: sanitize(connection.witConnection.clientId),
+                  clientSecret: sanitize(connection.witConnection.clientSecret),
+                  user: sanitize(connection.witConnection.user),
+                  password: sanitize(connection.witConnection.password),
                 };
                 break;
             }

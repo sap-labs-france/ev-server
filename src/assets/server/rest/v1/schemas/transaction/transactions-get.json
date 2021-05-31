@@ -2,7 +2,7 @@
   "title": "Get Transactions Request",
   "type": "object",
   "properties": {
-    "ChargeBoxID": {
+    "ChargingStationID": {
       "$ref": "chargingstation.json#/definitions/ids"
     },
     "Issuer": {

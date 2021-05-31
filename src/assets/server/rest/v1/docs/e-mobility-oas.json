@@ -713,7 +713,7 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "$ref": "#/components/parameters/ChargeBoxIDs"
+            "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorIDs"
@@ -2574,7 +2574,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "chargeBoxID": {
+                  "chargingStationID": {
                     "type": "string",
                     "example": ""
                   },
@@ -2584,7 +2584,7 @@
                   }
                 },
                 "required": [
-                  "chargeBoxID",
+                  "chargingStationID",
                   "forceUpdateOCPPParamsFromTemplate"
                 ]
               }
@@ -3424,19 +3424,126 @@
             "description": "Return profiles list",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "count": {
-                      "type": "integer"
-                    },
-                    "result": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ChargingProfile"
-                      }
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "chargePointID": 1,
+                      "chargingStationID": "###",
+                      "connectorID": 1,
+                      "profile": {
+                        "chargingProfileId": 1,
+                        "chargingProfileKind": "###",
+                        "chargingProfilePurpose": "###",
+                        "transactionId": 123456789,
+                        "stackLevel": 2,
+                        "chargingSchedule": {
+                          "chargingRateUnit": "A",
+                          "chargingSchedulePeriod": [
+                            {
+                              "startPeriod": 0,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 900,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 1800,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 2700,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 3600,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 4500,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 5400,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 6300,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 7200,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 8100,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 9000,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 9900,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 10800,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 11700,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 12600,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 13500,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 14400,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 15300,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 16200,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 17100,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 18000,
+                              "limit": 96
+                            },
+                            {
+                              "startPeriod": 18900,
+                              "limit": 79.209
+                            }
+                          ],
+                          "startSchedule": "2021-04-06T07:30:00.000Z",
+                          "duration": 19800
+                        }
+                      },
+                      "chargingStation": {
+                        "id": "###",
+                        "siteArea": {
+                          "id": "###",
+                          "name": "###",
+                          "maximumPower": "###"
+                        }
+                      },
+                      "id": "###"
                     }
-                  }
+                  ]
                 }
               }
             }
@@ -4341,11 +4448,6 @@
       }
     },
     "schemas": {
-      "ocppChargeBoxID": {
-        "type": "string",
-        "description": "The Charging Station ID",
-        "example": ""
-      },
       "Tenant": {
         "type": "object",
         "required": [
@@ -4799,6 +4901,7 @@
         "required": [
           "chargingStationID",
           "chargePointID",
+          "connectorID",
           "profile"
         ],
         "properties": {
@@ -5351,15 +5454,6 @@
           "type": "string"
         }
       },
-      "ChargeBoxIDs": {
-        "in": "query",
-        "name": "ChargeBoxID",
-        "description": "Pipe separated Charging Station IDs",
-        "required": false,
-        "schema": {
-          "type": "string"
-        }
-      },
       "ConnectorID": {
         "in": "query",
         "name": "ConnectorID",
@@ -5408,7 +5502,8 @@
         "description": "Charging Profile ID",
         "required": true,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       },
       "chargingStationID": {

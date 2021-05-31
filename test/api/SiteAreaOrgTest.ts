@@ -118,7 +118,7 @@ describe('Site Area tests', function() {
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created site area
       testData.createdSiteAreas.forEach(async (siteArea) => {
         await testData.centralUserService.deleteEntity(

@@ -1,8 +1,10 @@
 {
   "billing": {
     "generatedUser": "Utenza generata per '{{email}}'",
-    "chargingStopSiteArea": "Caricando {{totalConsumption}} kWh a {{siteArea}} (finito a {{time}})",
-    "chargingStopChargeBox": "Caricando {{totalConsumption}} kWh alla stazione di ricarica {{chargeBox}} (finito a  {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Caricando {{totalConsumption}} kWh a {{siteAreaName}} (finito a {{stopTime}})",
+    "chargingStopChargeBox": "Caricando {{totalConsumption}} kWh alla stazione di ricarica {{chargeBoxID}} (finito a  {{stopTime}})"
   },
   "chargers": {
     "chargeBoxSN": "Charge Box S/N",
@@ -130,13 +132,21 @@
       "title": "Sincronizzazione Fattura Fallita",
       "body": "Impossibile sincronizzare {{nbrInvoicesInError}} fatture con il fornitore di servizi di fatturazione nell'organizzazione '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Profili di ricarica falliti",
       "body": "Impossibile impostare i profili di ricarica per '{{chargeBoxID}}' sull'area del sito '{{siteAreaName}}' nell'organizzazione '{{tenantName}}'"
     },
-    "billingNewInvoice": {
-      "title": "Nuova fattura",
-      "body": "Una nuova fattura ({{invoiceNumber}}) è ora disponibile"
+    "billingNewInvoicePaid": {
+      "title": "New invoice paid",
+      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}}€ has been paid and is now available"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "New invoice to pay",
+      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}}€ is now available. Please check your email to finalize the payment"
     },
     "endUserErrorNotification": {
       "title": "Un utente ha riportato un errore",

@@ -3,6 +3,7 @@ import AsyncTask, { AsyncTaskStatus, AsyncTasks } from '../types/AsyncTask';
 import AbstractAsyncTask from './AsyncTask';
 import { ActionsResponse } from '../types/GlobalType';
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
+import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import LockingHelper from '../locking/LockingHelper';
@@ -75,6 +76,9 @@ export default class AsyncTaskManager {
           async (asyncTask: AsyncTask) => {
             // Tasks
             switch (asyncTask.name) {
+              case AsyncTasks.BILL_TRANSACTION:
+                abstractAsyncTask = new BillTransactionAsyncTask(asyncTask);
+                break;
               case AsyncTasks.TAGS_IMPORT:
                 abstractAsyncTask = new TagsImportAsyncTask(asyncTask);
                 break;

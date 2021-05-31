@@ -57,7 +57,7 @@ export default class OCPIEndpointStorage {
       token: ocpiEndpointToSave.token,
       countryCode: ocpiEndpointToSave.countryCode,
       partyId: ocpiEndpointToSave.partyId,
-      backgroundPatchJob: ocpiEndpointToSave.backgroundPatchJob,
+      backgroundPatchJob: Utils.convertToBoolean(ocpiEndpointToSave.backgroundPatchJob),
       status: ocpiEndpointToSave.status,
       version: ocpiEndpointToSave.version,
       businessDetails: ocpiEndpointToSave.businessDetails,
@@ -72,7 +72,7 @@ export default class OCPIEndpointStorage {
     await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
       { $set: ocpiEndpointMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create

@@ -15,7 +15,7 @@ export default class ODataSchema {
 
   public static restServerUrl = '';
 
-  static async getSchema(req: Request, res: Response, next: NextFunction) {
+  static async getSchema(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Read XML schema
     const oDataSchema = fs.readFileSync(`${global.appRoot}/assets/server/odata/ODataSchema.xml`, 'utf8');
     // Set default header

@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -63,7 +63,7 @@ export default class SettingStorage {
     await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
@@ -426,12 +426,19 @@ export default class SettingStorage {
       const { id, backupSensitiveData, category } = setting;
       const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
       const { content } = setting;
+      const billing: BillingSetting = {
+        isTransactionBillingActivated: !!content.billing?.isTransactionBillingActivated,
+        immediateBillingAllowed: !!content.billing?.immediateBillingAllowed,
+        periodicBillingAllowed: !!content.billing?.periodicBillingAllowed,
+        taxID: content.billing?.taxID,
+        usersLastSynchronizedOn: content.billing?.usersLastSynchronizedOn,
+      };
       const billingSettings: BillingSettings = {
         id,
         identifier: TenantComponents.BILLING,
         type: content.type as BillingSettingsType,
         backupSensitiveData,
-        billing: content.billing,
+        billing,
         category,
         createdBy,
         createdOn,
@@ -441,7 +448,11 @@ export default class SettingStorage {
       switch (content.type) {
         // Only STRIPE so far
         case BillingSettingsType.STRIPE:
-          billingSettings.stripe = content.stripe;
+          billingSettings.stripe = {
+            url: content.stripe?.url,
+            secretKey: content.stripe?.secretKey,
+            publicKey: content.stripe?.publicKey,
+          };
           billingSettings.sensitiveData = [ 'stripe.secretKey' ];
           break;
       }

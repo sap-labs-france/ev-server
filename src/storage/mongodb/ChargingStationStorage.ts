@@ -543,6 +543,7 @@ export default class ChargingStationStorage {
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
       chargePointVendor: chargingStationToSave.chargePointVendor,
+      registrationStatus: chargingStationToSave.registrationStatus,
       iccid: chargingStationToSave.iccid,
       imsi: chargingStationToSave.imsi,
       meterType: chargingStationToSave.meterType,
@@ -716,7 +717,7 @@ export default class ChargingStationStorage {
       }
     }, {
       upsert: true,
-      returnOriginal: false
+      returnDocument: 'after'
     });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcppParameters', uniqueTimerID, parameters);

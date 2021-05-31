@@ -20,12 +20,9 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import _ from 'lodash';
 import fs from 'fs';
 
 const MODULE_NAME = 'BillingService';
@@ -280,7 +277,7 @@ export default class BillingService {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
-    const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
@@ -302,6 +299,39 @@ export default class BillingService {
       ]);
     // Return
     res.json(invoices);
+    next();
+  }
+
+  public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+    // Filter
+    const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check Users
+    let userProject: string[] = [];
+    if (await Authorizations.canListUsers(req.user)) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
+    }
+    // Get invoice
+    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID,
+      [
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
+        ...userProject
+      ]);
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check auth
+    if (!await Authorizations.canReadInvoiceBilling(req.user, invoice.userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.READ,
+        module: MODULE_NAME, method: 'handleGetInvoice',
+      });
+    }
+    // Return
+    res.json(invoice);
     next();
   }
 
@@ -423,60 +453,65 @@ export default class BillingService {
     next();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
   public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
-    // Check Auth
-    if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        entity: Entity.INVOICE, action: Action.CREATE,
-        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-      });
-    }
-    const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
-    // Get Billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (!billingImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get the Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
-      Utils.convertToInt(filteredRequest.transactionID));
-    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
-      MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
+    // TODO - no use-case for this endpoint so far!
+    throw new Error('Method not implemented.');
+    // // Check if component is active
+    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+    //   Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
+    // // Check Auth
+    // if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
+    //   throw new AppAuthError({
+    //     errorCode: HTTPAuthError.FORBIDDEN,
+    //     user: req.user,
+    //     entity: Entity.INVOICE, action: Action.CREATE,
+    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //   });
+    // }
+    // const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
+    // // Get Billing impl
+    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // if (!billingImpl) {
+    //   throw new AppError({
+    //     source: Constants.CENTRAL_SERVER,
+    //     errorCode: HTTPError.GENERAL_ERROR,
+    //     message: 'Billing service is not configured',
+    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //     action: action,
+    //     user: req.user
+    //   });
+    // }
+    // // Get the Transaction
+    // const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
+    //   Utils.convertToInt(filteredRequest.transactionID));
+    // UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
+    //   MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
     // Create an invoice for the transaction
     // ----------------------------------------------------------------------
     // TODO - Rethink that part!
     // Calling StopTransaction without calling startTransaction may have
     // unpredictable side-effects.
     // ----------------------------------------------------------------------
-    const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // Update transaction billing data
-    transaction.billingData.stop = billingDataStop;
-    transaction.billingData.lastUpdate = new Date();
-    // Save it
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // const billingDataStop = await billingImpl.stopTransaction(transaction);
+    // // Update transaction billing data
+    // if (transaction.billingData) {
+    //   transaction.billingData.stop = billingDataStop;
+    //   transaction.billingData.lastUpdate = new Date();
+    // }
+    // // Save it
+    // await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // // Ok
+    // await Logging.logInfo({
+    //   tenantID: req.user.tenantID,
+    //   user: req.user, actionOnUser: transaction.userID,
+    //   module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
+    //   message: `Transaction ID '${transaction.id}' has been billed successfully`,
+    //   action: action,
+    // });
     // Ok
-    await Logging.logInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: transaction.userID,
-      module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-      message: `Transaction ID '${transaction.id}' has been billed successfully`,
-      action: action,
-    });
-    // Ok
-    res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
-    next();
+    // res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
+    // next();
   }
 
   public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -603,7 +638,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
@@ -634,31 +669,22 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get the PDF document directly from the Invoice
-    const invoiceDocument = await billingImpl.downloadInvoiceDocument(billingInvoice);
-    // Send the Document
-    if (invoiceDocument && invoiceDocument.content) {
-      const base64RawData = invoiceDocument.content.split(`;${invoiceDocument.encoding},`).pop();
-      const filename = 'invoice_' + billingInvoice.id + '.' + invoiceDocument.type;
-      fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
-        if (err) {
-          console.error(err);
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            console.error(err2);
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              console.error(err3);
-              throw err3;
-            }
-          });
-        });
+
+    const buffer = await billingImpl.downloadInvoiceDocument(billingInvoice);
+    if (!billingInvoice.number || !buffer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invoice document not found',
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+        action: action,
+        user: req.user
       });
     }
+    const fileName = 'invoice_' + billingInvoice.number + '.pdf';
+    res.attachment(fileName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.end(buffer, 'binary');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await

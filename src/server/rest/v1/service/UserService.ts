@@ -16,7 +16,6 @@ import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
@@ -29,9 +28,7 @@ import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
@@ -44,7 +41,6 @@ import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
-import fs from 'fs';
 import moment from 'moment';
 
 const MODULE_NAME = 'UserService';
@@ -859,7 +855,7 @@ export default class UserService {
               result.inError++;
             }
             // Insert batched
-            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
             }
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -1102,128 +1098,6 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        value: id
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: id });
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${id}' does not exist`,
-      MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Get the settings
-    const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
-    if (!pricingSetting || !pricingSetting.convergentCharging) {
-      await Logging.logException(
-        new Error('Convergent Charging setting is missing'),
-        action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        message: 'An issue occurred while creating the invoice',
-      });
-    }
-    // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/sap-labs-france/ev-dashboard/issues/1542
-    // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber: string;
-    try {
-      // pragma await ratingService.loadChargedItemsToInvoicing();
-      // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    if (!invoiceNumber) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: StatusCodes.NOT_FOUND,
-        message: 'No invoices available',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    let invoice;
-    try {
-      // pragma const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      if (!invoice) {
-        // Retry to get invoice
-        // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      }
-      if (!invoice) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-          message: `An error occurred while requesting invoice ${invoiceNumber}`,
-          module: MODULE_NAME, method: 'handleGetUserInvoice',
-          user: req.user,
-          action: action
-        });
-      }
-      const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => {
-        if (err) {
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              throw err3;
-            }
-          });
-        });
-      });
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-        message: `An error occurred while requesting invoice ${invoiceNumber}`,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
   private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
@@ -1263,7 +1137,7 @@ export default class UserService {
       ];
       headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
-    // Content
+    // Conten t
     const rows = users.map((user) => {
       const row = [
         user.id,
@@ -1277,7 +1151,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1317,6 +1191,7 @@ export default class UserService {
         issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
@@ -1342,11 +1217,10 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
-        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
-        email: importedUser.email.replace(/^"|"$/g, ''),
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
-
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties

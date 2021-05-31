@@ -28,6 +28,10 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   }
 
   public async retrieveConsumptions(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption[]> {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
+      return [];
+    }
     // Set new Token
     const token = await this.connect();
     const request = manualCall ?
@@ -160,7 +164,6 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
       this.axiosInstance.post(`${this.connection.url}/authentication-api/tokens`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

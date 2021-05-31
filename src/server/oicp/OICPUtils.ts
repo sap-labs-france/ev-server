@@ -153,11 +153,11 @@ export default class OICPUtils {
     }
   }
 
-  public static async getOICPIdentificationFromAuthorization(tenantID: string,
+  public static async getOICPIdentificationFromAuthorization(tenant: Tenant,
       transaction: Transaction): Promise<{ sessionId: OICPSessionID; identification: OICPIdentification; }> {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
-    const authorizations = await OCPPStorage.getAuthorizes(tenantID, {
+    const authorizations = await OCPPStorage.getAuthorizes(tenant, {
       dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
       chargeBoxID: transaction.chargeBoxID,
       tagID: transaction.tagID
@@ -167,7 +167,7 @@ export default class OICPUtils {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenantID, authorization.authorizationId);
+          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant.id, authorization.authorizationId);
           // OICP SessionID not used yet
           if (!oicpTransaction) {
             sessionId = authorization.authorizationId;

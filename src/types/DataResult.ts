@@ -1,6 +1,7 @@
 import Company from './Company';
 import Site from './Site';
 import SiteArea from './SiteArea';
+import Tag from './Tag';
 import { Transaction } from '@google-cloud/firestore';
 
 export interface DataResult<T> {
@@ -19,6 +20,13 @@ export interface SiteDataResult extends DataResult<Site>{
 
 export interface SiteAreaDataResult extends DataResult<SiteArea>{
   canCreate: boolean;
+}
+
+export interface TagDataResult extends DataResult<Tag>{
+  canCreate: boolean;
+  canDelete: boolean;
+  canImport: boolean;
+  canExport: boolean;
 }
 
 export interface TransactionDataResult {

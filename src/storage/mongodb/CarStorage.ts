@@ -503,7 +503,7 @@ export default class CarStorage {
     await global.database.getCollection<Car>(tenantID, 'cars').findOneAndUpdate(
       { _id: carMDB._id },
       { $set: carMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCar', uniqueTimerID, carMDB);
@@ -532,7 +532,7 @@ export default class CarStorage {
       },
 
       { $set: carUserMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveCarUser', uniqueTimerID, carUserMDB);
@@ -582,7 +582,7 @@ export default class CarStorage {
   }
 
   public static async getDefaultUserCar(tenantID: string, userID: string,
-      params: {} = {}, projectFields?: string[]): Promise<Car> {
+      params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
       defaultCar: true,
@@ -591,7 +591,7 @@ export default class CarStorage {
   }
 
   public static async getFirstAvailableUserCar(tenantID: string, userID: string,
-      params: {} = {}, projectFields?: string[]): Promise<Car> {
+      params = {}, projectFields?: string[]): Promise<Car> {
     const carMDB = await CarStorage.getCars(tenantID, {
       userIDs: [userID],
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);

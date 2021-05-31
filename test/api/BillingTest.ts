@@ -1,8 +1,10 @@
-import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
+import { AsyncTaskStatus } from '../../src/types/AsyncTask';
+import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -10,7 +12,6 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import { HTTPError } from '../../src/types/HTTPError';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
 import SiteContext from './context/SiteContext';
@@ -132,7 +133,18 @@ class TestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
-  public async generateTransaction(user: any): Promise<number> {
+  public async checkTransactionBillingData(transactionId: number) {
+    // Check the transaction status
+    const transactionResponse = await this.adminUserService.transactionApi.readById(transactionId);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
+    // TODO - Transaction billing data are not part of the projection! - no further check consistency for now
+    expect(transactionResponse.data?.billingData).not.to.be.null;
+    const billingDataStop: BillingDataTransactionStop = transactionResponse.data.billingData;
+    expect(billingDataStop?.status).to.equal(BillingStatus.BILLED);
+    expect(billingDataStop?.invoiceID).not.to.be.null;
+  }
+
+  public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
     // const user:any = this.userContext;
     const connectorId = 1;
     assert((user.tags && user.tags.length), 'User must have a valid tag');
@@ -142,12 +154,32 @@ class TestData {
     const startDate = moment().toDate();
     const stopDate = moment(startDate).add(1, 'hour').toDate();
     const startTransactionResponse = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(startTransactionResponse).to.be.transactionValid;
+    expect(startTransactionResponse).to.be.transactionStatus(expectedStatus);
     const transactionId = startTransactionResponse.transactionId;
-    const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
-    expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    if (expectedStatus === 'Accepted') {
+      const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+      expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
+    }
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
+      // Give some time to the asyncTask to bill the transaction
+      await this.waitForAsyncTasks();
+    }
     return transactionId;
+  }
+
+  public async waitForAsyncTasks() {
+    let counter = 0;
+    while (counter++ <= 10) {
+      // Get the number of pending tasks
+      const pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
+      const running = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.RUNNING }, Constants.DB_PARAMS_COUNT_ONLY);
+      if (!pending?.count && !running?.count) {
+        break;
+      }
+      // Give some time to the asyncTask to bill the transaction
+      console.log(`Waiting for async tasks - pending tasks: ${pending.count} - running tasks: ${running.count}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   }
 
   public async checkForDraftInvoices(userId: string): Promise<number> {
@@ -165,7 +197,7 @@ class TestData {
 
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: '-createdOn' }];
-    const response = await testData.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    const response = await testData.adminUserService.billingApi.readInvoices(params, paging, ordering);
     return response?.data?.result;
   }
 
@@ -394,6 +426,7 @@ describe('Billing Service', function() {
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         assert(transactionID, 'transactionID should not be null');
+        // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
@@ -481,20 +514,20 @@ describe('Billing Service', function() {
       });
 
       it('Should list invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
         expect(response.status).to.be.eq(StatusCodes.OK);
         expect(response.data.result.length).to.be.gt(0);
       });
 
       xit('Should list filtered invoices', async () => {
-        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readInvoices({ Status: BillingInvoiceStatus.OPEN }, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
         expect(response.data.result.length).to.be.gt(0);
         for (const invoice of response.data.result) {
           expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
       });
 
-      it('Should synchronize invoices', async () => {
+      xit('Should synchronize invoices', async () => {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
@@ -605,7 +638,7 @@ describe('Billing Service', function() {
           testData.tenantContext.getTenant().subdomain,
           basicUser
         );
-        const response = await testData.userService.billingApi.readAll({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const response = await testData.userService.billingApi.readInvoices({}, TestConstants.DEFAULT_PAGING, TestConstants.DEFAULT_ORDERING);
         expect(response.data.result.length).to.be.eq(2);
       });
 
@@ -693,7 +726,7 @@ describe('Billing Service', function() {
       });
     });
 
-    describe('Negative tests - Invalid Credentials', () => {
+    describe('Negative tests - Wrong Billing Settings', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.adminUserContext;
@@ -710,11 +743,9 @@ describe('Billing Service', function() {
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
       });
 
-      it('Should set a transaction in error', async () => {
-        const transactionID = await testData.generateTransaction(testData.userContext);
-        expect(transactionID).to.not.be.null;
-        const transactions = await testData.userService.transactionApi.readAllInError({});
-        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      it('Should not be able to start a transaction', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext, 'Invalid');
+        assert(!transactionID, 'Transaction ID should not be set');
       });
 
       it('Should set in error users without Billing data', async () => {
@@ -742,6 +773,29 @@ describe('Billing Service', function() {
         }
         assert(userFound, 'User with no billing data not found in Users In Error');
       });
+
+    });
+
+    describe('Negative tests', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // Set STRIPE credentials
+        testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
+      });
+
+      after(async () => {
+      });
+
+      xit('Should set a transaction in error', async () => {
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        const transactions = await testData.userService.transactionApi.readAllInError({});
+        expect(transactions.data.result.find((transaction) => transaction.id === transactionID)).to.not.be.null;
+      });
+
     });
 
   });
