@@ -2,6 +2,7 @@ import RefundReport, { RefundStatus } from '../../types/Refund';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
+import { BillingStatus } from '../../types/Billing';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
 import { DataResult } from '../../types/DataResult';
@@ -173,6 +174,7 @@ export default class TransactionStorage {
         stop: {
           status: transactionToSave.billingData.stop?.status,
           invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceNumber: transactionToSave.billingData.stop?.invoiceNumber,
           invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
           invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
         },
@@ -1300,13 +1302,14 @@ export default class TransactionStorage {
           {
             $match: {
               $and: [
-                { 'billingData.isTransactionBillingActivated': { $eq: true } },
+                { 'billingData.withBillingActive': { $eq: true } },
                 {
                   $or: [
                     { 'billingData': { $exists: false } },
                     { 'billingData.stop': { $exists: false } },
-                    { 'billingData.stop.invoiceID': { $exists: false } },
-                    { 'billingData.stop.invoiceID': { $eq: null } }
+                    { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
+                    // { 'billingData.stop.invoiceID': { $exists: false } },
+                    // { 'billingData.stop.invoiceID': { $eq: null } }
                   ]
                 }
               ]
