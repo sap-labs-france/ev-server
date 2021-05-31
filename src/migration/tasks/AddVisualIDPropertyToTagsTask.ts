@@ -3,6 +3,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
+import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
@@ -19,19 +20,22 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Add the visualID property to tags
+    let tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, onlyRecordCount: true, skip: 0 });
+    const count = tags.count;
+    let skip = 0;
     let updated = 0;
-    // Get Tags
-    const tagsMDB = await global.database.getCollection<any>(tenant.id, 'tags')
-      .find({}).toArray();
-    if (!Utils.isEmptyArray(tagsMDB)) {
-      for (const tagMDB of tagsMDB) {
-        await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
-          { _id: tagMDB._id },
-          { $set: { visualID: new ObjectID().toString() } });
-        updated++;
+    do {
+      tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, skip: skip });
+      if (!Utils.isEmptyArray(tags.result)) {
+        for (const tag of tags.result) {
+          await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
+            { _id: tag.id },
+            { $set: { visualID: new ObjectID().toHexString() } });
+          updated++;
+        }
       }
-    }
+      skip += Constants.BATCH_PAGE_SIZE;
+    } while (skip < count);
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
