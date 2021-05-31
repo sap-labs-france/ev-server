@@ -7,6 +7,7 @@ import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import Utils from '../utils/Utils';
 import chalk from 'chalk';
+import moment from 'moment';
 
 const MODULE_NAME = 'LockingManager';
 
@@ -20,11 +21,30 @@ export default class LockingManager {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE);
   }
 
-  public static async acquire(lock: Lock): Promise<boolean> {
+  public static async acquire(lock: Lock, timeout?: number): Promise<boolean> {
     try {
       switch (lock.type) {
         case LockType.EXCLUSIVE:
-          await LockingStorage.insertLock(lock);
+          if (timeout > 0) {
+            let timeoutReached = false;
+            setTimeout(() => {
+              timeoutReached = true;
+            }, timeout);
+            // Busy loop tries
+            while (!timeoutReached) {
+              try {
+                await LockingStorage.insertLock(lock);
+                break;
+              } catch {
+                await Utils.sleep(1000);
+              }
+            }
+            if (timeoutReached) {
+              throw Error(`Lock acquisition timeout ${timeout}ms reached`);
+            }
+          } else {
+            await LockingStorage.insertLock(lock);
+          }
           break;
         default:
           throw new BackendError({
@@ -51,57 +71,33 @@ export default class LockingManager {
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
-      Utils.isDevelopmentEnv() && console.error(chalk.red(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
-      return false;
-    }
-  }
-
-  public static async tryAcquire(lock: Lock, timeout: number): Promise<boolean> {
-    let timeoutReached = false;
-    setTimeout(() => {
-      timeoutReached = true;
-    }, timeout);
-    try {
-      switch (lock.type) {
-        case LockType.EXCLUSIVE:
-          // Busy loop tries
-          while (!timeoutReached) {
-            try {
-              await LockingStorage.insertLock(lock);
-              break;
-            } catch {
-              await Utils.sleep(1000);
-            }
+      // Check if specific lock for the asset has an expiration date
+      if (lock.expirationDate) {
+        // Check if lock is existing with same ID:
+        const lockInDB = await LockingStorage.getLock(lock.id);
+        // Check if log is existing and expired
+        if (lockInDB?.expirationDate && moment().isAfter(lockInDB.expirationDate)) {
+          try {
+            await LockingManager.release(lockInDB);
+            await Logging.logWarning({
+              tenantID: lock.tenantID,
+              module: MODULE_NAME, method: 'acquire',
+              action: ServerAction.LOCKING,
+              message: `The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} is expired. It was released automatically`,
+              detailedMessages: { lock, error: error.message, stack: error.stack }
+            });
+          } catch {
+            await Logging.logError({
+              tenantID: lock.tenantID,
+              module: MODULE_NAME, method: 'acquire',
+              action: ServerAction.LOCKING,
+              message: `The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} is expired. It was not possible to release it automatically`,
+              detailedMessages: { lock, error: error.message, stack: error.stack }
+            });
+            // Send notification to admins (To be discussed)
           }
-          if (timeoutReached) {
-            throw Error(`Lock acquisition timeout ${timeout}ms reached`);
-          }
-          break;
-        default:
-          throw new BackendError({
-            action: ServerAction.LOCKING,
-            module: MODULE_NAME, method: 'tryAcquire',
-            message: `Cannot acquire a lock entity '${lock.entity}' ('${lock.key}') with an unknown type '${lock.type}'`,
-            detailedMessages: { lock }
-          });
+        }
       }
-      await Logging.logDebug({
-        tenantID: lock.tenantID,
-        module: MODULE_NAME, method: 'tryAcquire',
-        action: ServerAction.LOCKING,
-        message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
-        detailedMessages: { lock }
-      });
-      Utils.isDevelopmentEnv() && console.debug(chalk.green(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
-      return true;
-    } catch (error) {
-      await Logging.logWarning({
-        tenantID: lock.tenantID,
-        module: MODULE_NAME, method: 'tryAcquire',
-        action: ServerAction.LOCKING,
-        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
-        detailedMessages: { lock, error: error.message, stack: error.stack }
-      });
       Utils.isDevelopmentEnv() && console.error(chalk.red(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
       return false;
     }
@@ -138,7 +134,7 @@ export default class LockingManager {
     }
   }
 
-  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
+  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE, timeout?: number): Lock {
     if (!tenantID) {
       throw new BackendError({
         action: ServerAction.LOCKING,
@@ -163,8 +159,8 @@ export default class LockingManager {
         detailedMessages: { tenantID, entity, key, type }
       });
     }
-    // Return the built lock
-    return {
+    // Build lock
+    const lock: Lock = {
       id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
       tenantID,
       entity: entity,
@@ -173,5 +169,11 @@ export default class LockingManager {
       timestamp: new Date(),
       hostname: Utils.getHostname()
     };
+    // Set expiration date
+    if (timeout > 0) {
+      lock.expirationDate = moment(lock.timestamp).add(timeout, 'seconds').toDate();
+    }
+    // Return the built lock
+    return lock;
   }
 }

@@ -6,6 +6,7 @@ export default interface Lock {
   key: string;
   type: LockType;
   timestamp: Date;
+  expirationDate?: Date;
   hostname: string;
 }
 
