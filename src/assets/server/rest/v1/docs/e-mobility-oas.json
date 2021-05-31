@@ -3271,6 +3271,17 @@
           }
         ],
         "description": "Get Charging Stations boot notifications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
         "tags": [
           "Charging Stations"
         ],
@@ -3283,17 +3294,17 @@
                   "count": 1,
                   "result": [
                     {
-                      "_id": "####",
-                      "chargePointVendor": "####",
-                      "chargePointModel": "####",
-                      "chargePointSerialNumber": "####",
-                      "chargeBoxSerialNumber": "####",
-                      "firmwareVersion": "####",
-                      "ocppVersion": "####",
-                      "endpoint": "####",
-                      "timestamp": "2018-01-02T08:21:47.584Z",
-                      "chargeBoxID": "####",
-                      "__v": 0,
+                      "_id": "###",
+                      "chargeBoxID": "###",
+                      "chargePointVendor": "###",
+                      "chargePointModel": "###",
+                      "chargePointSerialNumber": "###",
+                      "chargeBoxSerialNumber": null,
+                      "firmwareVersion": "4.3.0.25",
+                      "ocppVersion": "1.6",
+                      "ocppProtocol": "json",
+                      "endpoint": "###",
+                      "timestamp": "2020-11-03T09:56:02.908Z",
                       "createdBy": null,
                       "lastChangedBy": null
                     }
@@ -3322,6 +3333,17 @@
           }
         ],
         "description": "Get Charging Stations status notifications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
         "tags": [
           "Charging Stations"
         ],
