@@ -143,7 +143,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationNotificationsGetReq(data: HttpDatabaseRequest): HttpDatabaseRequest {
+  public validateChargingStationNotificationsGetReq(data: any): HttpDatabaseRequest {
     // Validate schema
     this.validate(this.chargingStationNotificationsGet, data);
     return data;
