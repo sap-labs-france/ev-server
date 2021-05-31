@@ -25,12 +25,13 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
     let skip = 0;
     let updated = 0;
     do {
-      tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, skip: skip });
+      tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, skip: skip, sort:{ _id:1 } });
       if (!Utils.isEmptyArray(tags.result)) {
+        const visualID = new ObjectID().toHexString();
         for (const tag of tags.result) {
-          await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
+          await global.database.getCollection<any>(tenant.id, 'tags').update(
             { _id: tag.id },
-            { $set: { visualID: new ObjectID().toHexString() } });
+            { $set: { visualID: visualID } });
           updated++;
         }
       }
