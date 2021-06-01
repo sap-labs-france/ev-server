@@ -417,6 +417,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
+  // TODO - move this method to the billing abstraction to make it common to all billing implementation
   private async _updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
