@@ -1,7 +1,8 @@
+import { FilterQuery, ObjectID } from 'mongodb';
+
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
@@ -15,28 +16,29 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant);
+      await this.migrateTenant(tenant, true);
     }
   }
 
-  async migrateTenant(tenant: Tenant): Promise<void> {
+  async migrateTenant(tenant: Tenant, force = false): Promise<void> {
     let tags: Tag[];
     let updated = 0;
+    const findFilter: FilterQuery<any> = force ? {} : {
+      $or: [
+        { visualID: { $exists: false } },
+        { visualID: null },
+        { visualID: '' }
+      ]
+    };
     do {
       // Get the tags
       tags = await global.database.getCollection<any>(tenant.id, 'tags')
-        .find({
-          $or: [
-            { visualID: { $exists: false } },
-            { visualID: null },
-            { visualID: '' }
-          ]
-        })
+        .find(findFilter)
         .limit(Constants.BATCH_PAGE_SIZE)
         .toArray();
       if (!Utils.isEmptyArray(tags)) {
-        const visualID = new ObjectID().toHexString();
         for (const tag of tags) {
+          const visualID = new ObjectID().toHexString();
           await global.database.getCollection<any>(tenant.id, 'tags').updateOne(
             { _id: tag['_id'] },
             { $set: { visualID } }
@@ -57,7 +59,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.5';
+    return '1.6';
   }
 
   getName(): string {
