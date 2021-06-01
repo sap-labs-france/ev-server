@@ -22,6 +22,10 @@ export default class ChangeCryptoKeyTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
+    // Skip default tenant
+    if (tenant.id === Constants.DEFAULT_TENANT) {
+      return;
+    }
     // Get crypto key settings from config file & db
     const historicalCryptoSettings = Configuration.getCryptoConfig();
     const currentCryptoSettings = await SettingStorage.getCryptoSettings(tenant.id);
