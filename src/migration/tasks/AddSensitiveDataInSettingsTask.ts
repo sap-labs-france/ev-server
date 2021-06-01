@@ -51,7 +51,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       await global.database.getCollection(tenant.id, 'settings').findOneAndUpdate(
         { '_id': setting._id },
         { $set: setting },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }

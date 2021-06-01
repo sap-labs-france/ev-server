@@ -18,10 +18,13 @@ export interface BillingDataTransactionUpdate {
 export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
+  PENDING = 'pending',
+  FAILED = 'failed',
 }
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;
+  invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }

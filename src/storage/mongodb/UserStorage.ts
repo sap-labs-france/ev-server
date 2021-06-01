@@ -263,7 +263,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
       { $set: userMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Delegate saving image as well if specified
     if (saveImage) {
       await UserStorage.saveUserImage(tenantID, userMDB._id.toHexString(), userToSave.image);
@@ -288,7 +288,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
       { $set: userMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
@@ -522,7 +522,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { image: userImageToSave } },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserImage', uniqueTimerID, userImageToSave);
   }

@@ -1,8 +1,10 @@
-import { BillingInvoiceStatus, BillingUser } from '../../src/types/Billing';
+import { BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
+import { AsyncTaskStatus } from '../../src/types/AsyncTask';
+import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
@@ -69,8 +71,8 @@ class TestData {
     return source;
   }
 
-  public async setBillingSystemValidCredentials(activateTransactionBilling = true) : Promise<StripeBillingIntegration> {
-    const billingSettings = this.getLocalSettings(false);
+  public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
+    const billingSettings = this.getLocalSettings(immediateBillingAllowed);
     // Here we switch ON or OFF the billing of charging sessions
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
     // Invoke the generic setting service API to properly persist this information
@@ -131,6 +133,17 @@ class TestData {
     await this.adminUserService.settingApi.update(componentSetting);
   }
 
+  public async checkTransactionBillingData(transactionId: number) {
+    // Check the transaction status
+    const transactionResponse = await this.adminUserService.transactionApi.readById(transactionId);
+    expect(transactionResponse.status).to.equal(StatusCodes.OK);
+    assert(transactionResponse.data?.billingData, 'Billing Data should be set');
+    const billingDataStop: BillingDataTransactionStop = transactionResponse.data.billingData.stop;
+    expect(billingDataStop?.status).to.equal(BillingStatus.BILLED);
+    assert(billingDataStop?.invoiceID, 'Invoice ID should be set');
+    assert(billingDataStop?.invoiceNumber, 'Invoice Number should be set');
+  }
+
   public async generateTransaction(user: any, expectedStatus = 'Accepted'): Promise<number> {
     // const user:any = this.userContext;
     const connectorId = 1;
@@ -147,7 +160,26 @@ class TestData {
       const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     }
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
+      // Give some time to the asyncTask to bill the transaction
+      await this.waitForAsyncTasks();
+    }
     return transactionId;
+  }
+
+  public async waitForAsyncTasks() {
+    let counter = 0;
+    while (counter++ <= 10) {
+      // Get the number of pending tasks
+      const pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
+      const running = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.RUNNING }, Constants.DB_PARAMS_COUNT_ONLY);
+      if (!pending?.count && !running?.count) {
+        break;
+      }
+      // Give some time to the asyncTask to bill the transaction
+      console.log(`Waiting for async tasks - pending tasks: ${pending.count} - running tasks: ${running.count}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   }
 
   public async checkForDraftInvoices(userId: string): Promise<number> {
@@ -394,6 +426,7 @@ describe('Billing Service', function() {
         const itemsBefore = await testData.getNumberOfSessions(testData.userContext.id);
         const transactionID = await testData.generateTransaction(testData.userContext);
         assert(transactionID, 'transactionID should not be null');
+        // await testData.checkTransactionBillingData(transactionID); // TODO - Check not yet possible!
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.gt(itemsBefore);
@@ -805,6 +838,48 @@ describe('Billing Service', function() {
         // await testData.userService.billingApi.synchronizeInvoices({});
         const itemsAfter = await testData.getNumberOfSessions(testData.userContext.id);
         expect(itemsAfter).to.be.eq(itemsBefore);
+      });
+
+    });
+  });
+
+
+  describe('with Transaction Billing + Immediate billing', () => {
+    before(async () => {
+      global.database = new MongoDBStorage(config.get('storage'));
+      await global.database.start();
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.adminUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.adminUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.adminUserContext
+      );
+      expect(testData.userContext).to.not.be.null;
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      // Initialize the Billing module
+      testData.billingImpl = await testData.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
+    });
+
+    describe('Where admin user', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('should create and bill an invoice after a transaction', async () => {
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+        await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+        const transactionID = await testData.generateTransaction(testData.userContext);
+        assert(transactionID, 'transactionID should not be null');
+        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        await testData.checkTransactionBillingData(transactionID);
       });
 
     });

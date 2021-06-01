@@ -37,7 +37,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
       await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').findOneAndUpdate(
         { '_id': user['_id'] },
         { $set: user },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }
@@ -84,7 +84,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
       await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
         { '_id': user['_id'] },
         { $set: user },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }

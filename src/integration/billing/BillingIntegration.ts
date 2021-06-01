@@ -369,6 +369,8 @@ export default abstract class BillingIntegration {
 
   abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
+  abstract billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
+
   abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
 
   abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;

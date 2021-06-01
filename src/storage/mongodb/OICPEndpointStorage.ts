@@ -62,7 +62,7 @@ export default class OICPEndpointStorage {
     await global.database.getCollection<any>(tenantID, 'oicpendpoints').findOneAndUpdate(
       oicpEndpointFilter,
       { $set: oicpEndpointMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
     // Create
