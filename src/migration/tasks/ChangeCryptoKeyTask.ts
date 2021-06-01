@@ -28,12 +28,12 @@ export default class ChangeCryptoKeyTask extends MigrationTask {
     if (!currentCryptoSettings || currentCryptoSettings?.crypto?.key === historicalCryptoSettings.key) {
       // If they match, generate a new key with the default algorithm
       const keySettingToSave: CryptoSettings = {
-        id: currentCryptoSettings.id,
+        id: currentCryptoSettings?.id,
         identifier: TechnicalSettings.CRYPTO,
         type: CryptoSettingsType.CRYPTO,
         crypto: {
-          formerKey: currentCryptoSettings.crypto.key,
-          formerKeyProperties: currentCryptoSettings.crypto.keyProperties,
+          formerKey: currentCryptoSettings?.crypto?.key,
+          formerKeyProperties: currentCryptoSettings?.crypto?.keyProperties,
           key: Utils.generateRandomKey(Utils.getDefaultKeyProperties()),
           keyProperties: Utils.getDefaultKeyProperties(),
           migrationToBeDone: true
