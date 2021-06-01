@@ -752,6 +752,7 @@ export default class TagService {
         issuer: filteredRequest.Issuer,
         active: filteredRequest.Active,
         withUser: filteredRequest.WithUser,
+        userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         ...authorizationTagsFilters.filters
       },
       {
