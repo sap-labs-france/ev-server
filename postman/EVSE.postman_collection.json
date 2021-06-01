@@ -1606,6 +1606,382 @@
 			"response": []
 		},
 		{
+			"name": "FE-ChargingStationReset",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"args\": {\n\t\t\"type\": \"Soft\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/reset",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"reset"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationClearCache",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/cache/clear",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"cache",
+						"clear"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationGetConfiguration",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"args\": {\n        \"key\": []\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/configuration/retrieve",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"configuration",
+						"retrieve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationUpdateConfiguration",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"args\": {\n        \"key\": \"\",\n        \"value\": \"\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/configuration",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"configuration"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationUnlockConnector",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/connectors/{{connectorId}}/unlock",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"connectors",
+						"{{connectorId}}",
+						"unlock"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationGetCompositeSchedule",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"args\": {\n    \"connectorId\": 0,\n    \"duration\": 36000,\n    \"chargingRateUnit\": \"A\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/compositeschedule",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"compositeschedule"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationGetDiagnostics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"args\": {\n    \"location\": \"\",\n    \"retries\": 1,\n    \"retryInterval\": 5,\n    \"startTime\": \"2021-06-01T13:35:14.118Z\",\n    \"stopTime\": \"2021-06-01T13:35:14.118Z\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/diagnostics",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"diagnostics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationUpdateFirmware",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"args\": {\n    \"location\": \"\",\n    \"retrieveDate\": \"2021-06-01T13:35:50.260Z\",\n    \"retries\": 1,\n    \"retryInterval\": 5\n  }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/firmware/update",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"firmware",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationChangeAvailability",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"args\": {\n    \"connectorId\": 1,\n    \"type\": \"Operative\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/availability/change",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"availability",
+						"change"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-ChargingStations",
 			"request": {
 				"auth": {
@@ -1621,7 +1997,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations?WithNoSiteArea=false&Limit=30",
+					"raw": "{{base_url}}/v1/api/charging-stations",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1633,11 +2009,93 @@
 					"query": [
 						{
 							"key": "WithNoSiteArea",
-							"value": "false"
+							"value": "false",
+							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": "30"
+							"value": "30",
+							"disabled": true
+						},
+						{
+							"key": "Issuer",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "WithSite",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ConnectorStatus",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ConnectorType",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "IncludeDeleted",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLongitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLatitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocMaxDistanceMeters",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": null,
+							"disabled": true
 						}
 					]
 				}
@@ -1762,6 +2220,586 @@
 			"response": []
 		},
 		{
+			"name": "FE-ChargingStationGenerateQRCode",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/connectors/{{connectorId}}/qrcode/generate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"connectors",
+						"{{connectorId}}",
+						"qrcode",
+						"generate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationDownloadQRCode",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/qrcode/download?ChargingStationID={{chargingStation}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"qrcode",
+						"download"
+					],
+					"query": [
+						{
+							"key": "ChargingStationID",
+							"value": "{{chargingStation}}"
+						},
+						{
+							"key": "ConnectorID",
+							"value": "{{connectorId}}",
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationOcppParameters",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/ocpp/parameters",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"ocpp",
+						"parameters"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationRequestOCPPParameters",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"chargingStationID\": \"{{chargingStation}}\",\n  \"forceUpdateOCPPParamsFromTemplate\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/ocpp/parameters",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"ocpp",
+						"parameters"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationExportOCPPParameters",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/ocpp/parameters/export?ChargingStationID={{chargingStation}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"ocpp",
+						"parameters",
+						"export"
+					],
+					"query": [
+						{
+							"key": "ChargingStationID",
+							"value": "{{chargingStation}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationUpdateParameters",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"chargingStationUrl\": \"string\",\n  \"maximumPower\": 50000,\n  \"excludeFromSmartCharging\": false,\n  \"forceInactive\": false,\n  \"manualConfiguration\": true,\n  \"public\": false,\n  \"siteAreaID\": \"\",\n  \"coordinates\": [\n    43,\n    7\n  ],\n  \"connectors\": [\n    {\n      \"connectorId\": 1,\n      \"power\": 0,\n      \"type\": \"T2\",\n      \"voltage\": 110,\n      \"amperage\": 0,\n      \"currentType\": \"AC\",\n      \"numberOfConnectedPhase\": 0,\n      \"phaseAssignmentToGrid\": {\n        \"csPhaseL1\": \"L1\",\n        \"csPhaseL2\": \"L2\",\n        \"csPhaseL3\": \"L3\"\n      }\n    }\n  ],\n  \"chargePoints\": [\n    {\n      \"chargePointID\": 0,\n      \"currentType\": \"AC\",\n      \"voltage\": 110,\n      \"amperage\": 0,\n      \"numberOfConnectedPhase\": 0,\n      \"cannotChargeInParallel\": true,\n      \"sharePowerToAllConnectors\": true,\n      \"excludeFromPowerLimitation\": true,\n      \"ocppParamForPowerLimitation\": \"string\",\n      \"power\": 0,\n      \"efficiency\": 0,\n      \"connectorIDs\": [\n        0\n      ]\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/parameters",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"parameters"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationLimitPower",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"chargePointID\": 1,\n  \"connectorId\": 0,\n  \"ampLimitValue\": 192,\n  \"forceUpdateChargingPlan\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/power/limit",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"{{chargingStation}}",
+						"power",
+						"limit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationsInError",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/status/in-error",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"status",
+						"in-error"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ErrorType",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationsExport",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/action/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"action",
+						"export"
+					],
+					"query": [
+						{
+							"key": "Limit",
+							"value": "100",
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteAreaID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Issuer",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "WithNoSiteArea",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ConnectorStatus",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ConnectorType",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ChargingStationID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "IncludeDeleted",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLongitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocLatitude",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "LocMaxDistanceMeters",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationsDownloadFirmware",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/firmware/download",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"firmware",
+						"download"
+					],
+					"query": [
+						{
+							"key": "FileName",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationsCheckSmartCharging",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/smartcharging/connection/check",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"smartcharging",
+						"connection",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationsTriggerSmartCharging",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/charging-stations/smartcharging/trigger?SiteAreaID={{siteAreaID}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"charging-stations",
+						"smartcharging",
+						"trigger"
+					],
+					"query": [
+						{
+							"key": "SiteAreaID",
+							"value": "{{siteAreaID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-Notifications",
 			"request": {
 				"auth": {
@@ -1799,38 +2837,6 @@
 							"key": "Channel",
 							"value": "email"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-ChargingStationOcppParameters",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/{{chargingStation}}/ocpp/parameters",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"charging-stations",
-						"{{chargingStation}}",
-						"ocpp",
-						"parameters"
 					]
 				}
 			},
@@ -5215,43 +6221,6 @@
 							"key": "TenantID",
 							"value": "{{tenantID}}"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-Transaction Copy",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/api/transactions/1247155539",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"transactions",
-						"1247155539"
 					]
 				}
 			},
