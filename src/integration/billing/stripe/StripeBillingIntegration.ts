@@ -20,6 +20,7 @@ import { ServerAction } from '../../../types/Server';
 import Stripe from 'stripe';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
@@ -410,7 +411,35 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_UPDATE_TRANSACTION)) {
+      await this._updateTransactionsBillingData(billingInvoice);
+    }
     return billingInvoice;
+  }
+
+  // TODO - move this method to the billing abstraction to make it common to all billing implementation
+  private async _updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenantID, Number(transactionID));
+        // Update Billing Data
+        transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+        transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+        transaction.billingData.lastUpdate = new Date();
+        // Save
+        await TransactionStorage.saveTransaction(this.tenantID, transaction);
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenantID,
+          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          module: MODULE_NAME, method: '_updateTransactionsBillingData',
+          message: 'Failed to update transaction billing data',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }));
   }
 
   private async _chargeStripeInvoice(invoiceID: string): Promise<BillingOperationResult> {
