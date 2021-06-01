@@ -25,7 +25,7 @@ export default class ChangeCryptoKeyTask extends MigrationTask {
     // Get crypto key settings from config file & db
     const historicalCryptoSettings = Configuration.getCryptoConfig();
     const currentCryptoSettings = await SettingStorage.getCryptoSettings(tenant.id);
-    if (currentCryptoSettings.crypto.key === historicalCryptoSettings.key || !currentCryptoSettings) {
+    if (!currentCryptoSettings || currentCryptoSettings?.crypto?.key === historicalCryptoSettings.key) {
       // If they match, generate a new key with the default algorithm
       const keySettingToSave: CryptoSettings = {
         id: currentCryptoSettings.id,
