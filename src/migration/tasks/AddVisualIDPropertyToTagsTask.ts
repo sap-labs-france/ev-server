@@ -57,7 +57,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.4';
+    return '1.5';
   }
 
   getName(): string {
