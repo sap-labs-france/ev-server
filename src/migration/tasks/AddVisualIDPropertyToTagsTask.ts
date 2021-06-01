@@ -3,7 +3,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
-import TagStorage from '../../storage/mongodb/TagStorage';
+import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
@@ -20,23 +20,24 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    let tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, onlyRecordCount: true, skip: 0 });
-    const count = tags.count;
-    let skip = 0;
+    let tags: Tag[];
     let updated = 0;
     do {
-      tags = await TagStorage.getTags(tenant.id, {}, { limit: Constants.BATCH_PAGE_SIZE, skip: skip, sort:{ _id:1 } });
-      if (!Utils.isEmptyArray(tags.result)) {
+      // Get the tags
+      tags = await global.database.getCollection<any>(tenant.id, 'tags')
+        .find({ visualID: { $exists: false } })
+        .limit(Constants.BATCH_PAGE_SIZE)
+        .toArray();
+      if (!Utils.isEmptyArray(tags)) {
         const visualID = new ObjectID().toHexString();
-        for (const tag of tags.result) {
+        for (const tag of tags) {
           await global.database.getCollection<any>(tenant.id, 'tags').update(
-            { _id: tag.id },
-            { $set: { visualID: visualID } });
+            { _id: tag['_id'] },
+            { $set: { visualID } });
           updated++;
         }
       }
-      skip += Constants.BATCH_PAGE_SIZE;
-    } while (skip < count);
+    } while (tags.length === Constants.BATCH_PAGE_SIZE); // Avoid infinite loop due to issues in the update process
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
@@ -49,7 +50,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.2';
+    return '1.3';
   }
 
   getName(): string {
