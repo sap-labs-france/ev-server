@@ -11,7 +11,6 @@ import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import { ChargingStationInErrorType } from '../../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationValidator from '../validator/ChargingStationValidator';
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
