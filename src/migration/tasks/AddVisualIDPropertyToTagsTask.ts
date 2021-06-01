@@ -25,7 +25,13 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
     do {
       // Get the tags
       tags = await global.database.getCollection<any>(tenant.id, 'tags')
-        .find({ visualID: { $exists: false } })
+        .find({
+          $or: [
+            { visualID: { $exists: false } },
+            { visualID: null },
+            { visualID: '' }
+          ]
+        })
         .limit(Constants.BATCH_PAGE_SIZE)
         .toArray();
       if (!Utils.isEmptyArray(tags)) {
@@ -33,7 +39,8 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
         for (const tag of tags) {
           await global.database.getCollection<any>(tenant.id, 'tags').updateOne(
             { _id: tag['_id'] },
-            { $set: { visualID } });
+            { $set: { visualID } }
+          );
           updated++;
         }
       }
