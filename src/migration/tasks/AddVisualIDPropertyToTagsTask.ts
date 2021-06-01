@@ -44,7 +44,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
           updated++;
         }
       }
-    } while (tags.length <= Constants.BATCH_PAGE_SIZE); // Avoid infinite loop due to issues in the update process
+    } while (tags.length <= Constants.BATCH_PAGE_SIZE);
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
