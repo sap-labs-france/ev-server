@@ -31,7 +31,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
       if (!Utils.isEmptyArray(tags)) {
         const visualID = new ObjectID().toHexString();
         for (const tag of tags) {
-          await global.database.getCollection<any>(tenant.id, 'tags').update(
+          await global.database.getCollection<any>(tenant.id, 'tags').updateOne(
             { _id: tag['_id'] },
             { $set: { visualID } });
           updated++;
