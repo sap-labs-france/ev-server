@@ -7,7 +7,6 @@ import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationS
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import I18nManager from '../../../../utils/I18nManager';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
@@ -55,10 +54,10 @@ export default class LoggingService {
   }
 
   private static convertToCSV(req: Request, loggings: Log[], writeHeader = true): string {
-    const headers = null;
+    let headers = null;
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'date',
         'time',
         'level',
@@ -70,7 +69,7 @@ export default class LoggingService {
         'source',
         'host',
         'process'
-      ];
+      ].join(Constants.CSV_SEPARATOR);
     }
     // Content
     const rows = loggings.map((log) => {
@@ -86,7 +85,7 @@ export default class LoggingService {
         log.source,
         log.host,
         log.process
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);

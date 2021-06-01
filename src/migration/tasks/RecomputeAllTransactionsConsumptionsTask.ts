@@ -42,7 +42,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           $project: { '_id': 1 }
         }
       ]).toArray();
-    if (transactionsMDB.length > 0) {
+    if (!Utils.isEmptyArray(transactionsMDB)) {
       void Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.MIGRATION,
@@ -57,7 +57,7 @@ export default class RecomputeAllTransactionsConsumptionsTask extends MigrationT
           const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
           // Rebuild consumptions
           // FIXME: Power limitation will be lost in consumptions (to check the implementation)
-          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant.id, transaction);
+          const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(tenant, transaction);
           const durationSecs = Math.trunc((new Date().getTime() - timeFrom) / 1000);
           consumptionsUpdated.inSuccess++;
           if (nbrOfConsumptions > 0) {

@@ -2,7 +2,7 @@ import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP
 
 import { AxiosResponse } from 'axios';
 import CentralServerService from '../client/CentralServerService';
-import ChargingStation from '../../types/ChargingStation';
+import ChargingStation from '../../../src/types/ChargingStation';
 import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
 import OCPPService from '../ocpp/OCPPService';
@@ -26,7 +26,8 @@ interface MeterValueParams {
   amperageL2MeterValue?: number;
   amperageL3MeterValue?: number;
   socMeterValue?: number;
-  signedDataMeterValue?: string;
+  signedDataStartMeterValue?: string;
+  signedDataStopMeterValue?: string;
 }
 
 export default class ChargingStationContext {
@@ -93,7 +94,8 @@ export default class ChargingStationContext {
     return response;
   }
 
-  public async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: OCPPMeterValue[] | OCPP15TransactionData): Promise<OCPPStopTransactionResponse> {
+  public async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date,
+      transactionData?: OCPPMeterValue[] | OCPP15TransactionData): Promise<OCPPStopTransactionResponse> {
     // Check props
     const response = await this.ocppService.executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
@@ -371,11 +373,18 @@ export default class ChargingStationContext {
         });
       }
       // Signed Data
-      if (meterValues.signedDataMeterValue) {
+      if (meterValues.signedDataStartMeterValue) {
         meterValueRequest.meterValue[0].sampledValue.push({
-          value: meterValues.signedDataMeterValue,
+          value: meterValues.signedDataStartMeterValue,
           format: OCPPValueFormat.SIGNED_DATA,
-          context,
+          context: OCPPReadingContext.TRANSACTION_BEGIN,
+        });
+      }
+      if (meterValues.signedDataStopMeterValue) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterValues.signedDataStopMeterValue,
+          format: OCPPValueFormat.SIGNED_DATA,
+          context: OCPPReadingContext.TRANSACTION_END,
         });
       }
     // OCPP 1.5

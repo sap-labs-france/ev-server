@@ -1,4 +1,4 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPPhase, OCPPProtocol, OCPPVersion, RegistrationStatus } from './ocpp/OCPPServer';
 
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
@@ -24,6 +24,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   chargePointModel: string;
   chargeBoxSerialNumber: string;
   chargePointVendor: string;
+  registrationStatus: RegistrationStatus;
   iccid: string;
   imsi: string;
   meterType: string;
@@ -114,7 +115,7 @@ export enum Command {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT_PER_PHASE = 13,
+  MIN_LIMIT_PER_PHASE = 6,
 }
 
 export interface Connector {

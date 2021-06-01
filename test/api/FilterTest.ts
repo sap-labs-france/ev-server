@@ -19,7 +19,7 @@ const testData: TestData = new TestData();
 describe('Filters with multiple values tests', function() {
   this.timeout(100000);
 
-  before(async function() {
+  before(function() {
     // Init values
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });
@@ -86,7 +86,7 @@ describe('Filters with multiple values tests', function() {
     });
 
     it('Sessions history : Check that multi-filtering based on charging stations works', async () => {
-      const read = await testData.centralService.transactionApi.readAllCompleted({ 'ChargeBoxID' : 'SAP-Caen-01|SAP-Mougins-01' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.transactionApi.readAllCompleted({ 'ChargingStationID' : 'SAP-Caen-01|SAP-Mougins-01' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(StatusCodes.OK);
     });
 

@@ -24,9 +24,9 @@ export default class TagStorage {
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),
+      visualID: tag.visualID,
       ocpiToken: tag.ocpiToken,
-      description: tag.description,
-      deleted: Utils.objectHasProperty(tag, 'deleted') ? tag.deleted : false
+      description: tag.description
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
@@ -34,7 +34,7 @@ export default class TagStorage {
     await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
       { '_id': tag.id },
       { $set: tagMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTag', uniqueTimerID, tagMDB);
   }
@@ -43,16 +43,20 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTag');
     const tagMDB = {
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
+      name: importedTagToSave.name,
+      firstName: importedTagToSave.firstName,
+      email: importedTagToSave.email,
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
-      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedTagToSave.importedBy)
+      importedOn: importedTagToSave.importedOn,
+      importedBy: importedTagToSave.importedBy
     };
     await global.database.getCollection<any>(tenantID, 'importedtags').findOneAndUpdate(
       { _id: tagMDB._id },
       { $set: tagMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedTag', uniqueTimerID, tagMDB);
@@ -63,11 +67,15 @@ export default class TagStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedTags');
     const importedTagsToSaveMDB: any = importedTagsToSave.map((importedTagToSave) => ({
       _id: importedTagToSave.id,
+      visualID: importedTagToSave.visualID,
       description: importedTagToSave.description,
+      name: importedTagToSave.name,
+      firstName: importedTagToSave.firstName,
+      email: importedTagToSave.email,
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
-      importedOn: Utils.convertToDate(importedTagToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedTagToSave.importedBy)
+      importedOn: importedTagToSave.importedOn,
+      importedBy: importedTagToSave.importedBy
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenantID, 'importedtags').insertMany(
@@ -252,13 +260,32 @@ export default class TagStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
+      userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
+  }
+
+  public static async getTagByVisualID(tenantID: string, visualID: string,
+      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+    const tagMDB = await TagStorage.getTagByVisualIDs(tenantID, [visualID], {
+      withUser: params.withUser,
+      withNbrTransactions: params.withNbrTransactions,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return tagMDB.count === 1 ? tagMDB.result[0] : null;
+  }
+
+  public static async getTagByVisualIDs(tenantID: string, visualIDs: string[],
+      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
+    return await TagStorage.getTags(tenantID, {
+      visualIDs: visualIDs,
+      withUser: params.withUser,
+      withNbrTransactions: params.withNbrTransactions,
+    }, dbParams, projectFields);
   }
 
   public static async getFirstActiveUserTag(tenantID: string, userID: string,
@@ -284,7 +311,7 @@ export default class TagStorage {
 
   public static async getTags(tenantID: string,
       params: {
-        issuer?: boolean; tagIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+        issuer?: boolean; tagIDs?: string[]; visualIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
         withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
@@ -304,7 +331,8 @@ export default class TagStorage {
     if (params.search) {
       filters.$or = [
         { '_id': { $regex: params.search, $options: 'i' } },
-        { 'description': { $regex: params.search, $options: 'i' } }
+        { 'description': { $regex: params.search, $options: 'i' } },
+        { 'visualID': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Remove deleted
@@ -312,6 +340,10 @@ export default class TagStorage {
     // Tag IDs
     if (!Utils.isEmptyArray(params.tagIDs)) {
       filters._id = { $in: params.tagIDs };
+    }
+    // Visual Tag IDs
+    if (!Utils.isEmptyArray(params.visualIDs)) {
+      filters.visualID = { $in: params.visualIDs };
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
@@ -378,7 +410,7 @@ export default class TagStorage {
     });
     // Transactions
     if (params.withNbrTransactions) {
-      let additionalPipeline :Record<string, any>[] = [];
+      let additionalPipeline: Record<string, any>[] = [];
       if (params.withUser) {
         additionalPipeline = [{
           '$match': { 'userID': { $exists: true, $ne: null } }

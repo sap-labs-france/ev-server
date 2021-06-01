@@ -432,7 +432,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithNoBadge() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
       }
@@ -442,7 +442,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithExternalUser() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'tagID': this.transactionStartUser.tags[0].id,
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
@@ -453,7 +453,7 @@ export default class OCPPCommonTests {
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
-      'chargeBoxID': this.chargingStationContext.getChargingStation().id,
+      'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
         'tagID': this.transactionStartUser.tags[0].id,
         'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
@@ -463,8 +463,8 @@ export default class OCPPCommonTests {
   }
 
 
-  public async testSendMeterValues(withSoC = false, withSignedData = false) {
-    // Check on Transaction
+  public async testSendMeterValues(withSoC = false, withSignedData = false, withOnlyEndSignedData = false) {
+  // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Current Time matches Transaction one
     this.transactionCurrentTime = moment(this.newTransaction.timestamp).toDate();
@@ -489,7 +489,7 @@ export default class OCPPCommonTests {
         amperageL1MeterValue: this.amperageL1MeterValues[0],
         amperageL2MeterValue: this.amperageL2MeterValues[0],
         amperageL3MeterValue: this.amperageL3MeterValues[0],
-        signedDataMeterValue: withSignedData ? this.transactionStartSignedData : null,
+        signedDataStartMeterValue: (withSignedData && !withOnlyEndSignedData) ? this.transactionStartSignedData : null,
       }
     );
     if (meterValueResponse) {
@@ -590,7 +590,8 @@ export default class OCPPCommonTests {
         amperageL2MeterValue: this.amperageL2MeterValues[this.amperageL2MeterValues.length - 1],
         amperageL3MeterValue: this.amperageL3MeterValues[this.amperageL3MeterValues.length - 1],
         socMeterValue: withSoC ? this.socMeterValues[this.socMeterValues.length - 1] : 0,
-        signedDataMeterValue: withSignedData ? this.transactionEndSignedData : null
+        signedDataStartMeterValue: withSignedData ? this.transactionStartSignedData : null,
+        signedDataStopMeterValue: withSignedData ? this.transactionEndSignedData : null,
       }
     );
     if (meterValueResponse) {

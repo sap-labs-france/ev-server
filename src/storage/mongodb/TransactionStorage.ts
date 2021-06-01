@@ -2,6 +2,7 @@ import RefundReport, { RefundStatus } from '../../types/Refund';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
+import { BillingStatus } from '../../types/Billing';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
 import { DataResult } from '../../types/DataResult';
@@ -46,7 +47,7 @@ export default class TransactionStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // ID not provided?
     if (!transactionToSave.id) {
-      transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
+      transactionToSave.id = await TransactionStorage.findAvailableID(tenantID);
     }
     // Transfer
     const transactionMDB: any = {
@@ -168,11 +169,15 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        status: transactionToSave.billingData.status,
-        invoiceID: Utils.convertToObjectID(transactionToSave.billingData.invoiceID),
-        invoiceStatus: transactionToSave.billingData.invoiceStatus,
-        invoiceItem: transactionToSave.billingData.invoiceItem,
+        withBillingActive: transactionToSave.billingData.withBillingActive,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        stop: {
+          status: transactionToSave.billingData.stop?.status,
+          invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceNumber: transactionToSave.billingData.stop?.invoiceNumber,
+          invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
+          invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
+        },
       };
     }
     if (transactionToSave.ocpiData) {
@@ -248,7 +253,7 @@ export default class TransactionStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (!firstTransactionsMDB || firstTransactionsMDB.length === 0) {
+    if (Utils.isEmptyArray(firstTransactionsMDB)) {
       return null;
     }
     const transactionYears = [];
@@ -266,9 +271,9 @@ export default class TransactionStorage {
         transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
         chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
-        ocpiSessionID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
+        ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean;
+        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -311,16 +316,19 @@ export default class TransactionStorage {
         { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } },
-        { 'ocpiData.session.id': { $regex: params.search, $options: 'i' } }
+        { 'ocpiData.session.authorization_id': { $regex: params.search, $options: 'i' } }
       ];
     }
     // OCPI ID
     if (params.ocpiSessionID) {
       filters['ocpiData.session.id'] = params.ocpiSessionID;
     }
+    if (params.ocpiAuthorizationID) {
+      filters['ocpiData.session.authorization_id'] = params.ocpiAuthorizationID;
+    }
     // OICP ID
     if (params.oicpSessionID) {
-      filters['oicpData.session.id'] = params.oicpSessionID;
+      filters['oicpData.session.SessionID'] = params.oicpSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
@@ -343,6 +351,13 @@ export default class TransactionStorage {
     // Tag
     if (params.tagIDs) {
       filters.tagID = { $in: params.tagIDs };
+    }
+    // Has user ID?
+    if (params.hasUserID) {
+      filters.$and = [
+        { 'userID': { '$exists': true } },
+        { 'userID': { '$ne': null } }
+      ];
     }
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
@@ -792,9 +807,9 @@ export default class TransactionStorage {
 
   static async getTransactionsInError(tenantID: string,
       params: {
-        search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
+        search?: string; issuer?: boolean; userIDs?: string[]; chargingStationIDs?: string[];
         siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date;
-        withChargeBoxes?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
+        withChargingStations?: boolean; errorType?: TransactionInErrorType[]; connectorIDs?: number[];
       }, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTransactionsInError');
@@ -825,8 +840,8 @@ export default class TransactionStorage {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
     }
     // Charge Box
-    if (params.chargeBoxIDs) {
-      match.chargeBoxID = { $in: params.chargeBoxIDs };
+    if (params.chargingStationIDs) {
+      match.chargeBoxID = { $in: params.chargingStationIDs };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
@@ -864,7 +879,7 @@ export default class TransactionStorage {
       $match: match
     });
     // Charging Station?
-    if (params.withChargeBoxes ||
+    if (params.withChargingStations ||
       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
@@ -960,6 +975,12 @@ export default class TransactionStorage {
   public static async getOCPITransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
       { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
+  }
+
+  public static async getOCPITransactionByAuthorizationID(tenantID: string, authorizationID: string): Promise<Transaction> {
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
+      { ocpiAuthorizationID: authorizationID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
@@ -1067,7 +1088,7 @@ export default class TransactionStorage {
     return transactionsMDB.length === 1 ? transactionsMDB[0] : null;
   }
 
-  public static async _findAvailableID(tenantID: string): Promise<number> {
+  public static async findAvailableID(tenantID: string): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, '_findAvailableID');
     // Check
@@ -1280,10 +1301,17 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $or: [
-                { 'billingData': { $exists: false } },
-                { 'billingData.invoiceID': { $exists: false } },
-                { 'billingData.invoiceID': { $eq: null } }
+              $and: [
+                { 'billingData.withBillingActive': { $eq: true } },
+                {
+                  $or: [
+                    { 'billingData': { $exists: false } },
+                    { 'billingData.stop': { $exists: false } },
+                    { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
+                    // { 'billingData.stop.invoiceID': { $exists: false } },
+                    // { 'billingData.stop.invoiceID': { $eq: null } }
+                  ]
+                }
               ]
             }
           },

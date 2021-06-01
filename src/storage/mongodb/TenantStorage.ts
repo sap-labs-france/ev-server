@@ -85,7 +85,7 @@ export default class TenantStorage {
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {
       await TenantStorage._saveTenantLogo(tenantMDB._id.toHexString(), tenantToSave.logo);

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { Action, Entity } from '../../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import StatisticFilter, { StatsGroupBy } from '../../../../types/Statistic';
+import StatisticFilter, { ChargingStationStats, StatsDataCategory, StatsDataScope, StatsDataType, StatsGroupBy, UserStats } from '../../../../types/Statistic';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import Authorizations from '../../../../authorization/Authorizations';
@@ -11,7 +12,6 @@ import { ServerAction } from '../../../../types/Server';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../../storage/mongodb/StatisticsStorage';
 import TenantComponents from '../../../../types/TenantComponents';
-import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -20,7 +20,7 @@ import moment from 'moment';
 const MODULE_NAME = 'StatisticService';
 
 export default class StatisticService {
-  static async handleGetChargingStationConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
@@ -29,10 +29,8 @@ export default class StatisticService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetChargingStationConsumptionStatistics'
+        action: Action.LIST, entity: Entity.TRANSACTIONS,
+        module: MODULE_NAME, method: 'handleGetChargingStationConsumptionStatistics'
       });
     }
     // Filter
@@ -40,16 +38,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetChargingStationUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
@@ -69,16 +68,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.user.tenantID, filter, StatsGroupBy.USAGE);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetChargingStationInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
@@ -98,16 +98,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetChargingStationTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
@@ -127,16 +128,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetChargingStationPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
@@ -156,16 +158,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+    const transactionStats = await StatisticsStorage.getChargingStationStats(
       req.user.tenantID, filter, StatsGroupBy.PRICING);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.CHARGING_STATION);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetUserConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
@@ -185,16 +188,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+    const transactionStats = await StatisticsStorage.getUserStats(
       req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.USER);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetUserUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
@@ -214,16 +218,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+    const transactionStats = await StatisticsStorage.getUserStats(
       req.user.tenantID, filter, StatsGroupBy.USAGE);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.USER);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetUserInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
@@ -243,16 +248,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+    const transactionStats = await StatisticsStorage.getUserStats(
       req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.USER);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetUserTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
@@ -272,16 +278,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+    const transactionStats = await StatisticsStorage.getUserStats(
       req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.USER);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleGetUserPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
@@ -301,16 +308,17 @@ export default class StatisticService {
     // Build filter
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
-    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+    const transactionStats = await StatisticsStorage.getUserStats(
       req.user.tenantID, filter, StatsGroupBy.PRICING);
     // Convert
-    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    const transactions = StatisticService.convertToGraphData(
+      transactionStats, StatsDataCategory.USER);
     // Return
     res.json(transactions);
     next();
   }
 
-  static async handleExportStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  static async handleExportStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleExportStatistics');
@@ -332,36 +340,35 @@ export default class StatisticService {
     // Decisions
     let groupBy: string;
     switch (filteredRequest.DataType) {
-      case 'Consumption':
+      case StatsDataType.CONSUMPTION:
         groupBy = StatsGroupBy.CONSUMPTION;
         break;
-      case 'Usage':
+      case StatsDataType.USAGE:
         groupBy = StatsGroupBy.USAGE;
         break;
-      case 'Inactivity':
+      case StatsDataType.INACTIVITY:
         groupBy = StatsGroupBy.INACTIVITY;
         break;
-      case 'Transactions':
+      case StatsDataType.TRANSACTION:
         groupBy = StatsGroupBy.TRANSACTIONS;
         break;
-      case 'Pricing':
+      case StatsDataType.PRICING:
         groupBy = StatsGroupBy.PRICING;
         break;
       default:
         groupBy = StatsGroupBy.CONSUMPTION;
     }
-    let method: string;
-    if (filteredRequest.DataCategory === 'C') {
-      method = 'getChargingStationStats';
-    } else {
-      method = 'getUserStats';
-    }
     // Query data
-    const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
+    let transactionStats: ChargingStationStats[] | UserStats[];
+    if (filteredRequest.DataCategory === StatsDataCategory.CHARGING_STATION) {
+      transactionStats = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, groupBy);
+    } else {
+      transactionStats = await StatisticsStorage.getUserStats(req.user.tenantID, filter, groupBy);
+    }
     // Set the attachement name
     res.attachment('exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv');
     // Build the result
-    const dataToExport = StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
+    const dataToExport = StatisticService.convertToCSV(transactionStats, filteredRequest.DataCategory,
       filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope);
     // Send
     res.write(dataToExport);
@@ -400,8 +407,8 @@ export default class StatisticService {
       filter.siteAreaIDs = filteredRequest.SiteAreaIDs;
     }
     // Charge Box
-    if (filteredRequest.ChargeBoxIDs) {
-      filter.chargeBoxIDs = filteredRequest.ChargeBoxIDs;
+    if (filteredRequest.ChargingStationIDs) {
+      filter.chargeBoxIDs = filteredRequest.ChargingStationIDs;
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
@@ -413,39 +420,39 @@ export default class StatisticService {
     return filter;
   }
 
-  static convertToGraphData(transactionStatsMDB: any[], dataCategory: string) {
-    const transactions = [];
+  static convertToGraphData(transactionStats: ChargingStationStats[] | UserStats[], dataCategory: string): any[] {
+    const transactions: Record<string, number>[] = [];
     // Create
-    if (transactionStatsMDB && transactionStatsMDB.length > 0) {
+    if (transactionStats && transactionStats.length > 0) {
       // Create
       let month = -1;
       let unit: string;
       let transaction;
       let userName: string;
-      for (const transactionStatMDB of transactionStatsMDB) {
+      for (const transactionStat of transactionStats) {
         // Init
-        if (transactionStatMDB._id.unit && (unit !== transactionStatMDB._id.unit)) {
+        if (transactionStat.unit && (unit !== transactionStat.unit)) {
           // Set
-          month = transactionStatMDB._id.month;
-          unit = transactionStatMDB._id.unit;
+          month = transactionStat.month;
+          unit = transactionStat.unit;
           // Create new
           transaction = {};
-          transaction.month = transactionStatMDB._id.month - 1;
-          transaction.unit = transactionStatMDB._id.unit;
+          transaction.month = transactionStat.month - 1;
+          transaction.unit = transactionStat.unit;
           // Add
           if (transaction) {
             transactions.push(transaction);
           }
         }
-        if (month !== transactionStatMDB._id.month) {
+        if (month !== transactionStat.month) {
           // Set
-          month = transactionStatMDB._id.month;
+          month = transactionStat.month;
           // Create new
           transaction = {};
-          transaction.month = transactionStatMDB._id.month - 1;
-          if (transactionStatMDB._id.unit) {
-            unit = transactionStatMDB._id.unit;
-            transaction.unit = transactionStatMDB._id.unit;
+          transaction.month = transactionStat.month - 1;
+          if (transactionStat.unit) {
+            unit = transactionStat.unit;
+            transaction.unit = transactionStat.unit;
           }
           // Add
           if (transaction) {
@@ -453,153 +460,148 @@ export default class StatisticService {
           }
         }
         // Set key figure (total)
-        if (dataCategory === 'C') {
-          transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
+        if (dataCategory === StatsDataCategory.CHARGING_STATION) {
+          const chargingStationStats = transactionStat as ChargingStationStats;
+          transaction[chargingStationStats.chargeBox] = chargingStationStats.total;
         } else {
+          const userStats = transactionStat as UserStats;
           // We can have duplicate user names, like 'Unknown'
-          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false);
+          userName = Utils.buildUserFullName(userStats.user, false, false);
           if (userName in transaction) {
-            transaction[userName] += transactionStatMDB.total;
+            transaction[userName] += userStats.total;
           } else {
-            transaction[userName] = transactionStatMDB.total;
+            transaction[userName] = userStats.total;
           }
-          // User names are not sorted, but this is not needed for the current charts (separate/different sorting)
         }
       }
     }
     return transactions;
   }
 
-  static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string): string {
-    let user: User;
-    let unknownUser = Utils.buildUserFullName(user, false, false);
-    if (!unknownUser) {
-      unknownUser = 'Unknown';
+  static getPricingCell(transaction: ChargingStationStats | UserStats, numberOfTransactions: number): string[] {
+    if (transaction.unit) {
+      return [numberOfTransactions.toString(), transaction.unit];
     }
-    // Build header row
-    let headers: string;
-    if (dataCategory === 'C') {
-      headers = 'chargingStation' + Constants.CSV_SEPARATOR;
-    } else {
-      headers = 'user' + Constants.CSV_SEPARATOR;
-    }
+    return [numberOfTransactions.toString(), ' '];
+  }
+
+  // Build header row
+  static getYearAndMonthCells(year: number | string, dataScope?: StatsDataScope) : string {
     if (year && year !== '0') {
-      headers += 'year' + Constants.CSV_SEPARATOR;
-      if (dataScope && dataScope === 'month') {
-        headers += 'month' + Constants.CSV_SEPARATOR;
+      const yearHeader = StatsDataScope.YEAR;
+      if (dataScope === StatsDataScope.MONTH) {
+        return [yearHeader, StatsDataScope.MONTH].join(Constants.CSV_SEPARATOR);
       }
+      return yearHeader;
     }
+  }
+
+  // Build dataType cells
+  static getDataTypeCells = (dataType: StatsDataType) : string => {
     switch (dataType) {
-      case 'Consumption':
-        headers += 'consumption' + Constants.CR_LF;
-        break;
-      case 'Usage':
-        headers += 'usage' + Constants.CR_LF;
-        break;
-      case 'Inactivity':
-        headers += 'inactivity' + Constants.CR_LF;
-        break;
-      case 'Transactions':
-        headers += 'numberOfSessions' + Constants.CR_LF;
-        break;
-      case 'Pricing':
-        headers += 'price' + Constants.CSV_SEPARATOR;
-        headers += 'priceUnit' + Constants.CR_LF;
-        break;
+      case StatsDataType.CONSUMPTION:
+        return 'consumption';
+      case StatsDataType.USAGE:
+        return 'usage';
+      case StatsDataType.INACTIVITY:
+        return 'inactivity';
+      case StatsDataType.TRANSACTION:
+        return 'numberOfSessions';
+      case StatsDataType.PRICING:
+        return ['price', 'priceUnit'].join(Constants.CSV_SEPARATOR);
       default:
-        return headers;
+        return '';
     }
+  };
+
+  static convertToCSV(transactionStats: ChargingStationStats[] | UserStats[],
+      dataCategory: StatsDataCategory, dataType: StatsDataType, year: number | string, dataScope?: StatsDataScope): string {
+    const headers = [
+      dataCategory === StatsDataCategory.CHARGING_STATION ? 'chargingStation' : 'user',
+      StatisticService.getYearAndMonthCells(year, dataScope),
+      StatisticService.getDataTypeCells(dataType)
+    ];
     let index: number;
-    let transaction: any;
     const transactions = [];
-    if (transactionStatsMDB && transactionStatsMDB.length > 0) {
-      for (const transactionStatMDB of transactionStatsMDB) {
-        transaction = transactionStatMDB;
-        if (dataCategory !== 'C') {
-          // Handle missing user data
-          if (!transaction.user) {
-            transaction.user = { 'name': unknownUser, 'firstName': ' ' };
-          }
-          if (!transaction.user.name) {
-            transaction.user.name = unknownUser;
-          }
-          if (!transaction.user.firstName) {
-            transaction.user.firstName = ' ';
-          }
-        }
-        if (!year || year === '0' || !dataScope || (dataScope && dataScope !== 'month')) {
+    if (transactionStats && transactionStats.length > 0) {
+      for (const transactionStat of transactionStats) {
+        if (!year || year === '0' || !dataScope || (dataScope && dataScope !== StatsDataScope.MONTH)) {
           // Annual or overall values
-          transaction._id.month = 0;
+          transactionStat.month = 0;
           index = -1;
           if (transactions && transactions.length > 0) {
-            if (dataCategory === 'C') {
+            if (dataCategory === StatsDataCategory.CHARGING_STATION) {
+              const chargingStationStats = transactionStat as ChargingStationStats;
               index = transactions.findIndex((record) => {
-                if (!record._id.unit || !transaction._id.unit) {
-                  return (record._id.chargeBox === transaction._id.chargeBox);
+                if (!record.unit || !transactionStat.unit) {
+                  return (record.chargeBox === chargingStationStats.chargeBox);
                 }
-                return ((record._id.chargeBox === transaction._id.chargeBox)
-                  && (record._id.unit === transaction._id.unit));
+                return ((record.chargeBox === chargingStationStats.chargeBox)
+                  && (record.unit === chargingStationStats.unit));
               });
             } else {
+              const userStats = transactionStat as UserStats;
               index = transactions.findIndex((record) => {
-                if (!record._id.unit || !transaction._id.unit) {
-                  return ((record.user.name === transaction.user.name)
-                    && (record.user.firstName === transaction.user.firstName));
+                if (!record.unit || !userStats.unit) {
+                  return ((record.user.name === userStats.user.name)
+                    && (record.user.firstName === userStats.user.firstName));
                 }
-                return ((record.user.name === transaction.user.name)
-                  && (record.user.firstName === transaction.user.firstName)
-                  && (record._id.unit === transaction._id.unit));
+                return ((record.user.name === userStats.user.name)
+                  && (record.user.firstName === userStats.user.firstName)
+                  && (record.unit === userStats.unit));
               });
             }
           }
           if (index < 0) {
-            transactions.push(transaction);
+            transactions.push(transactionStat);
           } else {
-            transactions[index].total += transaction.total;
+            transactions[index].total += transactionStat.total;
           }
-        } else if (dataCategory === 'C') {
-          transactions.push(transaction);
+        } else if (dataCategory === StatsDataCategory.CHARGING_STATION) {
+          const chargingStationStats = transactionStat as ChargingStationStats;
+          transactions.push(chargingStationStats);
         } else {
+          const userStats = transactionStat as UserStats;
           // Treat duplicate names (like 'Unknown')
           index = transactions.findIndex((record) => {
-            if (!record._id.unit || !transaction._id.unit) {
-              return ((record._id.month === transaction._id.month)
-                && (record.user.name === transaction.user.name)
-                && (record.user.firstName === transaction.user.firstName));
+            if (!record.unit || !userStats.unit) {
+              return ((record.month === userStats.month)
+                && (record.user.name === userStats.user.name)
+                && (record.user.firstName === userStats.user.firstName));
             }
-            return ((record._id.month === transaction._id.month)
-              && (record.user.name === transaction.user.name)
-              && (record.user.firstName === transaction.user.firstName)
-              && (record._id.unit === transaction._id.unit));
+            return ((record.month === userStats.month)
+              && (record.user.name === userStats.user.name)
+              && (record.user.firstName === userStats.user.firstName)
+              && (record.unit === userStats.unit));
           });
           if (index < 0) {
-            transactions.push(transaction);
+            transactions.push(userStats);
           } else {
-            transactions[index].total += transaction.total;
+            transactions[index].total += userStats.total;
           }
         }
       }
-      if (dataCategory === 'C') {
+      if (dataCategory === StatsDataCategory.CHARGING_STATION) {
         // Sort by Charging Station and month
         transactions.sort((rec1, rec2) => {
-          if (rec1._id.chargeBox > rec2._id.chargeBox) {
+          if (rec1.chargeBox > rec2.chargeBox) {
             return 1;
           }
-          if (rec1._id.chargeBox < rec2._id.chargeBox) {
+          if (rec1.chargeBox < rec2.chargeBox) {
             return -1;
           }
           // Charging Station is the same, now compare month
-          if (rec1._id.month > rec2._id.month) {
+          if (rec1.month > rec2.month) {
             return 1;
           }
-          if (rec1._id.month < rec2._id.month) {
+          if (rec1.month < rec2.month) {
             return -1;
           }
-          if (rec1._id.unit && rec2._id.unit) {
-            if (rec1._id.unit > rec2._id.unit) {
+          if (rec1.unit && rec2.unit) {
+            if (rec1.unit > rec2.unit) {
               return 1;
             }
-            if (rec1._id.unit < rec2._id.unit) {
+            if (rec1.unit < rec2.unit) {
               return -1;
             }
           }
@@ -621,17 +623,17 @@ export default class StatisticService {
             return -1;
           }
           // Name and first name are identical, now compare month
-          if (rec1._id.month > rec2._id.month) {
+          if (rec1.month > rec2.month) {
             return 1;
           }
-          if (rec1._id.month < rec2._id.month) {
+          if (rec1.month < rec2.month) {
             return -1;
           }
-          if (rec1._id.unit && rec2._id.unit) {
-            if (rec1._id.unit > rec2._id.unit) {
+          if (rec1.unit && rec2.unit) {
+            if (rec1.unit > rec2.unit) {
               return 1;
             }
-            if (rec1._id.unit < rec2._id.unit) {
+            if (rec1.unit < rec2.unit) {
               return -1;
             }
           }
@@ -639,27 +641,20 @@ export default class StatisticService {
         });
       }
       // Now build the export file
-      let number: number;
+      let numberOfTransactions: number;
       const rows = transactions.map((transaction) => {
-        number = Utils.truncTo(transaction.total, 2);
+        numberOfTransactions = Utils.truncTo(transaction.total, 2);
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         const row = [
-          dataCategory === 'C' ? transaction._id.chargeBox : Utils.buildUserFullName(transaction.user, false),
+          dataCategory === StatsDataCategory.CHARGING_STATION ? transaction.chargeBox : Utils.buildUserFullName(transaction.user, false),
           year && year !== '0' ? year : '',
-          transaction._id.month > 0 ? transaction._id.month : '',
-          dataType === 'Pricing' ? getPricingCell(transaction) : number.toString()
-        ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+          transaction.month > 0 ? transaction.month : '',
+          dataType === StatsDataType.PRICING ? StatisticService.getPricingCell(transaction, numberOfTransactions) : numberOfTransactions.toString()
+        ].map((value) => Utils.escapeCsvValue(value));
         return row;
       }).join(Constants.CR_LF);
-      // Build pricing cell
-      const getPricingCell = (transaction: any) => {
-        if (transaction._id.unit) {
-          return [number.toString(), transaction._id.unit];
-        }
-        return [number.toString(), ' '];
-      };
       return [headers, rows].join(Constants.CR_LF);
     }
   }

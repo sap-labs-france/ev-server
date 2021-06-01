@@ -184,7 +184,7 @@ export default class AssetService {
       const consumption = consumptions[0];
       // Assign
       if (consumption) {
-        asset.lastConsumption = consumption.lastConsumption;
+        // Do not save last consumption on manual call to not disturb refresh interval (no consumption is created here)
         asset.currentConsumptionWh = consumption.currentConsumptionWh;
         asset.currentInstantAmps = consumption.currentInstantAmps;
         asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;
@@ -246,7 +246,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
@@ -270,6 +270,16 @@ export default class AssetService {
     // Found?
     UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteAsset', req.user);
+    if (!asset.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Asset '${asset.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateAsset',
+        user: req.user,
+        action: action
+      });
+    }
     // Delete
     await AssetStorage.deleteAsset(req.user.tenantID, asset.id);
     // Log
@@ -406,6 +416,7 @@ export default class AssetService {
       name: filteredRequest.name,
       siteAreaID: filteredRequest.siteAreaID,
       siteID: siteArea ? siteArea.siteID : null,
+      issuer: true,
       assetType: filteredRequest.assetType,
       excludeFromSmartCharging: filteredRequest.excludeFromSmartCharging,
       fluctuationPercent: filteredRequest.fluctuationPercent,
@@ -462,6 +473,16 @@ export default class AssetService {
     // Check
     UtilsService.assertObjectExists(action, asset, `Site Area ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateAsset', req.user);
+    if (!asset.issuer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Asset '${asset.id}' not issued by the organization`,
+        module: MODULE_NAME, method: 'handleUpdateAsset',
+        user: req.user,
+        action: action
+      });
+    }
     // Check Mandatory fields
     UtilsService.checkIfAssetValid(filteredRequest, req);
     // Update

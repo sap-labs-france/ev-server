@@ -231,11 +231,49 @@ describe('Authentication Service (tenant utall)', function() {
   });
 
   describe('Error cases', () => {
+    it('Should not allow registration without password', async () => {
+      // Call
+      const newUser = UserFactory.buildRegisterUser();
+      delete newUser.passwords;
+      const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow registration with empty strings passwords', async () => {
+      // Call
+      const newUser = UserFactory.buildRegisterUser();
+      newUser.passwords = { password: '', repeatPassword: '' };
+      const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow registration with weak password', async () => {
+      // Call
+      const newUser = UserFactory.buildRegisterUser();
+      newUser.passwords = { password: '1234', repeatPassword: '1234' };
+      const response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.data).to.not.have.property('token');
+    });
+
     it('Should not allow authentication of known user with wrong password', async () => {
       // Call
-      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'A_M4tch1ng_P4ssw0rd', true);
       // Check
       expect(response.status).to.be.eql(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication with a password that doesn\'t match requirements', async () => {
+      // Call
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, '1234', true);
+      // Check
+      expect(response.status).to.be.eql(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.data).to.not.have.property('token');
     });
 

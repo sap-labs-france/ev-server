@@ -1,3 +1,5 @@
+import * as CountriesList from 'countries-list';
+
 import { CdrDimensionType, OCPIChargingPeriod } from '../../types/ocpi/OCPIChargingPeriod';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
@@ -8,11 +10,9 @@ import { OCPILocation, OCPILocationOptions, OCPILocationReference, OCPILocationT
 import { AxiosResponse } from 'axios';
 import BackendError from '../../exception/BackendError';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
-import CountryLanguage from 'country-language';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';
@@ -223,13 +223,13 @@ export default class CpoOCPIClient extends OCPIClient {
 
   public async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string): Promise<void> {
     // Get tokens endpoint url
-    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${authorizationId}`;
+    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.id.toString()}`;
     const site = await SiteStorage.getSite(this.tenant.id, chargingStation.siteID);
     const ocpiLocation: OCPILocation = this.convertChargingStationToOCPILocation(this.tenant, site, chargingStation,
       transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession = {
-      id: authorizationId,
+      id: transaction.id.toString(),
       start_datetime: transaction.timestamp,
       kwh: 0,
       auth_method: OCPIAuthMethod.AUTH_REQUEST,
@@ -427,7 +427,7 @@ export default class CpoOCPIClient extends OCPIClient {
     });
   }
 
-  public async udpateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
+  public async updateChargingStationStatus(chargingStation: ChargingStation, status?: OCPIEvseStatus): Promise<void> {
     if (!chargingStation.siteAreaID) {
       throw new BackendError({
         source: chargingStation.id,
@@ -630,7 +630,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No CDRs have been checked'
+      'No CDR to be checked'
     );
     return result;
   }
@@ -759,7 +759,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Build params
     const params = { 'dateFrom': lastPatchJobOn };
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant, params, Constants.DB_PARAMS_MAX_LIMIT);
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
@@ -1041,7 +1041,7 @@ export default class CpoOCPIClient extends OCPIClient {
       address: Utils.convertAddressToOneLine(site.address),
       city: site.address?.city,
       postal_code: site.address?.postalCode,
-      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(countryId, (err, languages) => languages[0].iso639_1)),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[countryId].languages[0]),
       coordinates: {
         latitude: site.address?.coordinates[1]?.toString(),
         longitude: site.address?.coordinates[0]?.toString()
@@ -1062,9 +1062,7 @@ export default class CpoOCPIClient extends OCPIClient {
         last_updated: chargingStation.lastSeen
       }],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: {
-        twentyfourseven: true,
-      }
+      opening_times: OCPIUtilsService.buildOpeningTimes(tenant, site)
     };
     return ocpiLocation;
   }

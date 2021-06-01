@@ -1,59 +1,61 @@
 {
   "billing": {
     "generatedUser": "Erstellter Benutzer für '{{email}}'",
-    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteArea}} (beendet um {{time}})",
-    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBox}} (beendet um {{time}})"
+    "chargingAtSiteArea": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {startTime} - Energy Consumption: {{totalConsumption}} kWh at {{siteAreaName}}",
+    "chargingAtChargeBox": "Charging session: {{sessionID}} - Start Date: {{startDate}} at {{startTime}} - Energy Consumption: {{totalConsumption}} kWh at charging station {{chargeBoxID}}",
+    "chargingStopSiteArea": "Ladung von {{totalConsumption}} kWh, Ort: {{siteAreaName}} (beendet um {{stopTime}})",
+    "chargingStopChargeBox": "Ladung von {{totalConsumption}} kWh an Ladestation {{chargeBoxID}} (beendet um {{stopTime}})"
   },
   "chargers": {
-    "chargeBoxSN": "Charge Box S/N",
-    "chargePointSN": "Charge Point S/N",
-    "chargingStation": "Charging Station",
+    "chargeBoxSN": "Seriennummer Ladestation",
+    "chargePointSN": "Seriennummer Ladepunkt",
+    "chargingStation": "Ladestation",
     "connector": "Anschluss",
-    "firmwareVersion": "Firmware Version",
-    "lastReboot": "Last Reboot",
-    "lastSeen": "Last Seen",
-    "maxPower": "Maximum Power (Watt)",
+    "firmwareVersion": "Firmware-Version",
+    "lastReboot": "Letzter Neustart",
+    "lastSeen": "Letzte Vebindung",
+    "maxPower": "Maximale Leistung (Watt)",
     "model": "Model",
-    "numberOfConnectors": "Number of Connectors",
-    "ocppProtocol": "OCPP Protocol",
-    "ocppVersion": "OCPP Version",
-    "powerLimitUnit": "Power Limit Unit",
-    "timezone": "Charging Station Timezone",
-    "vendor": "Vendor"
+    "numberOfConnectors": "Anzahl der Anschlüsse",
+    "ocppProtocol": "OCPP-Protokoll",
+    "ocppVersion": "OCPP-Version",
+    "powerLimitUnit": "Leistungseinheit des Limits",
+    "timezone": "Zeitzone der Ladestation",
+    "vendor": "Hersteller"
   },
   "general": {
-    "changedBy": "Changed By",
-    "changedOn": "Changed On",
-    "createdOn": "Created On",
-    "date": "Date",
-    "endDate": "End Date",
-    "endTime": "End Time",
-    "invalidDate": "Invalid Date",
-    "invalidTime": "Invalid Time",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "month": "Month",
+    "changedBy": "Geändert von",
+    "changedOn": "Geändert am",
+    "createdOn": "Erstellt am",
+    "date": "Datum",
+    "endDate": "Enddatum",
+    "endTime": "Endzeit",
+    "invalidDate": "Ungültiges Datum",
+    "invalidTime": "Ungültige Zeit",
+    "latitude": "Breitengrad",
+    "longitude": "Längengrad",
+    "month": "Monat",
     "name": "Name",
-    "price": "Price",
-    "priceUnit": "Price Unit",
-    "site": "Site",
-    "siteArea": "Site Area",
-    "startDate": "Start Date",
-    "startTime": "Start Time",
-    "time": "Time",
-    "value": "Value",
-    "year": "Year"
+    "price": "Preis",
+    "priceUnit": "Preiseinheit",
+    "site": "Standort",
+    "siteArea": "Standortbereich",
+    "startDate": "Startdatum",
+    "startTime": "Startzeit",
+    "time": "Zeit",
+    "value": "Wert",
+    "year": "Jahr"
   },
   "loggings": {
-    "action": "Action",
+    "action": "Aktion",
     "host": "Host",
     "level": "Level",
-    "message": "Message",
-    "method": "Method",
-    "module": "Module",
-    "process": "Process",
-    "source": "Source",
-    "type": "Type"
+    "message": "Nachricht",
+    "method": "Methode",
+    "module": "Modul",
+    "process": "Prozess",
+    "source": "Ursprung",
+    "type": "Typ"
   },
   "notifications": {
     "sessionNotStarted": {
@@ -130,49 +132,57 @@
       "title": "Rechnungssynchronisierung fehlgeschlagen",
       "body": "Die Synchronisierung von {{nbrInvoicesInError}} Rechnung(en) mit dem Abrechnungsdienstleister ist fehlgeschlagen. Organisation: '{{tenantName}}'"
     },
+    "billingPeriodicOperationFailed": {
+      "title": "Periodic Billing Operations",
+      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+    },
     "computeAndApplyChargingProfilesFailed": {
       "title": "Charging Profiles fehlgeschlagen",
       "body": "Es war nicht möglich die Ladeprofile für '{{chargeBoxID}}' auf dem Standortbereich '{{siteAreaName}}' in der Organisation '{{tenantName}}' anzuwenden"
     },
-    "billingNewInvoice": {
-      "title": "Neue Rechnung",
-      "body": "Eine neue Rechnung ({{invoiceNumber}}) ist jetzt verfügbar"
+    "billingNewInvoicePaid": {
+      "title": "Neue beglichene Rechnung",
+      "body": "Ihre Rechnung ({{invoiceNumber}}) in Höhe von {{amount}}€ wurde beglichen und ist nun verfügbar"
+    },
+    "billingNewInvoiceOpen": {
+      "title": "Neue offene Rechnung",
+      "body": "Eine neue Rechnung ({{invoiceNumber}}) in Höhe von {{amount}}€ ist jetzt verfügbar. Bitte prüfen Sie die E-Mail, um die Zahlung abzuschließen"
     },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",
       "body": "'{{userName}}' hat foglenden Fehler: '{{errorTitle}}' - '{{errorDescription}}' in Organisaion '{{tenantName}}' gemeldet"
     },
     "accountVerificationNotification": {
-      "title": "Account verified",
-      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
-      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
+      "title": "Account verifiziert",
+      "bodyVerified": "Ihr Account wurde erfolgreich verifiziert. Ein Administrator wird Ihren Account prüfen und freischalten",
+      "bodyVerifiedAndActivated": "Ihr Account wurde erfolgreich verifiziert und aktiviert"
     }
   },
   "siteArea": "Standortbereich",
   "statistics": {
     "consumption": "Consumption (kW.h)",
-    "inactivity": "Inactivity (Hours)",
-    "numberOfSessions": "Number of Sessions",
-    "usage": "Usage (Hours)"
+    "inactivity": "Inaktivität (Stunden)",
+    "numberOfSessions": "Anzahl der Ladevorgänge",
+    "usage": "Nutzung (Stunden)"
   },
   "tags": {
     "id": "Badge ID",
-    "description": "Badge Description",
-    "virtualBadge": "Virtual Badge"
+    "description": "Badge Beschreibung",
+    "virtualBadge": "Virtueller Badge"
   },
   "transactions": {
-    "totalConsumption": "Total Consumption (kW.h)",
-    "totalDuration": "Total Duration (Mins)",
-    "totalInactivity": "Total Inactivity (Mins)"
+    "totalConsumption": "Gesamtverbrauch (kW.h)",
+    "totalDuration": "Gesamtdauer (Mins)",
+    "totalInactivity": "Gesamtinaktivität (Mins)"
   },
   "users": {
     "email": "Email",
-    "eulaAcceptedOn": "EULA Accepted On",
-    "firstName": "First Name",
+    "eulaAcceptedOn": "EULA akzeptiert am",
+    "firstName": "Vorname",
     "id": "ID",
-    "role": "Role",
+    "role": "Rolle",
     "status": "Status",
-    "user": "User",
-    "userID": "User ID"
+    "user": "Nutzer",
+    "userID": "Nutzer ID"
   }
 }

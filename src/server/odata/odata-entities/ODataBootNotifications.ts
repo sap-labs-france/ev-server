@@ -7,7 +7,7 @@ export default class ODataBootNotifications extends AbstractODataEntities {
   public convertTimestamp: any;
   public buildDateObject: any;
 
-  public getObjectKey(bootNotification) {
+  public getObjectKey(bootNotification): string {
     return bootNotification._id;
   }
 

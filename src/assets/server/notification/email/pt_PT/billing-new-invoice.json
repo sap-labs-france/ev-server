@@ -1,10 +1,10 @@
 {
-  "subject": "Faturação - Nova Fatura",
+  "subject": "Billing - New invoice",
   "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Faturação - Nova Fatura",
+      "title": "Billing - New invoice",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,25 @@
       }
     },
     "beforeActionLines": [
-      "Caro <%- (user.firstName?user.firstName:user.name) %>,",
+      "Dear <%- (user.firstName ? user.firstName : user.name) %>,",
       "",
-      "Uma nova fatura está disponível : <%- invoice.number %>."
+      "<% if(invoiceStatus === 'paid'){ %> Your invoice <%- invoiceNumber %> has been paid and is now available. <% } else { %> A new invoice is available : <%- invoiceNumber %>. <br/><br/> Please follow the link below to finalize the payment <% } %>"
+    ],
+    "stats": [
+      { "label": "Cost", "value": "<%- invoiceAmount %>€" }
     ],
     "actions": [{
-      "title": "Consultar",
-      "url": "<%- evseDashboardInvoiceURL %>"
-    }, {
-      "title": "Download",
-      "url": "<%- invoiceDownloadUrl %>"
-    }],
+        "title": "Consult invoices list",
+        "url": "<%- evseDashboardInvoiceURL %>"
+      }, {
+        "title": "Download invoice",
+        "url": "<%- invoiceDownloadUrl %>"
+      }, {
+        "title": "Pay invoice",
+        "url": "<%- payInvoiceUrl %>"
+      }],
     "afterActionLines": [
-      "Com os melhores cumprimentos,",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {

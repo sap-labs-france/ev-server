@@ -369,7 +369,7 @@ export default class NotificationHandler {
       adminSourceData.tenantLogoURL = tenant.logo;
       // Get the admin
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendAdminAccountVerificationNotification');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -564,7 +564,7 @@ export default class NotificationHandler {
       sourceData.tenantLogoURL = tenant.logo;
       // Enrich with admins
       const adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpError');
-      if (adminUsers && adminUsers.length > 0) {
+      if (!Utils.isEmptyArray(adminUsers)) {
         // For each Sources
         for (const notificationSource of NotificationHandler.notificationSources) {
           // Active?
@@ -908,6 +908,45 @@ export default class NotificationHandler {
     }
   }
 
+  public static async sendBillingPeriodicOperationFailed(tenantID: string, sourceData: BillingInvoiceSynchronizationFailedNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
+      sourceData.tenantLogoURL = tenant.logo;
+      // Enrich with admins
+      const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      if (!Utils.isEmptyArray(adminUsers)) {
+        // For each Sources
+        for (const notificationSource of NotificationHandler.notificationSources) {
+          // Active?
+          if (notificationSource.enabled) {
+            try {
+              // Check notification
+              const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+                tenantID, notificationSource.channel, ServerAction.BILLING_PERFORM_OPERATIONS);
+              // Notified?
+              if (!hasBeenNotified) {
+                // Save
+                await NotificationHandler.saveNotification(
+                  tenantID, notificationSource.channel, null, ServerAction.BILLING_PERFORM_OPERATIONS);
+                // Send
+                for (const adminUser of adminUsers) {
+                  // Enabled?
+                  if (adminUser.notificationsActive && adminUser.notifications.sendBillingPeriodicOperationFailed) {
+                    await notificationSource.notificationTask.sendBillingPeriodicOperationFailed(
+                      sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                  }
+                }
+              }
+            } catch (error) {
+              await Logging.logActionExceptionMessage(tenantID, ServerAction.BILLING_PERFORM_OPERATIONS, error);
+            }
+          }
+        }
+      }
+    }
+  }
+
   public static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
     // Get admin users
     const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
@@ -1072,12 +1111,13 @@ export default class NotificationHandler {
             if (!hasBeenNotified) {
               // Enabled?
               if (sourceData.user.notificationsActive && sourceData.user.notifications.sendBillingNewInvoice) {
-                // Save
-                await NotificationHandler.saveNotification(
-                  tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
-                // Send
-                await notificationSource.notificationTask.sendBillingNewInvoice(
-                  sourceData, user, tenant, NotificationSeverity.INFO);
+                if (sourceData.invoiceStatus) {
+                  await NotificationHandler.saveNotification(
+                    tenantID, notificationSource.channel, notificationID, ServerAction.BILLING_NEW_INVOICE, { user });
+                  // Send
+                  await notificationSource.notificationTask.sendBillingNewInvoice(
+                    sourceData, user, tenant, NotificationSeverity.INFO);
+                }
               }
             }
           } catch (error) {

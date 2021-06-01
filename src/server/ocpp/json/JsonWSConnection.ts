@@ -1,10 +1,10 @@
 import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
-import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { OCPPProtocol, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
-import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -13,7 +13,6 @@ import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ServerAction } from '../../../types/Server';
 import Utils from '../../../utils/Utils';
 import WSConnection from './WSConnection';
 import http from 'http';
@@ -26,17 +25,17 @@ export default class JsonWSConnection extends WSConnection {
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
 
-  constructor(wsConnection: WebSocket, req: http.IncomingMessage, chargingStationConfig: ChargingStationConfiguration, wsServer: JsonCentralSystemServer) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
     // Check Protocol (required field of OCPP spec)
     switch (wsConnection.protocol) {
       // OCPP 1.6?
-      case 'ocpp1.6':
+      case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.tenantID, this.chargingStationID);
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID());
         // Create the Json Server Service
-        this.chargingStationService = new JsonChargingStationService(chargingStationConfig);
+        this.chargingStationService = new JsonChargingStationService();
         break;
       // Not Found
       default:
@@ -65,7 +64,9 @@ export default class JsonWSConnection extends WSConnection {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
-        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ? Configuration.getJsonEndpointConfig().baseSecureUrl : Configuration.getJsonEndpointConfig().baseUrl,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl
+          ? Configuration.getJsonEndpointConfig().baseSecureUrl
+          : Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
         token: this.getToken(),
         From: {
@@ -87,7 +88,7 @@ export default class JsonWSConnection extends WSConnection {
 
   public onError(errorEvent: ErrorEvent): void {
     // Log
-    Logging.logError({
+    void Logging.logError({
       tenantID: this.getTenantID(),
       source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
@@ -99,7 +100,7 @@ export default class JsonWSConnection extends WSConnection {
 
   public onClose(closeEvent: CloseEvent): void {
     // Log
-    Logging.logInfo({
+    void Logging.logInfo({
       tenantID: this.getTenantID(),
       source: this.getChargingStationID() ? this.getChargingStationID() : '',
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
@@ -152,7 +153,7 @@ export default class JsonWSConnection extends WSConnection {
     if (this.isWSConnectionOpen()) {
       return this.chargingStationClient;
     }
-    Logging.logError({
+    void Logging.logError({
       tenantID: this.getTenantID(),
       source: this.getChargingStationID(),
       module: MODULE_NAME, method: 'getChargingStationClient',
@@ -165,6 +166,7 @@ export default class JsonWSConnection extends WSConnection {
   private async updateChargingStationLastSeen(): Promise<void> {
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), { issuer: true });
     if (chargingStation) {
+    // if (chargingStation?.registrationStatus === RegistrationStatus.ACCEPTED) {
       await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
         {
           lastSeen: new Date()

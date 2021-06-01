@@ -1,11 +1,11 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
+import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import User, { ImportedUser, UserRequiredImportProperties, UserStatus } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
-import Address from '../../../../types/Address';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
@@ -14,11 +14,8 @@ import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
 import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
-import { Car } from '../../../../types/Car';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
-import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../../utils/Constants';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
@@ -31,23 +28,19 @@ import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import { StatusCodes } from 'http-status-codes';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
-import UserValidator from '../validator/UserValidation';
+import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
-import fs from 'fs';
 import moment from 'moment';
 
 const MODULE_NAME = 'UserService';
@@ -76,7 +69,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -158,7 +151,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -175,17 +168,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -258,17 +240,6 @@ export default class UserService {
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Deleted
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user, actionOnUser: user,
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       // Delete all tags
@@ -327,58 +298,6 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(
-      req.user.tenantID, { userIDs: [userID] }, Constants.DB_PARAMS_COUNT_ONLY);
-    // Delete user
-    if (userTransactions.count > 0) {
-      // Logically
-      user.deleted = true;
-      // Anonymize user
-      user.name = Constants.ANONYMIZED_VALUE;
-      user.firstName = '';
-      user.email = user.id;
-      user.costCenter = '';
-      user.iNumber = '';
-      user.mobile = '';
-      user.phone = '';
-      user.address = {} as Address;
-      // Save
-      await UserStorage.saveUser(req.user.tenantID, user);
-      await UserStorage.saveUserPassword(req.user.tenantID, user.id,
-        {
-          password: '',
-          passwordWrongNbrTrials: 0,
-          passwordResetHash: '',
-          passwordBlockedUntil: null
-        });
-      await UserStorage.saveUserAdminData(req.user.tenantID, user.id,
-        { plateID: '', notificationsActive: false, notifications: null });
-      await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-        { mobileToken: null, mobileOs: null, mobileLastChangedOn: null });
-      await UserStorage.saveUserEULA(req.user.tenantID, user.id,
-        { eulaAcceptedHash: null, eulaAcceptedVersion: null, eulaAcceptedOn: null });
-      await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
-      await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
-        { verificationToken: null, verifiedAt: null });
-      // Disable/Delete Tags
-      const tags = (await TagStorage.getTags(req.user.tenantID,
-        { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-      for (const tag of tags) {
-        if (tag.transactionsCount > 0) {
-          tag.active = false;
-          tag.deleted = true;
-          tag.lastChangedOn = new Date();
-          tag.lastChangedBy = { id: req.user.id };
-          tag.userID = user.id;
-          await TagStorage.saveTag(req.user.tenantID, tag);
-        } else {
-          await TagStorage.deleteTag(req.user.tenantID, tag.id);
-        }
-      }
-    } else {
-      // Physically
-      await UserStorage.deleteUser(req.user.tenantID, user.id);
-    }
     // Synchronize badges with IOP
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
@@ -428,8 +347,33 @@ export default class UserService {
         });
       }
     }
-    // Delete Connections
-    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+    // Delete cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (carUsers.count > 0) {
+        for (const carUser of carUsers.result) {
+          // Owner ?
+          if (carUser.owner) {
+            // Private ?
+            const car = await CarStorage.getCar(req.tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            if (car) {
+              // Delete All Users Car
+              await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
+              // Delete Car
+              await CarStorage.deleteCar(req.user.tenantID, car.id);
+            } else {
+              // Delete User Car
+              await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+            }
+          } else {
+            // Delete User Car
+            await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+          }
+        }
+      }
+    }
+    // Delete User
+    await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -466,17 +410,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // OCPI User
     if (!user.issuer) {
       throw new AppError({
@@ -529,7 +462,7 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          await billingImpl.updateUser(user);
+          await billingImpl.synchronizeUser(user);
         } catch (error) {
           await Logging.logError({
             tenantID: req.user.tenantID,
@@ -628,17 +561,6 @@ export default class UserService {
       req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
       mobileToken: filteredRequest.mobileToken,
@@ -667,7 +589,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -689,17 +611,6 @@ export default class UserService {
     );
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetUser', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     res.json(user);
     next();
   }
@@ -709,7 +620,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -726,17 +637,6 @@ export default class UserService {
       req.user.tenantID, userID, authorizationUserFilters.filters);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleGetUserImage', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: 'User is logically deleted',
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
     // Ok
@@ -768,7 +668,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user, filteredRequest.UserID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -867,7 +767,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
     // Return
     res.json(users);
     next();
@@ -923,12 +823,11 @@ export default class UserService {
       });
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-        if (mimetype === 'text/csv') {
+        if (filename.slice(-4) === '.csv') {
           const converter = csvToJson({
             trim: true,
             delimiter: Constants.CSV_SEPARATOR,
             output: 'json',
-            quote: 'on',
           });
           void converter.subscribe(async (user: ImportedUser) => {
             // Check connection
@@ -956,7 +855,7 @@ export default class UserService {
               result.inError++;
             }
             // Insert batched
-            if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
+            if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
             }
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -1130,7 +1029,7 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.createUser(user);
+          await billingImpl.synchronizeUser(user);
           await Logging.logInfo({
             tenantID: req.user.tenantID,
             action: action,
@@ -1199,139 +1098,6 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user, id)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        value: id
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: id });
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${id}' does not exist`,
-      MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        message: 'User is logically deleted',
-        user: req.user, actionOnUser: user,
-      });
-    }
-    // Get the settings
-    const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
-    if (!pricingSetting || !pricingSetting.convergentCharging) {
-      await Logging.logException(
-        new Error('Convergent Charging setting is missing'),
-        action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        message: 'An issue occurred while creating the invoice',
-      });
-    }
-    // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/sap-labs-france/ev-dashboard/issues/1542
-    // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber: string;
-    try {
-      // pragma await ratingService.loadChargedItemsToInvoicing();
-      // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    if (!invoiceNumber) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: StatusCodes.NOT_FOUND,
-        message: 'No invoices available',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    let invoice;
-    try {
-      // pragma const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      if (!invoice) {
-        // Retry to get invoice
-        // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      }
-      if (!invoice) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-          message: `An error occurred while requesting invoice ${invoiceNumber}`,
-          module: MODULE_NAME, method: 'handleGetUserInvoice',
-          user: req.user,
-          action: action
-        });
-      }
-      const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => {
-        if (err) {
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              throw err3;
-            }
-          });
-        });
-      });
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-        message: `An error occurred while requesting invoice ${invoiceNumber}`,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
   private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
       const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
@@ -1371,10 +1137,10 @@ export default class UserService {
       ];
       headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
-    // Content
+    // Conten t
     const rows = users.map((user) => {
       const row = [
-        Cypher.hash(user.id),
+        user.id,
         user.name,
         user.firstName,
         user.locale,
@@ -1385,7 +1151,7 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -1425,6 +1191,7 @@ export default class UserService {
         issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
@@ -1442,7 +1209,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUsersFilters);
     // Return
     return users;
   }

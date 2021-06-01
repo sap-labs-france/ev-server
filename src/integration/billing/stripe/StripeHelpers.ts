@@ -1,7 +1,12 @@
 import { BillingAdditionalData, BillingError, BillingErrorCode, BillingErrorType, BillingInvoice, BillingInvoiceItem, BillingOperationResult, BillingSessionData } from '../../../types/Billing';
 
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import Constants from '../../../utils/Constants';
+import Countries from 'i18n-iso-countries';
+import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
+import User from '../../../types/User';
+import Utils from '../../../utils/Utils';
 
 export default class StripeHelpers {
 
@@ -113,5 +118,83 @@ export default class StripeHelpers {
       }
     });
     return shrinkError;
+  }
+
+  public static async isConnectedToALiveAccount(stripeFacade: Stripe): Promise<boolean> {
+    // TODO - find a way to avoid that call
+    const list = await stripeFacade.customers.list({ limit: 1 });
+    return !!list.data?.[0]?.livemode;
+  }
+
+  public static buildCustomerCommonProperties(user: User): { name: string, description: string, preferred_locales: string[], email: string, address: Stripe.Address } {
+    const i18nManager = I18nManager.getInstanceForLocale(user.locale);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const customer: any = {
+      name: Utils.buildUserFullName(user, false, false),
+      description: i18nManager.translate('billing.generatedUser', { email: user.email }),
+      preferred_locales: [ Utils.getLanguageFromLocale(user.locale) ],
+      email: user.email,
+    };
+    // Assign the address (if any)
+    if (user.address) {
+      customer.address = StripeHelpers.buildStripeAddress(user);
+    }
+    return customer;
+  }
+
+  public static buildBillingDetails(user: User): Stripe.PaymentMethodUpdateParams.BillingDetails {
+    const billingDetails: Stripe.PaymentMethodUpdateParams.BillingDetails = {
+      name: Utils.buildUserFullName(user, false, false),
+      email: user.email,
+      /* phone: user.phone, */
+    };
+    const address = StripeHelpers.buildStripeAddress(user);
+    if (address) {
+      billingDetails.address = address;
+    }
+    return billingDetails;
+  }
+
+  public static buildStripeAddress(user: User): Stripe.Address {
+    if (!user.address?.country) {
+      // Stripe does not support addresses where the country is not set!
+      return null;
+    }
+    const { address1: line1, address2: line2, postalCode: postal_code, city, /* department, */ region, country } = user.address;
+    const countryAlpha2Code = StripeHelpers.getAlpha2CountryCode(country, user?.locale);
+    const address: Stripe.Address = {
+      line1,
+      line2,
+      postal_code,
+      city,
+      state: region,
+      country: countryAlpha2Code // Stripe may throw exceptions when the country code is inconsistent! - null is supported
+    };
+    return address;
+  }
+
+  public static getAlpha2CountryCode(countryName: string, locale: string): string {
+    // -----------------------------------------------------------------
+    // Stripe expects a Two-letter country code (ISO 3166-1 alpha-2)
+    // -----------------------------------------------------------------
+    let countryCode: string = null;
+    countryName = countryName?.trim();
+    if (countryName) {
+      if (locale) {
+        // Try it with the user language
+        const lang = Utils.getLanguageFromLocale(locale);
+        countryCode = Countries.getAlpha2Code(countryName, lang); // converts 'Deutschland' to 'DE' when lang is 'de'
+      }
+      if (!countryCode && locale !== Constants.DEFAULT_LOCALE) {
+        // Fallback - try it again with the default language
+        countryCode = Countries.getAlpha2Code(countryName, Constants.DEFAULT_LANGUAGE); // converts 'Germany' to 'DE' when lang is 'en'
+      }
+    }
+    return countryCode;
+  }
+
+  public static isResourceMissingError(error: any): boolean {
+    // TODO - Find a better way to handle such specific Stripe Errors
+    return (error.statusCode === 404 && error.code === 'resource_missing');
   }
 }

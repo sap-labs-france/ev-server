@@ -136,8 +136,21 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('billing-invoice-synchronization-failed', data, user, tenant, severity);
   }
 
+  public async sendBillingPeriodicOperationFailed(data: BillingInvoiceSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-periodic-operation-failed', data, user, tenant, severity);
+  }
+
+  // TODO : Delete sendBillingNewInvoice ??
   public async sendBillingNewInvoice(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-new-invoice', data, user, tenant, severity);
+  }
+
+  public async sendBillingNewInvoicePaid(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-new-invoice-paid', data, user, tenant, severity);
+  }
+
+  public async sendBillingNewInvoiceOpen(data: BillingNewInvoiceNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-new-invoice-open', data, user, tenant, severity);
   }
 
   public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
@@ -394,6 +407,8 @@ export default class EMailNotificationTask implements NotificationTask {
       let htmlTemp: string;
       if (templateName === 'end-of-signed-session') {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
+      } else if (templateName === 'billing-new-invoice') {
+        htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-invoice.template`, 'utf8'), emailTemplate);
       } else {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }

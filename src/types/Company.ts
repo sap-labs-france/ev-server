@@ -1,6 +1,7 @@
 import Address from './Address';
 import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { OpeningTimes } from './OpeningTimes';
 import Site from './Site';
 
 export default interface Company extends CreatedUpdatedProps, AuthorizationActions {
@@ -11,4 +12,5 @@ export default interface Company extends CreatedUpdatedProps, AuthorizationActio
   logo?: string;
   sites?: Site[];
   distanceMeters?: number;
+  openingTimes?: OpeningTimes;
 }

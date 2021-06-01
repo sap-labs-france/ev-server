@@ -1,5 +1,4 @@
-export interface TaskConfig {
-}
+export interface TaskConfig {}
 
 export type CheckOfflineChargingStationsTaskConfig = TaskConfig;
 
@@ -12,20 +11,20 @@ export interface LoggingDatabaseTableCleanupTaskConfig extends TaskConfig {
   securityRetentionPeriodWeeks?: number;
 }
 
-export interface LoggingDatabaseTableCleanupTaskConfig extends TaskConfig {
-  retentionPeriodWeeks?: number;
-  securityRetentionPeriodWeeks?: number;
-}
-
 export interface CheckUserAccountInactivityTaskConfig extends TaskConfig {
   userAccountInactivityMonths?: number;
 }
+
 export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConfig {
   sessionShouldBeStartedAfterMins?: number;
   checkPastAuthorizeMins?: number;
 }
 
-export interface BillingInvoiceSynchonizationTaskConfig extends TaskConfig {
+export interface BillingInvoiceSynchronizationTaskConfig extends TaskConfig {
+  attemptPayment?: boolean;
+}
+
+export interface BillingPeriodicOperationTaskConfig extends TaskConfig {
   attemptPayment?: boolean;
 }
 

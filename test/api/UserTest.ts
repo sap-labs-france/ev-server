@@ -11,6 +11,7 @@ import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../src/types/Tag';
 import TenantContext from './context/TenantContext';
+import TestUtils from './TestUtils';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
@@ -33,6 +34,8 @@ class TestData {
   public createdTags: any[] = [];
   public siteAreaContext: any;
   public chargingStationContext: ChargingStationContext;
+  public tagsToImport: any;
+  public importedTags: Tag[];
 }
 
 const testData: TestData = new TestData();
@@ -68,7 +71,7 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(async () => {
+    after(() => {
       // Delete any created user
       testData.createdUsers.forEach(async (user) => {
         await testData.centralUserService.deleteEntity(
@@ -172,21 +175,6 @@ describe('User tests', function() {
           testData.createdTags.push(testData.newTag);
         });
 
-        it('Should not be able to delete a badge that has already been used', async () => {
-          const connectorId = 1;
-          const tagId = testData.newTag.id;
-          const meterStart = 180;
-          const startDate = moment();
-          const response = await testData.chargingStationContext.startTransaction(
-            connectorId, tagId, meterStart, startDate.toDate());
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(response).to.be.transactionValid;
-          const resDelete = await testData.userService.userApi.deleteTag(tagId);
-          expect(resDelete.status).to.equal(HTTPError.TAG_HAS_TRANSACTIONS);
-          const tag = (await testData.userService.userApi.readTag(tagId)).data;
-          expect(tag).to.not.be.null;
-        });
-
         it('Should be able to deactivate a badge', async () => {
           testData.newTag.active = false;
           const response = await testData.userService.userApi.updateTag(testData.newTag);
@@ -215,6 +203,30 @@ describe('User tests', function() {
           response = (await testData.userService.userApi.readTag(testData.newTag.id));
           expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
         });
+
+        it('Should be able to export tag list', async () => {
+          const response = await testData.userService.userApi.exportTags({});
+          const tags = await testData.userService.userApi.readTags({});
+          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          // Verify we have as many tags inserted as tags in the export
+          expect(responseFileArray.length).to.be.eql(tags.data.result.length);
+        });
+
+        // // TODO: Need to verify the real logic, not only if we can import (read create) tags
+        // // Something like this ?
+        // it('Should be able to import tag list', async () => {
+        //   const response = await testData.tagService.insertTags(
+        //     tenantid,
+        //     user,
+        //     action,
+        //     tagsToBeImported,
+        //     result);
+        //   expect(response.status).to.equal(??);
+        //   testData.importedTags.push(tag);
+        // });
 
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id

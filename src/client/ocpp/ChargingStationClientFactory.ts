@@ -1,9 +1,10 @@
+import { OCPPProtocol, RegistrationStatus } from '../../types/ocpp/OCPPServer';
+
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
 import OCPIClientFactory from '../ocpi/OCPIClientFactory';
-import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -18,6 +19,14 @@ export default class ChargingStationClientFactory {
     let chargingClient = null;
 
     if (chargingStation.issuer) {
+      // if (chargingStation.registrationStatus !== RegistrationStatus.ACCEPTED) {
+      //   throw new BackendError({
+      //     source: chargingStation.id,
+      //     module: MODULE_NAME,
+      //     method: 'getChargingStationClient',
+      //     message: 'Cannot instantiate charging station client: boot notification not accepted'
+      //   });
+      // }
       // Check protocol
       switch (chargingStation.ocppProtocol) {
         // JSON
@@ -46,10 +55,11 @@ export default class ChargingStationClientFactory {
           source: chargingStation.id,
           module: MODULE_NAME,
           method: 'getChargingStationClient',
-          message: 'OCPI component is not active'
+          message: 'Cannot instantiate roaming charging station client: no roaming components active'
         });
       }
       chargingClient = OCPIClientFactory.getChargingStationClient(tenant, chargingStation);
+      // TODO: add Hubject support
     }
     // Check
     if (!chargingClient) {
@@ -57,7 +67,7 @@ export default class ChargingStationClientFactory {
         source: chargingStation.id,
         module: MODULE_NAME,
         method: 'getChargingStationClient',
-        message: 'Client has not been found'
+        message: 'No charging station client created or found'
       });
     }
     return chargingClient;

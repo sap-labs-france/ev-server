@@ -297,7 +297,7 @@ export default class SiteStorage {
     await global.database.getCollection(tenantID, 'siteimages').findOneAndUpdate(
       { _id: Utils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteImage', uniqueTimerID, siteImageToSave);

@@ -7,7 +7,7 @@ import AxiosConfiguration from '../types/configuration/AxiosConfiguration';
 import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
-import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServerConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import ChargingStationTemplatesConfiguration from '../types/configuration/ChargingStationTemplatesConfiguration';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
@@ -215,11 +215,11 @@ export default class Configuration {
   }
 
   // Rest Service Configuration - Internet view
-  public static getCentralSystemRestServer(): CentralSystemServerConfiguration {
+  public static getCentralSystemRestServerConfig(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }
 
-  // Central System REST config
+  // Central System SOAP config
   public static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
     return Configuration.getConfig().WSDLEndpoint;
   }
@@ -284,6 +284,7 @@ export default class Configuration {
   public static getStorageConfig(): StorageConfiguration {
     // Read conf
     let storageConfig: StorageConfiguration = Configuration.getConfig().Storage;
+    Configuration.deprecateConfigurationKey('schema', 'Storage', 'Please use \'database\' instead');
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       if (Configuration.isUndefined(storageConfig)) {
@@ -322,7 +323,7 @@ export default class Configuration {
     return storageConfig;
   }
 
-  // Central System config
+  // Central System charging station config
   public static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf and set defaults values
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
@@ -419,7 +420,7 @@ export default class Configuration {
       Configuration.getConfig().Axios.timeout = Constants.AXIOS_DEFAULT_TIMEOUT;
     }
     if (Configuration.isUndefined(Configuration.getConfig().Axios.retries)) {
-      Configuration.getConfig().Axios.retries = 3;
+      Configuration.getConfig().Axios.retries = 0;
     }
     return Configuration.getConfig().Axios;
   }

@@ -62,7 +62,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
-          message: `The check CDRs process for endpoint '${ocpiEndpoint.name}' is being processed`
+          message: `The check of CDRs for endpoint '${ocpiEndpoint.name}' is being processed...`
         });
         // Build OCPI Client
         const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
@@ -71,7 +71,7 @@ export default class OCPICheckCdrsTask extends SchedulerTask {
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'processOCPIEndpoint',
           action: ServerAction.OCPI_CHECK_CDRS,
-          message: `The check CDRs process for endpoint '${ocpiEndpoint.name}' is completed`,
+          message: `The check of CDRs for endpoint '${ocpiEndpoint.name}' is completed`,
           detailedMessages: { result }
         });
       } catch (error) {

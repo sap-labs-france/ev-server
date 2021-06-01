@@ -26,7 +26,11 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
+      return [];
+    }
     // Set new Token
     const token = await this.connect();
     const request = `${this.connection.url}/${asset.meterID}`;
@@ -38,7 +42,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
           headers: this.buildAuthHeader(token)
         }
       );
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
@@ -109,7 +113,6 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
       this.axiosInstance.post(`${this.connection.url}/GetToken`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },

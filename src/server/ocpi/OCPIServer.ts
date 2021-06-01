@@ -3,9 +3,10 @@ import { Application, NextFunction, Request, Response } from 'express';
 
 import CPOService211 from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 import EMSPService211 from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
-import ExpressTools from '../ExpressTools';
+import ExpressUtils from '../ExpressUtils';
 import OCPIServiceConfiguration from '../../types/configuration/OCPIServiceConfiguration';
 import OCPIServices from './OCPIServices';
+import { ServerUtils } from '../ServerUtils';
 
 const MODULE_NAME = 'OCPIServer';
 
@@ -18,7 +19,7 @@ export default class OCPIServer {
     // Keep params
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
-    this.expressApplication = ExpressTools.initApplication(null, ocpiRestConfig.debug);
+    this.expressApplication = ExpressUtils.initApplication(null, ocpiRestConfig.debug);
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
@@ -38,12 +39,12 @@ export default class OCPIServer {
       });
     }
     // Post init
-    ExpressTools.postInitApplication(this.expressApplication);
+    ExpressUtils.postInitApplication(this.expressApplication);
   }
 
   // Start the server
   start(): void {
-    ExpressTools.startServer(this.ocpiRestConfig, ExpressTools.createHttpServer(this.ocpiRestConfig, this.expressApplication), 'OCPI', MODULE_NAME);
+    ServerUtils.startHttpServer(this.ocpiRestConfig, ServerUtils.createHttpServer(this.ocpiRestConfig, this.expressApplication), MODULE_NAME, 'OCPI');
   }
 }
 

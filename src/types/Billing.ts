@@ -1,38 +1,30 @@
-import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
-
+import { ActionsResponse } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
-  status?: string;
-  invoiceID?: string;
-  invoiceStatus?: BillingInvoiceStatus;
-  invoiceItem?: BillingInvoiceItem;
+  withBillingActive?: boolean;
   lastUpdate?: Date;
+  stop?: BillingDataTransactionStop;
 }
 
 export interface BillingDataTransactionStart {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export interface BillingDataTransactionUpdate {
-  cancelTransaction?: boolean;
+  withBillingActive: boolean;
 }
 
 export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
+  PENDING = 'pending',
+  FAILED = 'failed',
 }
-
-export enum BillingMethod {
-  IMMEDIATE = 'immediate',
-  PERIODIC = 'periodic',
-  ADVANCE = 'advance',
-}
-
-
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;
+  invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }
@@ -85,6 +77,7 @@ export interface BillingInvoice {
   downloadUrl?: string;
   sessions?: BillingSessionData[];
   lastError?: BillingError;
+  payInvoiceUrl?: string;
 }
 
 export interface BillingInvoiceItem {
@@ -96,6 +89,12 @@ export interface BillingInvoiceItem {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+  parkingData?: BillingParkingData
+}
+
+export interface BillingParkingData {
+  description: string;
+  pricingData: BillingPricingData;
 }
 
 export interface BillingSessionData {
@@ -105,23 +104,15 @@ export interface BillingSessionData {
 }
 
 export interface BillingPricingData {
-  quantity: number,
-  amount: number,
-  currency: string
+  quantity: number;
+  amount: number;
+  currency: string;
 }
 
 export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
-}
-
-export interface BillingInvoiceDocument {
-  id: string;
-  invoiceID: string;
-  content: string; // Base64 format
-  type: DocumentType;
-  encoding: DocumentEncoding;
 }
 
 export interface BillingOperationResult {

@@ -319,7 +319,7 @@ describe('Smart Charging Service', function() {
     });
 
     describe('Test for three phased site area', () => {
-      before(async () => {
+      before(() => {
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -638,7 +638,20 @@ describe('Smart Charging Service', function() {
         testData.siteAreaContext.getSiteArea().maximumPower = 10000;
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          }
+        ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
@@ -717,7 +730,20 @@ describe('Smart Charging Service', function() {
       it('Test for sticky limit disabled - two cars charging with lower site area limit', async () => {
         const chargingProfiles = await smartChargingIntegrationWithoutStickyLimit.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
         TestData.validateChargingProfile(chargingProfiles[0], transaction);
-        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit0);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(10000 / 230 - 32, 3)
+          }
+        ]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
       });
@@ -763,7 +789,7 @@ describe('Smart Charging Service', function() {
 
 
     describe('Test for DC site area', () => {
-      before(async () => {
+      before(() => {
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_DC);
         testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);

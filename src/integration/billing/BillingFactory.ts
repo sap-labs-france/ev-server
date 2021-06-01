@@ -1,6 +1,5 @@
-import { BillingSetting, BillingSettingsType } from '../../types/Setting';
-
 import BillingIntegration from './BillingIntegration';
+import { BillingSettingsType } from '../../types/Setting';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
@@ -13,22 +12,19 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingFactory';
 
 export default class BillingFactory {
-  static async getBillingImpl(tenantID: string): Promise<BillingIntegration<BillingSetting>> {
+  static async getBillingImpl(tenantID: string): Promise<BillingIntegration> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if billing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       // Get the billing's settings
-      const settings = await SettingStorage.getBillingSettings(tenantID);
+      const settings = await SettingStorage.getBillingSetting(tenantID);
       if (settings) {
         let billingIntegrationImpl = null;
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            if (StripeBillingIntegration.checkSettingsConsistency(settings.stripe)) {
-              // Only call the constructor when the prerequisites are met
-              billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings.stripe);
-            }
+            billingIntegrationImpl = StripeBillingIntegration.getInstance(tenantID, settings);
             break;
         }
         return billingIntegrationImpl;

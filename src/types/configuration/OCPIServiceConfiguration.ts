@@ -1,7 +1,5 @@
-export default interface OCPIServiceConfiguration {
-  protocol: string;
-  externalProtocol: string;
-  host: string;
-  port: number;
+import CentralSystemServerConfiguration from './CentralSystemServerConfiguration';
+
+export default interface OCPIServiceConfiguration extends CentralSystemServerConfiguration{
   debug: boolean;
 }

@@ -41,8 +41,10 @@ export interface SettingDBContent {
   | CarConnectorSettingsType;
   ocpi?: OcpiSetting;
   oicp?: OicpSetting;
+  // pricing?: PricingSetting;  // TODO - reorg pricing similar to billing
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
+  billing?: BillingSetting;
   stripe?: StripeBillingSetting;
   sac?: SacAnalyticsSetting;
   links?: SettingLink[];
@@ -230,24 +232,22 @@ export enum BillingSettingsType {
 export interface BillingSettings extends Setting {
   identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
+  billing: BillingSetting;
   stripe?: StripeBillingSetting;
 }
 
 export interface BillingSetting {
+  isTransactionBillingActivated: boolean;
+  immediateBillingAllowed: boolean;
+  periodicBillingAllowed: boolean;
+  taxID: string;
   usersLastSynchronizedOn?: Date;
-  invoicesLastSynchronizedOn?: Date
 }
 
-export interface StripeBillingSetting extends BillingSetting {
+export interface StripeBillingSetting {
   url: string;
   secretKey: string;
   publicKey: string;
-  noCardAllowed: boolean;
-  immediateBillingAllowed: boolean;
-  periodicBillingAllowed: boolean;
-  advanceBillingAllowed: boolean;
-  currency: string;
-  taxID: string;
 }
 
 export enum BillingContentType {
@@ -275,15 +275,18 @@ export interface AssetConnectionSetting {
   url: string;
   timestamp: Date;
   type: AssetConnectionType;
+  refreshIntervalMins?: number;
   schneiderConnection?: AssetSchneiderConnectionType;
   greencomConnection?: AssetGreencomConnectionType;
   iothinkConnection?: AssetIothinkConnectionType;
+  witConnection?: AssetWitConnectionType;
 }
 
 export enum AssetConnectionType {
   SCHNEIDER = 'schneider',
   GREENCOM = 'greencom',
-  IOTHINK = 'iothink'
+  IOTHINK = 'iothink',
+  WIT = 'wit',
 }
 
 export interface AssetUserPasswordConnectionType {
@@ -302,6 +305,12 @@ export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectio
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetIothinkConnectionType extends AssetUserPasswordConnectionType {
+}
+
+export interface AssetWitConnectionType extends AssetUserPasswordConnectionType {
+  clientId: string;
+  clientSecret: string;
+  authenticationUrl: string;
 }
 
 export enum CarConnectorSettingsType {
@@ -338,7 +347,6 @@ export interface CarConnectorMercedesConnectionType {
   clientId: string;
   clientSecret: string;
 }
-
 
 export enum CryptoSettingsType {
   CRYPTO = 'crypto'

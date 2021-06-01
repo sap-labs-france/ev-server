@@ -57,7 +57,7 @@ export default class OCPIEndpointStorage {
       token: ocpiEndpointToSave.token,
       countryCode: ocpiEndpointToSave.countryCode,
       partyId: ocpiEndpointToSave.partyId,
-      backgroundPatchJob: ocpiEndpointToSave.backgroundPatchJob,
+      backgroundPatchJob: Utils.convertToBoolean(ocpiEndpointToSave.backgroundPatchJob),
       status: ocpiEndpointToSave.status,
       version: ocpiEndpointToSave.version,
       businessDetails: ocpiEndpointToSave.businessDetails,
@@ -69,10 +69,10 @@ export default class OCPIEndpointStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(ocpiEndpointMDB, ocpiEndpointToSave);
     // Modify
-    await global.database.getCollection<any>(tenantID, 'ocpiendpoints').findOneAndUpdate(
+    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
       { $set: ocpiEndpointMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create
@@ -160,7 +160,7 @@ export default class OCPIEndpointStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsMDB = await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
@@ -174,25 +174,25 @@ export default class OCPIEndpointStorage {
     };
   }
 
-  static async deleteOcpiEndpoint(tenantID: string, id: string) {
+  static async deleteOcpiEndpoint(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoint');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete OcpiEndpoint
-    await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
+    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
 
-  static async deleteOcpiEndpoints(tenantID: string) {
+  static async deleteOcpiEndpoints(tenantID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoints');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Delete OcpiEndpoint
-    await global.database.getCollection<any>(tenantID, 'ocpiendpoints').deleteMany({});
+    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints').deleteMany({});
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOcpiEndpoints', uniqueTimerID);
   }

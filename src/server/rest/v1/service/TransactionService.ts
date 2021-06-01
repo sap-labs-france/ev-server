@@ -8,6 +8,7 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
+import { BillingStatus } from '../../../../types/Billing';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
@@ -15,7 +16,6 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
-import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
@@ -30,6 +30,7 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -47,7 +48,9 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]));
     next();
   }
@@ -205,9 +208,18 @@ export default class TransactionService {
         user: req.user, action: action
       });
     }
-    // Check if transaction was handled with Gireve or Hubject
+    // No Roaming Cdr to push
+    if (!transaction.oicpData?.session && !transaction.ocpiData?.session) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
+        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
+        module: MODULE_NAME, method: 'handlePushTransactionCdr',
+        user: req.user, action: action
+      });
+    }
     // Check OCPI
-    if (transaction.ocpiData.session) {
+    if (transaction.ocpiData?.session) {
       // CDR already pushed
       if (transaction.ocpiData.cdr?.id) {
         throw new AppError({
@@ -223,7 +235,9 @@ export default class TransactionService {
       if (ocpiLock) {
         try {
           // Post CDR
-          await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processOCPITransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
+          // Save
+          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -240,7 +254,7 @@ export default class TransactionService {
       }
     }
     // Check OICP
-    if (transaction.oicpData.session) {
+    if (transaction.oicpData?.session) {
       // CDR already pushed
       if (transaction.oicpData.cdr?.SessionID) {
         throw new AppError({
@@ -257,7 +271,9 @@ export default class TransactionService {
       if (oicpLock) {
         try {
           // Post CDR
-          await OCPPUtils.processOICPTransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
+          // Save
+          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -271,38 +287,6 @@ export default class TransactionService {
           // Release the lock
           await LockingManager.release(oicpLock);
         }
-      }
-    }
-    // No Roaming Cdr to push
-    if (!transaction.oicpData.session && !transaction.ocpiData.session) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
-        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
-        module: MODULE_NAME, method: 'handlePushTransactionCdr',
-        user: req.user, action: action
-      });
-    }
-    // Get the lock
-    const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
-    if (ocpiLock) {
-      try {
-        // Post CDR
-        await OCPPUtils.processOCPITransaction(req.user.tenantID, transaction, chargingStation, TransactionAction.END);
-        // Save
-        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-        // Ok
-        await Logging.logInfo({
-          tenantID: req.user.tenantID,
-          action: action,
-          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: MODULE_NAME, method: 'handlePushTransactionCdr',
-          message: `CDR of Transaction ID '${transaction.id}' has been pushed successfully`,
-          detailedMessages: { cdr: transaction.ocpiData.cdr }
-        });
-      } finally {
-        // Release the lock
-        await LockingManager.release(ocpiLock);
       }
     }
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -359,7 +343,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
-    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.user.tenantID, transaction);
+    const nbrOfConsumptions = await OCPPUtils.rebuildTransactionConsumptions(req.tenant, transaction);
     // Return
     res.json({ nbrOfConsumptions, ...Constants.REST_RESPONSE_SUCCESS });
     next();
@@ -539,11 +523,10 @@ export default class TransactionService {
       'handleGetConsumptionFromTransaction', req.user);
     let projectFields = [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource',
-      'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource',
+      'userID',
     ];
     // Check Cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
@@ -561,6 +544,13 @@ export default class TransactionService {
         ];
       }
     }
+    if (await Authorizations.canListUsers(req.user)) {
+      projectFields = [
+        ...projectFields,
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
+        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
+      ];
+    }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, projectFields);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
@@ -576,7 +566,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -640,7 +630,8 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'signedData',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description',
+      'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceNumber',
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
@@ -655,7 +646,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user, transaction.userID)) {
+    if (!await Authorizations.canReadUser(req.user)) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -673,12 +664,13 @@ export default class TransactionService {
 
   public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get transaction
-    req.query.Status = 'completed';
     const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -714,7 +706,9 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -732,7 +726,9 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -797,7 +793,9 @@ export default class TransactionService {
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
     ]);
   }
 
@@ -814,7 +812,9 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'tagID', 'stop.tagID',
     ]);
   }
 
@@ -874,7 +874,7 @@ export default class TransactionService {
         errorType: filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : UtilsService.getTransactionInErrorTypes(req.user),
         endDateTime: filteredRequest.EndDateTime,
         startDateTime: filteredRequest.StartDateTime,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
@@ -911,9 +911,9 @@ export default class TransactionService {
         'startTime',
         'endDate',
         'endTime',
-        'totalConsumption',
-        'totalDuration',
-        'totalInactivity',
+        'totalConsumptionkWh',
+        'totalDurationMins',
+        'totalInactivityMins',
         'price',
         'priceUnit'
       ];
@@ -934,12 +934,15 @@ export default class TransactionService {
         (transaction.timezone ? moment(transaction.timestamp).tz(transaction.timezone) : moment.utc(transaction.timestamp)).format('HH:mm:ss'),
         (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('YYYY-MM-DD') : ''),
         (transaction.stop ? (transaction.timezone ? moment(transaction.stop.timestamp).tz(transaction.timezone) : moment.utc(transaction.stop.timestamp)).format('HH:mm:ss') : ''),
-        transaction.stop ? Math.round(transaction.stop.totalConsumptionWh ? transaction.stop.totalConsumptionWh / 1000 : 0) : '',
-        transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : '',
-        transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalConsumptionWh ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalConsumptionWh).div(1000).toNumber(), 2) : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalDurationSecs ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalDurationSecs).div(60).toNumber(), 2) : 0) : '',
+        transaction.stop ?
+          (transaction.stop.totalInactivitySecs ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalInactivitySecs).div(60).toNumber(), 2) : 0) : '',
         transaction.stop ? transaction.stop.roundedPrice : '',
         transaction.stop ? transaction.stop.priceUnit : ''
-      ].map((value) => typeof value === 'string' ? '"' + value.replace('"', '""') + '"' : value);
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
@@ -980,7 +983,7 @@ export default class TransactionService {
           detailedMessages: { transaction }
         });
         // Billed
-      } else if (billingImpl && transaction.billingData && transaction.billingData.invoiceID) {
+      } else if (billingImpl && transaction.billingData?.stop?.status === BillingStatus.BILLED) {
         result.inError++;
         await Logging.logError({
           tenantID: loggedUser.tenantID,
@@ -1061,7 +1064,7 @@ export default class TransactionService {
       }
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
     // Build
     const extrafilters: any = {};
     if (Utils.objectHasProperty(params, 'withTag')) {
@@ -1082,7 +1085,7 @@ export default class TransactionService {
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
       {
         ...extrafilters,
-        chargeBoxIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+        chargeBoxIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
@@ -1100,7 +1103,7 @@ export default class TransactionService {
         connectorIDs: filteredRequest.ConnectorID ? filteredRequest.ConnectorID.split('|').map((connectorID) => Utils.convertToInt(connectorID)) : null,
         inactivityStatus: filteredRequest.InactivityStatus ? filteredRequest.InactivityStatus.split('|') : null,
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields), onlyRecordCount: filteredRequest.OnlyRecordCount },
       projectFields
     );
     return transactions;

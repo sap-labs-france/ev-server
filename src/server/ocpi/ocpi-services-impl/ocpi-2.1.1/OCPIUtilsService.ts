@@ -1,7 +1,9 @@
+import * as CountriesList from 'countries-list';
+
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationOptions, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
 import { OCPIToken, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
@@ -16,7 +18,6 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import CountryLanguage from 'country-language';
 import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
@@ -28,6 +29,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { ObjectID } from 'mongodb';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -151,7 +153,7 @@ export default class OCPIUtilsService {
         auth_id: tag.userID,
         visual_number: tag.userID,
         issuer: tenant.name,
-        valid: !tag.user?.deleted,
+        valid: !Utils.isNullOrUndefined(tag.user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
@@ -170,7 +172,7 @@ export default class OCPIUtilsService {
   }
 
   public static async convertSite2Location(tenant: Tenant, site: Site,
-      options: OCPILocationOptions, withChargingStations): Promise<OCPILocation> {
+      options: OCPILocationOptions, withChargingStations: boolean): Promise<OCPILocation> {
     // Build object
     return {
       id: site.id,
@@ -179,7 +181,7 @@ export default class OCPIUtilsService {
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
       postal_code: site.address.postalCode,
-      country: countries.getAlpha3Code(site.address.country, CountryLanguage.getCountryLanguages(options.countryID, (err, languages) => languages[0].iso639_1)),
+      country: countries.getAlpha3Code(site.address.country, CountriesList.countries[options.countryID].languages[0]),
       coordinates: {
         longitude: site.address.coordinates[0].toString(),
         latitude: site.address.coordinates[1].toString()
@@ -187,9 +189,53 @@ export default class OCPIUtilsService {
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
-      opening_times: {
-        twentyfourseven: true,
-      }
+      opening_times: this.buildOpeningTimes(tenant, site)
+    };
+  }
+
+  // TODO: Implement the Opening Hours in the Site and send it to OCPI
+  public static buildOpeningTimes(tenant: Tenant, site: Site): OCPIOpeningTimes {
+    switch (tenant?.id) {
+      // SLF
+      case '5be7fb271014d90008992f06':
+        // Mougins
+        switch (site.id) {
+          case '5abeba8d4bae1457eb565e5b':
+            return {
+              regular_hours: [
+                {
+                  weekday: 1, // Monday
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '08:00',
+                  period_end: '18:00'
+                },
+              ],
+              twentyfourseven: false
+            };
+        }
+    }
+    // Default
+    return {
+      twentyfourseven: true,
     };
   }
 
@@ -580,6 +626,7 @@ export default class OCPIUtilsService {
       }
       const tagToSave = {
         id: token.uid,
+        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -620,6 +667,7 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenantId, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
+        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -820,6 +868,12 @@ export default class OCPIUtilsService {
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
+      // Exadys
+      case '5ff4c5ca1804a20013ce8a23':
+        return 'FR*EXA_Tarif_Standard';
+      // Inouid
+      case '602e260fa9b0290023fb68d2':
+        return 'FR*ISE_Payant1';
     }
     return '';
   }
@@ -859,7 +913,7 @@ export default class OCPIUtilsService {
         endedAt: new Date(session.last_updated),
         consumptionWh: transaction.currentConsumptionWh,
         instantWatts: Math.floor(transaction.currentInstantWatts),
-        instantAmps: Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
+        instantAmps: Math.floor(transaction.currentInstantAmps) ?? Math.floor(transaction.currentInstantWatts / Voltage.VOLTAGE_230),
         cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
         cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / Voltage.VOLTAGE_230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,

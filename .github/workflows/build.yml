@@ -42,3 +42,15 @@ jobs:
       run: npm ci
     - name: npm build:prod
       run: npm run build:prod
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Build docker image
+      run: |
+        cd docker
+        make server-standalone SUBMODULES_INIT=false

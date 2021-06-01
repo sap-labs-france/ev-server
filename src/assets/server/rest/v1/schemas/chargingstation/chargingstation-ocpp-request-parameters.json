@@ -2,7 +2,7 @@
   "title": "Request Charging Station OCPP parameters",
   "type": "object",
   "properties": {
-    "chargeBoxID": {
+    "chargingStationID": {
       "$ref": "chargingstation.json#/definitions/id"
     },
     "forceUpdateOCPPParamsFromTemplate": {
@@ -11,6 +11,6 @@
     }
   },
   "required": [
-    "chargeBoxID"
+    "chargingStationID"
   ]
 }

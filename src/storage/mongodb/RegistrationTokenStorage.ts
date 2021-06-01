@@ -31,7 +31,7 @@ export default class RegistrationTokenStorage {
     await global.database.getCollection(tenantID, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);

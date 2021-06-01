@@ -3,13 +3,20 @@
   "definitions": {
     "id": {
       "type": "string",
+      "pattern": "^[^|]*$",
+      "sanitize": "mongo"
+    },
+    "ids": {
+      "type": "string",
       "sanitize": "mongo"
     },
     "chargingProfile": {
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "common.json#/definitions/id"
+          "type": "string",
+          "sanitize": "mongo",
+          "pattern": "^[a-f0-9]{64}$"
         },
         "chargingStationID": {
           "$ref": "chargingstation.json#/definitions/id"
@@ -18,8 +25,7 @@
           "$ref": "#/definitions/connector/properties/connectorId"
         },
         "chargePointID": {
-          "type": "number",
-          "sanitize": "mongo"
+          "$ref": "#/definitions/chargePoint/properties/chargePointID"
         },
         "profile": {
           "type": "object",
@@ -37,15 +43,29 @@
             },
             "chargingProfilePurpose": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "ChargePointMaxProfile",
+                "TxDefaultProfile",
+                "TxProfile"
+              ]
             },
             "chargingProfileKind": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "Absolute",
+                "Recurring",
+                "Relative"
+              ]
             },
             "recurrencyKind": {
               "type": "string",
-              "sanitize": "mongo"
+              "sanitize": "mongo",
+              "enum": [
+                "Daily",
+                "Weekly"
+              ]
             },
             "validFrom": {
               "type": "string",
@@ -71,7 +91,11 @@
                 },
                 "chargingRateUnit": {
                   "type": "string",
-                  "sanitize": "mongo"
+                  "sanitize": "mongo",
+                  "enum": [
+                    "W",
+                    "A"
+                  ]
                 },
                 "chargingSchedulePeriod": {
                   "type": "array",
@@ -118,6 +142,9 @@
         }
       },
       "required": [
+        "id",
+        "connectorID",
+        "chargePointID",
         "chargingStationID",
         "profile"
       ]

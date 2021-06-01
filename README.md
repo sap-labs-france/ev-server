@@ -17,16 +17,17 @@ The application features:
 ## Installation
 
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
+* Install Python: https://www.python.org/ (needed by node-gyp)
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
   * Under Windows as an administrator:
-    ```
+    ```powershell
     npm install --global --production windows-build-tools
     ```
   * Under Mac OS X, install Xcode from the Apple store
   * Under Debian based GNU/Linux distribution:
-    ```
+    ```shell
     sudo apt install build-essential
     ```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
@@ -34,15 +35,15 @@ The application features:
 **NOTE**:
 * On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
 
-```
-choco install -y nodejs-lts mongodb postman robot3t microsoft-build-tools
+```powershell
+choco install -y nodejs-lts mongodb python postman robot3t microsoft-build-tools
 ```
 
 * On Mac OSX with **Homebrew** (https://brew.sh/), do:
 
-```
+```shell
 brew tap mongodb/brew
-brew install node mongodb-community@4.2 postman robo-3t
+brew install node mongodb-community@4.2 python@3.9 postman robo-3t
 ```
 
 * Follow the rest of the setup below
@@ -53,18 +54,18 @@ brew install node mongodb-community@4.2 postman robo-3t
 
 ##### Manually
 
-```
+```shell
 mongod --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
 For instance:
-```
+```shell
 mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ```
 
 ##### As a Windows service
 
 Add to /path/to/mongod.cfg (open -a TextEdit /usr/local/etc/mongod.cfg)
-```
+```yaml
 ...
 replication:
   replSetName: "rs0"
@@ -72,19 +73,21 @@ replication:
 ```
 Restart the MongoDB service with Powershell as an administrator:
 
-    Restart-Service -Name "MongoDB"
+```powershell
+Restart-Service -Name "MongoDB"
+```
 
 #### Activate the Replica Set
 
 Activate the replica set:
 
 - Start the Mongo client
-```
+```shell
 mongo
 ```
 
 - Activate the Replica Set
-```
+```js
 rs.initiate()
 ```
 
@@ -96,7 +99,7 @@ Check here for more info:
 This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
 
 Create Admin User on Admin schema:
-```
+```js
   use admin
   db.createUser({
     user: "evse-admin",
@@ -122,14 +125,14 @@ Create Admin User on Admin schema:
 
 This will restart MongoDB and will accept only authenticated connections from now:
 
-```
+```shell
 mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
 
 ##### As a Windows service
 
 Add to /path/to/mongod.cfg:
-```
+```yaml
 ...
 security:
   authorization: enabled
@@ -138,18 +141,20 @@ security:
 
 Restart the MongoDB service with Powershell as an administrator:
 
-    Restart-Service -Name "MongoDB"
+```powershell
+Restart-Service -Name "MongoDB"
+```
 
 #### Create the Application User
 
 Connect using the admin user
 
-```
+```shell
 mongo -u evse-admin -p <YourPassword> --authenticationDatabase admin
 ```
 
 Create Application User on EVSE schema
-```
+```js
   use evse
   db.createUser({
     user: "evse-user",
@@ -184,18 +189,16 @@ Other protocols, like the ISO 15118, or OCPP version 2.0 will also be supported 
 
 #### Configuration
 
-There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
+In **src/assets** folder there are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
 Choose one and rename it to **config.json**.
-
-Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
 Set the protocol, host and the port which you want the server to listen to:
 
 SOAP (OCPP-S):
-```
+```json
   "CentralSystems": [
     {
       "implementation": "soap",
@@ -207,7 +210,7 @@ SOAP (OCPP-S):
 ```
 
 JSON (OCPP-J):
-```
+```json
   "CentralSystems": [
     {
       "implementation": "json",
@@ -230,7 +233,7 @@ To set the end point, fill the following information in the **config.json** file
 
 #### Secure Configuration (SSL)
 
-```
+```json
   "CentralSystemRestService": {
     "protocol": "https",
     "host": "localhost",
@@ -250,7 +253,7 @@ To set the end point, fill the following information in the **config.json** file
 
 #### Simple Configuration
 
-```
+```json
   "CentralSystemRestService": {
     "protocol": "http",
     "host": "localhost",
@@ -265,23 +268,29 @@ To set the end point, fill the following information in the **config.json** file
   }
 ```
 
+In order to properly call the REST endpoints, both ev-server and clients (ev-dashboard, ev-mobile, etc.) must reference a Google reCaptcha key. You can refer to this link https://www.google.com/recaptcha/admin/create, then copy the server key in config.json file, in section CentralSystemRestService:
+
+```json
+    ...
+    "captchaSecretKey": "<GOOGLE_RECAPTCHA_KEY_SERVER>"
+    ...
+```
 ### Central Service Server (CSS) > Database
 
 You have now to connect the server to the database.
-
 
 #### Configuration
 
 Database connection info:
 
-```
+```json
   "Storage": {
     "implementation": "mongodb",
     "host": "localhost",
     "port": 27017,
     "user": "evse-user",
     "password": "YourPassword",
-    "schema": "evse"
+    "database" : "evse"
   }
 ```
 
@@ -289,7 +298,7 @@ Database connection info:
 
 When the user will be notified (by email for instance), a link to the front-end application will be built based on the configuration below:
 
-```
+```json
   "CentralSystemFrontEnd": {
     "protocol": "https",
     "host": "localhost",
@@ -307,7 +316,7 @@ Only notification via emails is implemented today.
 
 Edit the following info:
 
-```
+```json
   "Email": {
     "smtp": {
       "from": "evse.adm.noreply@gmail.com",
@@ -325,7 +334,6 @@ Edit the following info:
 
 ### Users
 
-
 #### Authentication
 
 The authentication is done via user login/password and the server will deliver a token that will expire after a certain period of time.
@@ -334,7 +342,7 @@ Then there are neither session nor cookies sent around and this will allow to sc
 
 The token key is provided is the **config.json** file:
 
-```
+```json
   "CentralSystemRestService": {
     ...
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
@@ -357,7 +365,7 @@ The users can have differents roles:
 * Basic (**B**)
 * Demo (**D**)
 
-##### Authorisation Matrix
+##### Authorization Matrix
 
 |                  |            SuperAdmin          |                                                       Admin                                                       |                   Basic                 |      Demo     |
 |------------------|:------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
@@ -376,7 +384,7 @@ The user will receive a notification when, for instance, his vehicle will be ful
 
 Set the following info:
 
-```
+```json
   "Email": {
     "smtp": {
       "from": "evse.adm.noreply@gmail.com",
@@ -396,7 +404,7 @@ Set the following info:
 
 Here are the charging station parameters:
 
-```
+```json
   "ChargingStation": {
     "heartbeatIntervalSecs": 60,
     "checkEndOfChargeNotificationAfterMin": 5,
@@ -406,7 +414,6 @@ Here are the charging station parameters:
     "notifEndOfChargeEnabled": true,
     "notifStopTransactionAndUnlockConnector": false
   },
-
 ```
 
 * **heartbeatIntervalSecs**: The time interval which the charging station will send the data to the server
@@ -421,9 +428,9 @@ Here are the charging station parameters:
 
 Here are the default delivered locales:
 
-```
- "Locales": {
- 	"default": "en_US",
+```json
+  "Locales": {
+    "default": "en_US",
     "supported": [
       "en_US",
       "fr_FR",
@@ -432,7 +439,7 @@ Here are the default delivered locales:
       "pt_PT",
       "it_IT",
     ]
- },
+  },
 ```
 
 ## The Charging Stations
@@ -451,13 +458,13 @@ All charging stations supporting OCPP-J and OCPP-S version 1.5 and 1.6 protocols
 
 Start the application:
 
-```
+```shell
 npm run start
 ```
 
 You can also start the application with the standard nodejs profiler:
 
-```
+```shell
 npm run start:prod:prof
 ```
 
@@ -465,19 +472,19 @@ npm run start:prod:prof
 
 In a console, start the application (rebuild and restarts if any changes is detected):
 
-```
+```shell
 npm run start:dev
 ```
 
 You can also start the application with the standard nodejs profiler:
 
-```
+```shell
 npm run start:dev:prof
 ```
 
 ### Profiling with [clinic](https://clinicjs.org)
 
-```
+```shell
 npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 ```
 
@@ -488,6 +495,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 
 * Create a local configuration file located in './test/config/local.json' from the template file './test/config-template.json' with the parameters to override like
 
+```json
         {
           "superadmin": {
             "username": "YOUR_SUPERADMIN_USERNAME",
@@ -506,7 +514,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
             }
           }
         }
-
+```
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
