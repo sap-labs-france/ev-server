@@ -429,7 +429,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Save
         await TransactionStorage.saveTransaction(this.tenantID, transaction);
       } catch (error) {
-        // catch stripe errors and send the information back to the client
+        // Catch stripe errors and send the information back to the client
         await Logging.logError({
           tenantID: this.tenantID,
           action: ServerAction.BILLING_PERFORM_OPERATIONS,
