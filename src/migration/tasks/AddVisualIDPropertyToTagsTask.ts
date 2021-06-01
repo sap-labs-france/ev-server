@@ -16,14 +16,14 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   async migrate(): Promise<void> {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant, true);
+      await this.migrateTenant(tenant);
     }
   }
 
-  async migrateTenant(tenant: Tenant, force = false): Promise<void> {
+  async migrateTenant(tenant: Tenant): Promise<void> {
     let tags: Tag[];
     let updated = 0;
-    const findFilter: FilterQuery<any> = force ? {} : {
+    const findFilter: FilterQuery<any> = {
       $or: [
         { visualID: { $exists: false } },
         { visualID: null },
@@ -59,7 +59,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.6';
+    return '1.7';
   }
 
   getName(): string {
