@@ -1,4 +1,4 @@
-import { BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
@@ -917,7 +917,7 @@ describe('Billing Service', function() {
         // await testData.setBillingSystemValidCredentials();
       });
 
-      it('should create and bill an invoice after a transaction', async () => {
+      it('should create a DRAFT invoice after a transaction', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
         await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -925,6 +925,12 @@ describe('Billing Service', function() {
         assert(transactionID, 'transactionID should not be null');
         // Check that we have a new invoice with an invoiceID and an invoiceNumber
         await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
+        // Let's simulate the periodic billing operation
+        const operationResult: BillingChargeInvoiceAction = await testData.billingImpl.chargeInvoices(true /* forceOperation */);
+        assert(operationResult.inSuccess > 0, 'The operation should have been able to process at least one invoice');
+        assert(operationResult.inError === 0, 'The operation should detect any errors');
+        // The transaction should now have a different status and know the final invoice number
+        await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
       });
 
     });

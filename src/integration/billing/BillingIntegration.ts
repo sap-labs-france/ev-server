@@ -173,7 +173,7 @@ export default abstract class BillingIntegration {
     return actionsDone;
   }
 
-  public async chargeInvoices(): Promise<BillingChargeInvoiceAction> {
+  public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {
     const actionsDone: BillingChargeInvoiceAction = {
       inSuccess: 0,
       inError: 0
@@ -192,7 +192,7 @@ export default abstract class BillingIntegration {
     for (const invoice of invoices.result) {
       try {
         // Make sure to avoid trying to charge it again too soon
-        if (moment(invoice.createdOn).isSame(moment(), 'day')) {
+        if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
           actionsDone.inSuccess++;
           await Logging.logWarning({
             tenantID: this.tenantID,
