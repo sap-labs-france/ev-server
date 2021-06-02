@@ -205,6 +205,7 @@ export default class SiteAreaService {
         withAvailableChargingStations: filteredRequest.WithAvailableChargers,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         ...authorizationSiteAreasFilter.filters
       },
       {
