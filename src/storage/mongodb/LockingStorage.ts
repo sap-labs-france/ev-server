@@ -1,6 +1,7 @@
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Lock from '../../types/Locking';
@@ -10,7 +11,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'LockingStorage';
 
 export default class LockingStorage {
-  public static async getLocks(params: { id?: string; }, dbParams: DbParams): Promise<Lock[]> {
+  public static async getLocks(params: { lockIDs?: string[]; }, dbParams: DbParams): Promise<DataResult<Lock>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks');
     // Clone before updating the values
@@ -21,8 +22,8 @@ export default class LockingStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by Lock id
     const filters: FilterParams = {};
-    if (params.id) {
-      filters._id = params.id;
+    if (params.lockIDs) {
+      filters._id = { $in: params.lockIDs };
     }
     const aggregation = [];
     if (filters) {
@@ -30,6 +31,26 @@ export default class LockingStorage {
         $match: filters
       });
     }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const logsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      // Return only the count
+      await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, logsCountMDB);
+      return {
+        count: (logsCountMDB.length > 0 ? logsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'tenantID');
@@ -48,12 +69,19 @@ export default class LockingStorage {
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, locksMDB);
     // Ok
-    return locksMDB;
+    return {
+      count: (logsCountMDB.length > 0 ?
+        (logsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : logsCountMDB[0].count) : 0),
+      result: locksMDB
+    };
   }
 
-  public static async getLock(id: string): Promise<Lock> {
-    const locksMDB = await LockingStorage.getLocks({ id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-    return locksMDB[0] ?? null;
+  public static async getLock(lockID: string): Promise<Lock> {
+    const locksMDB = await LockingStorage.getLocks(
+      { lockIDs: [lockID] },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
+    return locksMDB.count === 1 ? locksMDB.result[0] : null;
   }
 
   public static async insertLock(lockToSave: Lock): Promise<void> {
