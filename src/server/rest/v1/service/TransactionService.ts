@@ -631,7 +631,7 @@ export default class TransactionService {
       'currentCumulatedPrice', 'currentInactivityStatus', 'signedData',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
       'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description',
-      'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceNumber',
+      'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
