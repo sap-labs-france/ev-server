@@ -148,24 +148,6 @@ export default class Bootstrap {
         // -------------------------------------------------------------------------
         // 1 - Charging station templates
         await ChargingStationStorage.updateChargingStationTemplatesFromFile();
-
-        let lock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.ASSET, '123456', 1);
-        console.log('Acquire Lock should be OK');
-        console.log(await LockingManager.acquire(lock));
-        await Utils.sleep(2000);
-
-        console.log('Acquire Lock should be OK with expiration date');
-        lock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.ASSET, '123456', 1);
-        console.log(await LockingManager.acquire(lock));
-
-        console.log('Acquire Lock should be KO');
-        lock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.ASSET, '123456', 1);
-        console.log(await LockingManager.acquire(lock));
-        await Utils.sleep(2000);
-
-        console.log('Acquire Lock should be OK with expiration date');
-        lock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.ASSET, '123456', 1);
-        console.log(await LockingManager.acquire(lock));
       }
     } catch (error) {
       // Log
