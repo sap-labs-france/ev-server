@@ -151,7 +151,7 @@ export default class OCPIUtilsService {
         uid: tag.id,
         type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
         auth_id: tag.userID,
-        visual_number: tag.userID,
+        visual_number: tag.visualID,
         issuer: tenant.name,
         valid: !Utils.isNullOrUndefined(tag.user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
@@ -667,11 +667,11 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenantId, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
-        visualID: new ObjectID().toString(),
+        visualID: token.visual_number,
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
-        description: token.visual_number,
+        description: 'OCPI token',
         lastChangedOn: token.last_updated,
         ocpiToken: token
       };

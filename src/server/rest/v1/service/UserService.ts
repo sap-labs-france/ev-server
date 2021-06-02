@@ -311,8 +311,8 @@ export default class UserService {
             await ocpiClient.pushToken({
               uid: tag.id,
               type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-              auth_id: tag.id,
-              visual_number: user.id,
+              auth_id: tag.userID,
+              visual_number: tag.visualID,
               issuer: tenant.name,
               valid: false,
               whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,

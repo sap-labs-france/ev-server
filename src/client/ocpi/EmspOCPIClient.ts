@@ -464,7 +464,7 @@ export default class EmspOCPIClient extends OCPIClient {
       uid: tag.id,
       type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
       auth_id: tag.user.id,
-      visual_number: tag.user.id,
+      visual_number: tag.visualID,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,

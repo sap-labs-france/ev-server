@@ -7,7 +7,7 @@ import User from './User';
 export default interface Tag extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
   description?: string;
-  visualID?: string;
+  visualID: string;
   issuer: boolean;
   active: boolean;
   userID?: string;
@@ -19,7 +19,7 @@ export default interface Tag extends CreatedUpdatedProps, AuthorizationActions {
 
 export interface ImportedTag {
   id: string;
-  visualID?: string;
+  visualID: string;
   description: string;
   importedBy?: string;
   importedOn?: Date;
