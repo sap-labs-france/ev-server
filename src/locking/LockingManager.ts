@@ -17,8 +17,8 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string): Lock {
-    return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE);
+  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, expirationTimeSeconds?: number): Lock {
+    return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, expirationTimeSeconds);
   }
 
   public static async acquire(lock: Lock, timeout?: number): Promise<boolean> {
@@ -86,6 +86,8 @@ export default class LockingManager {
               message: `The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} is expired. It was released automatically`,
               detailedMessages: { lock, error: error.message, stack: error.stack }
             });
+            await LockingStorage.insertLock(lock);
+            return true;
           } catch {
             await Logging.logError({
               tenantID: lock.tenantID,
@@ -134,7 +136,7 @@ export default class LockingManager {
     }
   }
 
-  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE, timeout?: number): Lock {
+  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE, expirationTimeSeconds?: number): Lock {
     if (!tenantID) {
       throw new BackendError({
         action: ServerAction.LOCKING,
@@ -170,8 +172,8 @@ export default class LockingManager {
       hostname: Utils.getHostname()
     };
     // Set expiration date
-    if (timeout > 0) {
-      lock.expirationDate = moment(lock.timestamp).add(timeout, 'seconds').toDate();
+    if (expirationTimeSeconds > 0) {
+      lock.expirationDate = moment(lock.timestamp).add(expirationTimeSeconds, 'seconds').toDate();
     }
     // Return the built lock
     return lock;

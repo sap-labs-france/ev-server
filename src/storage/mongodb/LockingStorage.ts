@@ -69,6 +69,7 @@ export default class LockingStorage {
       key: lockToSave.key,
       type: lockToSave.type,
       timestamp: Utils.convertToDate(lockToSave.timestamp),
+      expirationDate: lockToSave.expirationDate,
       hostname: lockToSave.hostname
     };
     // Create
