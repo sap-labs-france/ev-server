@@ -96,7 +96,6 @@ export default class LockingManager {
               message: `The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} is expired. It was not possible to release it automatically`,
               detailedMessages: { lock, error: error.message, stack: error.stack }
             });
-            // Send notification to admins (To be discussed)
           }
         }
       }
