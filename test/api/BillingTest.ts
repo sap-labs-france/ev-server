@@ -187,9 +187,9 @@ class TestData {
     }
   }
 
-  public async checkForDraftInvoices(userId: string): Promise<number> {
+  public async checkForDraftInvoices(userId?: string): Promise<number> {
     const result = await this.getDraftInvoices(userId);
-    return (result?.length) ? result.length : -1;
+    return result.length;
   }
 
   public async getDraftInvoices(userId?: string) {
@@ -931,6 +931,9 @@ describe('Billing Service', function() {
         assert(operationResult.inError === 0, 'The operation should detect any errors');
         // The transaction should now have a different status and know the final invoice number
         await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        // The user should have no DRAFT invoices
+        const nbDraftInvoices = await testData.checkForDraftInvoices();
+        assert(nbDraftInvoices === 0, 'The expected number of DRAFT invoices is not correct');
       });
 
     });
