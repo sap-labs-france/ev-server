@@ -24,6 +24,7 @@ export enum BillingStatus {
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;
+  invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }
