@@ -52,9 +52,7 @@ export default class LockingStorage {
   }
 
   public static async getLock(id: string): Promise<Lock> {
-    const locksMDB = await LockingStorage.getLocks({
-      id: id
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const locksMDB = await LockingStorage.getLocks({ id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     return locksMDB[0] ?? null;
   }
 

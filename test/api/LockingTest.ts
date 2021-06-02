@@ -97,7 +97,7 @@ describe('Locking Tests', function() {
   });
 
   describe('Site Area Exclusive Locks', () => {
-    it('Should create a Site Area exclusive lock', async () => {
+    it('Should create a Site Area exclusive lock with expiration date', async () => {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Acquire lock
@@ -111,6 +111,7 @@ describe('Locking Tests', function() {
       expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
       expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
       expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
+      expect(testData.siteExclusiveLock.expirationDate).to.eql(moment(testData.siteExclusiveLock.timestamp).add(180, 'seconds').toDate());
     });
 
     it('Should not acquire a second time a Site Area exclusive lock', async () => {
@@ -151,13 +152,13 @@ describe('Locking Tests', function() {
       await LockingManager.acquire(testData.siteExclusiveLock);
     });
 
-    it('Should not acquire a second time a Site Area exclusive lock', async () => {
+    it('Should not acquire a second time the Site Area exclusive lock', async () => {
       const result = await LockingManager.acquire(testData.siteExclusiveLock);
       expect(result).not.null;
       expect(result).to.eql(false);
     });
 
-    it('Should acquire the lock with a timeout of 30 seconds. First lock should be released after 10 seconds ', async () => {
+    it('Should acquire the lock with a timeout of 30 seconds. First lock should be released after timeout is reached ', async () => {
       const result = await LockingManager.acquire(testData.siteExclusiveLock, 30 * 1000);
       expect(result).not.null;
       expect(result).to.eql(true);
