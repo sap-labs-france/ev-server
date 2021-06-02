@@ -874,6 +874,9 @@ export default class OCPIUtilsService {
       // Inouid
       case '602e260fa9b0290023fb68d2':
         return 'FR*ISE_Payant1';
+      // Properphi
+      case '603655d291930d0014017e0a':
+        return 'Tarif_EVSE_DC';
     }
     return '';
   }
