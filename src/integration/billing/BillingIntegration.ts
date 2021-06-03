@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
@@ -14,6 +14,7 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -359,6 +360,100 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public async clearTestData(): Promise<void> {
+    await this.checkConnection();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'Starting test data cleanup'
+    });
+    await this._clearAllInvoiceTestData();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'Test data cleanup has been completed'
+    });
+  }
+
+  private async _clearAllInvoiceTestData(): Promise<void> {
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoicesInTestMode(this.tenantID);
+    // Let's now finalize all invoices and attempt to get it paid
+    for (const invoice of invoices.result) {
+      try {
+        await this._clearInvoiceTestData(invoice);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: invoice.user,
+          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          message: `Successfully clear test data for invoice '${invoice.id}'`
+        });
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: invoice.user,
+          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          message: `Failed to clear invoice test data '${invoice.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private async _clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
+    if (billingInvoice.liveMode) {
+      throw new BackendError({
+        message: 'User is not provided',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: '_clearInvoiceTestData',
+        action: ServerAction.BILLING_PERFORM_OPERATIONS
+      });
+    }
+    await this._clearTransactionsTestData(billingInvoice);
+    await BillingStorage.deleteInvoice(this.tenantID, billingInvoice.id);
+  }
+
+  private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenantID, Number(transactionID));
+        // Update Billing Data
+        const stop: BillingDataTransactionStop = {
+          status: BillingStatus.UNBILLED,
+          invoiceID: null,
+          invoiceNumber: null,
+          invoiceStatus: null
+        };
+        transaction.billingData = {
+          withBillingActive: false,
+          lastUpdate:new Date(),
+          stop
+        };
+        // Save to clear billing data
+        await TransactionStorage.saveTransaction(this.tenantID, transaction);
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenantID,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          module: MODULE_NAME, method: '_clearTransactionsTestData',
+          message: 'Failed to clear transaction billing data',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }));
+  }
+
   abstract checkConnection(): Promise<void>;
 
   abstract checkActivationPrerequisites(): Promise<void>;
@@ -408,6 +503,4 @@ export default abstract class BillingIntegration {
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
-
-
 }
