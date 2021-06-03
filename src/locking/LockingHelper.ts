@@ -16,9 +16,9 @@ export default class LockingHelper {
     return lock;
   }
 
-  public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeout: number): Promise<Lock | null> {
+  public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeoutMs: number): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 180);
-    if (!(await LockingManager.acquire(lock, timeout))) {
+    if (!(await LockingManager.acquire(lock, timeoutMs))) {
       return null;
     }
     return lock;
