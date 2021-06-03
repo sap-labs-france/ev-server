@@ -37,15 +37,15 @@ export default class LockingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const logsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    const locksCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       // Return only the count
-      await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, logsCountMDB);
+      await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, locksCountMDB);
       return {
-        count: (logsCountMDB.length > 0 ? logsCountMDB[0].count : 0),
+        count: (locksCountMDB.length > 0 ? locksCountMDB[0].count : 0),
         result: []
       };
     }
@@ -70,8 +70,8 @@ export default class LockingStorage {
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getLocks', uniqueTimerID, locksMDB);
     // Ok
     return {
-      count: (logsCountMDB.length > 0 ?
-        (logsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : logsCountMDB[0].count) : 0),
+      count: (locksCountMDB.length > 0 ?
+        (locksCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : locksCountMDB[0].count) : 0),
       result: locksMDB
     };
   }
