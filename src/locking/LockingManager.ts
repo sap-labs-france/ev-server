@@ -20,7 +20,7 @@ export default class LockingManager {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, lockValiditySecs);
   }
 
-  public static async acquire(lock: Lock, timeoutMs?: number, retry = true): Promise<boolean> {
+  public static async acquire(lock: Lock, timeoutMs = 0, retry = true): Promise<boolean> {
     try {
       switch (lock.type) {
         case LockType.EXCLUSIVE:
