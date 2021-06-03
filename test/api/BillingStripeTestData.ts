@@ -289,6 +289,13 @@ export default class StripeIntegrationTestData {
     return customerID;
   }
 
+  public async checkNoInvoices() : Promise<void> {
+    const paging = TestConstants.DEFAULT_PAGING;
+    const ordering = [{ field: '-createdOn' }];
+    const response = await this.adminUserService.billingApi.readInvoices({}, paging, ordering);
+    assert(response?.data?.result.length === 0, 'There should be no invoices anymore');
+  }
+
   public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
     const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.DRAFT);
     assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
@@ -342,5 +349,10 @@ export default class StripeIntegrationTestData {
     // Let's now try to repair the user data.
     const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
     expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
+  }
+
+  public async checkTestDataCleanup(): Promise<void> {
+    await this.billingImpl.clearTestData();
+    await this.checkNoInvoices();
   }
 }
