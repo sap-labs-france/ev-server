@@ -290,10 +290,20 @@ export default class StripeIntegrationTestData {
   }
 
   public async checkNoInvoices() : Promise<void> {
-    const paging = TestConstants.DEFAULT_PAGING;
-    const ordering = [{ field: '-createdOn' }];
-    const response = await this.adminUserService.billingApi.readInvoices({}, paging, ordering);
-    assert(response?.data?.result.length === 0, 'There should be no invoices anymore');
+    const response = await this.adminUserService.billingApi.readInvoices({}, { limit: 1, skip: 0 });
+    assert(response?.data?.result.length === 0, 'There should be no invoices with test billing data anymore');
+  }
+
+  public async checkNoUsersWithTestData() : Promise<void> {
+    // const response = await this.adminUserService.userApi.readAll({ withTestBillingData: true }, { limit: 1, skip: 0 });
+    // assert(response?.data?.result.length === 0, 'There should be no users with test billing data anymore');
+    const response = await UserStorage.getUsers(this.getTenantID(), {
+      withTestBillingData: true
+    }, {
+      limit: 1,
+      skip: 0
+    }, ['id']);
+    assert(response?.result.length === 0, 'There should be no invoices with test billing data anymore');
   }
 
   public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
@@ -354,5 +364,6 @@ export default class StripeIntegrationTestData {
   public async checkTestDataCleanup(): Promise<void> {
     await this.billingImpl.clearTestData();
     await this.checkNoInvoices();
+    await this.checkNoUsersWithTestData();
   }
 }

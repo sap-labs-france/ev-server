@@ -319,8 +319,10 @@ export default abstract class BillingIntegration {
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {
     const newUsers = await UserStorage.getUsers(this.tenantID,
-      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
-      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+      {
+        statuses: [UserStatus.ACTIVE],
+        notSynchronizedBillingData: true
+      }, Constants.DB_PARAMS_MAX_LIMIT);
     if (newUsers.count > 0) {
       return newUsers.result;
     }
@@ -376,7 +378,15 @@ export default abstract class BillingIntegration {
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
-      message: 'Test data cleanup has been completed'
+      message: 'Invoice Test data cleanup has been completed'
+    });
+    await this._clearAllUsersTestData();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'User Test data cleanup has been completed'
     });
   }
 
@@ -401,7 +411,7 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
           module: MODULE_NAME, method: '_clearAllInvoiceTestData',
-          message: `Failed to clear invoice test data '${invoice.id}'`,
+          message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -411,11 +421,11 @@ export default abstract class BillingIntegration {
   private async _clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
     if (billingInvoice.liveMode) {
       throw new BackendError({
-        message: 'User is not provided',
+        message: 'Unexpected situation - attempt to clear an invoice with live billing data',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: '_clearInvoiceTestData',
-        action: ServerAction.BILLING_PERFORM_OPERATIONS
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP
       });
     }
     await this._clearTransactionsTestData(billingInvoice);
@@ -452,6 +462,61 @@ export default abstract class BillingIntegration {
         });
       }
     }));
+  }
+
+  private async _clearAllUsersTestData(): Promise<void> {
+    const users: User[] = await this._getUsersWithTestBillingData();
+    // Let's now finalize all invoices and attempt to get it paid
+    for (const user of users) {
+      try {
+        await this._clearUserTestBillingData(user);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: user,
+          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          message: `Successfully cleared user test data for invoice '${user.id}'`
+        });
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: user,
+          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          message: `Failed to clear user test data - User: '${user.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private async _getUsersWithTestBillingData(): Promise<User[]> {
+    // Get the users where billingData.liveMode is set to false
+    const users = await UserStorage.getUsers(this.tenantID,
+      {
+        statuses: [UserStatus.ACTIVE],
+        withTestBillingData: true
+      }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (users.count > 0) {
+      return users.result;
+    }
+    return [];
+  }
+
+  private async _clearUserTestBillingData(user: User): Promise<void> {
+    if (user?.billingData?.liveMode) {
+      throw new BackendError({
+        message: 'Unexpected situation - attempt to clear a user with live billing data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: '_clearUserTestBillingData',
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP
+      });
+    }
+    // Let's remove the billingData field
+    await UserStorage.saveUserBillingData(this.tenantID, user.id, null);
   }
 
   abstract checkConnection(): Promise<void>;
