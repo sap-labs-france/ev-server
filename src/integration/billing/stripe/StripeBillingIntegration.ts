@@ -475,7 +475,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
-    const customerID = user?.billingData?.customerID;
+    let customerID = user?.billingData?.customerID;
+    if (!customerID) {
+      // User Sync is now made implicitly - LAZY mode
+      const billingUser = await this.synchronizeUser(user);
+      customerID = billingUser?.billingData?.customerID;
+    }
+    // User should now exist
     if (!customerID) {
       throw new BackendError({
         message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
