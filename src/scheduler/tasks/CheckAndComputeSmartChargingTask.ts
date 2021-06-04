@@ -22,7 +22,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         Constants.DB_PARAMS_MAX_LIMIT);
       // Get Site Area
       for (const siteArea of siteAreas.result) {
-        const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
             // Get implementation

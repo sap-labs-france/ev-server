@@ -1239,7 +1239,7 @@ export default class OCPPService {
           source: chargingStation.id,
           module: MODULE_NAME, method: 'checkLastTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction.connectorId} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction?.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
 
@@ -1936,7 +1936,7 @@ export default class OCPPService {
       // Get Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
-        const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+        const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
