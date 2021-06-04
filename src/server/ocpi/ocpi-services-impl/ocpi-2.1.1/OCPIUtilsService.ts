@@ -733,7 +733,7 @@ export default class OCPIUtilsService {
     return true;
   }
 
-  public static async getOperatorBusinessDetails(tenantID: string): Promise<OCPIBusinessDetails> {
+  private static async getOperatorBusinessDetails(tenantID: string): Promise<OCPIBusinessDetails> {
     return (await SettingStorage.getOCPISettings(tenantID)).ocpi.businessDetails;
   }
 
