@@ -134,24 +134,18 @@ export default class LockingManager {
     return lock;
   }
 
-  private static async acquireExclusiveLock(lock: Lock, timeoutMs: number) {
+  private static async acquireExclusiveLock(lock: Lock, timeoutMs: number): Promise<void> {
     if (timeoutMs > 0) {
-      let timeoutReached = false;
-      setTimeout(() => {
-        timeoutReached = true;
-      }, timeoutMs);
-      // Busy loop tries
-      while (!timeoutReached) {
+      const timeoutDateMs = Date.now() + timeoutMs;
+      do {
         try {
           await LockingStorage.insertLock(lock);
-          break;
+          return;
         } catch {
           await Utils.sleep(1000);
         }
-      }
-      if (timeoutReached) {
-        throw Error(`Lock acquisition timeout ${timeoutMs}ms reached`);
-      }
+      } while (Date.now() < timeoutDateMs);
+      throw Error(`Lock acquisition timeout ${timeoutMs}ms reached`);
     } else {
       await LockingStorage.insertLock(lock);
     }
