@@ -84,7 +84,7 @@ export default class OCPPService {
       let chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, headers.chargeBoxIdentity);
       if (!chargingStation) {
         // Create Charging Station
-        chargingStation = await this.checkAndRegiterNewChargingStation(tenant, bootNotification, headers);
+        chargingStation = await this.checkAndRegisterNewChargingStation(tenant, bootNotification, headers);
       } else {
         // Check Charging Station
         await this.checkExistingChargingStation(headers, chargingStation, bootNotification);
@@ -1601,7 +1601,7 @@ export default class OCPPService {
     bootNotification.timestamp = bootNotification.lastReboot;
   }
 
-  private async checkAndRegiterNewChargingStation(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
+  private async checkAndRegisterNewChargingStation(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
     // Check Token
     if (!headers.token) {
       throw new BackendError({
