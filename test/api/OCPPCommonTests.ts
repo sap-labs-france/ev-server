@@ -762,40 +762,6 @@ export default class OCPPCommonTests {
     this.newTransaction = null;
   }
 
-  public async testConnectorStatusToStopTransaction() {
-    // Check on Transaction
-    this.newTransaction = null;
-    expect(this.chargingStationConnector1.status).to.eql(ChargePointStatus.AVAILABLE);
-
-    // Start a new Transaction
-    await this.testStartTransaction();
-    const transactionId = this.newTransaction.id;
-    expect(transactionId).to.not.equal(0);
-
-    this.chargingStationConnector1.status = ChargePointStatus.AVAILABLE;
-    this.chargingStationConnector1.errorCode = ChargePointErrorCode.NO_ERROR;
-    this.chargingStationConnector1.timestamp = new Date().toISOString();
-    // Update Status of Connector 1
-    const statusResponse = await this.chargingStationContext.setConnectorStatus(this.chargingStationConnector1);
-    // Check
-    expect(statusResponse).to.eql({});
-    // Send Heartbeat to have an active charger
-    await this.chargingStationContext.sendHeartbeat();
-    // Now we can test the connector status!
-    const foundChargingStation = await this.chargingStationContext.readChargingStation();
-    expect(foundChargingStation.status).to.equal(StatusCodes.OK);
-    expect(foundChargingStation.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
-    // Check Connector1
-    expect(foundChargingStation.data.connectors).to.not.be.null;
-    expect(foundChargingStation.data.connectors[0]).to.include({
-      status: this.chargingStationConnector1.status,
-      errorCode: this.chargingStationConnector1.errorCode
-    });
-    // Check Transaction
-    this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
-    expect(this.newTransaction['message']).to.contain('does not exist');
-  }
-
   public async testAuthorizeTagAsInteger() {
     await this.testAuthorize(this.numberTag, OCPPStatus.ACCEPTED);
     await this.testAuthorize(this.numberTag.toString(), OCPPStatus.ACCEPTED);
