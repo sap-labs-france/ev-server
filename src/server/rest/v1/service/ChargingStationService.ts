@@ -1172,7 +1172,7 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0],
+      await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, req.user.tagIDs[0],
         ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.remotestop = {
@@ -1200,7 +1200,7 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      const user = await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
+      const user = await Authorizations.isAuthorizedToStartTransaction(req.tenant, chargingStation, filteredRequest.args.tagID,
         ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
       if (!user.issuer) {
         throw new AppError({

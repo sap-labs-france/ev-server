@@ -234,8 +234,8 @@ export default class TransactionService {
       const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
-          // Post CDR
-          await OCPPUtils.processOCPITransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
+          // Roaming
+          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok

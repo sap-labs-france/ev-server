@@ -82,8 +82,8 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       });
                       continue;
                     }
-                    // Post CDR
-                    await OCPPUtils.processOCPITransaction(tenant, transaction, chargingStation, TransactionAction.END);
+                    // Roaming
+                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, TransactionAction.END);
                     // Save
                     await TransactionStorage.saveTransaction(tenant.id, transaction);
                     // Ok

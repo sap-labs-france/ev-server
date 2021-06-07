@@ -106,6 +106,7 @@ export enum ServerAction {
   INTEGRATION_CONNECTION = 'IntegrationConnection',
   INTEGRATION_CONNECTION_DELETE = 'IntegrationConnectionDelete',
 
+  ROAMING = 'Roaming',
   OCPI_SETTINGS = 'OcpiSettings',
   OCPI_CLIENT_INITIALIZATION = 'OcpiClientInitialization',
   OCPI_ENDPOINT_CREATE = 'OcpiEndpointCreate',
