@@ -289,6 +289,23 @@ export default class StripeIntegrationTestData {
     return customerID;
   }
 
+  public async checkNoInvoices() : Promise<void> {
+    const response = await this.adminUserService.billingApi.readInvoices({}, { limit: 1, skip: 0 });
+    assert(response?.data?.result.length === 0, 'There should be no invoices with test billing data anymore');
+  }
+
+  public async checkNoUsersWithTestData() : Promise<void> {
+    // const response = await this.adminUserService.userApi.readAll({ withTestBillingData: true }, { limit: 1, skip: 0 });
+    // assert(response?.data?.result.length === 0, 'There should be no users with test billing data anymore');
+    const response = await UserStorage.getUsers(this.getTenantID(), {
+      withTestBillingData: true
+    }, {
+      limit: 1,
+      skip: 0
+    }, ['id']);
+    assert(response?.result.length === 0, 'There should be no invoices with test billing data anymore');
+  }
+
   public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
     const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.DRAFT);
     assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
@@ -342,5 +359,11 @@ export default class StripeIntegrationTestData {
     // Let's now try to repair the user data.
     const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
     expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
+  }
+
+  public async checkTestDataCleanup(): Promise<void> {
+    await this.billingImpl.clearTestData();
+    await this.checkNoInvoices();
+    await this.checkNoUsersWithTestData();
   }
 }
