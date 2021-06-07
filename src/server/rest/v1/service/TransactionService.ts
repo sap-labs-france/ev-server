@@ -544,7 +544,7 @@ export default class TransactionService {
         ];
       }
     }
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       projectFields = [
         ...projectFields,
         'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
@@ -749,7 +749,7 @@ export default class TransactionService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
@@ -1039,7 +1039,7 @@ export default class TransactionService {
       });
     }
     // Check Users
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       if (projectFields) {
         projectFields = [
           ...projectFields,
