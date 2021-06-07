@@ -19,6 +19,8 @@ export default class UserRouter {
     this.buildRouteUpdateUser();
     this.buildRouteDeleteUser();
     this.buildRouteUserDefaultCarTag();
+    this.buildRouteUserGetSites();
+    this.buildRouteUserSiteAssign();
     return this.router;
   }
 
@@ -58,6 +60,20 @@ export default class UserRouter {
     this.router.get(`/${ServerRoute.REST_USER_DEFAULT_TAG_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.UserID = req.params.id;
       await RouterUtils.handleServerAction(UserService.handleGetUserDefaultTagCar.bind(this), ServerAction.USER_DEFAULT_TAG_CAR, req, res, next);
+    });
+  }
+
+  protected buildRouteUserGetSites(): void {
+    this.router.get(`/${ServerRoute.REST_USER_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.UserID = req.params.id;
+      await RouterUtils.handleServerAction(UserService.handleGetSites.bind(this), ServerAction.USER_SITES, req, res, next);
+    });
+  }
+
+  protected buildRouteUserSiteAssign(): void {
+    this.router.post(`/${ServerRoute.REST_USER_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.userID = req.params.id;
+      await RouterUtils.handleServerAction(UserService.handleAssignSitesToUser.bind(this), ServerAction.ADD_SITES_TO_USER, req, res, next);
     });
   }
 }
