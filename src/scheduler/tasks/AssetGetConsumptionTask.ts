@@ -5,12 +5,14 @@ import AssetFactory from '../../integration/asset/AssetFactory';
 import AssetStorage from '../../storage/mongodb/AssetStorage';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
+import Decimal from 'decimal.js';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -75,6 +77,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 }
                 // Save Asset
                 await AssetStorage.saveAsset(tenant.id, asset);
+                // Check fluctuation since last smart charging run
+                await this.checkFluctuationSinceLastSmartChargingRun(tenant, asset);
               }
             }
           } catch (error) {
@@ -83,6 +87,33 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
           } finally {
             // Release the lock
             await LockingManager.release(assetLock);
+          }
+        }
+      }
+    }
+  }
+
+  private async checkFluctuationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset) {
+    const consumptionIncrease = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
+    if (consumptionIncrease > 0) {
+      const assetFluctuationRange = new Decimal(asset.staticValueWatt).mul(asset.fluctuationPercent / 100).toNumber();
+      const assetFluctuationRangeUsage = new Decimal(100 * consumptionIncrease).div(assetFluctuationRange).toNumber();
+      if (assetFluctuationRangeUsage > 50) {
+        // Smart Charging must be active
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+          if (asset.siteArea && asset.siteArea.smartCharging) {
+            const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenant.id, asset.siteArea, 30 * 1000);
+            if (siteAreaLock) {
+              try {
+                const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+                if (smartCharging) {
+                  await smartCharging.computeAndApplyChargingProfiles(asset.siteArea);
+                }
+              } finally {
+                // Release lock
+                await LockingManager.release(siteAreaLock);
+              }
+            }
           }
         }
       }
