@@ -60,7 +60,7 @@ function checkSensitiveDataIsObfuscated(message:any): void {
 }
 
 describe('Security tests', function() {
-  this.timeout(30000);
+  this.timeout(120000);
 
   before(async function() {
     global.database = new MongoDBStorage(config.get('storage'));
