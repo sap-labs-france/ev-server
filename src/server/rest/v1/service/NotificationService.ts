@@ -22,7 +22,7 @@ export default class NotificationService {
     const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
     // Check User
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'data' ];
     }
     // Check Charging Station
