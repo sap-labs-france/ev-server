@@ -18,6 +18,7 @@ export default class UserRouter {
     this.buildRouteCreateUser();
     this.buildRouteUpdateUser();
     this.buildRouteDeleteUser();
+    this.buildRouteUserDefaultCarTag();
     return this.router;
   }
 
@@ -50,6 +51,13 @@ export default class UserRouter {
     this.router.delete(`/${ServerRoute.REST_USER}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(UserService.handleDeleteUser.bind(this), ServerAction.USER_DELETE, req, res, next);
+    });
+  }
+
+  protected buildRouteUserDefaultCarTag(): void {
+    this.router.get(`/${ServerRoute.REST_USER_DEFAULT_TAG_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.UserID = req.params.id;
+      await RouterUtils.handleServerAction(UserService.handleGetUserDefaultTagCar.bind(this), ServerAction.USER_DEFAULT_TAG_CAR, req, res, next);
     });
   }
 }
