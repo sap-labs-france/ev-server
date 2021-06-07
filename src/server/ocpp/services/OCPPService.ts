@@ -1233,13 +1233,13 @@ export default class OCPPService {
         }
         // Save
         await TransactionStorage.saveTransaction(tenant.id, lastTransaction);
-      } else {
+      } else if (!Utils.isUndefined(lastTransaction)) {
         await Logging.logWarning({
           tenantID: tenant.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'checkLastTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction?.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
 
