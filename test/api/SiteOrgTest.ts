@@ -163,7 +163,6 @@ describe('Site tests', function() {
         await assignUserToSite(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.newSite);
         const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
         expect(res.data.count).to.eq(1);
-        console.log(res.data.result);
         const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(res.data.result.map((site) => site.user.id)).to.contain(userContext.id);
       });
@@ -171,7 +170,6 @@ describe('Site tests', function() {
       it('Should be able to unassign a site to a user', async () => {
         await unassignSitesToUser(ContextDefinition.USER_CONTEXTS.BASIC_USER, [testData.newSite.id]);
         const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
-        console.log(res.data.result);
         expect(res.data.count).to.eq(0);
         const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(res.data.result.map((site) => site.user.id)).to.not.contain(userContext.id);

@@ -4290,7 +4290,7 @@
           }
         }
       },
-      "delete": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -4398,7 +4398,7 @@
         }
       }
     },
-    "/api/users/{id}/images": {
+    "/api/users/{id}/image": {
       "get": {
         "security": [
           {
