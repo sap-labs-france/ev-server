@@ -94,25 +94,25 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   }
 
   private async checkFluctuationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset) {
-    const consumptionIncrease = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
-    if (consumptionIncrease > 0) {
-      const assetFluctuationRange = new Decimal(asset.staticValueWatt).mul(asset.fluctuationPercent / 100).toNumber();
-      const assetFluctuationRangeUsage = new Decimal(100 * consumptionIncrease).div(assetFluctuationRange).toNumber();
-      if (assetFluctuationRangeUsage > 50) {
-        // Smart Charging must be active
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-          if (asset.siteArea && asset.siteArea.smartCharging) {
-            const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(tenant.id, asset.siteArea, 30 * 1000);
-            if (siteAreaLock) {
-              try {
-                const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-                if (smartCharging) {
-                  await smartCharging.computeAndApplyChargingProfiles(asset.siteArea);
-                }
-              } finally {
-                // Release lock
-                await LockingManager.release(siteAreaLock);
+    const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
+    if (consumptionVariation < 0 || Utils.isNullOrUndefined(asset.variationThresholdPercent)) {
+      return;
+    }
+    const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
+    if (variationThreshold < consumptionVariation) {
+      // Smart Charging must be active
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+        if (asset.siteArea && asset.siteArea.smartCharging) {
+          const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, asset.siteArea, 30 * 1000);
+          if (siteAreaLock) {
+            try {
+              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+              if (smartCharging) {
+                await smartCharging.computeAndApplyChargingProfiles(asset.siteArea);
               }
+            } finally {
+              // Release lock
+              await LockingManager.release(siteAreaLock);
             }
           }
         }

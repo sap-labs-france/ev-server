@@ -20,6 +20,7 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   meterID?: string;
   values: Consumption[],
   excludeFromSmartCharging?: boolean,
+  variationThresholdPercent?: number,
   powerWattsLastSmartChargingRun?: number
 }
 
