@@ -11,7 +11,6 @@ import BackendError from '../../../../exception/BackendError';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import { ChargingStationInErrorType } from '../../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationValidator from '../validator/ChargingStationValidator';
 import ChargingStationVendorFactory from '../../../../integration/charging-station-vendor/ChargingStationVendorFactory';
@@ -564,7 +563,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
+    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
     if (siteAreaLock) {
       try {
         // Call
@@ -1049,10 +1048,10 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.tenant, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) });
     // Return
     res.json(statusNotifications);
     next();
@@ -1069,10 +1068,10 @@ export default class ChargingStationService {
       });
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
+    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationNotificationsGetReq(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.tenant, {},
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields) });
     // Return
     res.json(bootNotifications);
     next();
@@ -1173,7 +1172,7 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0],
+      await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, req.user.tagIDs[0],
         ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.remotestop = {
@@ -1201,7 +1200,7 @@ export default class ChargingStationService {
         });
       }
       // Check if user is authorized
-      const user = await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID,
+      const user = await Authorizations.isAuthorizedToStartTransaction(req.tenant, chargingStation, filteredRequest.args.tagID,
         ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, Action.REMOTE_START_TRANSACTION);
       if (!user.issuer) {
         throw new AppError({
@@ -1397,7 +1396,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = ['connectors.user.id', 'connectors.user.name', 'connectors.user.firstName', 'connectors.user.email'];
     }
     // Project fields
@@ -1422,6 +1421,11 @@ export default class ChargingStationService {
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
+    const siteIDs = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
+    // todo: write this in a nicer way when refactoring the whole auth concept for ChargingStation
+    if (Utils.isEmptyArray(siteIDs) && !Authorizations.isAdmin(req.user)) {
+      return { count: 0, result: [] };
+    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
@@ -1432,7 +1436,7 @@ export default class ChargingStationService {
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        siteIDs: siteIDs,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,

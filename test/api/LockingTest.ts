@@ -18,6 +18,7 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import global from '../../src/types/GlobalType';
+import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiDatetime);
@@ -36,7 +37,7 @@ const testData = new TestData();
 const lockKey = 'test-lock';
 
 describe('Locking Tests', function() {
-  this.timeout(30000);
+  this.timeout(100000);
 
   before(async () => {
     // Start MongoDB
@@ -96,11 +97,11 @@ describe('Locking Tests', function() {
   });
 
   describe('Site Area Exclusive Locks', () => {
-    it('Should create a Site Area exclusive lock', async () => {
+    it('Should create a Site Area exclusive lock with expiration date', async () => {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Acquire lock
-      testData.siteExclusiveLock = await LockingHelper.tryCreateSiteAreaSmartChargingLock(
+      testData.siteExclusiveLock = await LockingHelper.createSiteAreaSmartChargingLock(
         testData.tenantContext.getTenant().id, siteArea, 30 * 1000);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;
@@ -110,6 +111,7 @@ describe('Locking Tests', function() {
       expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
       expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
       expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
+      expect(testData.siteExclusiveLock.expirationDate).to.eql(moment(testData.siteExclusiveLock.timestamp).add(180, 'seconds').toDate());
     });
 
     it('Should not acquire a second time a Site Area exclusive lock', async () => {
@@ -128,6 +130,44 @@ describe('Locking Tests', function() {
       const result = await LockingManager.release(testData.siteExclusiveLock);
       expect(result).not.null;
       expect(result).to.eql(false);
+    });
+  });
+
+  describe('Test automatic release of locks', () => {
+    it('Should create a Site Area exclusive lock with expiration of 5 seconds', async () => {
+      // Get the Site Area
+      const siteArea = testData.siteAreaContext.getSiteArea();
+      // Create and Acquire lock
+      testData.siteExclusiveLock = LockingManager.createExclusiveLock(testData.tenantContext.getTenant().id, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 5);(
+        testData.tenantContext.getTenant().id, siteArea, 30 * 1000);
+      expect(testData.siteExclusiveLock).not.null;
+      expect(testData.siteExclusiveLock.id).not.null;
+      expect(testData.siteExclusiveLock.hostname).not.null;
+      expect(testData.siteExclusiveLock.timestamp).not.null;
+      expect(testData.siteExclusiveLock.tenantID).to.eql(testData.tenantContext.getTenant().id);
+      expect(testData.siteExclusiveLock.entity).to.eql(LockEntity.SITE_AREA);
+      expect(testData.siteExclusiveLock.key).to.eql(siteArea.id + '-smart-charging');
+      expect(testData.siteExclusiveLock.type).to.eql(LockType.EXCLUSIVE);
+      expect(testData.siteExclusiveLock.expirationDate).to.eql(moment(testData.siteExclusiveLock.timestamp).add(5, 'seconds').toDate());
+      await LockingManager.acquire(testData.siteExclusiveLock);
+    });
+
+    it('Should not acquire a second time the Site Area exclusive lock', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(false);
+    });
+
+    it('Should acquire the lock with a timeout of 30 seconds. First lock should be released after timeout is reached ', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock, 30 * 1000);
+      expect(result).not.null;
+      expect(result).to.eql(true);
+    });
+
+    it('Should release the latest Site Area exclusive lock', async () => {
+      const result = await LockingManager.release(testData.siteExclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(true);
     });
   });
 });

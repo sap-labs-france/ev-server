@@ -232,7 +232,7 @@ export default class StripeIntegrationTestData {
     // Stripe is using Unix Epoch for its date - and looses some precision
     const lastPaidInvoiceDateTime = Utils.createDecimal(new Date(lastPaidInvoice.createdOn).getTime()).div(1000).trunc().toNumber();
     expect(lastPaidInvoiceDateTime).to.be.gte(beforeInvoiceDateTime);
-    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: lastPaidInvoice.id });
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ invoiceID: lastPaidInvoice.id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
     // User should not have any DRAFT invoices
     const nbDraftInvoice:number = await this.checkForDraftInvoices(this.dynamicUser.id, 0);
@@ -289,6 +289,23 @@ export default class StripeIntegrationTestData {
     return customerID;
   }
 
+  public async checkNoInvoices() : Promise<void> {
+    const response = await this.adminUserService.billingApi.readInvoices({}, { limit: 1, skip: 0 });
+    assert(response?.data?.result.length === 0, 'There should be no invoices with test billing data anymore');
+  }
+
+  public async checkNoUsersWithTestData() : Promise<void> {
+    // const response = await this.adminUserService.userApi.readAll({ withTestBillingData: true }, { limit: 1, skip: 0 });
+    // assert(response?.data?.result.length === 0, 'There should be no users with test billing data anymore');
+    const response = await UserStorage.getUsers(this.getTenantID(), {
+      withTestBillingData: true
+    }, {
+      limit: 1,
+      skip: 0
+    }, ['id']);
+    assert(response?.result.length === 0, 'There should be no invoices with test billing data anymore');
+  }
+
   public async checkForDraftInvoices(userId: string, expectedValue: number): Promise<number> {
     const result = await this.getInvoicesByState(userId, BillingInvoiceStatus.DRAFT);
     assert(result?.length === expectedValue, 'The number of invoice is not the expected one');
@@ -305,14 +322,14 @@ export default class StripeIntegrationTestData {
     const params = { Status: state, UserID: [userId] };
     const paging = TestConstants.DEFAULT_PAGING;
     const ordering = [{ field: '-createdOn' }];
-    const response = await this.adminUserService.billingApi.readAll(params, paging, ordering, '/client/api/BillingUserInvoices');
+    const response = await this.adminUserService.billingApi.readInvoices(params, paging, ordering);
     return response?.data?.result;
   }
 
   public async checkDownloadInvoiceAsPdf(userId: string) : Promise<void> {
     const paidInvoices = await this.getInvoicesByState(userId, BillingInvoiceStatus.PAID);
     assert(paidInvoices, 'User should have at least a paid invoice');
-    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ ID: paidInvoices[0].id });
+    const downloadResponse = await this.adminUserService.billingApi.downloadInvoiceDocument({ invoiceID: paidInvoices[0].id });
     expect(downloadResponse.headers['content-type']).to.be.eq('application/pdf');
   }
 
@@ -342,5 +359,11 @@ export default class StripeIntegrationTestData {
     // Let's now try to repair the user data.
     const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
     expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
+  }
+
+  public async checkTestDataCleanup(): Promise<void> {
+    await this.billingImpl.clearTestData();
+    await this.checkNoInvoices();
+    await this.checkNoUsersWithTestData();
   }
 }

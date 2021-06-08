@@ -166,7 +166,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       // { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE], attributes: ['*'] },
       // { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.CREATE], attributes: ['*'] },
       { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ], attributes: ['*'] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
           Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
@@ -349,7 +349,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['id', 'name', 'issuer', 'logo', 'address']
       },
       { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
-      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ], attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } } },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
       {
@@ -378,7 +379,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSiteAreas'] }
+          args: { filters: ['AssignedSites'] }
         },
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
@@ -389,7 +390,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREA, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSiteAreas'] }
+          args: { filters: ['AssignedSites'] }
         },
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',

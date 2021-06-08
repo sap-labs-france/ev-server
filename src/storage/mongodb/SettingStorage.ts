@@ -63,7 +63,7 @@ export default class SettingStorage {
     await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create

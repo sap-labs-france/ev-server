@@ -12,10 +12,10 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
+  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<BillingInvoice> {
     const invoicesMDB = await BillingStorage.getInvoices(tenantID, {
       invoiceIDs: [id]
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
   }
 
@@ -24,6 +24,12 @@ export default class BillingStorage {
       billingInvoiceID: id
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     return invoicesMDB.count === 1 ? invoicesMDB.result[0] : null;
+  }
+
+  public static async getInvoicesInTestMode(tenantID: string): Promise<DataResult<BillingInvoice>> {
+    // Returns all invoices that are to be finalized and paid
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    return invoicesMDB;
   }
 
   public static async getInvoicesToProcess(tenantID: string): Promise<DataResult<BillingInvoice>> {
@@ -45,7 +51,7 @@ export default class BillingStorage {
   public static async getInvoices(tenantID: string,
       params: {
         invoiceIDs?: string[]; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
-        startDateTime?: Date; endDateTime?: Date;
+        startDateTime?: Date; endDateTime?: Date; liveMode?: boolean
       } = {},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
@@ -81,6 +87,10 @@ export default class BillingStorage {
     }
     if (params.billingInvoiceID) {
       filters.invoiceID = { $eq: params.billingInvoiceID };
+    }
+    // liveMode (to clear test data)
+    if (params.liveMode) {
+      filters.liveMode = { $eq: params.liveMode };
     }
     // Status
     if (!Utils.isEmptyArray(params.invoiceStatus)) {
@@ -192,7 +202,7 @@ export default class BillingStorage {
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices').findOneAndUpdate(
       { _id: invoiceMDB._id },
       { $set: invoiceMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);

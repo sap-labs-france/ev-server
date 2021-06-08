@@ -33,7 +33,8 @@ export default class AddDescriptionToTagsTask extends MigrationTask {
       for (const tagMDB of tagsMDB) {
         await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
           { _id: tagMDB._id },
-          { $set: { description: `Badge ID '${tagMDB._id}'` } });
+          { $set: { description: `Badge ID '${tagMDB._id}'` } }
+        );
         updated++;
       }
     }

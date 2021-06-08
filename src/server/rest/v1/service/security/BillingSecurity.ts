@@ -18,7 +18,7 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
+  static filterGetInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
     if (Utils.objectHasProperty(requestQuery, 'UserID')) {
       filteredRequest.UserID = sanitize(requestQuery.UserID);
@@ -38,6 +38,12 @@ export default class BillingSecurity {
     UtilsSecurity.filterSkipAndLimit(requestQuery, filteredRequest);
     UtilsSecurity.filterSort(requestQuery, filteredRequest);
     return filteredRequest;
+  }
+
+  static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
+    return {
+      ID: sanitize(requestQuery.ID)
+    } as HttpBillingInvoiceRequest;
   }
 
   static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {

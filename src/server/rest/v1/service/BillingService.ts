@@ -23,7 +23,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 
 const MODULE_NAME = 'BillingService';
 
@@ -273,11 +272,11 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
-    const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
@@ -299,6 +298,39 @@ export default class BillingService {
       ]);
     // Return
     res.json(invoices);
+    next();
+  }
+
+  public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+    // Filter
+    const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check Users
+    let userProject: string[] = [];
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
+    }
+    // Get invoice
+    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID,
+      [
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
+        ...userProject
+      ]);
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check auth
+    if (!await Authorizations.canReadInvoiceBilling(req.user, invoice.userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.READ,
+        module: MODULE_NAME, method: 'handleGetInvoice',
+      });
+    }
+    // Return
+    res.json(invoice);
     next();
   }
 
@@ -592,7 +624,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
-    await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -601,11 +633,11 @@ export default class BillingService {
       action: action
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(operationResult);
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
@@ -636,31 +668,22 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get the PDF document directly from the Invoice
-    const invoiceDocument = await billingImpl.downloadInvoiceDocument(billingInvoice);
-    // Send the Document
-    if (invoiceDocument && invoiceDocument.content) {
-      const base64RawData = invoiceDocument.content.split(`;${invoiceDocument.encoding},`).pop();
-      const filename = 'invoice_' + billingInvoice.number + '.' + invoiceDocument.type;
-      fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
-        if (err) {
-          console.error(err);
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            console.error(err2);
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              console.error(err3);
-              throw err3;
-            }
-          });
-        });
+
+    const buffer = await billingImpl.downloadInvoiceDocument(billingInvoice);
+    if (!billingInvoice.number || !buffer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invoice document not found',
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+        action: action,
+        user: req.user
       });
     }
+    const fileName = 'invoice_' + billingInvoice.number + '.pdf';
+    res.attachment(fileName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.end(buffer, 'binary');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await

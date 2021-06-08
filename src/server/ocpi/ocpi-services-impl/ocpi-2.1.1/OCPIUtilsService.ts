@@ -18,11 +18,11 @@ import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import Cypher from '../../../../utils/Cypher';
 import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
+import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -30,6 +30,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
+import { ObjectID } from 'mongodb';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -151,7 +152,7 @@ export default class OCPIUtilsService {
         uid: tag.id,
         type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
         auth_id: tag.userID,
-        visual_number: tag.userID,
+        visual_number: tag.visualID,
         issuer: tenant.name,
         valid: !Utils.isNullOrUndefined(tag.user),
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
@@ -188,6 +189,7 @@ export default class OCPIUtilsService {
       },
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
+      operator: await OCPIUtilsService.getOperatorBusinessDetails(tenant.id) ?? { name: 'Undefined' },
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: this.buildOpeningTimes(tenant, site)
     };
@@ -626,7 +628,7 @@ export default class OCPIUtilsService {
       }
       const tagToSave = {
         id: token.uid,
-        visualID: Cypher.hash(token.uid),
+        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -667,11 +669,11 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenantId, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
-        visualID: Cypher.hash(token.uid),
+        visualID: token.visual_number,
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
-        description: token.visual_number,
+        description: 'OCPI token',
         lastChangedOn: token.last_updated,
         ocpiToken: token
       };
@@ -729,6 +731,10 @@ export default class OCPIUtilsService {
       return false;
     }
     return true;
+  }
+
+  private static async getOperatorBusinessDetails(tenantID: string): Promise<OCPIBusinessDetails> {
+    return (await SettingStorage.getOCPISettings(tenantID)).ocpi.businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
@@ -874,6 +880,9 @@ export default class OCPIUtilsService {
       // Inouid
       case '602e260fa9b0290023fb68d2':
         return 'FR*ISE_Payant1';
+      // Properphi
+      case '603655d291930d0014017e0a':
+        return 'Tarif_EVSE_DC';
     }
     return '';
   }

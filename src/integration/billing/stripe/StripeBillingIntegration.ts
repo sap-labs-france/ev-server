@@ -1,8 +1,9 @@
+import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceDocument, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
-import { DocumentEncoding, DocumentType } from '../../../types/GlobalType';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 
+import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
@@ -19,6 +20,7 @@ import { ServerAction } from '../../../types/Server';
 import Stripe from 'stripe';
 import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
@@ -332,22 +334,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return []; // No tax rates so far!
   }
 
-  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<BillingInvoiceDocument> {
+  public async downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer> {
     if (invoice.downloadUrl) {
       // Get document
       const response = await this.axiosInstance.get(invoice.downloadUrl, {
         responseType: 'arraybuffer'
       });
       // Convert
-      const base64Image = Buffer.from(response.data).toString('base64');
-      const content = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
-      return {
-        id: invoice.id,
-        invoiceID: invoice.invoiceID,
-        content: content,
-        type: DocumentType.PDF,
-        encoding: DocumentEncoding.BASE64
-      };
+      return Buffer.from(response.data);
     }
   }
 
@@ -417,7 +411,35 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_UPDATE_TRANSACTION)) {
+      await this._updateTransactionsBillingData(billingInvoice);
+    }
     return billingInvoice;
+  }
+
+  // TODO - move this method to the billing abstraction to make it common to all billing implementation
+  private async _updateTransactionsBillingData(billingInvoice: BillingInvoice): Promise<void> {
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenantID, Number(transactionID));
+        // Update Billing Data
+        transaction.billingData.stop.invoiceStatus = billingInvoice.status;
+        transaction.billingData.stop.invoiceNumber = billingInvoice.number;
+        transaction.billingData.lastUpdate = new Date();
+        // Save
+        await TransactionStorage.saveTransaction(this.tenantID, transaction);
+      } catch (error) {
+        // Catch stripe errors and send the information back to the client
+        await Logging.logError({
+          tenantID: this.tenantID,
+          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          module: MODULE_NAME, method: '_updateTransactionsBillingData',
+          message: 'Failed to update transaction billing data',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }));
   }
 
   private async _chargeStripeInvoice(invoiceID: string): Promise<BillingOperationResult> {
@@ -555,15 +577,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
         customer: customerID
       });
-
       // Add billing_details to the payment method
-      // TODO - Stripe expects a Two-letter country code (ISO 3166-1 alpha-2) in the address
-      // await this.stripe.paymentMethods.update(
-      //   paymentMethodId, {
-      //     billing_details: StripeHelpers.buildBillingDetails(user)
-      //   }
-      // );
-
+      const billingDetails: Stripe.PaymentMethodUpdateParams.BillingDetails = StripeHelpers.buildBillingDetails(user);
+      let paymentMethodUpdateParams: Stripe.PaymentMethodUpdateParams;
+      if (billingDetails) {
+        paymentMethodUpdateParams = {
+          billing_details: billingDetails
+        };
+      }
+      await this.stripe.paymentMethods.update(paymentMethodId, paymentMethodUpdateParams);
       await Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -782,7 +804,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description: parkingData.description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: new Decimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(parkingData.pricingData.amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
@@ -814,7 +836,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: new Decimal(pricingData.amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(pricingData.amount).times(100).round().toNumber(), // In cents
       metadata: { ...billingInvoiceItem?.metadata }
     };
 
@@ -822,18 +844,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // // INVESTIGATIONS - Attempts to set both the quantity and the unit_amount
     // // ----------------------------------------------------------------------------------------
     // Quantity must be an Integer! - STRIPE does not support decimals
-    // const quantity = new Decimal(pricingData.quantity).round().toNumber(); // kW.h -
+    // const quantity = Utils.createDecimal(pricingData.quantity).round().toNumber(); // kW.h -
     // if (quantity === 0) {
     //   // ----------------------------------------------------------------------------------------
     //   // The quantity was too small - let's prevent dividing by zero
     //   // parameters.quantity = 0; // Not an option for STRIPE
     //   // ----------------------------------------------------------------------------------------
-    //   parameters.amount = new Decimal(pricingData.amount).times(100).round().toNumber();
+    //   parameters.amount = Utils.createDecimal(pricingData.amount).times(100).round().toNumber();
     // } else {
     //   // ----------------------------------------------------------------------------------------
     //   // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
     //   // ----------------------------------------------------------------------------------------
-    //   const unit_amount_in_cents = new Decimal(pricingData.amount).times(100).dividedBy(quantity);
+    //   const unit_amount_in_cents = Utils.createDecimal(pricingData.amount).times(100).dividedBy(quantity);
     //   // Let's use the more precise option
     //   const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
     //   parameters.quantity = quantity;
@@ -854,6 +876,31 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
+      // Create and Save async task
+      await AsyncTaskManager.createAndSaveAsyncTasks({
+        name: AsyncTasks.BILL_TRANSACTION,
+        action: ServerAction.BILLING_TRANSACTION,
+        type: AsyncTaskType.TASK,
+        tenantID: this.tenantID,
+        parameters: {
+          transactionID: String(transaction.id),
+        },
+        module: MODULE_NAME,
+        method: 'stopTransaction',
+      });
+      // Inform the calling layer that the operation has been postponed
+      if (!transaction.billingData?.withBillingActive) {
+        return {
+          status: BillingStatus.PENDING
+        };
+      }
+    } else {
+      return await this.billTransaction(transaction);
+    }
+  }
+
+  public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // Check Stripe
     await this.checkConnection();
     // Check object
@@ -863,7 +910,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
-        const billingDataTransactionStop: BillingDataTransactionStop = await this.billTransaction(transaction);
+        const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
       }
     } catch (error) {
@@ -877,9 +924,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
-
     return {
-      status: BillingStatus.UNBILLED
+      status: BillingStatus.FAILED
     };
   }
 
@@ -901,7 +947,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
+  private async _billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // ACHTUNG: a single transaction may generate several lines in the invoice
     const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
     const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, `${transaction.id}`);
@@ -911,6 +957,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: BillingStatus.BILLED,
       invoiceID: billingInvoice.id,
       invoiceStatus: billingInvoice.status,
+      invoiceNumber: billingInvoice.number,
       invoiceItem: this.shrinkInvoiceItem(invoiceItem),
     };
   }
@@ -935,7 +982,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
-    const quantity = new Decimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
+    const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     const amount = roundedPrice; // Total amount for the line item
     const currency = priceUnit;
     // -------------------------------------------------------------------------------
@@ -1069,10 +1116,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
-    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'DD/MM/YYYY');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
     const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
     const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
-    const consumptionkWh = this.convertConsumptionToKWh(transaction);
+    const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
     // TODO: Determine the description pattern to use according to the billing settings
     let descriptionPattern;
@@ -1087,7 +1134,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       startDate,
       startTime,
       timeSpent,
-      totalConsumption: consumptionkWh,
+      totalConsumption: formattedConsumptionkWh,
       siteAreaName: chargeBox?.siteArea?.name,
       chargeBoxID: transaction?.chargeBoxID,
       stopTime,
@@ -1095,8 +1142,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return description;
   }
 
-  private convertConsumptionToKWh(transaction: Transaction): number {
-    return new Decimal(transaction.stop.totalConsumptionWh).dividedBy(10).round().dividedBy(100).toNumber();
+  private formatConsumptionToKWh(transaction: Transaction): string {
+    // ACHTUNG: consumed energy shown in the line item might be slightly different from the billed energy
+    return Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber().toLocaleString(this.getUserLocale(transaction));
+  }
+
+  private getUserLocale(transaction: Transaction) {
+    return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
   private convertTimeSpentToString(transaction: Transaction): string {

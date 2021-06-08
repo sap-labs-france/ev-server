@@ -1,8 +1,10 @@
+import { FilterQuery, ObjectID } from 'mongodb';
+
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
+import Tag from '../../types/Tag';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
@@ -19,19 +21,32 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant): Promise<void> {
-    // Add the visualID property to tags
+    let tags: Tag[];
     let updated = 0;
-    // Get Tags
-    const tagsMDB = await global.database.getCollection<any>(tenant.id, 'tags')
-      .find({}).toArray();
-    if (!Utils.isEmptyArray(tagsMDB)) {
-      for (const tagMDB of tagsMDB) {
-        await global.database.getCollection<any>(tenant.id, 'tags').findOneAndUpdate(
-          { _id: tagMDB._id },
-          { $set: { visualID: Cypher.hash(tagMDB._id) } });
-        updated++;
+    const findFilter: FilterQuery<any> = {
+      $or: [
+        { visualID: { $exists: false } },
+        { visualID: null },
+        { visualID: '' }
+      ]
+    };
+    do {
+      // Get the tags
+      tags = await global.database.getCollection<any>(tenant.id, 'tags')
+        .find(findFilter)
+        .limit(Constants.BATCH_PAGE_SIZE)
+        .toArray();
+      if (!Utils.isEmptyArray(tags)) {
+        for (const tag of tags) {
+          const visualID = new ObjectID().toHexString();
+          await global.database.getCollection<any>(tenant.id, 'tags').updateOne(
+            { _id: tag['_id'] },
+            { $set: { visualID } }
+          );
+          updated++;
+        }
       }
-    }
+    } while (tags.length === Constants.BATCH_PAGE_SIZE); // Avoid infinite loop due to issues in the update process
     // Log in the default tenant
     if (updated > 0) {
       await Logging.logDebug({
@@ -44,7 +59,7 @@ export default class AddVisualIDPropertyToTagsTask extends MigrationTask {
   }
 
   getVersion(): string {
-    return '1.0';
+    return '1.7';
   }
 
   getName(): string {
