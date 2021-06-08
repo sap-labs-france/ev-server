@@ -22,6 +22,7 @@ export default class UserRouter {
     this.buildRouteUserGetSites();
     this.buildRouteUserSiteAssign();
     this.buildRouteUserSiteUnassign();
+    this.buildRouteUserUpdateMobileToken();
     return this.router;
   }
 
@@ -82,6 +83,12 @@ export default class UserRouter {
     this.router.put(`/${ServerRoute.REST_USER_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.userID = req.params.id;
       await RouterUtils.handleServerAction(UserService.handleAssignSitesToUser.bind(this), ServerAction.REMOVE_SITES_FROM_USER, req, res, next);
+    });
+  }
+
+  protected buildRouteUserUpdateMobileToken(): void {
+    this.router.put(`/${ServerRoute.REST_USER_UPDATE_MOBILE_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(UserService.handleUpdateUserMobileToken.bind(this), ServerAction.USER_UPDATE_MOBILE_TOKEN, req, res, next);
     });
   }
 }

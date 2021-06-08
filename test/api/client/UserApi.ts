@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class UserApi extends CrudApi {
@@ -56,5 +57,12 @@ export default class UserApi extends CrudApi {
 
   public async exportTags(params) {
     return await super.read(params, '/client/api/TagsExport');
+  }
+
+  public async updateMobileToken(userID: string, mobileToken: string, mobileOS: string) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_UPDATE_MOBILE_TOKEN, { id: userID });
+    return await super.update({
+      mobileToken, mobileOS
+    }, url);
   }
 }
