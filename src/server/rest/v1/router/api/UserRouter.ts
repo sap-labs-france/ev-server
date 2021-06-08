@@ -21,6 +21,7 @@ export default class UserRouter {
     this.buildRouteUserDefaultCarTag();
     this.buildRouteUserGetSites();
     this.buildRouteUserSiteAssign();
+    this.buildRouteUserSiteUnassign();
     return this.router;
   }
 
@@ -74,6 +75,13 @@ export default class UserRouter {
     this.router.post(`/${ServerRoute.REST_USER_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.userID = req.params.id;
       await RouterUtils.handleServerAction(UserService.handleAssignSitesToUser.bind(this), ServerAction.ADD_SITES_TO_USER, req, res, next);
+    });
+  }
+
+  protected buildRouteUserSiteUnassign(): void {
+    this.router.put(`/${ServerRoute.REST_USER_SITES}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.userID = req.params.id;
+      await RouterUtils.handleServerAction(UserService.handleAssignSitesToUser.bind(this), ServerAction.REMOVE_SITES_FROM_USER, req, res, next);
     });
   }
 }

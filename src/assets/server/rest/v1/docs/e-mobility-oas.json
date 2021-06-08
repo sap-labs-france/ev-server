@@ -4289,6 +4289,57 @@
             "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign sites to a user",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "siteIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully unassigned to sites",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/tags": {
