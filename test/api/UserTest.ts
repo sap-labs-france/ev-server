@@ -240,7 +240,6 @@ describe('User tests', function() {
         });
 
         it('Should update user\'s mobile token', async () => {
-          // Check if the deleted entity cannot be retrieved with its id
           const response = await testData.userService.userApi.updateMobileToken(
             testData.newUser.id,
             'new_mobile_token',
