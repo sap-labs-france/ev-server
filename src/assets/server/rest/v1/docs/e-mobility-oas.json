@@ -4357,6 +4357,9 @@
           "content": {
             "application/json": {
               "schema": {
+                "required": [
+                  "mobileToken"
+                ],
                 "properties": {
                   "mobileToken": {
                     "type": "string"
@@ -4376,6 +4379,64 @@
               "application/json": {
                 "example": {
                   "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/images": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "User ID"
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "Base 64 encoded image"
+                    }
+                  }
+                },
+                "example": {
+                  "id": "###",
+                  "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAC..."
                 }
               }
             }

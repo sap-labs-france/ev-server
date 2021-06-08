@@ -8,11 +8,13 @@ export default class UserApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, '/client/api/User');
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER, { id });
+    return super.readById(id, url);
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Users');
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USERS);
+    return super.readAll(params, paging, ordering, url);
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -20,15 +22,18 @@ export default class UserApi extends CrudApi {
   }
 
   public async create(data) {
-    return super.create(data, '/client/api/UserCreate');
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USERS);
+    return super.create(data, url);
   }
 
   public async update(data) {
-    return super.update(data, '/client/api/UserUpdate');
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER, { id: data.id });
+    return super.update(data, url);
   }
 
   public async delete(id) {
-    return super.delete(id, '/client/api/UserDelete');
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER, { id });
+    return super.delete(id, url);
   }
 
   public async getByEmail(email) {
@@ -64,5 +69,10 @@ export default class UserApi extends CrudApi {
     return await super.update({
       mobileToken, mobileOS
     }, url);
+  }
+
+  public async getImage(userID: string) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_IMAGE, { id: userID });
+    return await super.read({}, url);
   }
 }

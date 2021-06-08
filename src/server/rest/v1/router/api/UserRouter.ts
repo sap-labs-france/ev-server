@@ -23,6 +23,7 @@ export default class UserRouter {
     this.buildRouteUserSiteAssign();
     this.buildRouteUserSiteUnassign();
     this.buildRouteUserUpdateMobileToken();
+    this.buildRouteUserGetImage();
     return this.router;
   }
 
@@ -89,6 +90,13 @@ export default class UserRouter {
   protected buildRouteUserUpdateMobileToken(): void {
     this.router.put(`/${ServerRoute.REST_USER_UPDATE_MOBILE_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(UserService.handleUpdateUserMobileToken.bind(this), ServerAction.USER_UPDATE_MOBILE_TOKEN, req, res, next);
+    });
+  }
+
+  protected buildRouteUserGetImage(): void {
+    this.router.get(`/${ServerRoute.REST_USER_IMAGE}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(UserService.handleGetUserImage.bind(this), ServerAction.USER_IMAGE, req, res, next);
     });
   }
 }

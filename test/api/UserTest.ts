@@ -250,6 +250,13 @@ describe('User tests', function() {
           expect(response.data).to.be.deep.eq(Constants.REST_RESPONSE_SUCCESS);
         });
 
+        it('Should get user image', async () => {
+          const response = await testData.userService.userApi.getImage(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.id).to.be.eq(testData.newUser.id);
+          expect(response.data.image).to.be.null; // New users have a null image
+        });
+
         it('Should be able to delete the created user', async () => {
           // Delete the created entity
           await testData.userService.deleteEntity(
