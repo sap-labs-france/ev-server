@@ -23,12 +23,12 @@ import moment from 'moment';
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
 export default class AssetGetConsumptionTask extends SchedulerTask {
-  // Create Helper Array with site areas
-  private triggerSmartChargingSiteAreas: SiteArea[];
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
+      // Create Helper Array with site areas to trigger smart charging
+      const triggerSmartChargingSiteAreas = [];
       // Get dynamic assets only
       const dynamicAssets = await AssetStorage.getAssets(tenant.id,
         {
@@ -81,8 +81,14 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 }
                 // Save Asset
                 await AssetStorage.saveAsset(tenant.id, asset);
-                // Check fluctuation since last smart charging run
-                this.checkFluctuationSinceLastSmartChargingRun(tenant, asset);
+                // Check variation since last smart charging run
+                if (this.checkVariationSinceLastSmartChargingRun(tenant, asset)) {
+                  // Check if Site Area is already pushed
+                  const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
+                  if (siteAreaAlreadyPushed === -1) {
+                    triggerSmartChargingSiteAreas.push(asset.siteArea);
+                  }
+                }
               }
             }
           } catch (error) {
@@ -94,41 +100,41 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
           }
         }
       }
-      for (const siteArea of this.triggerSmartChargingSiteAreas) {
+      // Execute smart charging on site areas which are exceeding variation threshold
+      for (const siteArea of triggerSmartChargingSiteAreas) {
         await this.triggerSmartCharging(tenant, siteArea);
       }
     }
   }
 
-  private checkFluctuationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset) {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+  private checkVariationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset): boolean {
+    // Check if smart charging active for tenant and site area
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING) && asset.siteArea?.smartCharging) {
+      // Calculate consumption variation since last smart charging run
       const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
-      if (consumptionVariation === 0 && asset.variationThresholdPercent > 0) {
-        return;
+      if (consumptionVariation === 0 && !(asset.variationThresholdPercent > 0)) {
+        return false;
       }
+      // Calculate the variation threshold in Watts
       const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
       if (variationThreshold < Math.abs(consumptionVariation)) {
-        const siteAreaAlreadyPushed = this.triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
-        if (siteAreaAlreadyPushed === -1) {
-          this.triggerSmartChargingSiteAreas.push(asset.siteArea);
-        }
+        return true;
       }
     }
+    return false;
   }
 
   private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
-    if (siteArea && siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
-      if (siteAreaLock) {
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
-          }
-        } finally {
-          // Release lock
-          await LockingManager.release(siteAreaLock);
+    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+    if (siteAreaLock) {
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
         }
+      } finally {
+        // Release lock
+        await LockingManager.release(siteAreaLock);
       }
     }
   }
