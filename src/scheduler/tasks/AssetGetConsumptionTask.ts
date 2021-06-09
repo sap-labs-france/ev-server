@@ -28,6 +28,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Create Helper Array with site areas to trigger smart charging
+      const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
       const triggerSmartChargingSiteAreas = [];
       // Get dynamic assets only
       const dynamicAssets = await AssetStorage.getAssets(tenant.id,
@@ -81,8 +82,8 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 }
                 // Save Asset
                 await AssetStorage.saveAsset(tenant.id, asset);
-                // Check variation since last smart charging run
-                if (this.checkVariationSinceLastSmartChargingRun(tenant, asset)) {
+                // Check if variation since last smart charging run exceeds the variation threshold
+                if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(tenant, asset)) {
                   // Check if Site Area is already pushed
                   const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
                   if (siteAreaAlreadyPushed === -1) {
@@ -109,7 +110,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
 
   private checkVariationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset): boolean {
     // Check if smart charging active for tenant and site area
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING) && asset.siteArea?.smartCharging) {
+    if (asset.siteArea?.smartCharging) {
       // Calculate consumption variation since last smart charging run
       const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
       if (consumptionVariation === 0 && !(asset.variationThresholdPercent > 0)) {
