@@ -23,6 +23,7 @@ export default class UserRouter {
     this.buildRouteUserSiteAssign();
     this.buildRouteUserInError();
     this.buildRouteUserImport();
+    this.buildRouteUserExport();
     return this.router;
   }
 
@@ -88,6 +89,12 @@ export default class UserRouter {
   protected buildRouteUserImport(): void {
     this.router.get(`/${ServerRoute.REST_USERS_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(UserService.handleImportUsers.bind(this), ServerAction.USERS_IMPORT, req, res, next);
+    });
+  }
+
+  protected buildRouteUserExport(): void {
+    this.router.get(`/${ServerRoute.REST_USERS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(UserService.handleExportUsers.bind(this), ServerAction.USERS_EXPORT, req, res, next);
     });
   }
 }

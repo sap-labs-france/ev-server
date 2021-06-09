@@ -500,6 +500,7 @@ export enum ServerRoute {
   REST_USER_SITES = 'users/:id/sites',
   REST_USERS_IN_ERROR = 'users/status/in-error',
   REST_USERS_IMPORT = 'users/action/import',
+  REST_USERS_EXPORT = 'users/action/export',
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',
