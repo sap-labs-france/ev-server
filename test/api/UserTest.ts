@@ -228,6 +228,17 @@ describe('User tests', function() {
         //   testData.importedTags.push(tag);
         // });
 
+        it('Should be able to export users list', async () => {
+          const response = await testData.userService.userApi.exportUsers({});
+          const users = await testData.userService.userApi.readAll({});
+          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          // Verify we have as many users inserted as users in the export
+          expect(responseFileArray.length).to.be.eql(users.data.result.length);
+        });
+
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id
           const updatedUser = await testData.userService.getEntityById(
