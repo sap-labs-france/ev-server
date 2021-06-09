@@ -4361,6 +4361,58 @@
         }
       }
     },
+    "/api/users/action/import": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Import users from file",
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users importation results",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 42,
+                  "inError": 0
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "description": "Invalid file format"
+          },
+          "584": {
+            "description": "Invalid CSV header format"
+          }
+        }
+      }
+    },
     "/api/tags": {
       "get": {
         "security": [
