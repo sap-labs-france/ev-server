@@ -23,12 +23,11 @@ import moment from 'moment';
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
 export default class AssetGetConsumptionTask extends SchedulerTask {
-
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
-      // Create Helper Array with site areas to trigger smart charging
       const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
+      // Create Helper Array with site areas to trigger smart charging
       const triggerSmartChargingSiteAreas = [];
       // Get dynamic assets only
       const dynamicAssets = await AssetStorage.getAssets(tenant.id,
@@ -109,11 +108,11 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   }
 
   private checkVariationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset): boolean {
-    // Check if smart charging active for tenant and site area
+    // Check if smart charging active for site area
     if (asset.siteArea?.smartCharging) {
       // Calculate consumption variation since last smart charging run
       const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
-      if (consumptionVariation === 0 && !(asset.variationThresholdPercent > 0)) {
+      if (consumptionVariation === 0 || !(asset.variationThresholdPercent > 0)) {
         return false;
       }
       // Calculate the variation threshold in Watts
