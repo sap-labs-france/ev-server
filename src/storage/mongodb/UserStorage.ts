@@ -486,20 +486,26 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserBillingData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    if (billingData) {
     // Set data
-    const updatedUserMDB: any = {
-      billingData: {
-        customerID: billingData.customerID,
-        liveMode: Utils.convertToBoolean(billingData.liveMode),
-        hasSynchroError: billingData.hasSynchroError,
-        invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
-        lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
-      }
-    };
-    // Modify and return the modified document
-    await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
-      { $set: updatedUserMDB });
+      const updatedUserMDB: any = {
+        billingData: {
+          customerID: billingData.customerID,
+          liveMode: Utils.convertToBoolean(billingData.liveMode),
+          hasSynchroError: billingData.hasSynchroError,
+          invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
+          lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
+        }
+      };
+      // Modify and return the modified document
+      await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+        { '_id': Utils.convertToObjectID(userID) },
+        { $set: updatedUserMDB });
+    } else {
+      await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+        { '_id': Utils.convertToObjectID(userID) },
+        { $unset: { billingData: '' } }); // This removes the field from the document
+    }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserBillingData', uniqueTimerID, billingData);
   }
@@ -533,7 +539,8 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
+        statuses?: string[]; withImage?: boolean; billingUserID?: string;
+        notSynchronizedBillingData?: boolean; withTestBillingData?: boolean;
         notifications?: any; noLoginSince?: Date; tagIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
@@ -612,6 +619,14 @@ export default class UserStorage {
         { 'billingData.lastChangedOn': { '$exists': false } },
         { 'billingData.lastChangedOn': null },
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+      ];
+    }
+    // Select users with test billing data
+    if (params.withTestBillingData) {
+      const expectedLiveMode = !params.withTestBillingData;
+      filters.$and = [
+        { 'billingData': { '$exists': true } },
+        { 'billingData.liveMode': { $eq: expectedLiveMode } }
       ];
     }
     // Add filters

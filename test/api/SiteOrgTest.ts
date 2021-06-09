@@ -67,6 +67,16 @@ async function assignUserToSite(userRole, site): Promise<any> {
 
 /**
  * @param userRole
+ * @param sites
+ */
+async function assignSitesToUser(userRole, sites: string[]): Promise<any> {
+  // Assign the user to the site
+  const userContext = await testData.tenantContext.getUserContext(userRole);
+  return testData.userService.siteApi.addSitesToUser(userContext.id, sites);
+}
+
+/**
+ * @param userRole
  * @param site
  */
 async function assignSiteAdmin(userRole, site) {
@@ -166,6 +176,14 @@ describe('Site tests', function() {
 
       it('Should be able to assign a user to a site', async () => {
         await assignUserToSite(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.newSite);
+        const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
+        expect(res.data.count).to.eq(1);
+        const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        expect(res.data.result.map((site) => site.user.id)).to.contain(userContext.id);
+      });
+
+      it('Should be able to assign a site to a user', async () => {
+        await assignSitesToUser(ContextDefinition.USER_CONTEXTS.BASIC_USER, [testData.newSite]);
         const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
         expect(res.data.count).to.eq(1);
         const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
