@@ -498,6 +498,7 @@ export enum ServerRoute {
   REST_USER = 'users/:id',
   REST_USER_DEFAULT_TAG_CAR = 'users/:id/default-car-tag',
   REST_USER_SITES = 'users/:id/sites',
+  REST_USERS_IN_ERROR = 'users/status/in-error',
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',

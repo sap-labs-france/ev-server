@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class UserApi extends CrudApi {
@@ -15,7 +16,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/UsersInError');
+    return super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_USERS_IN_ERROR}`);
   }
 
   public async create(data) {
