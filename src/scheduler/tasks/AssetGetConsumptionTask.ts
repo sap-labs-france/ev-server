@@ -82,7 +82,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 // Save Asset
                 await AssetStorage.saveAsset(tenant.id, asset);
                 // Check if variation since last smart charging run exceeds the variation threshold
-                if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(tenant, asset)) {
+                if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset)) {
                   // Check if Site Area is already pushed
                   const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
                   if (siteAreaAlreadyPushed === -1) {
@@ -107,7 +107,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
     }
   }
 
-  private checkVariationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset): boolean {
+  private checkVariationSinceLastSmartChargingRun(asset: Asset): boolean {
     // Check if smart charging active for site area
     if (asset.siteArea?.smartCharging) {
       // Calculate consumption variation since last smart charging run
