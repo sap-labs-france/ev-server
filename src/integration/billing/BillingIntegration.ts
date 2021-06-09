@@ -537,18 +537,19 @@ export default abstract class BillingIntegration {
 
   private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
     // Prepare filtering to process Invoices of the previous month
-    const startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
-    const endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
-    // Sort by creation date - process the eldest first!
-    const sort = { createdOn: 1 };
+    let startDateTime: Date, endDateTime: Date, limit: number;
     if (forceOperation) {
       // Only used when running tests
-      return {
-        filter: {},
-        limit: 1, // Specific limit to test the pagination
-        sort
-      };
+      limit = 1; // Specific limit to test the pagination
+      startDateTime = moment().startOf('day').toDate(); // Today at 00:00:00 (AM)
+      endDateTime = moment().endOf('day').toDate(); // Today at 23:59:59 (PM)
+    } else {
+      // Used once a month
+      limit = Constants.BATCH_PAGE_SIZE;
+      startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
+      endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
+    // Now return the query parameters
     return {
       // ------------------------------------------------------------------------------
       // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
@@ -558,8 +559,8 @@ export default abstract class BillingIntegration {
         startDateTime,
         endDateTime
       },
-      limit: Constants.BATCH_PAGE_SIZE,
-      sort
+      limit,
+      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
     };
   }
 
