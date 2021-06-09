@@ -566,7 +566,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user)).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -646,7 +646,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user)).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;

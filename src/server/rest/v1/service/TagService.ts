@@ -372,7 +372,7 @@ export default class TagService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canImportTags(req.user)) {
+    if (!(await Authorizations.canImportTags(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -570,7 +570,7 @@ export default class TagService {
 
   public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canExportTags(req.user)) {
+    if (!(await Authorizations.canExportTags(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
