@@ -537,8 +537,8 @@ export default abstract class BillingIntegration {
 
   private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
     // Prepare filtering to process Invoices of the previous month
-    const startDateTime = moment().date(0).date(1).toDate();
-    const endDateTime = moment().date(1).toDate();
+    const startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
+    const endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     // Sort by creation date - process the eldest first!
     const sort = { createdOn: 1 };
     if (forceOperation) {
@@ -550,7 +550,10 @@ export default abstract class BillingIntegration {
       };
     }
     return {
-      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!!!!
+      // ------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
+      // Filtering on the invoice status is not possible here
+      // ------------------------------------------------------------------------------
       filter: {
         startDateTime,
         endDateTime
