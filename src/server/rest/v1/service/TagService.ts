@@ -702,7 +702,7 @@ export default class TagService {
     if (writeHeader) {
       headers = [
         'id',
-        'visual ID',
+        'visualID',
         'description',
         'firstName',
         'name',
@@ -775,9 +775,9 @@ export default class TagService {
         id: importedTag.id.toUpperCase(),
         visualID: importedTag.visualID,
         description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
-        name: importedTag.name.toUpperCase(),
-        firstName: importedTag.firstName,
-        email: importedTag.email,
+        name: importedTag.name?.toUpperCase() || '',
+        firstName: importedTag.firstName || '',
+        email: importedTag.email || '',
       };
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
