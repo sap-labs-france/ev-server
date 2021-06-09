@@ -777,7 +777,7 @@ export default class OCPPService {
         }
         // Save
         await TransactionStorage.saveTransaction(tenant.id, lastTransaction);
-      } else if (!Utils.isUndefined(lastTransaction)) {
+      } else if (!Utils.isNullOrUndefined(lastTransaction)) {
         await Logging.logWarning({
           tenantID: tenant.id,
           source: chargingStation.id,

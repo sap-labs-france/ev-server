@@ -775,7 +775,12 @@ describe('Billing Service', function() {
             break;
           }
         }
-        assert(userFound, 'User with no billing data not found in Users In Error');
+        if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+          assert(userFound, 'User with no billing data should be listed as a User In Error');
+        } else {
+          // LAZY User Sync - The billing data will be created on demand (i.e.: when entering a payment method)
+          assert(!userFound, 'User with no billing data should not be listed as a User In Error');
+        }
       });
 
     });

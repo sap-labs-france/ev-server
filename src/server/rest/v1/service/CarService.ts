@@ -466,7 +466,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
     // Check User
     let userProject: string[] = [];
-    if (await Authorizations.canReadUser(req.user)) {
+    if ((await Authorizations.canReadUser(req.user)).authorized) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
@@ -615,7 +615,7 @@ export default class CarService {
         UtilsService.assertObjectExists(action, foundUser, `User ID '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
-        if (!await Authorizations.canReadUser(loggedUser)) {
+        if (!(await Authorizations.canReadUser(loggedUser)).authorized) {
           throw new AppAuthError({
             errorCode: HTTPAuthError.FORBIDDEN,
             user: loggedUser,
