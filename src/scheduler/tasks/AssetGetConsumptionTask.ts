@@ -12,6 +12,7 @@ import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import SiteArea from '../../types/SiteArea';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
@@ -22,6 +23,9 @@ import moment from 'moment';
 const MODULE_NAME = 'AssetGetConsumptionTask';
 
 export default class AssetGetConsumptionTask extends SchedulerTask {
+  // Create Helper Array with site areas
+  private triggerSmartChargingSiteAreas: SiteArea[];
+
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
@@ -44,12 +48,12 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
               // Retrieve Consumption
               const assetConsumptions = await assetImpl.retrieveConsumptions(asset);
               if (!Utils.isEmptyArray(assetConsumptions)) {
-              // Create helper for site area limit
+                // Create helper for site area limit
                 const siteAreaLimitConsumption = {} as Consumption;
                 await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, siteAreaLimitConsumption);
                 // Create Consumptions
                 for (const consumption of assetConsumptions) {
-                // Check if last consumption already exists
+                  // Check if last consumption already exists
                   if (asset.lastConsumption?.timestamp && moment(consumption.lastConsumption.timestamp).diff(moment(asset.lastConsumption.timestamp), 'seconds') < 50) {
                     continue;
                   }
@@ -78,7 +82,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                 // Save Asset
                 await AssetStorage.saveAsset(tenant.id, asset);
                 // Check fluctuation since last smart charging run
-                await this.checkFluctuationSinceLastSmartChargingRun(tenant, asset);
+                this.checkFluctuationSinceLastSmartChargingRun(tenant, asset);
               }
             }
           } catch (error) {
@@ -90,31 +94,40 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
           }
         }
       }
+      for (const siteArea of this.triggerSmartChargingSiteAreas) {
+        await this.triggerSmartCharging(tenant, siteArea);
+      }
     }
   }
 
-  private async checkFluctuationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset) {
-    const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
-    if (consumptionVariation < 0 || Utils.isNullOrUndefined(asset.variationThresholdPercent)) {
-      return;
+  private checkFluctuationSinceLastSmartChargingRun(tenant: Tenant, asset: Asset) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+      const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
+      if (consumptionVariation === 0 && asset.variationThresholdPercent > 0) {
+        return;
+      }
+      const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
+      if (variationThreshold < Math.abs(consumptionVariation)) {
+        const siteAreaAlreadyPushed = this.triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
+        if (siteAreaAlreadyPushed === -1) {
+          this.triggerSmartChargingSiteAreas.push(asset.siteArea);
+        }
+      }
     }
-    const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
-    if (variationThreshold < consumptionVariation) {
-      // Smart Charging must be active
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-        if (asset.siteArea && asset.siteArea.smartCharging) {
-          const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, asset.siteArea, 30 * 1000);
-          if (siteAreaLock) {
-            try {
-              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-              if (smartCharging) {
-                await smartCharging.computeAndApplyChargingProfiles(asset.siteArea);
-              }
-            } finally {
-              // Release lock
-              await LockingManager.release(siteAreaLock);
-            }
+  }
+
+  private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
+    if (siteArea && siteArea.smartCharging) {
+      const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+      if (siteAreaLock) {
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
+        } finally {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
         }
       }
     }
