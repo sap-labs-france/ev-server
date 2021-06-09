@@ -13,8 +13,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USERS);
-    return super.readAll(params, paging, ordering, url);
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_USERS));
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
