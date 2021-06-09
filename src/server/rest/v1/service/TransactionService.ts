@@ -234,8 +234,8 @@ export default class TransactionService {
       const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
-          // Post CDR
-          await OCPPUtils.processOCPITransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
+          // Roaming
+          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
@@ -544,7 +544,7 @@ export default class TransactionService {
         ];
       }
     }
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       projectFields = [
         ...projectFields,
         'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
@@ -566,7 +566,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user)).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -646,7 +646,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user)).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -749,7 +749,7 @@ export default class TransactionService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
@@ -1039,7 +1039,7 @@ export default class TransactionService {
       });
     }
     // Check Users
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       if (projectFields) {
         projectFields = [
           ...projectFields,
