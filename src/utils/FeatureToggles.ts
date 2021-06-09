@@ -16,7 +16,7 @@ export enum Feature {
 export default class FeatureToggles {
   // Comment out the features that you want to switch OFF
   static activeFeatures: Feature[] = [
-    Feature.BILLING_SYNC_USERS,
+    // Feature.BILLING_SYNC_USERS, - When switched OFF the sync of the user should be implicit (LAZY mode)
     Feature.BILLING_SYNC_USER,
     Feature.BILLING_CHECK_USER_BILLING_DATA,
     Feature.BILLING_CHECK_CUSTOMER_ID,
