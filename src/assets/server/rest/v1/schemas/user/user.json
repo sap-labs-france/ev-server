@@ -1,0 +1,155 @@
+{
+  "$id": "user.json",
+  "definitions": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "sanitize": "mongo"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "sanitize": "mongo"
+    },
+    "password": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\\$%\\^&\\*\\.\\?\\-_\\+\\=\\(\\)])(?=.{8,})"
+    },
+    "costCenter": {
+      "type": "string"
+    },
+    "iNumber": {
+      "type": "string"
+    },
+    "image": {
+      "type": "string"
+    },
+    "mobile": {
+      "type": "string"
+    },
+    "locale": {
+      "type": "string"
+    },
+    "address": {
+      "$ref": "common.json#/definitions/address"
+    },
+    "passwords": {
+      "password": {
+        "$ref": "#/definitions/password"
+      }
+    },
+    "phone": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": "boolean"
+    },
+    "notificationsActive": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string"
+    },
+    "plateID": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "sendSessionStarted": {
+          "type": "boolean"
+        },
+        "sendOptimalChargeReached": {
+          "type": "boolean"
+        },
+        "sendEndOfCharge": {
+          "type": "boolean"
+        },
+        "sendEndOfSession": {
+          "type": "boolean"
+        },
+        "sendUserAccountStatusChanged": {
+          "type": "boolean"
+        },
+        "sendSessionNotStarted": {
+          "type": "boolean"
+        },
+        "sendCarCatalogSynchronizationFailed": {
+          "type": "boolean"
+        },
+        "sendUserAccountInactivity": {
+          "type": "boolean"
+        },
+        "sendPreparingSessionNotStarted": {
+          "type": "boolean"
+        },
+        "sendBillingSynchronizationFailed": {
+          "type": "boolean"
+        },
+        "sendBillingPeriodicOperationFailed": {
+          "type": "boolean"
+        },
+        "sendBillingNewInvoice": {
+          "type": "boolean"
+        },
+        "sendNewRegisteredUser": {
+          "type": "boolean"
+        },
+        "sendUnknownUserBadged": {
+          "type": "boolean"
+        },
+        "sendChargingStationStatusError": {
+          "type": "boolean"
+        },
+        "sendChargingStationRegistered": {
+          "type": "boolean"
+        },
+        "sendOcpiPatchStatusError": {
+          "type": "boolean"
+        },
+        "sendSmtpAuthError": {
+          "type": "boolean"
+        },
+        "sendSmtpError": {
+          "type": "boolean"
+        },
+        "sendOfflineChargingStations": {
+          "type": "boolean"
+        },
+        "sendEndUserErrorNotification": {
+          "type": "boolean"
+        },
+        "sendComputeAndApplyChargingProfilesFailed": {
+          "type": "boolean"
+        },
+        "sendAccountVerificationNotification": {
+          "type": "boolean"
+        },
+        "sendAdminAccountVerificationNotification": {
+          "type": "boolean"
+        }
+      }
+    },
+    "deleted": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "passwordWrongNbrTrials": {
+      "type": "number"
+    }
+  }
+}
