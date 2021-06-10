@@ -1,24 +1,48 @@
 {
   "title": "Create one User",
   "type": "object",
-  "properties": {
+  "definitions": {
     "name": {
-      "$ref": "tenant.json#/definitions/name"
+      "$ref": "user.json#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "user.json#/definitions/firstName"
     },
     "email": {
       "$ref": "user.json#/definitions/email"
     },
-    "subdomain": {
-      "$ref": "common.json#/definitions/subdomain"
+    "costCenter": {
+      "$ref": "user.json#/definitions/costCenter"
     },
-    "logo": {
-      "$ref": "common.json#/definitions/logo"
+    "iNumber": {
+      "$ref": "user.json#/definitions/iNumber"
+    },
+    "image": {
+      "$ref": "user.json#/definitions/image"
+    },
+    "mobile": {
+      "$ref": "user.json#/definitions/mobile"
+    },
+    "locale": {
+      "$ref": "user.json#/definitions/locale"
     },
     "address": {
-      "$ref": "common.json#/definitions/address"
+      "$ref": "user.json#/definitions/address"
     },
-    "components": {
-      "$ref": "tenant-components.json#/definitions/components"
+    "passwords": {
+      "$ref": "user.json#/definitions/passwords"
+    },
+    "phone": {
+      "$ref": "user.json#/definitions/phone"
+    },
+    "issuer": {
+      "$ref": "user.json#/definitions/issuer"
+    },
+    "notificationsActive": {
+      "$ref": "user.json#/definitions/notificationsActive"
+    },
+    "notifications": {
+      "$ref": "user.json#/definitions/notifications"
     }
   },
   "required": [

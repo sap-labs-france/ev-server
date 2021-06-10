@@ -15,6 +15,7 @@ const extraSanitizers = {
 export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
   private commonSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/common/common.json`, 'utf8'));
+  private tenantSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant.json`, 'utf8'));
   private tenantComponentSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tenant/tenant-components.json`, 'utf8'));
   private chargingStationSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation.json`, 'utf8'));
   private tagSchema: Schema = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag.json`, 'utf8'));
@@ -27,7 +28,7 @@ export default class SchemaValidator {
         useDefaults: boolean; coerceTypes: boolean;
       } = {
         allErrors: true,
-        removeAdditional: 'failing',
+        removeAdditional: 'all',
         useDefaults: true,
         coerceTypes: true
       }) {
@@ -41,6 +42,7 @@ export default class SchemaValidator {
       validate: (c) => Constants.REGEX_VALIDATION_LONGITUDE.test(c.toString())
     });
     this.ajv.addSchema(this.commonSchema);
+    this.ajv.addSchema(this.tenantSchema);
     this.ajv.addSchema(this.tenantComponentSchema);
     this.ajv.addSchema(this.chargingStationSchema);
     this.ajv.addSchema(this.tagSchema);
@@ -49,35 +51,31 @@ export default class SchemaValidator {
   }
 
   public validate(schema: Schema, content: any): void {
-    try {
-      const fnValidate = this.ajv.compile(schema);
-      if (!fnValidate(content)) {
-        if (!fnValidate.errors) {
-          fnValidate.errors = [];
-        }
-        const errors = fnValidate.errors.map((error) => ({
-          path: error.dataPath,
-          message: error.message ? error.message : ''
-        }));
-        const concatenatedErrors: string[] = [];
-        for (const error of errors) {
-          if (error.path && error.path !== '') {
-            concatenatedErrors.push(`Property '${error.path}': ${error.message}`);
-          } else {
-            concatenatedErrors.push(`Error: ${error.message}`);
-          }
-        }
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: concatenatedErrors.join(', '),
-          module: this.moduleName,
-          method: 'validate',
-          detailedMessages: { errors, content, schema }
-        });
+    const fnValidate = this.ajv.compile(schema);
+    if (!fnValidate(content)) {
+      if (!fnValidate.errors) {
+        fnValidate.errors = [];
       }
-    } catch (e) {
-      console.log(e);
+      const errors = fnValidate.errors.map((error) => ({
+        path: error.dataPath,
+        message: error.message ? error.message : ''
+      }));
+      const concatenatedErrors: string[] = [];
+      for (const error of errors) {
+        if (error.path && error.path !== '') {
+          concatenatedErrors.push(`Property '${error.path}': ${error.message}`);
+        } else {
+          concatenatedErrors.push(`Error: ${error.message}`);
+        }
+      }
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: concatenatedErrors.join(', '),
+        module: this.moduleName,
+        method: 'validate',
+        detailedMessages: { errors, content, schema }
+      });
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "id": "tenant.json",
+  "$id": "tenant.json",
   "definitions": {
     "name": {
       "type": "string",

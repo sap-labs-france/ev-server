@@ -6,7 +6,7 @@
       "$ref": "common.json#/definitions/id"
     },
     "name": {
-      "$ref": "common.json#/definitions/name"
+      "$ref": "tenant.json#/definitions/name"
     },
     "email": {
       "$ref": "user.json#/definitions/email"

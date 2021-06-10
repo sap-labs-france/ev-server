@@ -1,0 +1,15 @@
+{
+  "title": "Handle admin related fields for User creation",
+  "type": "object",
+  "definitions": {
+    "status": {
+      "$ref": "user.json#/definitions/status"
+    },
+    "plateID": {
+      "$ref": "user.json#/definitions/plateID"
+    },
+    "role": {
+      "$ref": "user.json#/definitions/role"
+    }
+  }
+}

@@ -313,7 +313,13 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    const filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    let filteredRequest;
+
+    try {
+      filteredRequest = TenantValidator.getInstance().validateTenantUpdateRequestSuperAdmin(req.body);
+    } catch (e) {
+      console.log(e);
+    }
     // Check auth
     if (!await Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
