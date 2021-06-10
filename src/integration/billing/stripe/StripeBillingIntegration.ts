@@ -451,13 +451,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
       // Check the current invoice status
-      if (stripeInvoice.status !== 'paid') {
+      if (stripeInvoice.status !== BillingInvoiceStatus.PAID) {
         // Finalize the invoice (if necessary)
-        if (stripeInvoice.status === 'draft') {
+        if (stripeInvoice.status === BillingInvoiceStatus.DRAFT) {
           stripeInvoice = await this.stripe.invoices.finalizeInvoice(invoiceID);
         }
         // Once finalized, the invoice is in the "open" state!
-        if (stripeInvoice.status === 'open') {
+        if (stripeInvoice.status === BillingInvoiceStatus.OPEN
+          || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
           // Set the payment options
           const paymentOptions: Stripe.InvoicePayParams = {};
           stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
