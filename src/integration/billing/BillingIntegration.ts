@@ -253,7 +253,7 @@ export default abstract class BillingIntegration {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
           // Empty url allows to decide wether to display "pay" button in the email
-          payInvoiceUrl: billingInvoice.status === 'open' ? billingInvoice.payInvoiceUrl : '',
+          payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
           // Stripe saves amount in cents
           invoiceAmount: Utils.createDecimal(billingInvoice.amount).div(100),
           invoiceNumber: billingInvoice.number,
