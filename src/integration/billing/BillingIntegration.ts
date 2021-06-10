@@ -23,7 +23,7 @@ const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration {
 
-  // Production Mode is set to true when the STRIPE account is a live one!
+  // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
 
   protected readonly tenantID: string; // Assuming UUID or other string format ID
@@ -313,7 +313,7 @@ export default abstract class BillingIntegration {
     if (!transaction.user?.billingData?.customerID) {
       if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
-          message: 'User has no billing data or no customer in Stripe',
+          message: 'User has no billing data or no customer ID',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'checkStartTransaction',
@@ -458,7 +458,6 @@ export default abstract class BillingIntegration {
         // Save to clear billing data
         await TransactionStorage.saveTransaction(this.tenantID, transaction);
       } catch (error) {
-        // Catch stripe errors and send the information back to the client
         await Logging.logError({
           tenantID: this.tenantID,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
@@ -597,8 +596,6 @@ export default abstract class BillingIntegration {
   abstract isUserSynchronized(user: User): Promise<boolean>;
 
   abstract getTaxes(): Promise<BillingTax[]>;
-
-  abstract synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists: boolean): Promise<BillingInvoice>;
 
   abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
 
