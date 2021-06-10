@@ -1096,10 +1096,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
           message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
           detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
         });
-      } else {
-        // Data may have been updated
-        stripeInvoice = operationResult.invoice;
       }
+    }
+    if (operationResult.invoice) {
+      // Reuse the operation result (for better performance)
+      stripeInvoice = operationResult.invoice;
+    } else {
+      // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
+      stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
