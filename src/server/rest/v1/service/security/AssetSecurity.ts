@@ -66,6 +66,7 @@ export default class AssetSecurity {
     filteredRequest.siteAreaID = sanitize(request.siteAreaID),
     filteredRequest.assetType = sanitize(request.assetType),
     filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(sanitize(request.excludeFromSmartCharging));
+    filteredRequest.variationThresholdPercent = sanitize(request.variationThresholdPercent),
     filteredRequest.fluctuationPercent = sanitize(request.fluctuationPercent),
     filteredRequest.staticValueWatt = sanitize(request.staticValueWatt),
     filteredRequest.image = request.image;

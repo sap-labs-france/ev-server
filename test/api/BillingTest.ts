@@ -775,7 +775,12 @@ describe('Billing Service', function() {
             break;
           }
         }
-        assert(userFound, 'User with no billing data not found in Users In Error');
+        if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+          assert(userFound, 'User with no billing data should be listed as a User In Error');
+        } else {
+          // LAZY User Sync - The billing data will be created on demand (i.e.: when entering a payment method)
+          assert(!userFound, 'User with no billing data should not be listed as a User In Error');
+        }
       });
 
     });
@@ -923,7 +928,7 @@ describe('Billing Service', function() {
         await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
         const transactionID = await testData.generateTransaction(testData.userContext);
         assert(transactionID, 'transactionID should not be null');
-        // Check that we have a new invoice with an invoiceID and an invoiceNumber
+        // Check that we have a new invoice with an invoiceID and but no invoiceNumber yet
         await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.DRAFT);
         // Let's simulate the periodic billing operation
         const operationResult: BillingChargeInvoiceAction = await testData.billingImpl.chargeInvoices(true /* forceOperation */);

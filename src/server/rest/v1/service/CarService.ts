@@ -582,7 +582,7 @@ export default class CarService {
         UtilsService.assertObjectExists(action, foundUser, `User ID '${userToCheck.user.id}' does not exist`,
           MODULE_NAME, 'handleAssignCarUsers', loggedUser);
         // Auth
-        if (!await Authorizations.canReadUser(loggedUser)) {
+        if (!(await Authorizations.canReadUser(loggedUser)).authorized) {
           throw new AppAuthError({
             errorCode: HTTPAuthError.FORBIDDEN,
             user: loggedUser,
