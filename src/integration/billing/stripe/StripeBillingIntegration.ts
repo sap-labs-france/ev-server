@@ -2,6 +2,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
+import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 
 import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -12,13 +13,11 @@ import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { Decimal } from 'decimal.js';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import Stripe from 'stripe';
-import StripeHelpers from './StripeHelpers';
 import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
@@ -268,16 +267,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return stripeInvoice;
   }
 
-  public async synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists:boolean): Promise<BillingInvoice> {
-    // Make sure to get fresh data !
-    const stripeInvoice: Stripe.Invoice = await this.getStripeInvoice(stripeInvoiceID);
+  public async synchronizeAsBillingInvoice(stripeInvoice: Stripe.Invoice, checkUserExists:boolean): Promise<BillingInvoice> {
     if (!stripeInvoice) {
       throw new BackendError({
-        message: `Unexpected situation - invoice not found - ${stripeInvoiceID}`,
+        message: 'Unexpected situation - invoice is not set',
         source: Constants.CENTRAL_SERVER, module: MODULE_NAME, action: ServerAction.BILLING,
         method: 'synchronizeAsBillingInvoice',
       });
     }
+    const stripeInvoiceID = stripeInvoice.id;
     // Destructuring the STRIPE invoice to extract the required information
     // eslint-disable-next-line id-blacklist, max-len
     const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
@@ -389,7 +387,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async chargeInvoice(billingInvoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
-    const operationResult: BillingOperationResult = await this._chargeStripeInvoice(billingInvoice.invoiceID);
+    const operationResult = await this.chargeStripeInvoice(billingInvoice.invoiceID);
     if (!operationResult?.succeeded && operationResult?.error) {
       if (StripeHelpers.isResourceMissingError(operationResult.error)) {
         await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
@@ -406,8 +404,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       }
     }
-
-    billingInvoice = await this.synchronizeAsBillingInvoice(billingInvoice.invoiceID, false);
+    // Reuse the operation result (for better performance)
+    let stripeInvoice = operationResult.invoice;
+    if (!stripeInvoice) {
+      // Get fresh data only when necessary
+      stripeInvoice = await this.getStripeInvoice(billingInvoice.invoiceID);
+    }
+    // Let's replicate some information on our side
+    billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
@@ -442,7 +446,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }));
   }
 
-  private async _chargeStripeInvoice(invoiceID: string): Promise<BillingOperationResult> {
+  private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
@@ -461,7 +465,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
       return {
         succeeded: true,
-        internalData: stripeInvoice
+        invoice: stripeInvoice
       };
     } catch (error) {
       return {
@@ -1096,10 +1100,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Let's create a new DRAFT invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
     }
-    let operationResult: BillingOperationResult;
+    let operationResult: StripeChargeOperationResult;
     if (this.settings.billing?.immediateBillingAllowed) {
       // Let's try to bill the stripe invoice using the default payment method of the customer
-      operationResult = await this._chargeStripeInvoice(stripeInvoice.id);
+      operationResult = await this.chargeStripeInvoice(stripeInvoice.id);
       if (!operationResult?.succeeded && operationResult?.error) {
         await Logging.logError({
           tenantID: this.tenantID,
@@ -1111,9 +1115,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
           detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
         });
       }
+      if (operationResult?.invoice) {
+        // Reuse the operation result (for better performance)
+        stripeInvoice = operationResult.invoice;
+      } else {
+        // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
+        stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
+      }
     }
     // Let's replicate some information on our side
-    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice.id, false);
+    const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
     // We have now a Billing Invoice - Let's update it with details about the last operation result
     await StripeHelpers.updateInvoiceAdditionalData(this.tenantID, billingInvoice, operationResult, billingInvoiceItem);
     // Return the billing invoice
