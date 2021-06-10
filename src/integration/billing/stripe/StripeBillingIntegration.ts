@@ -717,6 +717,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
+  private isTransactionUserInternal(transaction: Transaction): boolean {
+    // slf
+    if (this.tenantID === '5be7fb271014d90008992f06') {
+      if (transaction?.user?.email?.toLocaleLowerCase()?.endsWith('@sap.com')) {
+        // Internal user
+        return true;
+      }
+    }
+    // This is an external user
+    return false;
+  }
+
   public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
 
     if (!this.settings.billing.isTransactionBillingActivated) {
@@ -725,7 +737,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
         withBillingActive: false
       };
     }
-
+    // Temporary solution - Check for internal users
+    if (this.isTransactionUserInternal(transaction)) {
+      return {
+        // Do not bill internal users
+        withBillingActive: false
+      };
+    }
     // Check Stripe
     await this.checkConnection();
     // Check Transaction

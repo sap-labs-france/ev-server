@@ -179,53 +179,59 @@ export default abstract class BillingIntegration {
       inSuccess: 0,
       inError: 0
     };
+    // Check connection
     await this.checkConnection();
-
-    let invoices: DataResult<BillingInvoice>;
-    if (this.settings.billing?.periodicBillingAllowed) {
-      // Fetch DRAFT and OPEN invoices
-      invoices = await BillingStorage.getInvoicesToProcess(this.tenantID);
-    } else {
-      // Fetch OPEN invoices only
-      invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
-    }
-    // Let's now finalize all invoices and attempt to get it paid
-    for (const invoice of invoices.result) {
-      try {
-        // Make sure to avoid trying to charge it again too soon
-        if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
-          actionsDone.inSuccess++;
-          await Logging.logWarning({
+    // Prepare filtering and sorting
+    const { filter, sort, limit } = this.preparePeriodicBillingQueryParameters(forceOperation);
+    let skip = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const invoices = await BillingStorage.getInvoices(this.tenantID, filter, { sort, limit, skip });
+      if (Utils.isEmptyArray(invoices.result)) {
+        break;
+      }
+      skip += limit;
+      for (const invoice of invoices.result) {
+        try {
+          // Skip invoices that are already PAID or not relevant for the current billing process
+          if (this.invoiceMustBeSkipped(invoice)) {
+            continue;
+          }
+          // Make sure to avoid trying to charge it again too soon
+          if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
+            actionsDone.inSuccess++;
+            await Logging.logWarning({
+              tenantID: this.tenantID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_CHARGE_INVOICE,
+              actionOnUser: invoice.user,
+              module: MODULE_NAME, method: 'chargeInvoices',
+              message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+            });
+            continue;
+          }
+          await this.chargeInvoice(invoice);
+          await Logging.logInfo({
             tenantID: this.tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_CHARGE_INVOICE,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
-            message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+            message: `Successfully charged invoice '${invoice.id}'`
           });
-          continue;
+          actionsDone.inSuccess++;
+        } catch (error) {
+          actionsDone.inError++;
+          await Logging.logError({
+            tenantID: this.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.BILLING_CHARGE_INVOICE,
+            actionOnUser: invoice.user,
+            module: MODULE_NAME, method: 'chargeInvoices',
+            message: `Failed to charge invoice '${invoice.id}'`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
         }
-        await this.chargeInvoice(invoice);
-        await Logging.logInfo({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Successfully charged invoice '${invoice.id}'`
-        });
-        actionsDone.inSuccess++;
-      } catch (error) {
-        actionsDone.inError++;
-        await Logging.logError({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Failed to charge invoice '${invoice.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
       }
     }
     return actionsDone;
@@ -391,7 +397,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _clearAllInvoiceTestData(): Promise<void> {
-    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoicesInTestMode(this.tenantID);
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenantID, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
@@ -517,6 +523,45 @@ export default abstract class BillingIntegration {
     }
     // Let's remove the billingData field
     await UserStorage.saveUserBillingData(this.tenantID, user.id, null);
+  }
+
+  private invoiceMustBeSkipped(invoice: BillingInvoice): boolean {
+    if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
+      return false;
+    }
+    if (invoice.status === BillingInvoiceStatus.OPEN) {
+      return false;
+    }
+    return true;
+  }
+
+  private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    // Prepare filtering to process Invoices of the previous month
+    let startDateTime: Date, endDateTime: Date, limit: number;
+    if (forceOperation) {
+      // Only used when running tests
+      limit = 1; // Specific limit to test the pagination
+      startDateTime = moment().startOf('day').toDate(); // Today at 00:00:00 (AM)
+      endDateTime = moment().endOf('day').toDate(); // Today at 23:59:59 (PM)
+    } else {
+      // Used once a month
+      limit = Constants.BATCH_PAGE_SIZE;
+      startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
+      endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
+    }
+    // Now return the query parameters
+    return {
+      // ------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
+      // Filtering on the invoice status is not possible here
+      // ------------------------------------------------------------------------------
+      filter: {
+        startDateTime,
+        endDateTime
+      },
+      limit,
+      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+    };
   }
 
   abstract checkConnection(): Promise<void>;
