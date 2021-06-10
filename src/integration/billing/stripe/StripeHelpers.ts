@@ -18,7 +18,7 @@ export default class StripeHelpers {
 
   public static async updateInvoiceAdditionalData(tenantID: string,
       billingInvoice: BillingInvoice,
-      operationResult: BillingOperationResult,
+      operationResult: StripeChargeOperationResult,
       billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
     // Do we have an error to preserve
     let billingError: BillingError;
