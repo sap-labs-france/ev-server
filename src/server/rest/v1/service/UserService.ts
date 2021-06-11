@@ -983,7 +983,7 @@ export default class UserService {
       });
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
+    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body, req.user);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get the email

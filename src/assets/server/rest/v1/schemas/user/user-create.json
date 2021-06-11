@@ -48,6 +48,6 @@
   "required": [
     "name",
     "email",
-    "subdomain"
+    "passwords"
   ]
 }

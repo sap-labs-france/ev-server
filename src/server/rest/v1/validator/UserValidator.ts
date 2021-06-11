@@ -1,7 +1,6 @@
 import User, { ImportedUser } from '../../../../types/User';
 
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import UserToken from '../../../../types/UserToken';
@@ -33,13 +32,14 @@ export default class UserValidator extends SchemaValidator {
     this.validate(this.importedUserCreation, importedUser);
   }
 
-  validateUserCreate(user: Partial<User>, loggedUser: UserToken): Partial<User> {
+  validateUserCreate(user: any, loggedUser: UserToken): Partial<User> {
     const request = Utils.cloneObject(user);
     this.validate(this.userCreate, user);
     if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
       this.validate(this.userAdminCreate, request);
-      user = { ...user, ...request };
+      user = request;
     }
+    user.password = user.passwords.password;
     return user;
   }
 }
