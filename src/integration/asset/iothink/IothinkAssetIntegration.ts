@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -19,9 +20,9 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
   private axiosInstance: AxiosInstance;
   private timestampReference = moment.utc('20000101 00:00:00', 'YYYYMMDD HH:mm:ss');
 
-  public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+    super(tenant, settings, connection);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
 
   public async checkConnection(): Promise<void> {
@@ -47,7 +48,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
         }
       );
       await Logging.logDebug({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Iothink web service has been called successfully`,
@@ -169,7 +170,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.iothinkConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenantID, this.connection.iothinkConnection.password));
+    params.append('password', await Cypher.decrypt(this.tenant.id, this.connection.iothinkConnection.password));
     return params;
   }
 

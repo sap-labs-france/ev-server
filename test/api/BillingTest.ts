@@ -77,21 +77,21 @@ class TestData {
     billingSettings.billing.isTransactionBillingActivated = activateTransactionBilling;
     // Invoke the generic setting service API to properly persist this information
     await this.saveBillingSettings(billingSettings);
-    const tenantId = this.tenantContext?.getTenant()?.id;
-    assert(!!tenantId, 'Tenant ID cannot be null');
-    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, billingSettings.stripe.secretKey);
-    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    const tenant = this.tenantContext?.getTenant();
+    assert(!!tenant, 'Tenant cannot be null');
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant.id, billingSettings.stripe.secretKey);
+    const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
 
   public async setBillingSystemInvalidCredentials() : Promise<StripeBillingIntegration> {
     const billingSettings = this.getLocalSettings(false);
-    const tenantId = this.tenantContext?.getTenant()?.id;
-    assert(!!tenantId, 'Tenant ID cannot be null');
-    billingSettings.stripe.secretKey = await Cypher.encrypt(tenantId, 'sk_test_' + 'invalid_credentials');
+    const tenant = this.tenantContext?.getTenant();
+    assert(!!tenant, 'Tenant cannot be null');
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant.id, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
-    const billingImpl = StripeBillingIntegration.getInstance(tenantId, billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }

@@ -12,6 +12,7 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
@@ -26,11 +27,11 @@ export default abstract class BillingIntegration {
   // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
 
-  protected readonly tenantID: string; // Assuming UUID or other string format ID
+  protected readonly tenant: Tenant; // Assuming UUID or other string format ID
   protected settings: BillingSettings;
 
-  protected constructor(tenantID: string, settings: BillingSettings) {
-    this.tenantID = tenantID;
+  protected constructor(tenant: Tenant, settings: BillingSettings) {
+    this.tenant = tenant;
     this.settings = settings;
   }
 
@@ -47,7 +48,7 @@ export default abstract class BillingIntegration {
       if (!Utils.isEmptyArray(users)) {
         // Process them
         await Logging.logInfo({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USERS,
           module: MODULE_NAME, method: 'synchronizeUsers',
@@ -64,7 +65,7 @@ export default abstract class BillingIntegration {
       }
     } else {
       await Logging.logWarning({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'synchronizeUsers',
@@ -72,7 +73,7 @@ export default abstract class BillingIntegration {
       });
     }
     // Log
-    await Logging.logActionsResponse(this.tenantID, ServerAction.BILLING_SYNCHRONIZE_USERS,
+    await Logging.logActionsResponse(this.tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS,
       MODULE_NAME, 'synchronizeUsers', actionsDone,
       '{{inSuccess}} user(s) were successfully synchronized',
       '{{inError}} user(s) failed to be synchronized',
@@ -81,7 +82,7 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenantID, this.settings);
+    await SettingStorage.saveBillingSetting(this.tenant.id, this.settings);
     // Result
     return actionsDone;
   }
@@ -92,7 +93,7 @@ export default abstract class BillingIntegration {
       try {
         billingUser = await this._synchronizeUser(user);
         await Logging.logInfo({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           actionOnUser: user,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USER,
@@ -102,7 +103,7 @@ export default abstract class BillingIntegration {
         return billingUser;
       } catch (error) {
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           actionOnUser: user,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_SYNCHRONIZE_USER,
@@ -113,7 +114,7 @@ export default abstract class BillingIntegration {
       }
     } else {
       await Logging.logWarning({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
@@ -129,7 +130,7 @@ export default abstract class BillingIntegration {
       billingUser = await this._synchronizeUser(user, true /* !forceMode */);
       if (user?.billingData?.customerID !== billingUser?.billingData?.customerID) {
         await Logging.logWarning({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
           module: MODULE_NAME, method: 'forceSynchronizeUser',
@@ -137,7 +138,7 @@ export default abstract class BillingIntegration {
         });
       }
       await Logging.logInfo({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         actionOnUser: user,
@@ -146,7 +147,7 @@ export default abstract class BillingIntegration {
       });
     } catch (error) {
       await Logging.logError({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
@@ -165,7 +166,7 @@ export default abstract class BillingIntegration {
       inError: 0
     };
     await Logging.logWarning({
-      tenantID: this.tenantID,
+      tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
       module: MODULE_NAME, method: 'synchronizeInvoices',
@@ -186,7 +187,7 @@ export default abstract class BillingIntegration {
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const invoices = await BillingStorage.getInvoices(this.tenantID, filter, { sort, limit, skip });
+      const invoices = await BillingStorage.getInvoices(this.tenant.id, filter, { sort, limit, skip });
       if (Utils.isEmptyArray(invoices.result)) {
         break;
       }
@@ -201,7 +202,7 @@ export default abstract class BillingIntegration {
           if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
             actionsDone.inSuccess++;
             await Logging.logWarning({
-              tenantID: this.tenantID,
+              tenantID: this.tenant.id,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_CHARGE_INVOICE,
               actionOnUser: invoice.user,
@@ -212,7 +213,7 @@ export default abstract class BillingIntegration {
           }
           await this.chargeInvoice(invoice);
           await Logging.logInfo({
-            tenantID: this.tenantID,
+            tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_CHARGE_INVOICE,
             actionOnUser: invoice.user,
@@ -223,7 +224,7 @@ export default abstract class BillingIntegration {
         } catch (error) {
           actionsDone.inError++;
           await Logging.logError({
-            tenantID: this.tenantID,
+            tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_CHARGE_INVOICE,
             actionOnUser: invoice.user,
@@ -241,10 +242,10 @@ export default abstract class BillingIntegration {
     // Do not send notifications for invoices that are not yet finalized!
     if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
       // Send link to the user using our notification framework (link to the front-end + download)
-      const tenant = await TenantStorage.getTenant(this.tenantID);
+      const tenant = await TenantStorage.getTenant(this.tenant.id);
       // Send async notification
       await NotificationHandler.sendBillingNewInvoiceNotification(
-        this.tenantID,
+        this.tenant.id,
         billingInvoice.id,
         billingInvoice.user,
         {
@@ -324,7 +325,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenantID,
+    const newUsers = await UserStorage.getUsers(this.tenant.id,
       {
         statuses: [UserStatus.ACTIVE],
         notSynchronizedBillingData: true
@@ -372,7 +373,7 @@ export default abstract class BillingIntegration {
   public async clearTestData(): Promise<void> {
     await this.checkConnection();
     await Logging.logInfo({
-      tenantID: this.tenantID,
+      tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
@@ -380,7 +381,7 @@ export default abstract class BillingIntegration {
     });
     await this._clearAllInvoiceTestData();
     await Logging.logInfo({
-      tenantID: this.tenantID,
+      tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
@@ -388,7 +389,7 @@ export default abstract class BillingIntegration {
     });
     await this._clearAllUsersTestData();
     await Logging.logInfo({
-      tenantID: this.tenantID,
+      tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.BILLING_TEST_DATA_CLEANUP,
       module: MODULE_NAME, method: '_clearAllInvoiceTestData',
@@ -397,13 +398,13 @@ export default abstract class BillingIntegration {
   }
 
   private async _clearAllInvoiceTestData(): Promise<void> {
-    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenantID, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant.id, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
         await this._clearInvoiceTestData(invoice);
         await Logging.logInfo({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
@@ -412,7 +413,7 @@ export default abstract class BillingIntegration {
         });
       } catch (error) {
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: invoice.user,
@@ -435,14 +436,14 @@ export default abstract class BillingIntegration {
       });
     }
     await this._clearTransactionsTestData(billingInvoice);
-    await BillingStorage.deleteInvoice(this.tenantID, billingInvoice.id);
+    await BillingStorage.deleteInvoice(this.tenant.id, billingInvoice.id);
   }
 
   private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
-        const transaction = await TransactionStorage.getTransaction(this.tenantID, Number(transactionID));
+        const transaction = await TransactionStorage.getTransaction(this.tenant.id, Number(transactionID));
         // Update Billing Data
         const stop: BillingDataTransactionStop = {
           status: BillingStatus.UNBILLED,
@@ -456,10 +457,10 @@ export default abstract class BillingIntegration {
           stop
         };
         // Save to clear billing data
-        await TransactionStorage.saveTransaction(this.tenantID, transaction);
+        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
       } catch (error) {
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           module: MODULE_NAME, method: '_clearTransactionsTestData',
           message: 'Failed to clear transaction billing data',
@@ -476,7 +477,7 @@ export default abstract class BillingIntegration {
       try {
         await this._clearUserTestBillingData(user);
         await Logging.logInfo({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
@@ -485,7 +486,7 @@ export default abstract class BillingIntegration {
         });
       } catch (error) {
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           actionOnUser: user,
@@ -499,7 +500,7 @@ export default abstract class BillingIntegration {
 
   private async _getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
-    const users = await UserStorage.getUsers(this.tenantID,
+    const users = await UserStorage.getUsers(this.tenant.id,
       {
         statuses: [UserStatus.ACTIVE],
         withTestBillingData: true
@@ -521,7 +522,7 @@ export default abstract class BillingIntegration {
       });
     }
     // Let's remove the billingData field
-    await UserStorage.saveUserBillingData(this.tenantID, user.id, null);
+    await UserStorage.saveUserBillingData(this.tenant.id, user.id, null);
   }
 
   private invoiceMustBeSkipped(invoice: BillingInvoice): boolean {

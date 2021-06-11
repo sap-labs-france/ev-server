@@ -356,7 +356,7 @@ export default class SiteAreaService {
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
-        req.user.tenantID, siteArea,
+        req.tenant, siteArea,
         { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
@@ -374,7 +374,7 @@ export default class SiteAreaService {
         const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.tenant);
             if (smartCharging) {
               await smartCharging.computeAndApplyChargingProfiles(siteArea);
             }

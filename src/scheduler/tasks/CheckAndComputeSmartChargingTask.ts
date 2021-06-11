@@ -26,7 +26,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         if (siteAreaLock) {
           try {
             // Get implementation
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
             if (!smartCharging) {
               // Log
               await Logging.logError({

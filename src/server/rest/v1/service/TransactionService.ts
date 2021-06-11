@@ -26,6 +26,7 @@ import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -138,7 +139,7 @@ export default class TransactionService {
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
-    const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -161,7 +162,7 @@ export default class TransactionService {
       });
     }
     // Refund
-    const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
+    const refundedTransactions = await refundConnector.refund(user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
@@ -430,7 +431,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionId}' does not exist`,
       MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, [transactionId]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -449,7 +450,7 @@ export default class TransactionService {
       });
     }
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, transactionsIds);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -948,15 +949,15 @@ export default class TransactionService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async deleteTransactions(action: ServerAction, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+  private static async deleteTransactions(action: ServerAction, tenant: Tenant, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
     const transactionsIDsToDelete = [];
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
     // Check if transaction has been refunded
-    const refundConnector = await RefundFactory.getRefundImpl(loggedUser.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(loggedUser.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     for (const transactionID of transactionsIDs) {
       // Get
       const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionID);

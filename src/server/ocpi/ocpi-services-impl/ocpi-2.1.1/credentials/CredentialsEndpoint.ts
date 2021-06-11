@@ -238,7 +238,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Get base url
     const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
     // Build credential object
-    const respCredential = await OCPIUtilsService.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
+    const respCredential = await OCPIUtilsService.buildOCPICredentialObject(tenant, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
     // Log available OCPI Versions
     await Logging.logDebug({
       tenantID: tenant.id,
