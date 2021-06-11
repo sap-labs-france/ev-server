@@ -1074,13 +1074,24 @@ export default class UserService {
         await UserStorage.saveUserAdminData(req.user.tenantID, newUser.id, adminData);
       }
     }
+    let siteIDs = [];
+    if (Authorizations.isSiteAdmin(req.user)) {
+      const userSites = await UserStorage.getUserSites(req.user.tenantID,
+        {
+          userID: req.user.id,
+          siteAdmin: true
+        }, Constants.DB_PARAMS_MAX_LIMIT,
+        ['siteID']
+      );
+      siteIDs = userSites.result.map((userSite) => userSite.siteID);
+    }
     // Assign user to all sites with auto-assign flag set
     const sites = await SiteStorage.getSites(req.user.tenantID,
-      { withAutoUserAssignment: true },
+      { withAutoUserAssignment: true, siteIDs },
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => site.id);
+      siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
       }
