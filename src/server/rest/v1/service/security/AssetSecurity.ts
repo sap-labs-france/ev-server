@@ -35,6 +35,9 @@ export default class AssetSecurity {
       DynamicOnly: UtilsSecurity.filterBoolean(request.DynamicOnly),
       ErrorType: sanitize(request.ErrorType)
     } as HttpAssetsRequest;
+    if (Utils.objectHasProperty(request, 'Issuer')) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
