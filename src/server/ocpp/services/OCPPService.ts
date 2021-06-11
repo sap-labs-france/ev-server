@@ -522,8 +522,8 @@ export default class OCPPService {
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleStopTransaction',
         action: ServerAction.STOP_TRANSACTION,
-        user: (alternateUser ? alternateUser : (user ? user : null)),
-        actionOnUser: (alternateUser ? (user ? user : null) : null),
+        user: alternateUser ?? (user ?? null),
+        actionOnUser: alternateUser ? (user ?? null) : null,
         message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`,
         detailedMessages: { headers, stopTransaction }
       });
