@@ -724,7 +724,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private isTransactionUserInternal(transaction: Transaction): boolean {
     // slf
     if (this.tenantID === '5be7fb271014d90008992f06') {
-      if (transaction?.user?.email?.toLocaleLowerCase()?.endsWith('@sap.com')) {
+      const email = transaction?.user?.email?.toLocaleLowerCase();
+      if (email?.endsWith('@sap.com') || email?.endsWith('@vinci-facilities.com')) {
         // Internal user
         return true;
       }
