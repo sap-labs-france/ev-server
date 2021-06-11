@@ -247,6 +247,9 @@ export default class OCPPUtils {
   }
 
   public static async processTransactionBilling(tenantID: string, transaction: Transaction, action: TransactionAction): Promise<void> {
+    if (transaction.user && !transaction.user.issuer) {
+      return;
+    }
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       // Check
@@ -268,14 +271,14 @@ export default class OCPPUtils {
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
+              module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
             // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
               user: transaction.user,
               action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
+              module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -296,7 +299,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
+              module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -318,7 +321,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               source: Constants.CENTRAL_SERVER,
               action: ServerAction.BILLING_TRANSACTION,
-              module: MODULE_NAME, method: 'billTransaction',
+              module: MODULE_NAME, method: 'processTransactionBilling',
               message, detailedMessages: { error: error.message, stack: error.stack }
             });
           }
@@ -451,7 +454,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: 'Transaction does not exist',
       });
     }
@@ -459,7 +462,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' is in progress`,
       });
     }
@@ -467,7 +470,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildTransactionPrices',
+        module: MODULE_NAME, method: 'rebuildTransactionSimplePricing',
         message: `Transaction ID '${transaction.id}' was not priced with simple pricing`,
       });
     }
@@ -503,7 +506,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
+        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
         message: 'Session does not exist',
       });
     }
@@ -511,7 +514,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
+        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
         message: `Session ID '${transaction.id}' is in progress`,
       });
     }
@@ -526,7 +529,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS,
-        module: MODULE_NAME, method: 'rebuildConsumptionsFromMeterValues',
+        module: MODULE_NAME, method: 'rebuildTransactionConsumptions',
         message: `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       });
     }

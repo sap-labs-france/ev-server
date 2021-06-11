@@ -522,8 +522,8 @@ export default class OCPPService {
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleStopTransaction',
         action: ServerAction.STOP_TRANSACTION,
-        user: (alternateUser ? alternateUser : (user ? user : null)),
-        actionOnUser: (alternateUser ? (user ? user : null) : null),
+        user: alternateUser ?? (user ?? null),
+        actionOnUser: alternateUser ? (user ?? null) : null,
         message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`,
         detailedMessages: { headers, stopTransaction }
       });
@@ -1493,7 +1493,7 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleStartTransaction',
+        module: MODULE_NAME, method: 'clearChargingStationConnectorRuntimeData',
         action: ServerAction.START_TRANSACTION, user: user,
         message: `Missing connector '${transaction.connectorId}' > Transaction ID '${transaction.id}'`
       });
@@ -1607,7 +1607,7 @@ export default class OCPPService {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
         action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'handleBootNotification',
+        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
         message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
         detailedMessages: { headers, bootNotification }
       });
@@ -1617,7 +1617,7 @@ export default class OCPPService {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
         action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'handleBootNotification',
+        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
         message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
         detailedMessages: { headers, bootNotification }
       });
@@ -1626,7 +1626,7 @@ export default class OCPPService {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
         action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'handleBootNotification',
+        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
         message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
         detailedMessages: { headers, bootNotification }
       });
@@ -1673,7 +1673,7 @@ export default class OCPPService {
           tenantID: headers.tenantID,
           source: chargingStation.id,
           action: ServerAction.BOOT_NOTIFICATION,
-          module: MODULE_NAME, method: 'handleBootNotification',
+          module: MODULE_NAME, method: 'checkExistingChargingStation',
           message: 'Trying to connect a charging station matching an online charging station with identical chargeBoxID, registered boot notification and different attributes',
           detailedMessages: { headers, bootNotification }
         });
@@ -1681,7 +1681,7 @@ export default class OCPPService {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'handleBootNotification',
+        module: MODULE_NAME, method: 'checkExistingChargingStation',
         message: 'Boot Notification Rejected: Attribute mismatch: ' +
           (bootNotification.chargePointVendor !== chargingStation.chargePointVendor ?
             `Got chargePointVendor='${bootNotification.chargePointVendor}' but expected '${chargingStation.chargePointVendor}'! ` : '') +
@@ -1770,7 +1770,7 @@ export default class OCPPService {
           tenantID: tenant.id,
           action: ServerAction.BOOT_NOTIFICATION,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleBootNotification',
+          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
           message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           detailedMessages: { heartbeatIntervalSecs, chargingStation }
         });
@@ -1784,7 +1784,7 @@ export default class OCPPService {
           tenantID: tenant.id,
           action: ServerAction.BOOT_NOTIFICATION,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'handleBootNotification',
+          module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
           message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
           detailedMessages: { result, chargingStation }
         });
@@ -1808,7 +1808,7 @@ export default class OCPPService {
             user: user,
             action: ServerAction.AUTHORIZE,
             module: MODULE_NAME,
-            method: 'handleAuthorize',
+            method: 'enrichAuthorize',
             message: 'Cannot authorize a roaming user on a private charging station',
             detailedMessages: { headers, authorize }
           });
@@ -1818,7 +1818,7 @@ export default class OCPPService {
           user: user,
           action: ServerAction.AUTHORIZE,
           module: MODULE_NAME,
-          method: 'handleAuthorize',
+          method: 'enrichAuthorize',
           message: 'Authorization ID has not been supplied',
           detailedMessages: { headers, authorize }
         });
@@ -1846,7 +1846,7 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleStopTransaction',
+        module: MODULE_NAME, method: 'bypassStopTransaction',
         action: ServerAction.STOP_TRANSACTION,
         message: 'Ignored Transaction ID = 0',
         detailedMessages: { headers, stopTransaction }
@@ -1861,7 +1861,7 @@ export default class OCPPService {
     if (!meterValues.transactionId) {
       throw new BackendError({
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleMeterValues',
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `Connector ID '${meterValues.connectorId.toString()}' > Meter Values are ignored as it is not linked to a transaction`,
         action: ServerAction.METER_VALUES,
         detailedMessages: { headers, meterValues }
@@ -1871,7 +1871,7 @@ export default class OCPPService {
     if (!transaction) {
       throw new BackendError({
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleMeterValues',
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         message: `Transaction with ID '${meterValues.transactionId.toString()}' doesn't exist`,
         action: ServerAction.METER_VALUES,
         detailedMessages: { headers, meterValues }
@@ -1882,7 +1882,7 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleMeterValues',
+        module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         action: ServerAction.METER_VALUES,
         message: `Connector ID '${meterValues.connectorId.toString()}' > Transaction ID '${meterValues.transactionId.toString()}' > Meter Values received after the 'Transaction.End' Meter Values`,
         detailedMessages: { headers, meterValues }
@@ -1897,7 +1897,7 @@ export default class OCPPService {
     if (!transaction) {
       throw new BackendError({
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleStopTransaction',
+        module: MODULE_NAME, method: 'getTransactionFromStopTransaction',
         message: `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         action: ServerAction.STOP_TRANSACTION,
         detailedMessages: { headers, stopTransaction }
