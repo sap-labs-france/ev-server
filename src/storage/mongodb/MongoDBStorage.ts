@@ -80,6 +80,7 @@ export default class MongoDBStorage {
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
       { fields: { invoiceID: 1 }, options: { unique: true } },
+      { fields: { createdOn: 1 } },
     ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [

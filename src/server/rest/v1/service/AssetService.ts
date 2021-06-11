@@ -491,6 +491,7 @@ export default class AssetService {
     asset.siteID = siteArea ? siteArea.siteID : null,
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
+    asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
     asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;

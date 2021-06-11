@@ -492,10 +492,10 @@ export default class OCPPService {
       // Get Transaction
       const transaction = await this.getTransactionFromStopTransaction(tenant, chargingStation, headers, stopTransaction);
       // Get Tag ID that stopped the Transaction
-      const tagId = this.getStopTransactionTagId(stopTransaction, transaction);
+      const tagID = this.getStopTransactionTagId(stopTransaction, transaction);
       // Transaction is stopped by central system?
       const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
-        tenant, chargingStation, transaction, tagId, isStoppedByCentralSystem);
+        tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
       // Free the connector
       OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
       // Save Charging Station
@@ -505,7 +505,7 @@ export default class OCPPService {
       // Transaction End has already been received?
       await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction);
       // Update Transaction with Stop Transaction and Stop MeterValues
-      OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagId);
+      OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagID);
       // Bill
       await OCPPUtils.processTransactionBilling(tenant.id, transaction, TransactionAction.STOP);
       // Roaming

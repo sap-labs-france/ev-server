@@ -53,6 +53,8 @@ export default class AssetStorage {
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
+      variationThresholdPercent: Utils.convertToFloat(assetToSave.variationThresholdPercent),
+      powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
       fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: assetToSave.dynamicAsset,
