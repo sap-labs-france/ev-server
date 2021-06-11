@@ -228,16 +228,16 @@ export default class OCPPService {
       // Update Transaction
       this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
       // Create Consumptions
-      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, normalizedMeterValues.values);
+      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
       // Price/Bill Transaction and Save them
       for (const consumption of consumptions) {
         // Update Transaction with Consumption
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         if (consumption.toPrice) {
           // Pricing
-          await OCPPUtils.processTransactionPricing(tenant.id, transaction, chargingStation, consumption, TransactionAction.UPDATE);
+          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.UPDATE);
           // Billing
-          await OCPPUtils.processTransactionBilling(tenant.id, transaction, TransactionAction.UPDATE);
+          await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
         }
         // Save
         await ConsumptionStorage.saveConsumption(tenant.id, consumption);
@@ -399,9 +399,9 @@ export default class OCPPService {
       // Car
       await this.processCarTransaction(tenant, transaction, user);
       // Pricing
-      await OCPPUtils.processTransactionPricing(tenant.id, transaction, chargingStation, null, TransactionAction.START);
+      await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, null, TransactionAction.START);
       // Billing
-      await OCPPUtils.processTransactionBilling(tenant.id, transaction, TransactionAction.START);
+      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.START);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, TransactionAction.START);
       // Save it
@@ -507,7 +507,7 @@ export default class OCPPService {
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagID);
       // Bill
-      await OCPPUtils.processTransactionBilling(tenant.id, transaction, TransactionAction.STOP);
+      await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
       // Roaming
       await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, TransactionAction.STOP);
       // Save the transaction
@@ -608,7 +608,7 @@ export default class OCPPService {
     // Delete all TxProfiles
     for (const chargingProfile of chargingProfiles.result) {
       try {
-        await OCPPUtils.clearAndDeleteChargingProfile(tenant.id, chargingProfile);
+        await OCPPUtils.clearAndDeleteChargingProfile(tenant, chargingProfile);
         await Logging.logDebug({
           tenantID: tenant.id,
           source: transaction.chargeBoxID,
@@ -651,7 +651,7 @@ export default class OCPPService {
       const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
       if (chargingStationTemplate) {
         await OCPPUtils.enrichChargingStationConnectorWithTemplate(
-          tenant.id, chargingStation, statusNotification.connectorId, chargingStationTemplate);
+          tenant, chargingStation, statusNotification.connectorId, chargingStationTemplate);
       }
     }
     // Check if status has changed
@@ -754,7 +754,7 @@ export default class OCPPService {
             lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
               lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
             // Build extra inactivity consumption
-            await OCPPUtils.buildExtraConsumptionInactivity(tenant.id, lastTransaction);
+            await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
             // Log
             await Logging.logInfo({
               tenantID: tenant.id,
@@ -1464,7 +1464,7 @@ export default class OCPPService {
         const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
         if (siteAreaLock) {
           try {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
             if (smartCharging) {
               await smartCharging.computeAndApplyChargingProfiles(siteArea);
             }
@@ -1717,11 +1717,11 @@ export default class OCPPService {
   }
 
   private async applyChargingStationTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
-    const templateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant.id, chargingStation, false);
+    const templateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant, chargingStation, false);
     // No matching template or manual configuration
     if (!templateUpdateResult.chargingStationUpdated) {
       OCPPUtils.checkAndSetChargingStationAmperageLimit(chargingStation);
-      await OCPPUtils.setChargingStationPhaseAssignment(tenant.id, chargingStation);
+      await OCPPUtils.setChargingStationPhaseAssignment(tenant, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
     }
@@ -1748,7 +1748,7 @@ export default class OCPPService {
       // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
       // Set OCPP 'HeartBeatInterval'
       let heartBeatIntervalSettingFailure = false;
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant.id, chargingStation, {
+      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
         key: 'HeartBeatInterval',
         value: heartbeatIntervalSecs.toString()
       }, false);
@@ -1756,7 +1756,7 @@ export default class OCPPService {
         heartBeatIntervalSettingFailure = true;
       }
       // Set OCPP 'HeartbeatInterval'
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant.id, chargingStation, {
+      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
         key: 'HeartbeatInterval',
         value: heartbeatIntervalSecs.toString()
       }, false);
@@ -1777,7 +1777,7 @@ export default class OCPPService {
       }
       // Apply Charging Station Template OCPP configuration
       if (templateUpdateResult.ocppStandardUpdated || templateUpdateResult.ocppVendorUpdated) {
-        result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant.id, chargingStation);
+        result = await OCPPUtils.applyTemplateOcppParametersToChargingStation(tenant, chargingStation);
       }
       if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
         await Logging.logError({
@@ -1924,14 +1924,14 @@ export default class OCPPService {
       // Recreate the last meter value to price the last Consumption
       const stopMeterValues = OCPPUtils.createTransactionStopMeterValues(chargingStation, transaction, stopTransaction);
       // Build final Consumptions (only one consumption)
-      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant.id, chargingStation, transaction, stopMeterValues);
+      const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, stopMeterValues);
       // Update
       for (const consumption of consumptions) {
         // Update Transaction with Consumption
         OCPPUtils.updateTransactionWithConsumption(chargingStation, transaction, consumption);
         if (consumption.toPrice) {
           // Price
-          await OCPPUtils.processTransactionPricing(tenant.id, transaction, chargingStation, consumption, TransactionAction.STOP);
+          await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.STOP);
         }
         // Save Consumption
         await ConsumptionStorage.saveConsumption(tenant.id, consumption);

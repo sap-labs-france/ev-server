@@ -207,7 +207,7 @@ export default abstract class OCPIClient {
   public async postCredentials(): Promise<AxiosResponse<OCPICredential>> {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
-    const credentials = await OCPIUtilsService.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
+    const credentials = await OCPIUtilsService.buildOCPICredentialObject(this.tenant, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     // Log
     await Logging.logInfo({
       tenantID: this.tenant.id,

@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -18,9 +19,9 @@ const MODULE_NAME = 'WitAssetIntegration';
 export default class WitAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+    super(tenant, settings, connection);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
 
   public async checkConnection(): Promise<void> {
@@ -47,7 +48,7 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
         }
       );
       await Logging.logDebug({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > WIT web service has been called successfully`,
@@ -112,7 +113,6 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
       this.axiosInstance.post(`${this.connection.witConnection.authenticationUrl}/token`,
         credentials,
         {
-          // @ts-ignore
           'axios-retry': {
             retries: 0
           },
@@ -127,10 +127,10 @@ export default class WitAssetIntegration extends AssetIntegration<AssetSetting> 
   private async getCredentialURLParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('client_id', this.connection.witConnection.clientId);
-    params.append('client_secret', await Cypher.decrypt(this.tenantID, this.connection.witConnection.clientSecret));
+    params.append('client_secret', await Cypher.decrypt(this.tenant.id, this.connection.witConnection.clientSecret));
     params.append('grant_type', 'password');
     params.append('username', this.connection.witConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenantID, this.connection.witConnection.password));
+    params.append('password', await Cypher.decrypt(this.tenant.id, this.connection.witConnection.password));
     params.append('scope', 'https://api.wit-datacenter.com');
     return params;
   }

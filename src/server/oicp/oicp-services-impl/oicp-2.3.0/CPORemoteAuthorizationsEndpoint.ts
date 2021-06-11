@@ -200,7 +200,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
       connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -219,7 +219,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionCommandResult> {
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,

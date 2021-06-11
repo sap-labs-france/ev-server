@@ -262,7 +262,7 @@ export default class UserService {
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
         if (!billingImpl) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -333,7 +333,7 @@ export default class UserService {
     }
     // Delete billing user
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       try {
         await billingImpl.deleteUser(user);
       } catch (error) {
@@ -459,7 +459,7 @@ export default class UserService {
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           await billingImpl.synchronizeUser(user);
@@ -1025,7 +1025,7 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user)) {
       // For integration with billing
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);

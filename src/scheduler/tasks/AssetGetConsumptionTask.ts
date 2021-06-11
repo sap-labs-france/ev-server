@@ -43,14 +43,14 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
         if (assetLock) {
           try {
             // Get asset factory
-            const assetImpl = await AssetFactory.getAssetImpl(tenant.id, asset.connectionID);
+            const assetImpl = await AssetFactory.getAssetImpl(tenant, asset.connectionID);
             if (assetImpl) {
               // Retrieve Consumption
               const assetConsumptions = await assetImpl.retrieveConsumptions(asset);
               if (!Utils.isEmptyArray(assetConsumptions)) {
                 // Create helper for site area limit
                 const siteAreaLimitConsumption = {} as Consumption;
-                await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, siteAreaLimitConsumption);
+                await OCPPUtils.addSiteLimitationToConsumption(tenant, asset.siteArea, siteAreaLimitConsumption);
                 // Create Consumptions
                 for (const consumption of assetConsumptions) {
                   // Check if last consumption already exists
@@ -128,7 +128,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
     const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
     if (siteAreaLock) {
       try {
-        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
         if (smartCharging) {
           await smartCharging.computeAndApplyChargingProfiles(siteArea);
         }

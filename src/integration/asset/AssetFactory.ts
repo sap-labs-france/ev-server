@@ -9,20 +9,17 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 import WitAssetIntegration from './wit/WitAssetIntegration';
 
 const MODULE_NAME = 'AssetFactory';
 
 export default class AssetFactory {
-  static async getAssetImpl(tenantID: string, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
-    // Get the tenant
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+  static async getAssetImpl(tenant: Tenant, connectionID: string): Promise<AssetIntegration<AssetSetting>> {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings
-      const settings = await SettingStorage.getAssetsSettings(tenantID);
+      const settings = await SettingStorage.getAssetsSettings(tenant.id);
       if (settings && settings.asset && settings.asset.connections) {
         // Find connection
         const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);
@@ -30,16 +27,16 @@ export default class AssetFactory {
           let assetIntegrationImpl: AssetIntegration<AssetSetting> = null;
           switch (foundConnection.type) {
             case AssetConnectionType.SCHNEIDER:
-              assetIntegrationImpl = new SchneiderAssetIntegration(tenantID, settings.asset, foundConnection);
+              assetIntegrationImpl = new SchneiderAssetIntegration(tenant, settings.asset, foundConnection);
               break;
             case AssetConnectionType.GREENCOM:
-              assetIntegrationImpl = new GreencomAssetIntegration(tenantID, settings.asset, foundConnection);
+              assetIntegrationImpl = new GreencomAssetIntegration(tenant, settings.asset, foundConnection);
               break;
             case AssetConnectionType.IOTHINK:
-              assetIntegrationImpl = new IothinkAssetIntegration(tenantID, settings.asset, foundConnection);
+              assetIntegrationImpl = new IothinkAssetIntegration(tenant, settings.asset, foundConnection);
               break;
             case AssetConnectionType.WIT:
-              assetIntegrationImpl = new WitAssetIntegration(tenantID, settings.asset, foundConnection);
+              assetIntegrationImpl = new WitAssetIntegration(tenant, settings.asset, foundConnection);
               break;
           }
           return assetIntegrationImpl;

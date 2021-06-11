@@ -11,6 +11,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
+import Tenant from '../../src/types/Tenant';
 import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
@@ -76,7 +77,7 @@ export default class StripeIntegrationTestData {
     const billingSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
-    const billingImpl = StripeBillingIntegration.getInstance(this.getTenantID(), billingSettings);
+    const billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
   }
@@ -281,6 +282,10 @@ export default class StripeIntegrationTestData {
     const tenantId = this.tenantContext?.getTenant()?.id;
     assert(tenantId, 'Tenant ID cannot be null');
     return tenantId;
+  }
+
+  public getTenant(): Tenant {
+    return this.tenantContext?.getTenant();
   }
 
   public getCustomerID(): string {

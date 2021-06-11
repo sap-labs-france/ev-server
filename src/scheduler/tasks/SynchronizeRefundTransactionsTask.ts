@@ -26,7 +26,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       return;
     }
     // Get Concur Settings
-    const refundConnector = await RefundFactory.getRefundImpl(tenant.id);
+    const refundConnector = await RefundFactory.getRefundImpl(tenant);
     if (!refundConnector) {
       await Logging.logDebug({
         tenantID: tenant.id,
