@@ -362,10 +362,6 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
   }
 
-  public static async canAutoAssignUserToSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.AUTO_ASSIGN_USER_TO_SITE);
-  }
-
   public static async canImportUsers(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
   }

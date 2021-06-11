@@ -507,7 +507,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ]
       },
-      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.AUTO_ASSIGN_USER_TO_SITE], attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USERS_SITES, action: Action.LIST,
         condition: {

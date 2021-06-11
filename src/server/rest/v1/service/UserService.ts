@@ -4,7 +4,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
+import User, { ImportedUser, UserRequiredImportProperties, UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -349,7 +349,7 @@ export default class UserService {
     }
     // Delete cars
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
       if (carUsers.count > 0) {
         for (const carUser of carUsers.result) {
           // Owner ?
@@ -487,14 +487,16 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user) || Authorizations.isSiteAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
       }
-      // Save User Role
-      if (filteredRequest.role) {
-        await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
+      if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+        // Save User Role
+        if (filteredRequest.role) {
+          await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
+        }
       }
       // Save Admin Data
       if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
@@ -858,7 +860,7 @@ export default class UserService {
             if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
               await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
             }
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async (error: CSVError) => {
             // Release the lock
             await LockingManager.release(importUsersLock);
@@ -875,8 +877,8 @@ export default class UserService {
               res.writeHead(HTTPError.INVALID_FILE_FORMAT);
               res.end();
             }
-          // Completed
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // Completed
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
           }, async () => {
             // Consider the connection closed
             connectionClosed = true;
@@ -1049,7 +1051,7 @@ export default class UserService {
         }
       }
     }
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user) || Authorizations.isSiteAdmin(req.user)) {
       // Save User Status
       if (newUser.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUser.id, newUser.status);

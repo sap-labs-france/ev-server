@@ -203,7 +203,7 @@ export default class UserSecurity {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser) || Authorizations.isSiteAdmin(loggedUser)) {
       // Ok to set the sensitive data
       if (Utils.objectHasProperty(request, 'status')) {
         filteredRequest.status = sanitize(request.status);
@@ -211,7 +211,9 @@ export default class UserSecurity {
       if (Utils.objectHasProperty(request, 'plateID')) {
         filteredRequest.plateID = sanitize(request.plateID);
       }
-      if (Utils.objectHasProperty(request, 'role')) {
+      if (Authorizations.isSiteAdmin(loggedUser)) {
+        filteredRequest.role = UserRole.BASIC;
+      } else if (Utils.objectHasProperty(request, 'role')) {
         filteredRequest.role = sanitize(request.role);
       }
     }
