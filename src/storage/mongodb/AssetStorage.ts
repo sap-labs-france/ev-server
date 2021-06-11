@@ -206,8 +206,6 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    console.log("Testing aggregation");
-    console.log(aggregation);
     const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
         allowDiskUse: true
