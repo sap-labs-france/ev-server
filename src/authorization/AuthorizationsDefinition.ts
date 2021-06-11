@@ -158,7 +158,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR],
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
+          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
         ]
       },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
