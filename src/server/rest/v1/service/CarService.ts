@@ -29,7 +29,7 @@ const MODULE_NAME = 'CarService';
 export default class CarService {
   public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     }
@@ -66,7 +66,7 @@ export default class CarService {
 
   public static async handleGetCarCatalog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
@@ -82,7 +82,7 @@ export default class CarService {
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.CAR_CATALOG,
         MODULE_NAME, 'handleGetCarCatalogImage');
     }
@@ -113,7 +113,7 @@ export default class CarService {
 
   public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
@@ -145,7 +145,7 @@ export default class CarService {
 
   public static async handleSynchronizeCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.SYNCHRONIZE, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
     }
@@ -190,7 +190,7 @@ export default class CarService {
 
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
-      // Check if component is active
+    // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
         Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
@@ -206,7 +206,7 @@ export default class CarService {
       });
     }
     // Get car makers
-    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, ['carMaker']);
+    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search }, [ 'carMaker' ]);
     res.json(carMakers);
     next();
   }
@@ -221,7 +221,7 @@ export default class CarService {
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizationFilters(
-      req.tenant, req.user, filteredRequest, Action.CREATE);
+      req.tenant,req.user, filteredRequest, Action.CREATE);
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -410,8 +410,8 @@ export default class CarService {
     // Check User
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
-      userProject = ['createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'];
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
       authorizationCarsFilter.projectFields = authorizationCarsFilter.projectFields.concat(userProject);
     }
     // Get cars
@@ -446,7 +446,7 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
-      withUsers: true,
+      withUsers: true ,
     }, true);
     // Return
     res.json(car);
