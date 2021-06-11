@@ -566,7 +566,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: transaction.userID })).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
