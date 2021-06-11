@@ -246,7 +246,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async processTransactionBilling(tenantID: string, transaction: Transaction, action: TransactionAction): Promise<void> {
+  public static async processTransactionBilling(tenant: Tenant, transaction: Transaction, action: TransactionAction): Promise<void> {
     if (transaction.user && !transaction.user.issuer) {
       return;
     }
