@@ -1,6 +1,7 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
-import { CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult } from '../../../../types/DataResult';
+import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpCarCatalogsRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
@@ -10,6 +11,7 @@ import User, { UserRole } from '../../../../types/User';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Car } from '../../../../types/Car';
 import Company from '../../../../types/Company';
 import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
@@ -575,6 +577,91 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
+  public static async checkAndGetCarsAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCarsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CARS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetCarAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
+      action: Action): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, action, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async addCarsAuthorizations(tenant: Tenant, userToken: UserToken, cars: CarDataResult, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
+  // Add canCreate flag to root
+    cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
+    // Enrich
+    for (const car of cars.result) {
+      await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter, filteredRequest);
+    }
+  }
+
+  public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter,
+      filteredRequest: Record<string, any>): Promise<void> {
+  // Enrich
+    if (!car) {
+      car.canRead = true;
+      car.canUpdate = false;
+      car.canDelete = false;
+    } else {
+      filteredRequest.SiteID = car.id;
+      car.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, filteredRequest);
+      car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, filteredRequest);
+      car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, filteredRequest);
+    }
+  }
+
+  public static async checkAndGetCarCatalogsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: HttpCarCatalogsRequest): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.CAR_CATALOGS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetCarCatalogAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
+      action: Action): Promise<AuthorizationFilter> {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false
+    };
+      // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOG, action, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async addCarCatalogsAuthorizationActions(tenant: Tenant, userToken: UserToken, carCatalogs: CarCatalogDataResult,
+      authorizationFilter: AuthorizationFilter): Promise<void> {
+    // Add canSync flag to root
+    carCatalogs.canSync = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR_CATALOGS, Action.SYNCHRONIZE,
+      authorizationFilter);
+  }
+
   public static async checkAndGetChargingStationsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
       filteredRequest?: HttpChargingStationsRequest):Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
@@ -586,6 +673,19 @@ export default class AuthorizationService {
     // Check static & dynamic authorization
     await this.canPerformAuthorizationAction(
       tenant, userToken, Entity.CHARGING_STATIONS, Action.LIST, authorizationFilters, filteredRequest);
+    return authorizationFilters;
+  }
+
+  public static async checkAndGetCarUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersCarsRequest) {
+    const authorizationFilters: AuthorizationFilter = {
+      filters: {},
+      dataSources: new Map(),
+      projectFields: [ ],
+      authorized: false,
+    };
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_CARS, Action.LIST,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

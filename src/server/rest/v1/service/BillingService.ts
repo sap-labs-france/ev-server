@@ -23,7 +23,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
-import fs from 'fs';
 
 const MODULE_NAME = 'BillingService';
 
@@ -273,7 +272,7 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
@@ -311,7 +310,7 @@ export default class BillingService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Get invoice
@@ -625,7 +624,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
-    await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -634,7 +633,7 @@ export default class BillingService {
       action: action
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(operationResult);
     next();
   }
 

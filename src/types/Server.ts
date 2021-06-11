@@ -106,6 +106,7 @@ export enum ServerAction {
   INTEGRATION_CONNECTION = 'IntegrationConnection',
   INTEGRATION_CONNECTION_DELETE = 'IntegrationConnectionDelete',
 
+  ROAMING = 'Roaming',
   OCPI_SETTINGS = 'OcpiSettings',
   OCPI_CLIENT_INITIALIZATION = 'OcpiClientInitialization',
   OCPI_ENDPOINT_CREATE = 'OcpiEndpointCreate',
@@ -426,6 +427,7 @@ export enum ServerAction {
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   BILLING_WEB_HOOK = 'BillingWebHook',
+  BILLING_TEST_DATA_CLEANUP = 'BillingTestDataCleanup',
 
   MONGO_DB = 'MongoDB',
 
@@ -494,6 +496,8 @@ export enum ServerRoute {
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',
+  REST_USER_DEFAULT_TAG_CAR = 'users/:id/default-car-tag',
+  REST_USER_SITES = 'users/:id/sites',
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',

@@ -22,6 +22,7 @@ import { DataResult } from '../../../../types/DataResult';
 import DbParams from '../../../../types/database/DbParams';
 import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
+import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
@@ -188,6 +189,7 @@ export default class OCPIUtilsService {
       },
       evses: withChargingStations ?
         await OCPIUtilsService.getEvsesFromSite(tenant, site.id, options, Constants.DB_PARAMS_MAX_LIMIT) : [],
+      operator: await OCPIUtilsService.getOperatorBusinessDetails(tenant.id) ?? { name: 'Undefined' },
       last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn,
       opening_times: this.buildOpeningTimes(tenant, site)
     };
@@ -731,6 +733,10 @@ export default class OCPIUtilsService {
     return true;
   }
 
+  private static async getOperatorBusinessDetails(tenantID: string): Promise<OCPIBusinessDetails> {
+    return (await SettingStorage.getOCPISettings(tenantID)).ocpi.businessDetails;
+  }
+
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
       chargePoint: ChargePoint, options: OCPILocationOptions): OCPIEvse[] {
     // Loop through connectors and send one evse per connector
@@ -874,6 +880,9 @@ export default class OCPIUtilsService {
       // Inouid
       case '602e260fa9b0290023fb68d2':
         return 'FR*ISE_Payant1';
+      // Properphi
+      case '603655d291930d0014017e0a':
+        return 'Tarif_EVSE_DC';
     }
     return '';
   }

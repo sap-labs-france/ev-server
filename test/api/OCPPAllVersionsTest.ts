@@ -883,10 +883,6 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testDeleteTransaction(true);
           });
 
-          it('Start user should be able to start a new transaction which can be stopped by StatusNotification', async () => {
-            await testData.ocppCommonTests.testConnectorStatusToStopTransaction();
-          });
-
         });
 
       });
@@ -928,10 +924,6 @@ describe('OCPP tests (all versions)', function() {
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
-
-          it('Start user should be able to start a new transaction which can be stopped by StatusNotification', async () => {
-            await testData.ocppCommonTests.testConnectorStatusToStopTransaction();
           });
 
         });

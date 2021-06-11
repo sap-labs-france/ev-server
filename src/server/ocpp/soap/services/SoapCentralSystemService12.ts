@@ -12,15 +12,15 @@ const MODULE_NAME = 'SoapCentralSystemService12';
 export default { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */
-      Authorize: function(args, callback, headers, req) {
+      Authorize: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleAuthorize(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, {
             'result': result
           });
           // Answer
@@ -31,10 +31,10 @@ export default { /* Services */
               }
             }
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.AUTHORIZE, headers.chargeBoxIdentity,
-            MODULE_NAME, 'Authorize', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.AUTHORIZE, headers.chargeBoxIdentity,
+            MODULE_NAME, 'Authorize', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'authorizeResponse': {
               'idTagInfo': {
@@ -45,15 +45,15 @@ export default { /* Services */
         });
       },
 
-      StartTransaction: function(args, callback, headers, req) {
+      StartTransaction: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStartTransaction(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, {
             'result': result
           });
           callback({
@@ -64,10 +64,10 @@ export default { /* Services */
               }
             }
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.START_TRANSACTION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'StartTransaction', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.START_TRANSACTION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'StartTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'startTransactionResponse': {
               'transactionId': 0,
@@ -79,15 +79,15 @@ export default { /* Services */
         });
       },
 
-      StopTransaction: function(args, callback, headers, req) {
+      StopTransaction: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStopTransaction(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, {
             'result': result
           });
           callback({
@@ -97,10 +97,10 @@ export default { /* Services */
               }
             }
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.STOP_TRANSACTION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'StopTransaction', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.STOP_TRANSACTION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'StopTransaction', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'stopTransactionResponse': {
               'idTagInfo': {
@@ -111,17 +111,17 @@ export default { /* Services */
         });
       },
 
-      Heartbeat: function(args, callback, headers, req) {
+      Heartbeat: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleHeartbeat(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, {
             'result': result
           });
           callback({
@@ -129,10 +129,10 @@ export default { /* Services */
               'currentTime': result.currentTime
             }
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.HEARTBEAT, headers.chargeBoxIdentity,
-            MODULE_NAME, 'Heartbeat', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.HEARTBEAT, headers.chargeBoxIdentity,
+            MODULE_NAME, 'Heartbeat', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'heartbeatResponse': {
               'currentTime': new Date().toISOString()
@@ -141,31 +141,31 @@ export default { /* Services */
         });
       },
 
-      MeterValues: function(args, callback, headers, req) {
+      MeterValues: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleMeterValues(headers, args);
           // Return the result async
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, {
             'result': result
           });
           callback({
             'meterValuesResponse': {}
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.METER_VALUES, headers.chargeBoxIdentity,
-            MODULE_NAME, 'MeterValues', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.METER_VALUES, headers.chargeBoxIdentity,
+            MODULE_NAME, 'MeterValues', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'meterValuesResponse': {}
           });
         });
       },
 
-      BootNotification: function(args, callback, headers, req) {
+      BootNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add OCPP Version
@@ -174,11 +174,11 @@ export default { /* Services */
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleBootNotification(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -188,10 +188,10 @@ export default { /* Services */
               'heartbeatInterval': result.interval
             }
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.BOOT_NOTIFICATION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'BootNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.BOOT_NOTIFICATION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'BootNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'bootNotificationResponse': {
               'status': 'Rejected',
@@ -202,24 +202,24 @@ export default { /* Services */
         });
       },
 
-      StatusNotification: function(args, callback, headers, req) {
+      StatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStatusNotification(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
             'statusNotificationResponse': {}
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.STATUS_NOTIFICATION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'StatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.STATUS_NOTIFICATION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'StatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
           // Default
           callback({
             'statusNotificationResponse': {}
@@ -227,48 +227,48 @@ export default { /* Services */
         });
       },
 
-      FirmwareStatusNotification: function(args, callback, headers, req) {
+      FirmwareStatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleFirmwareStatusNotification(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
             'firmwareStatusNotificationResponse': {}
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.FIRMWARE_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'FirmwareStatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.FIRMWARE_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'FirmwareStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'firmwareStatusNotificationResponse': {}
           });
         });
       },
 
-      DiagnosticsStatusNotification: function(args, callback, headers, req) {
+      DiagnosticsStatusNotification: function(args, callback, headers, req): void {
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, [ headers, args ]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleDiagnosticsStatusNotification(headers, args);
           // Log
-          Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
             'diagnosticsStatusNotificationResponse': {}
           });
-        }).catch((error) => {
+        }).catch(async (error) => {
           // Log
-          Logging.logException(error, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
-            MODULE_NAME, 'DiagnosticsStatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
+          await Logging.logException(error, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
+            MODULE_NAME, 'DiagnosticsStatusNotification', headers.tenantID ?? Constants.DEFAULT_TENANT);
           callback({
             'diagnosticsStatusNotificationResponse': {}
           });

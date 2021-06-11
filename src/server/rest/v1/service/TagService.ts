@@ -372,7 +372,7 @@ export default class TagService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canImportTags(req.user)) {
+    if (!(await Authorizations.canImportTags(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -570,7 +570,7 @@ export default class TagService {
 
   public static async handleExportTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canExportTags(req.user)) {
+    if (!(await Authorizations.canExportTags(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -702,7 +702,7 @@ export default class TagService {
     if (writeHeader) {
       headers = [
         'id',
-        'visual ID',
+        'visualID',
         'description',
         'firstName',
         'name',
@@ -774,11 +774,13 @@ export default class TagService {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
         visualID: importedTag.visualID,
-        description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`,
-        name: importedTag.name.toUpperCase(),
-        firstName: importedTag.firstName,
-        email: importedTag.email,
+        description: importedTag.description ? importedTag.description : `Badge ID '${importedTag.id}'`
       };
+      if (importedTag.name && importedTag.firstName && importedTag.email) {
+        newImportedTag.name = importedTag.name.toUpperCase();
+        newImportedTag.firstName = importedTag.firstName;
+        newImportedTag.email = importedTag.email;
+      }
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
       // Set properties
@@ -788,9 +790,6 @@ export default class TagService {
       try {
         UserValidator.getInstance().validateImportedUserCreation(newImportedTag as ImportedUser);
       } catch (error) {
-        newImportedTag.email = '';
-        newImportedTag.name = '';
-        newImportedTag.firstName = '';
         await Logging.logWarning({
           tenantID: req.user.tenantID,
           module: MODULE_NAME, method: 'processTag',

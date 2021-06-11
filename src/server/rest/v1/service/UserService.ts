@@ -69,7 +69,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -120,7 +120,7 @@ export default class UserService {
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Check auth
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!await Authorizations.canAssignUsersSites(req.user)) {
+      if (!(await Authorizations.canAssignUsersSites(req.user)).authorized) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.FORBIDDEN,
           user: req.user,
@@ -128,7 +128,7 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleAssignSitesToUser'
         });
       }
-    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
+    } else if (!(await Authorizations.canUnassignUsersSites(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -151,7 +151,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -589,7 +589,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.ID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -620,7 +620,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -656,7 +656,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Check auth
-    if (!await Authorizations.canListUsersSites(req.user)) {
+    if (!(await Authorizations.canListUsersSites(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -668,7 +668,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.UserID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1159,7 +1159,7 @@ export default class UserService {
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Check auth
-    if (!await Authorizations.canListUsers(req.user)) {
+    if (!(await Authorizations.canListUsers(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

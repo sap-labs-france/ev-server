@@ -1,4 +1,4 @@
-import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import User, { UserStatus } from '../../types/User';
 
@@ -14,6 +14,7 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
@@ -22,7 +23,7 @@ const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration {
 
-  // Production Mode is set to true when the STRIPE account is a live one!
+  // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
 
   protected readonly tenantID: string; // Assuming UUID or other string format ID
@@ -173,58 +174,64 @@ export default abstract class BillingIntegration {
     return actionsDone;
   }
 
-  public async chargeInvoices(): Promise<BillingChargeInvoiceAction> {
+  public async chargeInvoices(forceOperation = false): Promise<BillingChargeInvoiceAction> {
     const actionsDone: BillingChargeInvoiceAction = {
       inSuccess: 0,
       inError: 0
     };
+    // Check connection
     await this.checkConnection();
-
-    let invoices: DataResult<BillingInvoice>;
-    if (this.settings.billing?.periodicBillingAllowed) {
-      // Fetch DRAFT and OPEN invoices
-      invoices = await BillingStorage.getInvoicesToProcess(this.tenantID);
-    } else {
-      // Fetch OPEN invoices only
-      invoices = await BillingStorage.getInvoicesToPay(this.tenantID);
-    }
-    // Let's now finalize all invoices and attempt to get it paid
-    for (const invoice of invoices.result) {
-      try {
-        // Make sure to avoid trying to charge it again too soon
-        if (moment(invoice.createdOn).isSame(moment(), 'day')) {
-          actionsDone.inSuccess++;
-          await Logging.logWarning({
+    // Prepare filtering and sorting
+    const { filter, sort, limit } = this.preparePeriodicBillingQueryParameters(forceOperation);
+    let skip = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const invoices = await BillingStorage.getInvoices(this.tenantID, filter, { sort, limit, skip });
+      if (Utils.isEmptyArray(invoices.result)) {
+        break;
+      }
+      skip += limit;
+      for (const invoice of invoices.result) {
+        try {
+          // Skip invoices that are already PAID or not relevant for the current billing process
+          if (this.invoiceMustBeSkipped(invoice)) {
+            continue;
+          }
+          // Make sure to avoid trying to charge it again too soon
+          if (!forceOperation && moment(invoice.createdOn).isSame(moment(), 'day')) {
+            actionsDone.inSuccess++;
+            await Logging.logWarning({
+              tenantID: this.tenantID,
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.BILLING_CHARGE_INVOICE,
+              actionOnUser: invoice.user,
+              module: MODULE_NAME, method: 'chargeInvoices',
+              message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+            });
+            continue;
+          }
+          await this.chargeInvoice(invoice);
+          await Logging.logInfo({
             tenantID: this.tenantID,
             source: Constants.CENTRAL_SERVER,
             action: ServerAction.BILLING_CHARGE_INVOICE,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
-            message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
+            message: `Successfully charged invoice '${invoice.id}'`
           });
-          continue;
+          actionsDone.inSuccess++;
+        } catch (error) {
+          actionsDone.inError++;
+          await Logging.logError({
+            tenantID: this.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.BILLING_CHARGE_INVOICE,
+            actionOnUser: invoice.user,
+            module: MODULE_NAME, method: 'chargeInvoices',
+            message: `Failed to charge invoice '${invoice.id}'`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
         }
-        await this.chargeInvoice(invoice);
-        await Logging.logInfo({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Successfully charged invoice '${invoice.id}'`
-        });
-        actionsDone.inSuccess++;
-      } catch (error) {
-        actionsDone.inError++;
-        await Logging.logError({
-          tenantID: this.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_CHARGE_INVOICE,
-          actionOnUser: invoice.user,
-          module: MODULE_NAME, method: 'chargeInvoices',
-          message: `Failed to charge invoice '${invoice.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
       }
     }
     return actionsDone;
@@ -246,7 +253,7 @@ export default abstract class BillingIntegration {
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
           // Empty url allows to decide wether to display "pay" button in the email
-          payInvoiceUrl: billingInvoice.status === 'open' ? billingInvoice.payInvoiceUrl : '',
+          payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
           // Stripe saves amount in cents
           invoiceAmount: Utils.createDecimal(billingInvoice.amount).div(100),
           invoiceNumber: billingInvoice.number,
@@ -306,7 +313,7 @@ export default abstract class BillingIntegration {
     if (!transaction.user?.billingData?.customerID) {
       if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
         throw new BackendError({
-          message: 'User has no billing data or no customer in Stripe',
+          message: 'User has no billing data or no customer ID',
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'checkStartTransaction',
@@ -318,8 +325,10 @@ export default abstract class BillingIntegration {
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {
     const newUsers = await UserStorage.getUsers(this.tenantID,
-      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
-      { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+      {
+        statuses: [UserStatus.ACTIVE],
+        notSynchronizedBillingData: true
+      }, Constants.DB_PARAMS_MAX_LIMIT);
     if (newUsers.count > 0) {
       return newUsers.result;
     }
@@ -359,6 +368,201 @@ export default abstract class BillingIntegration {
     return billingUser;
   }
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  public async clearTestData(): Promise<void> {
+    await this.checkConnection();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'Starting test data cleanup'
+    });
+    await this._clearAllInvoiceTestData();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'Invoice Test data cleanup has been completed'
+    });
+    await this._clearAllUsersTestData();
+    await Logging.logInfo({
+      tenantID: this.tenantID,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+      module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+      message: 'User Test data cleanup has been completed'
+    });
+  }
+
+  private async _clearAllInvoiceTestData(): Promise<void> {
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenantID, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Let's now finalize all invoices and attempt to get it paid
+    for (const invoice of invoices.result) {
+      try {
+        await this._clearInvoiceTestData(invoice);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: invoice.user,
+          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          message: `Successfully clear test data for invoice '${invoice.id}'`
+        });
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: invoice.user,
+          module: MODULE_NAME, method: '_clearAllInvoiceTestData',
+          message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private async _clearInvoiceTestData(billingInvoice: BillingInvoice): Promise<void> {
+    if (billingInvoice.liveMode) {
+      throw new BackendError({
+        message: 'Unexpected situation - attempt to clear an invoice with live billing data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: '_clearInvoiceTestData',
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP
+      });
+    }
+    await this._clearTransactionsTestData(billingInvoice);
+    await BillingStorage.deleteInvoice(this.tenantID, billingInvoice.id);
+  }
+
+  private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
+    await Promise.all(billingInvoice.sessions.map(async (session) => {
+      const transactionID = session.transactionID;
+      try {
+        const transaction = await TransactionStorage.getTransaction(this.tenantID, Number(transactionID));
+        // Update Billing Data
+        const stop: BillingDataTransactionStop = {
+          status: BillingStatus.UNBILLED,
+          invoiceID: null,
+          invoiceNumber: null,
+          invoiceStatus: null
+        };
+        transaction.billingData = {
+          withBillingActive: false,
+          lastUpdate:new Date(),
+          stop
+        };
+        // Save to clear billing data
+        await TransactionStorage.saveTransaction(this.tenantID, transaction);
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          module: MODULE_NAME, method: '_clearTransactionsTestData',
+          message: 'Failed to clear transaction billing data',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }));
+  }
+
+  private async _clearAllUsersTestData(): Promise<void> {
+    const users: User[] = await this._getUsersWithTestBillingData();
+    // Let's now finalize all invoices and attempt to get it paid
+    for (const user of users) {
+      try {
+        await this._clearUserTestBillingData(user);
+        await Logging.logInfo({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: user,
+          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          message: `Successfully cleared user test data for invoice '${user.id}'`
+        });
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+          actionOnUser: user,
+          module: MODULE_NAME, method: '_clearAllUsersTestData',
+          message: `Failed to clear user test data - User: '${user.id}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private async _getUsersWithTestBillingData(): Promise<User[]> {
+    // Get the users where billingData.liveMode is set to false
+    const users = await UserStorage.getUsers(this.tenantID,
+      {
+        statuses: [UserStatus.ACTIVE],
+        withTestBillingData: true
+      }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (users.count > 0) {
+      return users.result;
+    }
+    return [];
+  }
+
+  private async _clearUserTestBillingData(user: User): Promise<void> {
+    if (user?.billingData?.liveMode) {
+      throw new BackendError({
+        message: 'Unexpected situation - attempt to clear a user with live billing data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: '_clearUserTestBillingData',
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP
+      });
+    }
+    // Let's remove the billingData field
+    await UserStorage.saveUserBillingData(this.tenantID, user.id, null);
+  }
+
+  private invoiceMustBeSkipped(invoice: BillingInvoice): boolean {
+    if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
+      return false;
+    }
+    if (invoice.status === BillingInvoiceStatus.OPEN) {
+      return false;
+    }
+    return true;
+  }
+
+  private preparePeriodicBillingQueryParameters(forceOperation: boolean): { limit: number, sort: Record<string, unknown>, filter: Record<string, unknown> } {
+    // Prepare filtering to process Invoices of the previous month
+    let startDateTime: Date, endDateTime: Date, limit: number;
+    if (forceOperation) {
+      // Only used when running tests
+      limit = 1; // Specific limit to test the pagination
+      startDateTime = moment().startOf('day').toDate(); // Today at 00:00:00 (AM)
+      endDateTime = moment().endOf('day').toDate(); // Today at 23:59:59 (PM)
+    } else {
+      // Used once a month
+      limit = Constants.BATCH_PAGE_SIZE;
+      startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
+      endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
+    }
+    // Now return the query parameters
+    return {
+      // ------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
+      // Filtering on the invoice status is not possible here
+      // ------------------------------------------------------------------------------
+      filter: {
+        startDateTime,
+        endDateTime
+      },
+      limit,
+      sort: { createdOn: 1 } // Sort by creation date - process the eldest first!
+    };
+  }
+
   abstract checkConnection(): Promise<void>;
 
   abstract checkActivationPrerequisites(): Promise<void>;
@@ -393,8 +597,6 @@ export default abstract class BillingIntegration {
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
-  abstract synchronizeAsBillingInvoice(stripeInvoiceID: string, checkUserExists: boolean): Promise<BillingInvoice>;
-
   abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
@@ -408,6 +610,4 @@ export default abstract class BillingIntegration {
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
-
-
 }
