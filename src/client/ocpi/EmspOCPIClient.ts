@@ -225,7 +225,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(sessions)) {
         await Promise.map(sessions, async (session: OCPISession) => {
           try {
-            await OCPIUtilsService.updateTransaction(this.tenant.id, session);
+            await OCPIUtilsService.updateTransaction(this.tenant, session);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -283,7 +283,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(cdrs)) {
         await Promise.map(cdrs, async (cdr: OCPICdr) => {
           try {
-            await OCPIUtilsService.processCdr(this.tenant.id, cdr);
+            await OCPIUtilsService.processCdr(this.tenant, cdr);
             result.success++;
           } catch (error) {
             result.failure++;

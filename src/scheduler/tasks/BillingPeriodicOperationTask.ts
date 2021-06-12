@@ -1,5 +1,4 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
-import { BillingPeriodicOperationTaskConfig } from '../../types/TaskConfig';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -15,7 +14,7 @@ export default class BillingPeriodicOperationTask extends SchedulerTask {
     const billingLock = await LockingHelper.createBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
           // Attempt to finalize and pay invoices
           const chargeActionResults = await billingImpl.chargeInvoices();

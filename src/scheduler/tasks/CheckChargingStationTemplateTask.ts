@@ -56,7 +56,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
-        const chargingStationTemplateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant.id, chargingStation);
+        const chargingStationTemplateUpdateResult = await OCPPUtils.applyTemplateToChargingStation(tenant, chargingStation);
         if (chargingStationTemplateUpdateResult.chargingStationUpdated) {
           updated++;
         }

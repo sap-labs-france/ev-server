@@ -93,7 +93,7 @@ export default class AssetService {
     // Filter request
     const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
     // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest);
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
@@ -168,7 +168,7 @@ export default class AssetService {
       });
     }
     // Get asset factory
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

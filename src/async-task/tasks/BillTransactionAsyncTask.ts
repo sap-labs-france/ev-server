@@ -16,7 +16,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
           // Get the Transaction to bill
           const transactionID: string = this.asyncTask.parameters.transactionID;

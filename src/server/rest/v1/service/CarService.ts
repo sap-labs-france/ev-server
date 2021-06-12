@@ -81,14 +81,9 @@ export default class CarService {
   }
 
   public static async handleGetCarCatalogImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.isSuperAdmin(req.user)) {
-    // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.DELETE, Entity.CAR_CATALOG,
-        MODULE_NAME, 'handleGetCarCatalogImage');
-    }
+    // Unprotected Endpoint: No JWT token is provided
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
-    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImage', req.user);
     // Get the car Image
     const carCatalog = await CarStorage.getCarCatalogImage(filteredRequest.ID);
@@ -406,13 +401,6 @@ export default class CarService {
     if (!authorizationCarsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
-    }
-    // Check User
-    let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
-      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default' ];
-      authorizationCarsFilter.projectFields = authorizationCarsFilter.projectFields.concat(userProject);
     }
     // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
