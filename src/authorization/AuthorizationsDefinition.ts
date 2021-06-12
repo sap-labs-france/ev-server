@@ -231,7 +231,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'
         ]
       },
       {
@@ -326,7 +328,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CARS, action: Action.LIST, attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'
         ], condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['OwnUser'] }

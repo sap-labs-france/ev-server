@@ -834,8 +834,7 @@ export default class OCPPUtils {
       // Meter Value Handling
       if (OCPPUtils.isValidMeterValue(meterValue)) {
         // Meter Value is in the past
-        if (transaction?.lastConsumption?.timestamp &&
-            meterValue?.timestamp &&
+        if (transaction.lastConsumption?.timestamp && meterValue.timestamp &&
             moment(meterValue?.timestamp).isBefore(moment(transaction?.lastConsumption?.timestamp))) {
           await Logging.logError({
             tenantID: tenant.id,
