@@ -5,6 +5,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { OICPEvseDataRecord } from './oicp/OICPEvse';
 import { OICPIdentification } from './oicp/OICPIdentification';
 import SiteArea from './SiteArea';
 import User from './User';
@@ -57,10 +58,15 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVendorParameters?: KeyValue[];
   distanceMeters?: number;
   ocpiData?: ChargingStationOcpiData;
+  oicpData?: ChargingStationOicpData;
 }
 
 export interface ChargingStationOcpiData {
   evses?: OCPIEvse[];
+}
+
+export interface ChargingStationOicpData {
+  evses?: OICPEvseDataRecord[];
 }
 
 export interface ChargingStationQRCode {
