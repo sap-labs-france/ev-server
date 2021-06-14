@@ -1151,7 +1151,7 @@ export default class OCPPService {
       } else {
         // Connector status must be 'Charging'
         const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-        if (connector.status === ChargePointStatus.CHARGING) {
+        if (connector.status === ChargePointStatus.SUSPENDED_EVSE) {
           // Check the last 3 consumptions
           const consumptions = await ConsumptionStorage.getTransactionConsumptions(
             tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
@@ -1159,7 +1159,8 @@ export default class OCPPService {
             // Check the consumptions
             const noConsumption = consumptions.result.every((consumption) =>
               consumption.consumptionWh === 0 &&
-              consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE);
+              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+               consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
             if (noConsumption) {
               this.notifyEndOfCharge(tenant, chargingStation, transaction);
