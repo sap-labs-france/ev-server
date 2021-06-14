@@ -1149,7 +1149,7 @@ export default class OCPPService {
         }
       // No battery information: check last consumptions
       } else {
-        // Connector' status must be 'Supended'
+        // Connector' status must be 'Suspended'
         const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
         if (connector.status === ChargePointStatus.SUSPENDED_EVSE ||
             connector.status === ChargePointStatus.SUSPENDED_EV) {
