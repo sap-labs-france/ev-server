@@ -1149,9 +1149,10 @@ export default class OCPPService {
         }
       // No battery information: check last consumptions
       } else {
-        // Connector status must be 'Charging'
+        // Connector' status must be 'Supended'
         const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
-        if (connector.status === ChargePointStatus.SUSPENDED_EVSE) {
+        if (connector.status === ChargePointStatus.SUSPENDED_EVSE ||
+            connector.status === ChargePointStatus.SUSPENDED_EV) {
           // Check the last 3 consumptions
           const consumptions = await ConsumptionStorage.getTransactionConsumptions(
             tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
