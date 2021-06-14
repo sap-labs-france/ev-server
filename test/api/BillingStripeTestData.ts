@@ -265,7 +265,7 @@ export default class StripeIntegrationTestData {
 
   public async payDraftInvoice(draftInvoice: { id: string }, paymentShouldFail: boolean): Promise<void> {
     const draftInvoiceId = draftInvoice.id;
-    let billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.getTenantID(), draftInvoiceId);
+    let billingInvoice: BillingInvoice = await BillingStorage.getInvoice(this.tenantContext?.getTenant(), draftInvoiceId);
     // Let's attempt a payment using the default payment method
     billingInvoice = await this.billingImpl.chargeInvoice(billingInvoice);
     if (paymentShouldFail) {
