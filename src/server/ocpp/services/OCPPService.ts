@@ -1086,7 +1086,7 @@ export default class OCPPService {
   }
 
   private notifyEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
-    if (transaction.user) {
+    if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notify (Async)
@@ -1110,7 +1110,7 @@ export default class OCPPService {
   }
 
   private notifyOptimalChargeReached(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
-    if (transaction.user) {
+    if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled && transaction.user) {
       // Get the i18n lib
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notification Before End Of Charge (Async)
@@ -1135,31 +1135,38 @@ export default class OCPPService {
 
   private async checkNotificationEndOfCharge(tenant: Tenant, chargingStation: ChargingStation, transaction: Transaction) {
     // Transaction in progress?
-    if (transaction && !transaction.stop) {
-      // Has consumption?
-      if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumptionWh > 0) {
-        // End of charge?
-        if (this.chargingStationConfig.notifEndOfChargeEnabled && transaction.currentTotalConsumptionWh > 0) {
-          // Battery full
-          if (transaction.currentStateOfCharge === 100) {
+    if (!transaction?.stop && transaction.currentTotalConsumptionWh > 0) {
+      // Check the battery
+      if (transaction.currentStateOfCharge > 0) {
+        // Check if battery is full (100%)
+        if (transaction.currentStateOfCharge === 100) {
+          // Send Notification
+          this.notifyEndOfCharge(tenant, chargingStation, transaction);
+        // Check if optimal charge has been reached (85%)
+        } else if (transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
+          // Send Notification
+          this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
+        }
+      // No battery information: check last consumptions
+      } else {
+        // Connector' status must be 'Suspended'
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        if (connector.status === ChargePointStatus.SUSPENDED_EVSE ||
+            connector.status === ChargePointStatus.SUSPENDED_EV) {
+          // Check the last 3 consumptions
+          const consumptions = await ConsumptionStorage.getTransactionConsumptions(
+            tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
+          if (consumptions.count === 3) {
+            // Check the consumptions
+            const noConsumption = consumptions.result.every((consumption) =>
+              consumption.consumptionWh === 0 &&
+              (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
+               consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)));
             // Send Notification
-            this.notifyEndOfCharge(tenant, chargingStation, transaction);
-          } else {
-            // Check last consumptions
-            const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-              tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
-            if (consumptions.result.every((consumption) => consumption.consumptionWh === 0 &&
-                (consumption.limitSource !== ConnectorCurrentLimitSource.CHARGING_PROFILE ||
-                consumption.limitAmps >= StaticLimitAmps.MIN_LIMIT_PER_PHASE * Utils.getNumberOfConnectedPhases(chargingStation, null, transaction.connectorId)))) {
-              // Send Notification
+            if (noConsumption) {
               this.notifyEndOfCharge(tenant, chargingStation, transaction);
             }
           }
-          // Optimal Charge? (SoC)
-        } else if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled &&
-          transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
-          // Send Notification
-          this.notifyOptimalChargeReached(tenant, chargingStation, transaction);
         }
       }
     }

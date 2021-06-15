@@ -408,6 +408,7 @@ export default class CarService {
         search: filteredRequest.Search,
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
         withUsers: filteredRequest.WithUsers,
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         ...authorizationCarsFilter.filters
       },
       {
