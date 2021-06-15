@@ -129,25 +129,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async resetConnectionSettings(): Promise<void> {
-    // reset connection settings
-    const { identifier, type } = this.settings;
-    const newBillingsSettings: BillingSettings = {
-      identifier,
-      type,
-      billing: {
-        isTransactionBillingActivated: false,
-        immediateBillingAllowed: false,
-        periodicBillingAllowed: false,
-        taxID: null
-      },
-      stripe: {
-        url: null,
-        secretKey: null,
-        publicKey: null
-      }
+  public async resetConnectionSettings(): Promise<BillingSettings> {
+    // Reset connection settings
+    const newBillingsSettings = this.settings;
+    newBillingsSettings.billing = {
+      isTransactionBillingActivated: false,
+      immediateBillingAllowed: false,
+      periodicBillingAllowed: false,
+      taxID: null
+    };
+    newBillingsSettings.stripe = {
+      url: null,
+      secretKey: null,
+      publicKey: null
     };
     await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
+    return newBillingsSettings;
   }
 
   public async getUsers(): Promise<BillingUser[]> {

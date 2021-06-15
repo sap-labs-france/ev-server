@@ -58,20 +58,28 @@ export default class BillingService {
       // Clear the test data
       await billingImpl.clearTestData();
       // Reset billing settings
-      await billingImpl.resetConnectionSettings();
+      const newSettings = await billingImpl.resetConnectionSettings();
       // Ok
-      res.json(Object.assign({ done: true }, Constants.REST_RESPONSE_SUCCESS));
+      const operationResult: BillingOperationResult = {
+        succeeded: true,
+        internalData: newSettings
+      };
+      res.json(operationResult);
     } catch (error) {
       // Ko
       await Logging.logError({
         tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME, method: 'handleClearBillingTestData',
-        message: 'Billing connection failed',
+        message: 'Failed to clear billing test data',
         action: action,
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      res.json(Object.assign({ done: false }, Constants.REST_RESPONSE_SUCCESS));
+      const operationResult: BillingOperationResult = {
+        succeeded: false,
+        error
+      };
+      res.json(operationResult);
     }
     next();
   }

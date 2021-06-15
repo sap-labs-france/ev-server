@@ -367,8 +367,21 @@ export default class StripeIntegrationTestData {
   }
 
   public async checkTestDataCleanup(): Promise<void> {
-    await this.billingImpl.clearTestData();
+    // await this.billingImpl.clearTestData();
+    const response = await this.adminUserService.billingApi.clearBillingTestData();
+    // Check the response
+    expect(response?.data?.succeeded).to.be.eq(true);
+    expect(response?.data?.internalData).not.to.be.null;
+    // Check the new billing settings
+    const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
+    expect(newSettings.billing.isTransactionBillingActivated).to.be.false;
+    expect(newSettings.billing.taxID).to.be.null;
+    expect(newSettings.stripe.url).to.be.null;
+    expect(newSettings.stripe.publicKey).to.be.null;
+    expect(newSettings.stripe.secretKey).to.be.null;
+    // Check the invoices
     await this.checkNoInvoices();
+    // Check the users
     await this.checkNoUsersWithTestData();
   }
 }

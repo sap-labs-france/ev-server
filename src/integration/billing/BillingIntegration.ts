@@ -570,7 +570,7 @@ export default abstract class BillingIntegration {
 
   abstract checkTestDataCleanupPrerequisites() : Promise<void>;
 
-  abstract resetConnectionSettings() : Promise<void>;
+  abstract resetConnectionSettings() : Promise<BillingSettings>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
