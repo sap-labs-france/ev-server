@@ -89,7 +89,8 @@ describe('Tenant tests', function() {
           'type': null
         }
       };
-      testData.tenantsToCleanUp.push(await CentralServerService.defaultInstance.createEntity(CentralServerService.defaultInstance.tenantApi, tenant));
+      testData.tenantsToCleanUp.push(await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant));
     });
 
     it('Should find the created tenant by id', async () => {
