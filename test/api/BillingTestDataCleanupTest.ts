@@ -21,7 +21,7 @@ describe('Billing Test Data Cleanup', function() {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
       await testData.initialize();
-      await testData.forceBillingSettings(true);
+      await testData.forceBillingSettings(true, false /* forceUser=false */);
     });
 
     after(async () => {

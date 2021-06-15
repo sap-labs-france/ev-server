@@ -63,14 +63,16 @@ export default class StripeIntegrationTestData {
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
   }
 
-  public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
+  public async forceBillingSettings(immediateBilling: boolean, forceUser = true): Promise<void> {
     // The tests requires some settings to be forced
     this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
-    if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-      this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
+    if (forceUser) {
+      this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
+      if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+        this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
+      }
+      assert(this.billingUser, 'Billing user should not be null');
     }
-    assert(this.billingUser, 'Billing user should not be null');
   }
 
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<StripeBillingIntegration> {
