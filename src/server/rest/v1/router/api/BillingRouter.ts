@@ -18,6 +18,7 @@ export default class BillingRouter {
     this.buildRouteBillingSetting();
     this.buildRouteUpdateBillingSetting();
     this.buildRouteCheckBillingConnection();
+    this.buildRouteClearTestData();
     // -----------------------------------
     // ROUTES for PAYMENT METHODS
     // -----------------------------------
@@ -53,6 +54,12 @@ export default class BillingRouter {
   protected buildRouteCheckBillingConnection(): void {
     this.router.post(`/${ServerRoute.REST_BILLING_CHECK}`, (req: Request, res: Response, next: NextFunction) => {
       void RouterUtils.handleServerAction(BillingService.handleCheckBillingConnection.bind(this), ServerAction.SETTINGS, req, res, next);
+    });
+  }
+
+  protected buildRouteClearTestData(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_CLEAR_TEST_DATA}`, (req: Request, res: Response, next: NextFunction) => {
+      void RouterUtils.handleServerAction(BillingService.handleClearBillingTestData.bind(this), ServerAction.SETTINGS, req, res, next);
     });
   }
 

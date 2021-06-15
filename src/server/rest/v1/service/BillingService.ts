@@ -29,6 +29,53 @@ const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
 
+  public static async handleClearBillingTestData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CLEAR_BILLING_TEST_DATA, Entity.BILLING, MODULE_NAME, 'handleClearBillingTestData');
+    if (!await Authorizations.canClearBillingTestData(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.BILLING, action: Action.CLEAR_BILLING_TEST_DATA,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check Prerequisites
+      await billingImpl.checkTestDataCleanupPrerequisites();
+      // Clear the test data
+      await billingImpl.clearTestData();
+      // Reset billing settings
+      await billingImpl.resetConnectionSettings();
+      // Ok
+      res.json(Object.assign({ done: true }, Constants.REST_RESPONSE_SUCCESS));
+    } catch (error) {
+      // Ko
+      await Logging.logError({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        message: 'Billing connection failed',
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      res.json(Object.assign({ done: false }, Constants.REST_RESPONSE_SUCCESS));
+    }
+    next();
+  }
+
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
