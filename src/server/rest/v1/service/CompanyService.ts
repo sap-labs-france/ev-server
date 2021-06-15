@@ -31,10 +31,8 @@ export default class CompanyService {
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action, {});
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Delete
-    await CompanyStorage.deleteCompany(tenant, company.id);
+    await CompanyStorage.deleteCompany(req.tenant, company.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -104,10 +102,8 @@ export default class CompanyService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get the companies
-    const companies = await CompanyStorage.getCompanies(tenant,
+    const companies = await CompanyStorage.getCompanies(req.tenant,
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
@@ -156,10 +152,8 @@ export default class CompanyService {
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Save
-    newCompany.id = await CompanyStorage.saveCompany(tenant, newCompany);
+    newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -193,10 +187,8 @@ export default class CompanyService {
     }
     company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
-    // Fetch Tenant Object by Tenant ID
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Update Company
-    await CompanyStorage.saveCompany(tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
+    await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
