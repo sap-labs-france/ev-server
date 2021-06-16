@@ -381,21 +381,23 @@ export default class StripeIntegrationTestData {
     const response = await this.adminUserService.billingApi.clearBillingTestData();
     if (successExpected) {
       // Check the response
-      expect(response?.data?.succeeded).to.be.eq(true);
-      expect(response?.data?.internalData).not.to.be.null;
+      assert(response?.data?.succeeded === true, 'The operation should succeed');
+      assert(!response?.data?.error, 'error should not be set');
+      assert(response?.data?.internalData, 'internalData should provide the new settings');
       // Check the new billing settings
       const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
-      expect(newSettings.billing.isTransactionBillingActivated).to.be.false;
-      expect(newSettings.billing.taxID).to.be.null;
-      expect(newSettings.stripe.url).to.be.null;
-      expect(newSettings.stripe.publicKey).to.be.null;
-      expect(newSettings.stripe.secretKey).to.be.null;
+      assert(newSettings.billing.isTransactionBillingActivated === false, 'Transaction billing should be switched OFF');
+      assert(!newSettings.billing.taxID, 'taxID should not be set anymore');
+      assert(!newSettings.stripe.url, 'URL should not be set anymore');
+      assert(!newSettings.stripe.publicKey, 'publicKey should not be set anymore');
+      assert(!newSettings.stripe.secretKey, 'secretKey should not be set anymore');
       // Check the invoices
       await this.checkNoInvoices();
       // Check the users
       await this.checkNoUsersWithTestData();
     } else {
-      expect(response?.data?.succeeded).to.be.eq(false);
+      assert(response?.data?.succeeded === false, 'The operation should fail');
+      assert(response?.data?.error, 'error should not be null');
     }
   }
 }

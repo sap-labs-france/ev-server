@@ -28,7 +28,7 @@ describe('Billing Test Data Cleanup', function() {
         await testData.fakeLiveBillingSettings();
       });
 
-      it('should cleanup all billing test data', async () => {
+      it('should NOT cleanup all billing test data', async () => {
         await testData.checkTestDataCleanup(false);
       });
     });
