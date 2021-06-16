@@ -128,7 +128,7 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
+    const sites = (await UserStorage.getUserSites(tenantID, { userIDs: [user.id] },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
@@ -320,8 +320,8 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USERS, Action.LIST, authContext);
   }
 
-  public static async canListUsersInErrors(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IN_ERROR);
+  public static async canListUsersInErrors(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.IN_ERROR, authContext);
   }
 
   public static async canListTags(loggedUser: UserToken): Promise<boolean> {
@@ -358,22 +358,20 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USER, Action.READ, authContext);
   }
 
-  public static async canCreateUser(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
+  public static async canCreateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.CREATE, authContext);
   }
 
-  public static async canImportUsers(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
+  public static async canImportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.IMPORT, authContext);
   }
 
-  public static async canUpdateUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
-      { user: userID, owner: loggedUser.id });
+  public static async canUpdateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.UPDATE, authContext);
   }
 
-  public static async canDeleteUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.DELETE,
-      { user: userID, owner: loggedUser.id });
+  public static async canDeleteUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.DELETE, authContext);
   }
 
   public static async canListSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -548,19 +546,19 @@ export default class Authorizations {
   }
 
   public static async canAssignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authContext);
   }
 
   public static async canUnassignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, authContext);
   }
 
   public static async canAssignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
   }
 
   public static async canUnassignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
   }
 
   public static async canListCompanies(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -599,12 +597,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
-  public static async canListUsersCars(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
+  public static async canListUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.LIST, authContext);
   }
 
-  public static async canAssignUsersCars(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
+  public static async canAssignUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.ASSIGN, authContext);
   }
 
   public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -697,12 +695,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
-  public static async canSynchronizeUsersBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS);
+  public static async canSynchronizeUsersBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authContext);
   }
 
-  public static async canSynchronizeUserBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER);
+  public static async canSynchronizeUserBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER, authContext);
   }
 
   public static async canReadTaxesBilling(loggedUser: UserToken): Promise<boolean> {
@@ -739,8 +737,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static async canEndUserReportError(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
+  public static async canEndUserReportError(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.NOTIFICATION, Action.CREATE, authContext);
   }
 
   public static async canListPaymentMethod(loggedUser: UserToken): Promise<boolean> {

@@ -12,12 +12,9 @@ export default class OwnUserDynamicAuthorizationDataSource
   public async loadData(): Promise<void> {
     const ownUserData: OwnUserDynamicAuthorizationDataSourceData = {};
     // Get User ID
-    ownUserData.userID = await this.getOwnUserID();
+    ownUserData.userID = this.userToken.id;
     // Set
     this.setData(ownUserData);
-  }
-
-  private async getOwnUserID(): Promise<string> {
-    return Promise.resolve(this.userToken.id);
+    return Promise.resolve();
   }
 }

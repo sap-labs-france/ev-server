@@ -48,162 +48,66 @@ const MODULE_NAME = 'UserService';
 export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canReadTag(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadCar(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
+    // Filter
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
-    // Check auth
-    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Check user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.READ, action);
     // Handle Tag
     // Get the default Tag
-    let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
+    let defaultTag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
       issuer: true
     }, ['id', 'description', 'active']);
-    if (!tag) {
+    if (!defaultTag) {
       // Get the first active Tag
-      tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, userID, {
+      defaultTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
         issuer: true
       }, ['id', 'description', 'active']);
     }
     // Handle Car
-    let car: Car;
+    let defaultCar: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {
-      }, [
-        'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-      ]);
-      if (!car) {
+      defaultCar = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {},
+        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+      );
+      if (!defaultCar) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID, [
-          'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ]);
+        defaultCar = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID,
+          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+        );
       }
     }
-    // Return
-    res.json({ tag, car });
+    res.json({ tag: defaultTag, car: defaultCar });
     next();
   }
 
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
-    // Check auth
-    if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!(await Authorizations.canAssignUsersSites(req.user)).authorized) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: Action.ASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'handleAssignSitesToUser'
-        });
-      }
-    } else if (!(await Authorizations.canUnassignUsersSites(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser'
-      });
-    }
-    // Filter
+    // Filter request
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
-    // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.userID, MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    if (!filteredRequest.siteIDs || Utils.isEmptyArray(filteredRequest.siteIDs)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site\'s IDs must be provided',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.userID })).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        value: filteredRequest.userID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.userID });
-    // Get the User
-    const user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
-      MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    // OCPI User
-    if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
-    // Check auth
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndAssignUserSitesAuthorizationFilters(
-      req.tenant, action, req.user, filteredRequest);
-    if (!authorizationUserSitesFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser'
-      });
-    }
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+    // Check and Get Sites
+    const sites = await UtilsService.checkUserSitesAuthorization(
+      req.tenant, req.user, user, filteredRequest.siteIDs, action, {});
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
     } else {
-      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleAssignSitesToUser',
+      user: req.user,
+      module: MODULE_NAME,
+      method: 'handleAssignSitesToUser',
       message: 'User\'s Sites have been assigned successfully', action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -212,49 +116,20 @@ export default class UserService {
     // Filter
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Check auth
-    if (!await Authorizations.canDeleteUser(req.user, userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        value: userID
-      });
-    }
-    // Same user
-    if (userID === req.user.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User cannot delete himself',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user,
-        action: action
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Check user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.DELETE, action, {}, false);
     // OCPI User
     if (!user.issuer) {
-      // Delete all tags
-      const numberOfDeletedTags = await TagStorage.deleteTagsByUser(req.user.tenantID, user.id);
       // Delete User
       await UserStorage.deleteUser(req.user.tenantID, user.id);
-      // Log
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
-        message: `User with ID '${user.id}' has been deleted successfully along '${numberOfDeletedTags}' Tag(s)`,
+        message: `User with ID '${user.id}' has been deleted successfully`,
         action: action
       });
-      // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
       return;
@@ -298,7 +173,7 @@ export default class UserService {
         });
       }
     }
-    // Synchronize badges with IOP
+    // Synchronize badges with IOP (eMSP)
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       try {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -382,7 +257,6 @@ export default class UserService {
       message: `User with ID '${user.id}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -393,7 +267,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
     // Check auth
-    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -524,7 +398,6 @@ export default class UserService {
         }
       ).catch(() => { });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -544,7 +417,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+    if (!await Authorizations.canUpdateUser(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -579,7 +452,6 @@ export default class UserService {
         mobileOS: filteredRequest.mobileOS
       }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -588,29 +460,11 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
-    // Check auth
-    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.ID })).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUser',
-        value: filteredRequest.ID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID,
-      {
-        withImage: true,
-        ...authorizationUserFilters.filters
-      },
-      authorizationUserFilters.projectFields
-    );
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetUser', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+        withImage: true
+      }, true);
     res.json(user);
     next();
   }
@@ -639,7 +493,6 @@ export default class UserService {
       MODULE_NAME, 'handleGetUserImage', req.user);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
-    // Ok
     res.json(userImage);
     next();
   }
@@ -655,54 +508,28 @@ export default class UserService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
-    // Check auth
-    if (!(await Authorizations.canListUsersSites(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleGetSites'
-      });
-    }
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
-    // Check auth
-    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.UserID })).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetSites',
-        value: filteredRequest.UserID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.UserID });
-    if (!authorizationUserFilters.authorized) {
+    // Check User
+    try {
+      await UtilsService.checkAndGetUserAuthorization(
+        req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+    } catch (error) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get User
-    const user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.UserID, authorizationUserFilters.filters);
-    if (!user) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
-    // Check auth
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
+    // Check dynamic auth for reading Sites
+    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(req.tenant,
+      req.user, filteredRequest);
     if (!authorizationUserSitesFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get users
-    const userSites = await UserStorage.getUserSites(req.user.tenantID,
+    // Get Sites
+    const sites = await UserStorage.getUserSites(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userID: filteredRequest.UserID,
+        userIDs: [filteredRequest.UserID],
         ...authorizationUserSitesFilters.filters
       },
       {
@@ -714,13 +541,13 @@ export default class UserService {
       authorizationUserSitesFilters.projectFields
     );
     // Filter
-    userSites.result = userSites.result.map((userSite) => ({
+    sites.result = sites.result.map((userSite) => ({
       userID: userSite.userID,
       siteAdmin: userSite.siteAdmin,
       siteOwner: userSite.siteOwner,
       site: userSite.site
     }));
-    res.json(userSites);
+    res.json(sites);
     next();
   }
 
@@ -732,7 +559,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canListUsersInErrors(req.user)) {
+    if (!(await Authorizations.canListUsersInErrors(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1022,31 +849,28 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Save Admin Data
-    if (Authorizations.isAdmin(req.user)) {
-      // For integration with billing
-      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-      if (billingImpl) {
-        try {
-          const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.synchronizeUser(user);
-          await Logging.logInfo({
-            tenantID: req.user.tenantID,
-            action: action,
-            module: MODULE_NAME, method: 'handleCreateUser',
-            user: newUser.id,
-            message: 'User successfully created in billing system',
-          });
-        } catch (error) {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleCreateUser',
-            action: action,
-            user: newUser.id,
-            message: 'User cannot be created in billing system',
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (billingImpl) {
+      try {
+        const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
+        await billingImpl.synchronizeUser(user);
+        await Logging.logInfo({
+          tenantID: req.user.tenantID,
+          action: action,
+          module: MODULE_NAME, method: 'handleCreateUser',
+          user: newUser.id,
+          message: 'User successfully created in billing system',
+        });
+      } catch (error) {
+        await Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME, method: 'handleCreateUser',
+          action: action,
+          user: newUser.id,
+          message: 'User cannot be created in billing system',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
       }
     }
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
@@ -1093,7 +917,6 @@ export default class UserService {
       message: `User with ID '${newUser.id}' has been created successfully`,
       action: action
     });
-    // Ok
     res.json(Object.assign({ id: newUser.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -1158,26 +981,8 @@ export default class UserService {
   }
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
-    // Check auth
-    if (!(await Authorizations.canListUsers(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
-        module: MODULE_NAME, method: 'getUsers'
-      });
-    }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
-    }
-    if (filteredRequest.NotAssignedToCarID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
-    }
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);

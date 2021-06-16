@@ -153,6 +153,30 @@ export default class UtilsService {
     return users.result;
   }
 
+  public static async checkAndGetSitesAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
+      additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site[]> {
+    // Check dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetSitesAuthorizationFilters(tenant, userToken, {});
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.SITES,
+        module: MODULE_NAME, method: 'checkAndGetSitesAuthorization',
+      });
+    }
+    // Get Sites
+    const sites = await SiteStorage.getSites(tenant.id,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    return sites.result;
+  }
+
   public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken,action: ServerAction,
       additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
     // Check dynamic auth
@@ -228,7 +252,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetUserAuthorization(tenant: Tenant, userToken: UserToken, userID: string, authAction: Action,
-      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User> {
+      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<User> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // Get dynamic auth
@@ -254,7 +278,7 @@ export default class UtilsService {
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'checkAndGetUserAuthorization', userToken);
     // External User
-    if (!user.issuer) {
+    if (checkIssuer && !user.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -281,7 +305,7 @@ export default class UtilsService {
   }
 
   public static async checkAndGetSiteAuthorization(tenant: Tenant, userToken: UserToken, siteID: string, authAction: Action,
-      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site> {
+      action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Site> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, siteID, MODULE_NAME, 'checkAndGetSiteAuthorization', userToken);
     // Get dynamic auth
@@ -333,6 +357,69 @@ export default class UtilsService {
     return site;
   }
 
+  public static async checkUserSitesAuthorization(tenant: Tenant, userToken: UserToken, user: User, siteIDs: string[],
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Site[]> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, user.id, MODULE_NAME, 'checkUserSitesAuthorization', userToken);
+    if (Utils.isEmptyArray(siteIDs)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Site\'s IDs must be provided',
+        module: MODULE_NAME, method: 'checkUserSitesAuthorization',
+        user: userToken
+      });
+    }
+    // Check dynamic auth for assignment
+    const authorizationFilter = await AuthorizationService.checkAndAssignUserSitesAuthorizationFilters(
+      tenant, action, userToken, { userID: user.id, siteIDs });
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkUserSitesAuthorization',
+      });
+    }
+    // Get Sites
+    let sites = (await SiteStorage.getSites(tenant.id,
+      {
+        siteIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    )).result;
+    // Keep the relevant result
+    sites = sites.filter((site) => siteIDs.includes(site.id));
+    // Must have the same result
+    if (siteIDs.length !== sites.length) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN,
+        entity: Entity.USERS_SITES,
+        module: MODULE_NAME, method: 'checkUserSitesAuthorization',
+      });
+    }
+    // Check
+    for (const site of sites) {
+      // External Site
+      if (!site.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site ID '${site.id}' not issued by the organization`,
+          module: MODULE_NAME, method: 'checkUserSitesAuthorization',
+          user: userToken,
+          action: action
+        });
+      }
+    }
+    return sites;
+  }
+
   public static async checkSiteUsersAuthorization(tenant: Tenant, userToken: UserToken, site: Site, userIDs: string[],
       action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<User[]> {
     // Check mandatory fields
@@ -358,9 +445,17 @@ export default class UtilsService {
         module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
       });
     }
-    // Get users
-    const users = await this.checkAndGetUsersAuthorization(tenant, userToken, action,
-      { userIDs, ...additionalFilters }, applyProjectFields);
+    // Get Users
+    let users = (await UserStorage.getUsers(tenant.id,
+      {
+        userIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    )).result;
+    // Keep the relevant result
+    users = users.filter((user) => userIDs.includes(user.id));
     // Must have the same result
     if (userIDs.length !== users.length) {
       throw new AppAuthError({
@@ -378,7 +473,7 @@ export default class UtilsService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User not issued by the organization',
+          message: `User ID '${user.id}' not issued by the organization`,
           module: MODULE_NAME, method: 'checkSiteUsersAuthorization',
           user: userToken,
           actionOnUser: user,

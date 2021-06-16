@@ -81,7 +81,6 @@ export default class SiteService {
       message: `The User has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -136,7 +135,6 @@ export default class SiteService {
       message: `The User has been granted Site Owner on Site '${site.name}'`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -168,7 +166,6 @@ export default class SiteService {
       message: 'Site\'s Users have been removed successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -179,10 +176,10 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
-    // Check Site - is this needed? it works without.
+    // Check Site
     try {
       await UtilsService.checkAndGetSiteAuthorization(
-        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action, {}, true);
+        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     } catch (error) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -194,7 +191,7 @@ export default class SiteService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get users
+    // Get Users
     const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
@@ -232,7 +229,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -345,7 +341,7 @@ export default class SiteService {
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      req.tenant, req.user, { }, Action.CREATE);
+      req.tenant, req.user, {}, Action.CREATE);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -383,7 +379,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -429,7 +424,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

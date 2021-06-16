@@ -149,10 +149,12 @@ export enum Action {
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_ASSETS = 'AssignAssets',
-  UNASSIGN_ASSETS = 'UnassignAssets',
-  ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
-  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
+  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
+  UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
+  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
+  UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
+  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
+  UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
 }
@@ -200,7 +202,6 @@ export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITES = 'AssignedSites',
-  SITE_ADMIN_USERS = 'SiteAdminUsers',
   OWN_USER = 'OwnUser',
 }
 
@@ -208,7 +209,6 @@ export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
   ASSIGNED_SITES = 'AssignedSites',
-  SITE_ADMIN_USERS = 'SiteAdminUsers',
   OWN_USER = 'OwnUser',
 }
 

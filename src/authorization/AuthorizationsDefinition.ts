@@ -3,6 +3,7 @@ import { Action, AuthorizationContext, AuthorizationDefinition, AuthorizationRes
 
 import BackendError from '../exception/BackendError';
 import Constants from '../utils/Constants';
+import _ from 'lodash';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -126,7 +127,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
-          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS,
+          Action.ASSIGN_ASSETS_TO_SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
           Action.EXPORT_OCPP_PARAMS, Action.GENERATE_QR], attributes: ['*']
       },
       {
@@ -255,27 +256,21 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USERS, action: Action.LIST,
-        attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
-        ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
-        },
-      },
-      {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
       },
       {
         resource: Entity.USER, action: Action.UPDATE, attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
       },
       { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
       {
@@ -354,7 +349,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } } },
+        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+      },
       { resource: Entity.PAYMENT_METHODS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE], attributes: ['*'] },
       {
@@ -440,7 +436,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+          args: { filters: ['OwnUser'] }
         }
       },
       {
@@ -449,14 +445,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+          args: { filters: ['OwnUser'] }
         }
       },
       {
         resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE], attributes: ['*'],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+          args: { filters: ['OwnUser'] }
         }
       },
       {
@@ -514,7 +510,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        }
       },
       {
         resource: Entity.ASSETS, action: Action.LIST,
@@ -632,10 +631,25 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
     },
     grants: [
       {
-        resource: Entity.USER, action: [Action.READ], attributes: [
+        resource: Entity.USERS, action: Action.LIST, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        }
+      },
+      {
+        resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-        ]
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        }
       },
       {
         resource: Entity.USERS_SITES, action: Action.LIST,
@@ -663,7 +677,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE,
-          Action.ASSIGN_ASSETS, Action.UNASSIGN_ASSETS, Action.ASSIGN_CHARGING_STATIONS, Action.UNASSIGN_CHARGING_STATIONS], attributes: ['*'],
+          Action.ASSIGN_ASSETS_TO_SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA], attributes: ['*'],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
@@ -697,12 +711,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
-      { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
+      {
+        resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*']
+      },
       {
         resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SiteAdminUsers'] }
+          args: { filters: ['SitesAdmin'] }
         }
       },
     ]
@@ -732,7 +748,15 @@ const AUTHORIZATION_CONDITIONS: IDictionary<IFunctionCondition> = {
     // Pass the dynamic filters to the context
     // Used by the caller to execute dynamic filters
     if (context) {
-      context.filters = args.filters;
+      // Already populated?
+      // Take always the low level filters
+      // For Site Admin role it's called twice: one with the Site Admin role and one with the Basic role to check the READ on USER
+      // The first call is on Site Admin and the second on the Basic
+      if (!context.filters) {
+        context.filters = [
+          ...args.filters
+        ];
+      }
     }
     return true;
   }

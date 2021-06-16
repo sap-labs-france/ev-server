@@ -57,7 +57,6 @@ export default class CompanyService {
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
         withLogo: true
       }, true);
-    // Return
     res.json(company);
     next();
   }

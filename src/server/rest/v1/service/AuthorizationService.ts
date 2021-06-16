@@ -1,11 +1,11 @@
 import { Action, AuthorizationActions, AuthorizationContext, AuthorizationFilter, Entity, SiteAreaAuthorizationActions } from '../../../../types/Authorization';
 import { CarCatalogDataResult, CarDataResult, CompanyDataResult, SiteAreaDataResult, SiteDataResult, TagDataResult } from '../../../../types/DataResult';
 import { HttpAssignAssetsToSiteAreaRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import { HttpCarCatalogsRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import { HttpChargingStationRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
-import { HttpTagsRequest, HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -18,6 +18,7 @@ import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthor
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -44,13 +45,13 @@ export default class AuthorizationService {
         return authActions.canCreate;
       case Action.DELETE:
         return authActions.canDelete;
-      case Action.ASSIGN_CHARGING_STATIONS:
+      case Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canAssignChargingStations;
-      case Action.UNASSIGN_CHARGING_STATIONS:
+      case Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canUnassignChargingStations;
-      case Action.ASSIGN_ASSETS:
+      case Action.ASSIGN_ASSETS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canAssignAssets;
-      case Action.UNASSIGN_ASSETS:
+      case Action.UNASSIGN_ASSETS_TO_SITE_AREA:
         return (authActions as SiteAreaAuthorizationActions).canUnassignAssets;
       default:
         return false;
@@ -72,7 +73,7 @@ export default class AuthorizationService {
   }
 
   public static async addSitesAuthorizations(tenant: Tenant, userToken: UserToken, sites: SiteDataResult, authorizationFilter: AuthorizationFilter,
-      filteredRequest: HttpSitesRequest): Promise<void> {
+      filteredRequest: Partial<HttpSitesRequest>): Promise<void> {
     // Add canCreate flag to root
     sites.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE, Action.CREATE,
       authorizationFilter);
@@ -111,7 +112,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSitesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -125,7 +126,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpSiteUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -139,7 +140,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserSitesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpUserSitesRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUserSitesRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -156,7 +157,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAssignSiteUsersAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
-      filteredRequest: HttpSiteAssignUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteAssignUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -171,7 +172,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAssignSiteAreaAssetsAuthorizationFilters(tenant: Tenant, action: ServerAction, userToken: UserToken,
-      siteArea: SiteArea, filteredRequest: HttpAssignAssetsToSiteAreaRequest): Promise<AuthorizationFilter> {
+      siteArea: SiteArea, filteredRequest: Partial<HttpAssignAssetsToSiteAreaRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -214,44 +215,23 @@ export default class AuthorizationService {
   }
 
   public static async checkAndAssignUserSitesAuthorizationFilters(
-      tenant: Tenant, action: ServerAction, userToken: UserToken, filteredRequest: HttpUserAssignSitesRequest): Promise<AuthorizationFilter> {
+      tenant: Tenant, action: ServerAction, userToken: UserToken,
+      filteredRequest: Partial<HttpUserAssignSitesRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
       projectFields: [],
       authorized: userToken.role === UserRole.ADMIN,
     };
-    // Not an Admin?
-    if (userToken.role !== UserRole.ADMIN) {
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        // Get Site IDs from Site Admin flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        // Get User IDs from Site Admin flag
-        if (!Utils.isEmptyArray(siteAdminSiteIDs)) {
-          // Check Sites
-          if (!Utils.isEmptyArray(filteredRequest.siteIDs)) {
-            let foundInvalidUserID = false;
-            // Check
-            for (const siteID of filteredRequest.siteIDs) {
-              if (!siteAdminSiteIDs.includes(siteID)) {
-                foundInvalidUserID = true;
-                break;
-              }
-            }
-            if (!foundInvalidUserID) {
-              authorizationFilters.authorized = true;
-            }
-          }
-        }
-      } else {
-        authorizationFilters.authorized = true;
-      }
-    }
+    // Check static & dynamic authorization
+    const authAction = action === ServerAction.ADD_USERS_TO_SITE ? Action.ASSIGN : Action.UNASSIGN;
+    await this.canPerformAuthorizationAction(tenant, userToken, Entity.USERS_SITES, authAction,
+      authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 
   public static async checkAndGetUsersInErrorAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpUsersRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUsersRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -289,10 +269,9 @@ export default class AuthorizationService {
       user.canUpdate = false;
       user.canDelete = false;
     } else {
-      user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ,
-        authorizationFilter);
-      user.canUpdate = await Authorizations.canUpdateUser(userToken, user.id);
-      user.canDelete = await Authorizations.canDeleteUser(userToken, user.id);
+      user.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.READ, authorizationFilter);
+      user.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.UPDATE, authorizationFilter);
+      user.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.USER, Action.DELETE, authorizationFilter);
     }
   }
 
@@ -325,7 +304,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetUserAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpUserRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpUserRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -355,7 +334,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpTagsRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpTagsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -369,7 +348,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetTagAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpByIDRequest | Partial<Tag>, action: Action): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpByIDRequest> | Partial<Tag>, action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -408,7 +387,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCompaniesAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpCompaniesRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCompaniesRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -446,7 +425,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCompanyAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpCompanyRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCompanyRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -475,8 +454,8 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<SiteArea>,
-      action: Action): Promise<AuthorizationFilter> {
+  public static async checkAndGetSiteAreaAuthorizationFilters(tenant: Tenant, userToken: UserToken,
+      filteredRequest: Partial<SiteArea>, action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -489,7 +468,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetSiteAreasAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpSiteAreasRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpSiteAreasRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -503,7 +482,7 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAreasAuthorizations(tenant: Tenant, userToken: UserToken, siteAreas: SiteAreaDataResult,
-      authorizationFilter: AuthorizationFilter, filteredRequest: HttpSiteAreasRequest): Promise<void> {
+      authorizationFilter: AuthorizationFilter, filteredRequest: Partial<HttpSiteAreasRequest>): Promise<void> {
     // Add canCreate flag to root
     siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
     // Enrich
@@ -513,7 +492,7 @@ export default class AuthorizationService {
   }
 
   public static async addSiteAreaAuthorizations(tenant: Tenant, userToken: UserToken, siteArea: SiteArea, authorizationFilter: AuthorizationFilter,
-      filteredRequest: HttpSiteAreasRequest | HttpSiteAreaRequest): Promise<void> {
+      filteredRequest: Partial<HttpSiteAreasRequest> | HttpSiteAreaRequest): Promise<void> {
     // Enrich
     if (!siteArea.issuer) {
       siteArea.canRead = true;
@@ -535,13 +514,13 @@ export default class AuthorizationService {
       siteArea.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.UPDATE,
         authorizationFilter, enhancedFilters);
       siteArea.canAssignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
-        Action.ASSIGN_ASSETS, authorizationFilter, enhancedFilters);
+        Action.ASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, enhancedFilters);
       siteArea.canUnassignAssets = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
-        Action.UNASSIGN_ASSETS, authorizationFilter, enhancedFilters);
+        Action.UNASSIGN_ASSETS_TO_SITE_AREA, authorizationFilter, enhancedFilters);
       siteArea.canAssignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
-        Action.ASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
+        Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, enhancedFilters);
       siteArea.canUnassignChargingStations = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
-        Action.UNASSIGN_CHARGING_STATIONS, authorizationFilter, enhancedFilters);
+        Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authorizationFilter, enhancedFilters);
       siteArea.canExportOCPPParams = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
         Action.EXPORT_OCPP_PARAMS, authorizationFilter, enhancedFilters);
       siteArea.canGenerateQrCode = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA,
@@ -550,7 +529,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetChargingStationAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpChargingStationRequest):Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpChargingStationRequest>):Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -576,7 +555,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCarsAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpCarsRequest): Promise<AuthorizationFilter> {
+  public static async checkAndGetCarsAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -589,7 +568,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCarAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
+  public static async checkAndGetCarAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarRequest>,
       action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
@@ -603,7 +582,7 @@ export default class AuthorizationService {
   }
 
   public static async addCarsAuthorizations(tenant: Tenant, userToken: UserToken, cars: CarDataResult, authorizationFilter: AuthorizationFilter,
-      filteredRequest: Record<string, any>): Promise<void> {
+      filteredRequest: Partial<HttpCarsRequest>): Promise<void> {
     // Add canCreate flag to root
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
     // Enrich
@@ -613,14 +592,13 @@ export default class AuthorizationService {
   }
 
   public static async addCarAuthorizations(tenant: Tenant, userToken: UserToken, car: Car, authorizationFilter: AuthorizationFilter,
-      filteredRequest: Record<string, any>): Promise<void> {
+      filteredRequest: Partial<HttpCarRequest>): Promise<void> {
   // Enrich
     if (!car) {
       car.canRead = true;
       car.canUpdate = false;
       car.canDelete = false;
     } else {
-      filteredRequest.SiteID = car.id;
       car.canRead = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.READ, authorizationFilter, filteredRequest);
       car.canDelete = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.DELETE, authorizationFilter, filteredRequest);
       car.canUpdate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.UPDATE, authorizationFilter, filteredRequest);
@@ -628,7 +606,7 @@ export default class AuthorizationService {
   }
 
   public static async checkAndGetCarCatalogsAuthorizationFilters(tenant: Tenant, userToken: UserToken,
-      filteredRequest: HttpCarCatalogsRequest): Promise<AuthorizationFilter> {
+      filteredRequest: Partial<HttpCarCatalogsRequest>): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -641,7 +619,7 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCarCatalogAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Record<string, any>,
+  public static async checkAndGetCarCatalogAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpCarCatalogRequest>,
       action: Action): Promise<AuthorizationFilter> {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
@@ -675,7 +653,8 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async checkAndGetCarUsersAuthorizationFilters(tenant: Tenant, userToken: UserToken, filteredRequest: HttpUsersCarsRequest) {
+  public static async checkAndGetCarUsersAuthorizationFilters(
+      tenant: Tenant, userToken: UserToken, filteredRequest: Partial<HttpUsersCarsRequest>) {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
@@ -692,7 +671,7 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Admin
     const userSites = await UserStorage.getUserSites(tenantID,
       {
-        userID: userToken.id,
+        userIDs: [userToken.id],
         siteAdmin: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
@@ -704,7 +683,7 @@ export default class AuthorizationService {
     // Get the Sites where the user is Site Owner
     const userSites = await UserStorage.getUserSites(tenantID,
       {
-        userID: userToken.id,
+        userIDs: [userToken.id],
         siteOwner: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']

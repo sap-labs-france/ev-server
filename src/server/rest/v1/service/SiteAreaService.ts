@@ -34,7 +34,7 @@ export default class SiteAreaService {
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
     // Check and Get Site Area
-    const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS : Action.UNASSIGN_ASSETS;
+    const authAction = action === ServerAction.ADD_ASSET_TO_SITE_AREA ? Action.ASSIGN_ASSETS_TO_SITE_AREA : Action.UNASSIGN_ASSETS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, {});
     // Check and Get Assets
@@ -67,7 +67,7 @@ export default class SiteAreaService {
     // Filter request
     const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check and Get Site Area
-    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS : Action.UNASSIGN_CHARGING_STATIONS;
+    const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, {});
     // Check and Get Charging Stations

@@ -77,7 +77,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationDeleteReq(data: any): HttpByIDRequest {
+  public validateChargingStationDeleteReq(data: any): HttpChargingStationRequest {
     // Validate schema
     this.validate(this.chargingStationDelete, data);
     return data;
@@ -161,7 +161,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingProfileDeleteReq(data: any): HttpByIDRequest {
+  public validateChargingProfileDeleteReq(data: any): HttpChargingStationRequest {
     // Validate schema
     this.validate(this.chargingProfileDelete, data);
     return data;

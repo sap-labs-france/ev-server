@@ -3,6 +3,7 @@ import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseR
 import HttpByIDRequest from './HttpByIDRequest';
 
 export interface HttpSiteRequest extends HttpByIDRequest {
+  ID: string;
   WithCompany?: boolean;
 }
 
@@ -20,6 +21,7 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
 }
 
 export interface HttpSiteImageRequest extends HttpByIDRequest {
+  ID: string;
   TenantID: string;
 }
 
