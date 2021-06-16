@@ -93,7 +93,7 @@ export default class AssetService {
     // Filter request
     const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
     // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest);
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
@@ -168,7 +168,7 @@ export default class AssetService {
       });
     }
     // Get asset factory
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -230,6 +230,7 @@ export default class AssetService {
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.user.tenantID,
       {
+        issuer: filteredRequest.Issuer,
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
@@ -373,6 +374,7 @@ export default class AssetService {
     const assets = await AssetStorage.getAssets(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
@@ -491,6 +493,7 @@ export default class AssetService {
     asset.siteID = siteArea ? siteArea.siteID : null,
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
+    asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
     asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;

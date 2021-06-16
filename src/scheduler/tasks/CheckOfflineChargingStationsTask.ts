@@ -35,7 +35,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             // Check if charging station is still connected
             try {
               const ocppParamHeartbeatKeys = ['HeartBeatInterval', 'HeartbeatInterval'];
-              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenant.id, chargingStation, { key: ocppParamHeartbeatKeys });
+              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, { key: ocppParamHeartbeatKeys });
             } catch (error) {
               // Charging Station is offline!
               continue;

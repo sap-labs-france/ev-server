@@ -26,28 +26,20 @@ export default abstract class AbstractOICPService {
 
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
-  // Create OICP Service
   protected constructor(
       private readonly oicpRestConfig: OICPServiceConfiguration,
       private readonly path: string,
       private readonly version: string) {
   }
 
-  /**
-   * Register Endpoint to this service
-   *
-   * @param {AbstractEndpoint} endpoint
-   */
   public registerEndpoint(endpoint: AbstractEndpoint): void {
     this.endpoints.set(endpoint.getIdentifier(), endpoint);
   }
 
-  // Get All Registered Endpoint
   public getRegisteredEndpoints(): Map<string, AbstractEndpoint> {
     return this.endpoints;
   }
 
-  // Return based URL of OICP Service
   public getServiceUrl(req: Request): string {
     const baseUrl = this.getBaseUrl(req);
     const path = this.getPath();
@@ -55,7 +47,6 @@ export default abstract class AbstractOICPService {
     return `${baseUrl}${path}`;
   }
 
-  // Get BaseUrl ${protocol}://${host}
   public getBaseUrl(req: Request): string {
     const protocol = (this.oicpRestConfig.externalProtocol ? this.oicpRestConfig.externalProtocol : 'https');
     // Get host from the req
@@ -64,19 +55,14 @@ export default abstract class AbstractOICPService {
     return `${protocol}://${host}`;
   }
 
-  // Get Relative path of the service
   public getPath(): string {
     return `${this.path}`; // Changed to params
   }
 
-  /**
-   * Return Version of OICP Service
-   */
   public getVersion(): string {
     return this.version;
   }
 
-  // Rest Service Implementation
   public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     // Full endpoint path /:protocol/:role/:version/:tenantSubdomain/api/oicp/:module/:endpointVersion/providers/:providerID/:endpoint/:endpointAction?
@@ -87,14 +73,6 @@ export default abstract class AbstractOICPService {
     await this.processEndpointAction(req.params, req, res, next);
   }
 
-  /**
-   * Process Endpoint action
-   *
-   * @param params
-   * @param req
-   * @param res
-   * @param next
-   */
   public async processEndpointAction(params: any, req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Get tenant subdomain and endpoint from url parameters
     const tenantSubdomain = params.tenantSubdomain as string;

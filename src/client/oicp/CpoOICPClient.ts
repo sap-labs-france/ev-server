@@ -9,6 +9,7 @@ import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
 import Transaction, { TransactionAction } from '../../types/Transaction';
 
 import BackendError from '../../exception/BackendError';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
@@ -22,7 +23,6 @@ import { OICPChargeDetailRecord } from '../../types/oicp/OICPChargeDetailRecord'
 import OICPClient from './OICPClient';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import OICPEndpointStorage from '../../storage/mongodb/OICPEndpointStorage';
-import OICPMapping from '../../server/oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
 import { OICPPushEvseStatusCpoSend } from '../../types/oicp/OICPEvseStatus';
 import { OICPResult } from '../../types/oicp/OICPResult';
 import { OICPRole } from '../../types/oicp/OICPRole';
@@ -50,7 +50,8 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
-  public async startSession(chargingStation: ChargingStation, transaction: Transaction, sessionId: OICPSessionID, identification: OICPIdentification): Promise<void> {
+  public async startSession(chargingStation: ChargingStation, transaction: Transaction,
+      sessionId: OICPSessionID, identification: OICPIdentification): Promise<void> {
     let siteArea: SiteArea;
     if (!chargingStation.siteArea) {
       siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
@@ -62,7 +63,7 @@ export default class CpoOICPClient extends OICPClient {
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
       addChargeBoxID: true
     };
-    const oicpEvse = OICPMapping.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
+    const oicpEvse = OICPUtils.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
     const oicpSession = {
       id: sessionId,
       start_datetime: transaction.timestamp,
@@ -106,13 +107,13 @@ export default class CpoOICPClient extends OICPClient {
     if (transaction.lastConsumption && transaction.lastConsumption.value) {
       transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
     }
-    const sessionUpdate: Partial<OICPSession> = {
+    const sessionUpdate = {
       kwh: transaction.oicpData.session.kwh,
       last_updated: transaction.oicpData.session.last_updated,
       currency: transaction.oicpData.session.currency,
       total_cost: transaction.oicpData.session.total_cost > 0 ? transaction.oicpData.session.total_cost : 0,
       status: transaction.oicpData.session.status
-    };
+    } as OICPSession;
     // Log
     await Logging.logDebug({
       tenantID: this.tenant.id,
@@ -123,7 +124,7 @@ export default class CpoOICPClient extends OICPClient {
       detailedMessages: { payload: sessionUpdate }
     });
     // Call Hubject
-    let response;
+    let response: OICPAcknowledgment;
     if (transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
       // Send start notification to Hubject when actual energy flow starts
       response = await this.sendChargingNotificationStart(transaction);
@@ -204,12 +205,6 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
-  /**
-   * Send all EVSEs
-   *
-   * @param processAllEVSEs
-   * @param actionType
-   */
   public async sendEVSEs(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.FULL_LOAD;
@@ -235,76 +230,83 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    // Get all charging stations from tenant
-    // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, use pagination
-    const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
-    // Convert (public) charging stations to OICP EVSEs
-    const evses = OICPMapping.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
-    let evsesToProcess: OICPEvseDataRecord[] = [];
-    let chargeBoxIDsToProcessFromInput = [];
-    // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
-    //    - EVSEs (ChargingStations) in error from previous push
-    //    - EVSEs (ChargingStations) with status notification from latest pushDate
-    if (processAllEVSEs) {
-      evsesToProcess = evses;
-      chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
-    } else {
-      let chargeBoxIDsToProcess = [];
-      // Get ChargingStation in Failure from previous run
-      chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
-      // Get ChargingStation with new status notification
-      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
-      // Remove duplicates
-      chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
-      // Loop through EVSE
-      for (const evse of evses) {
-        if (evse) {
-          // Check if Charging Station should be processed
-          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
-            continue;
+    let chargingStations: ChargingStation[];
+    let currentSkip = 0;
+    do {
+      // Get all charging stations from tenant
+      chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+        { public: true }, { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+      if (!Utils.isEmptyArray(chargingStations)) {
+        // Convert (public) charging stations to OICP EVSEs
+        const evses = await OICPUtils.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
+        let evsesToProcess: OICPEvseDataRecord[] = [];
+        let chargeBoxIDsToProcessFromInput = [];
+        // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
+        //    - EVSEs (ChargingStations) in error from previous push
+        //    - EVSEs (ChargingStations) with status notification from latest pushDate
+        if (processAllEVSEs) {
+          evsesToProcess = evses;
+          chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
+        } else {
+          let chargeBoxIDsToProcess = [];
+          // Get ChargingStation in Failure from previous run
+          chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+          // Get ChargingStation with new status notification
+          chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
+          // Remove duplicates
+          chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
+          // Loop through EVSE
+          for (const evse of evses) {
+            if (evse) {
+              // Check if Charging Station should be processed
+              if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
+                continue;
+              }
+              // Process
+              evsesToProcess.push(evse);
+              chargeBoxIDsToProcessFromInput.push(evse.ChargingStationID);
+            }
           }
-          // Process
-          evsesToProcess.push(evse);
-          chargeBoxIDsToProcessFromInput.push(evse.ChargingStationID);
+        }
+        // Only one post request to Hubject for multiple EVSEs
+        result.total = evsesToProcess.length;
+        if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
+          // In case of multiple batches:
+          // delete all EVSEs on Hubject by overwriting with empty array
+          // set action type to insert to avoid overwriting each batch with a full load request
+          await this.pushEvseData([], OICPActionType.FULL_LOAD);
+          actionType = OICPActionType.INSERT;
+        }
+        if (evsesToProcess) {
+          // Process it if not empty
+          do {
+            // Send EVSEs in batches to avoid maxBodyLength limit of request.
+            const evseBatch = evsesToProcess.splice(0, OICPBatchSize.EVSE_DATA);
+            const evseIDBatch = chargeBoxIDsToProcessFromInput.splice(0, OICPBatchSize.EVSE_DATA);
+            try {
+              await this.pushEvseData(evseBatch, actionType);
+              result.success += evseBatch.length;
+            } catch (error) {
+              result.failure += evseBatch.length;
+              result.objectIDsInFailure.push(...evseIDBatch);
+              result.logs.push(
+                `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
+              );
+            }
+          } while (!Utils.isEmptyArray(evsesToProcess));
         }
       }
-    }
-    // Only one post request to Hubject for multiple EVSEs
-    result.total = evsesToProcess.length;
-    if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
-      // In case of multiple batches:
-      // delete all EVSEs on Hubject by overwriting with empty array
-      // set action type to insert to avoid overwriting each batch with a full load request
-      await this.pushEvseData([], OICPActionType.FULL_LOAD);
-      actionType = OICPActionType.INSERT;
-    }
-    if (evsesToProcess) {
-      // Process it if not empty
-      do {
-        // Send EVSEs in batches to avoid maxBodyLength limit of request.
-        const evseBatch = evsesToProcess.splice(0, OICPBatchSize.EVSE_DATA);
-        const evseIDBatch = chargeBoxIDsToProcessFromInput.splice(0, OICPBatchSize.EVSE_DATA);
-        try {
-          await this.pushEvseData(evseBatch, actionType);
-          result.success += evseBatch.length;
-        } catch (error) {
-          result.failure += evseBatch.length;
-          result.objectIDsInFailure.push(...evseIDBatch);
-          result.logs.push(
-            `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
-          );
+      currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+    } while (!Utils.isEmptyArray(chargingStations));
+    // Send notification to admins
+    if (result.failure > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      NotificationHandler.sendOICPPatchChargingStationsError(
+        this.tenant.id,
+        {
+          evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
         }
-      } while (!Utils.isEmptyArray(evsesToProcess));
-      if (result.failure > 0) {
-        // Send notification to admins
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        NotificationHandler.sendOICPPatchChargingStationsError(
-          this.tenant.id,
-          {
-            evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
-          }
-        );
-      }
+      );
     }
     // Save result in oicp endpoint
     this.oicpEndpoint.lastPatchJobOn = startDate;
@@ -339,12 +341,6 @@ export default class CpoOICPClient extends OICPClient {
     return result;
   }
 
-  /**
-   * Send all EVSE Statuses
-   *
-   * @param processAllEVSEs
-   * @param actionType
-   */
   public async sendEVSEStatuses(processAllEVSEs = true, actionType?: OICPActionType): Promise<OICPResult> {
     if (!actionType) {
       actionType = OICPActionType.FULL_LOAD;
@@ -370,64 +366,71 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    // Get all charging stations from tenant
-    // TODO: Perfs/Memory issue in Prod: that does not scale with 100k charging stations, use pagination
-    const chargingStations = await OICPMapping.getAllChargingStations(this.tenant, 0, 0);
-    // Convert (public) charging stations to OICP EVSE Statuses
-    const evseStatuses = OICPMapping.convertChargingStationsToEvseStatuses(this.tenant, chargingStations, options);
-    let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
-    let chargeBoxIDsToProcessFromInput = [];
-    // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
-    //    - EVSEs (ChargingStations) in error from previous push
-    //    - EVSEs (ChargingStations) with status notification from latest pushDate
-    if (processAllEVSEs) {
-      evseStatusesToProcess = evseStatuses;
-      chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
-    } else {
-      let chargeBoxIDsToProcess = [];
-      // Get ChargingStation in Failure from previous run
-      chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
-      // Get ChargingStation with new status notification
-      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
-      // Remove duplicates
-      chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
-      // Loop through EVSE statuses
-      for (const evseStatus of evseStatuses) {
-        if (evseStatus) {
-          // Check if Charging Station should be processed
-          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
-            continue;
+    let chargingStations: ChargingStation[];
+    let currentSkip = 0;
+    do {
+      // Get all charging stations from tenant
+      chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+        { public: true }, { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+      if (!Utils.isEmptyArray(chargingStations)) {
+        // Convert (public) charging stations to OICP EVSE Statuses
+        const evseStatuses = OICPUtils.convertChargingStationsToEvseStatuses(chargingStations, options);
+        let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
+        let chargeBoxIDsToProcessFromInput = [];
+        // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
+        //    - EVSEs (ChargingStations) in error from previous push
+        //    - EVSEs (ChargingStations) with status notification from latest pushDate
+        if (processAllEVSEs) {
+          evseStatusesToProcess = evseStatuses;
+          chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
+        } else {
+          let chargeBoxIDsToProcess = [];
+          // Get ChargingStation in Failure from previous run
+          chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+          // Get ChargingStation with new status notification
+          chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
+          // Remove duplicates
+          chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
+          // Loop through EVSE statuses
+          for (const evseStatus of evseStatuses) {
+            if (evseStatus) {
+              // Check if Charging Station should be processed
+              if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
+                continue;
+              }
+              // Process
+              evseStatusesToProcess.push(evseStatus);
+              chargeBoxIDsToProcessFromInput.push(evseStatus.ChargingStationID);
+            }
           }
-          // Process
-          evseStatusesToProcess.push(evseStatus);
-          chargeBoxIDsToProcessFromInput.push(evseStatus.ChargingStationID);
+        }
+        // Only one post request for multiple EVSE Statuses
+        result.total = evseStatusesToProcess.length;
+        if (evseStatusesToProcess) {
+          try {
+            await this.pushEvseStatus(evseStatusesToProcess, actionType);
+            result.success = result.total;
+          } catch (error) {
+            result.failure = result.total;
+            result.objectIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
+            result.logs.push(
+              `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
+            );
+          }
+          if (result.failure > 0) {
+            // Send notification to admins
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+              this.tenant.id,
+              {
+                evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
+              }
+            );
+          }
         }
       }
-    }
-    // Only one post request for multiple EVSE Statuses
-    result.total = evseStatusesToProcess.length;
-    if (evseStatusesToProcess) {
-      try {
-        await this.pushEvseStatus(evseStatusesToProcess, actionType);
-        result.success = result.total;
-      } catch (error) {
-        result.failure = result.total;
-        result.objectIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
-        result.logs.push(
-          `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
-        );
-      }
-      if (result.failure > 0) {
-        // Send notification to admins
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        NotificationHandler.sendOICPPatchChargingStationsStatusesError(
-          this.tenant.id,
-          {
-            evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
-          }
-        );
-      }
-    }
+      currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+    } while (!Utils.isEmptyArray(chargingStations));
     // Save result in oicp endpoint
     this.oicpEndpoint.lastPatchJobOn = startDate;
     // Set result
@@ -461,12 +464,6 @@ export default class CpoOICPClient extends OICPClient {
     return result;
   }
 
-  /**
-   * Update EVSE Status
-   *
-   * @param chargingStation
-   * @param connector
-   */
   public async updateEVSEStatus(chargingStation: ChargingStation, connector: Connector): Promise<OICPAcknowledgment> {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new BackendError({
@@ -498,17 +495,11 @@ export default class CpoOICPClient extends OICPClient {
       countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_STATUSES),
       partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_STATUSES)
     };
-    const evseStatus = OICPMapping.convertConnector2EvseStatus(this.tenant, chargingStation, connector, options);
+    const evseStatus = OICPUtils.convertConnector2EvseStatus(chargingStation, connector, options);
     const response = await this.pushEvseStatus([evseStatus], OICPActionType.UPDATE);
     return response;
   }
 
-  /**
-   * Push EVSE
-   *
-   * @param evses
-   * @param actionType
-   */
   public async pushEvseData(evses: OICPEvseDataRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let pushEvseDataResponse: OICPAcknowledgment;
@@ -563,12 +554,6 @@ export default class CpoOICPClient extends OICPClient {
     return pushEvseDataResponse;
   }
 
-  /**
-   * Push EVSE Status
-   *
-   * @param evseStatuses
-   * @param actionType
-   */
   public async pushEvseStatus(evseStatuses: OICPEvseStatusRecord[], actionType: OICPActionType): Promise<OICPAcknowledgment> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let pushEvseStatusResponse: OICPAcknowledgment;
@@ -624,12 +609,6 @@ export default class CpoOICPClient extends OICPClient {
     return pushEvseStatusResponse;
   }
 
-  /**
-   * ERoaming Authorize Start
-   *
-   * @param tagID
-   * @param transactionId
-   */
   public async authorizeStart(tagID: string, transactionId?: number): Promise<OICPAuthorizeStartCpoReceive> {
     this.axiosInstance.defaults.httpsAgent = await this.getHttpsAgent(ServerAction.OICP_CREATE_AXIOS_INSTANCE);
     let authorizeResponse: OICPAuthorizeStartCpoReceive;
@@ -708,11 +687,6 @@ export default class CpoOICPClient extends OICPClient {
     return authorizeResponse;
   }
 
-  /**
-   * ERoaming Authorize Stop
-   *
-   * @param transaction
-   */
   public async authorizeStop(transaction: Transaction): Promise<OICPAuthorizeStopCpoReceive> {
     const user = transaction.user;
     let authorizeResponse: OICPAuthorizeStopCpoReceive;
@@ -795,11 +769,6 @@ export default class CpoOICPClient extends OICPClient {
     return authorizeResponse;
   }
 
-  /**
-   * ERoaming Push Charge Detail Record
-   *
-   * @param transaction
-   */
   public async pushCdr(transaction: Transaction): Promise<OICPAcknowledgment> {
     let pushCdrResponse: OICPAcknowledgment;
     let requestError: any;
@@ -903,11 +872,6 @@ export default class CpoOICPClient extends OICPClient {
     return pushCdrResponse;
   }
 
-  /**
-   * Send Charging Notification Start
-   *
-   * @param transaction
-   */
   public async sendChargingNotificationStart(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationStartResponse: OICPAcknowledgment;
     let requestError: any;
@@ -982,11 +946,6 @@ export default class CpoOICPClient extends OICPClient {
     return notificationStartResponse;
   }
 
-  /**
-   * Send Charging Notification Progress
-   *
-   * @param transaction
-   */
   public async sendChargingNotificationProgress(transaction: Transaction): Promise<OICPAcknowledgment> {
     if (this.checkProgressUpdateInterval(transaction)) {
       let notificationProgressResponse: OICPAcknowledgment;
@@ -1067,11 +1026,6 @@ export default class CpoOICPClient extends OICPClient {
     }
   }
 
-  /**
-   * Send Charging Notification End
-   *
-   * @param transaction
-   */
   public async sendChargingNotificationEnd(transaction: Transaction): Promise<OICPAcknowledgment> {
     let notificationEndResponse: OICPAcknowledgment;
     let requestError: any;
@@ -1163,13 +1117,6 @@ export default class CpoOICPClient extends OICPClient {
     return notificationEndResponse;
   }
 
-  /**
-   * Send Charging Notification Error
-   *
-   * @param transaction
-   * @param error
-   * @param errorAdditionalInfo
-   */
   public async sendChargingNotificationError(transaction: Transaction, error: OICPErrorClass, errorAdditionalInfo?: string): Promise<OICPAcknowledgment> {
     let notificationErrorResponse: OICPAcknowledgment;
     let requestError: any;
@@ -1241,9 +1188,6 @@ export default class CpoOICPClient extends OICPClient {
     return notificationErrorResponse;
   }
 
-  /**
-   * Ping OICP Endpoint
-   */
   public async ping(): Promise<any> {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
@@ -1267,9 +1211,6 @@ export default class CpoOICPClient extends OICPClient {
     return pingResult;
   }
 
-  /**
-   * POST to EVSE Endpoint without EVSEs
-   */
   private async pingEvseEndpoint(): Promise<any> {
     await Logging.logInfo({
       tenantID: this.tenant.id,
@@ -1281,7 +1222,6 @@ export default class CpoOICPClient extends OICPClient {
     return response;
   }
 
-  // Get ChargeBoxIDs in failure from previous job
   private getChargeBoxIDsInFailure(): string[] {
     if (this.oicpEndpoint.lastPatchJobResult && this.oicpEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
       return this.oicpEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
@@ -1303,7 +1243,6 @@ export default class CpoOICPClient extends OICPClient {
     return false;
   }
 
-  // Get ChargeBoxIds with new status notifications
   private async getChargeBoxIDsWithNewStatusNotifications(): Promise<string[]> {
     // Get last job
     const lastPatchJobOn = this.oicpEndpoint.lastPatchJobOn ? this.oicpEndpoint.lastPatchJobOn : new Date();

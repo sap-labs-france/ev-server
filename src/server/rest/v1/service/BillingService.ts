@@ -20,6 +20,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
@@ -40,7 +41,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -83,7 +84,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USERS, Entity.USERS, MODULE_NAME, 'handleSynchronizeUsers');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -136,7 +137,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUser');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -189,7 +190,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USER, Entity.USER, MODULE_NAME, 'handleForceSynchronizeUser');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -240,7 +241,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
     // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -355,7 +356,7 @@ export default class BillingService {
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -407,7 +408,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -470,7 +471,7 @@ export default class BillingService {
     // }
     // const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
     // // Get Billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     // if (!billingImpl) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
@@ -528,7 +529,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -568,7 +569,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -608,7 +609,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -657,7 +658,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -709,7 +710,7 @@ export default class BillingService {
     // //   });
     // // }
     // // Get the billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     // if (!billingImpl) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
@@ -741,17 +742,26 @@ export default class BillingService {
     // How to check it - no JWT!
     // Retrieve Tenant ID from the URL Query Parameters
     if (!filteredRequest.tenantID) {
-
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unexpected situation - TenantID is not set',
         module: MODULE_NAME, method: 'handleBillingWebHook',
         action: action,
-        // User: req.user
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(filteredRequest.tenantID);
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
+    if (!tenant) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        action: action,
+        module: MODULE_NAME, method: 'handleBillingWebHook',
+        message: `Tenant ID '${filteredRequest.tenantID}' does not exist!`
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -759,7 +769,6 @@ export default class BillingService {
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingWebHook',
         action: action,
-        // User: req.user
       });
     }
     // STRIPE expects a fast response - make sure to postpone time consuming operations when handling these events
@@ -883,7 +892,7 @@ export default class BillingService {
   }
 
   private static async checkActivationPrerequisites(action: ServerAction, req: Request) : Promise<void> {
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

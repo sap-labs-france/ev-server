@@ -69,7 +69,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -151,7 +151,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -262,7 +262,7 @@ export default class UserService {
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
         if (!billingImpl) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -333,7 +333,7 @@ export default class UserService {
     }
     // Delete billing user
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       try {
         await billingImpl.deleteUser(user);
       } catch (error) {
@@ -459,7 +459,7 @@ export default class UserService {
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           await billingImpl.synchronizeUser(user);
@@ -589,7 +589,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.ID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -620,7 +620,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -668,7 +668,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.UserID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1025,7 +1025,7 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user)) {
       // For integration with billing
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);

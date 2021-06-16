@@ -47,8 +47,8 @@ export default class BillingContext {
       return;
     }
     await this.saveBillingSettings(BillingContext.getUnitTestBillingSettings());
-    const tenantID = this.tenantContext.getTenant().id;
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
+    const tenant = this.tenantContext.getTenant();
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

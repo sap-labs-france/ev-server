@@ -53,6 +53,8 @@ export default class AssetStorage {
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
       assetType: assetToSave.assetType,
       excludeFromSmartCharging: Utils.convertToBoolean(assetToSave.excludeFromSmartCharging),
+      variationThresholdPercent: Utils.convertToFloat(assetToSave.variationThresholdPercent),
+      powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
       fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
       dynamicAsset: assetToSave.dynamicAsset,
@@ -221,7 +223,7 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[] } = {},
+      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean  } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');
@@ -245,6 +247,9 @@ export default class AssetStorage {
     }
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = { $in: params.siteIDs.map((id) => Utils.convertToObjectID(id)) };
+    }
+    if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
+      filters.issuer = params.issuer;
     }
     // Create Aggregation
     const aggregation = [];
