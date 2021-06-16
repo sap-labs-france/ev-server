@@ -63,22 +63,30 @@ export default class StripeIntegrationTestData {
     this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
   }
 
-  public async forceBillingSettings(immediateBilling: boolean, forceUser = true): Promise<void> {
+  public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
     // The tests requires some settings to be forced
-    this.billingImpl = await this.setBillingSystemValidCredentials(immediateBilling);
-    if (forceUser) {
-      this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
-      if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-        this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
-      }
-      assert(this.billingUser, 'Billing user should not be null');
+    await this.setBillingSystemValidCredentials(immediateBilling);
+    this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
+    if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
+      this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
     }
+    assert(this.billingUser, 'Billing user should not be null');
   }
 
-  public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<StripeBillingIntegration> {
+  public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<void> {
     const billingSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
     billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
+    this.billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
+    assert(this.billingImpl, 'Billing implementation should not be null');
+  }
+
+  public async fakeLiveBillingSettings() : Promise<StripeBillingIntegration> {
+    const billingSettings = this.getLocalSettings(true);
+    const mode = 'live';
+    billingSettings.stripe.secretKey = `sk_${mode}_0234567890`;
+    billingSettings.stripe.publicKey = `pk_${mode}_0234567890`;
+    await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
@@ -368,22 +376,26 @@ export default class StripeIntegrationTestData {
     expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);
   }
 
-  public async checkTestDataCleanup(): Promise<void> {
+  public async checkTestDataCleanup(successExpected: boolean): Promise<void> {
     // await this.billingImpl.clearTestData();
     const response = await this.adminUserService.billingApi.clearBillingTestData();
-    // Check the response
-    expect(response?.data?.succeeded).to.be.eq(true);
-    expect(response?.data?.internalData).not.to.be.null;
-    // Check the new billing settings
-    const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
-    expect(newSettings.billing.isTransactionBillingActivated).to.be.false;
-    expect(newSettings.billing.taxID).to.be.null;
-    expect(newSettings.stripe.url).to.be.null;
-    expect(newSettings.stripe.publicKey).to.be.null;
-    expect(newSettings.stripe.secretKey).to.be.null;
-    // Check the invoices
-    await this.checkNoInvoices();
-    // Check the users
-    await this.checkNoUsersWithTestData();
+    if (successExpected) {
+      // Check the response
+      expect(response?.data?.succeeded).to.be.eq(true);
+      expect(response?.data?.internalData).not.to.be.null;
+      // Check the new billing settings
+      const newSettings: BillingSettings = response?.data?.internalData as BillingSettings;
+      expect(newSettings.billing.isTransactionBillingActivated).to.be.false;
+      expect(newSettings.billing.taxID).to.be.null;
+      expect(newSettings.stripe.url).to.be.null;
+      expect(newSettings.stripe.publicKey).to.be.null;
+      expect(newSettings.stripe.secretKey).to.be.null;
+      // Check the invoices
+      await this.checkNoInvoices();
+      // Check the users
+      await this.checkNoUsersWithTestData();
+    } else {
+      expect(response?.data?.succeeded).to.be.eq(false);
+    }
   }
 }
