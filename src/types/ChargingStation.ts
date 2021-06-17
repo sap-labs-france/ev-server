@@ -312,6 +312,7 @@ export enum ChargerVendor {
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
+  DELTA_ELECTRONICS = 'Delta Electronics',
   DELTA = 'DELTA',
   ABB = 'ABB',
   LEGRAND = 'Legrand',
@@ -320,4 +321,6 @@ export enum ChargerVendor {
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
+  JOINON = 'JOINON',
+  LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES'
 }
