@@ -340,7 +340,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     }
     // Get the corresponding BillingInvoice (if any)
-    const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenant.id, stripeInvoice.id);
+    const billingInvoice: BillingInvoice = await BillingStorage.getInvoiceByInvoiceID(this.tenant, stripeInvoice.id);
     const invoiceToSave: BillingInvoice = {
       id: billingInvoice?.id, // ACHTUNG: billingInvoice is null when creating the Billing Invoice
       // eslint-disable-next-line id-blacklist
@@ -348,9 +348,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
       status: status as BillingInvoiceStatus, payInvoiceUrl,
     };
     // Let's persist the up-to-date data
-    const freshInvoiceId = await BillingStorage.saveInvoice(this.tenant.id, invoiceToSave);
+    const freshInvoiceId = await BillingStorage.saveInvoice(this.tenant, invoiceToSave);
     // TODO - perf improvement? - can't we just reuse
-    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant.id, freshInvoiceId);
+    const freshBillingInvoice = await BillingStorage.getInvoice(this.tenant, freshInvoiceId);
     return freshBillingInvoice;
   }
 

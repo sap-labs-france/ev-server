@@ -334,7 +334,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
-    const invoices = await BillingStorage.getInvoices(req.user.tenantID,
+    const invoices = await BillingStorage.getInvoices(req.tenant,
       {
         userIDs: !Authorizations.isAdmin(req.user) ? [req.user.id] : (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
@@ -370,7 +370,7 @@ export default class BillingService {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Get invoice
-    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID,
+    const invoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID,
       [
         'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
@@ -700,7 +700,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
     // Get the Invoice
-    const billingInvoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID);
+    const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth
