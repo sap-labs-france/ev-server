@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
-import { Car, CarType } from '../../../../types/Car';
+import { Car, CarCatalog, CarType } from '../../../../types/Car';
 import ChargingStation, { ChargePoint, Voltage } from '../../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -11,6 +11,7 @@ import Asset from '../../../../types/Asset';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import CarStorage from '../../../../storage/mongodb/CarStorage';
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Company from '../../../../types/Company';
@@ -527,6 +528,88 @@ export default class UtilsService {
       });
     }
     return siteArea;
+  }
+
+  public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<Car> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilters(
+      tenant, userToken, { ID: carID }, Action.READ);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'checkAndGetCarAuthorization',
+        value: carID
+      });
+    }
+    // Check User
+    let userProject: string[] = [];
+    if (await Authorizations.canReadUser(userToken)) {
+      userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
+        'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
+      ];
+      authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
+    }
+    // Get Car
+    const car = await CarStorage.getCar(userToken.tenantID, carID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check it exists
+    UtilsService.assertObjectExists(action, car, `Car ID '${carID}' does not exist`,
+      MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
+    // Add Actions
+    await AuthorizationService.addCarAuthorizations(tenant, userToken, car, authorizationFilter, { ID: carID });
+    // Check
+    const authorized = AuthorizationService.canPerformAction(car, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.CAR,
+        module: MODULE_NAME, method: 'checkAndGetCarAuthorization',
+        value: carID
+      });
+    }
+    // Return
+    return car;
+  }
+
+  public static async checkAndGetCarCatalogAuthorization(tenant: Tenant, userToken: UserToken, carCatalogID: number, authAction: Action,
+      action: ServerAction, additionalFilters: Record<string, any>, applyProjectFields = false): Promise<CarCatalog> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, carCatalogID, MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizationFilters(
+      tenant, userToken, { ID: carCatalogID }, Action.READ);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.READ, entity: Entity.CAR_CATALOG,
+        module: MODULE_NAME, method: 'checkAndGetCarCatalogAuthorization',
+        value: carCatalogID.toString()
+      });
+    }
+    // Get the car
+    const carCatalog = await CarStorage.getCarCatalog(carCatalogID, {
+      ...additionalFilters,
+      ...authorizationFilter.filters
+    },
+    applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    // Check it exists
+    UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
+      MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Return
+    return carCatalog;
   }
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,

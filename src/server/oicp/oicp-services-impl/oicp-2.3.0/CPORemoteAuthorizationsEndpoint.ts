@@ -1,7 +1,7 @@
 // Hubject lets you provide the endpoint in the HBS portal.
 // Endpoint for eRoamingAuthorizeRemoteStart and eRoamingAuthorizeRemoteStop from the eMSP
 
-import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
+import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandResult } from '../../../../types/ocpp/OCPPClient';
 import { OICPAuthorizeRemoteStartCpoReceive, OICPAuthorizeRemoteStopCpoReceive } from '../../../../types/oicp/OICPAuthorize';
@@ -86,7 +86,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       });
       return OICPUtils.noSuccess(session, `EVSE '${authorizeRemoteStart.EvseID}' cannot be used with OICP`);
     }
-    if (!(connector.status === ChargePointStatus.AVAILABLE || connector.status === ChargePointStatus.PREPARING)) {
+    if (connector.status !== ChargePointStatus.AVAILABLE && connector.status !== ChargePointStatus.PREPARING) {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
@@ -99,7 +99,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       chargingStation.remoteAuthorizations = [];
     }
     // Check if there is already a authorization for this charging station
-    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+    const existingAuthorization = chargingStation.remoteAuthorizations.find(
       (authorization) => authorization.connectorId === connector.connectorId);
     if (existingAuthorization) {
       // Check if authorization is from same user or different user
@@ -200,7 +200,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
 
   private async remoteStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
       connector: Connector, authorizeRemoteStart: OICPAuthorizeRemoteStartCpoReceive): Promise<OCPPRemoteStartTransactionCommandResult> {
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -219,7 +219,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
   }
 
   private async remoteStopTransaction(tenant: Tenant, chargingStation: ChargingStation, transactionId: number): Promise<OCPPRemoteStopTransactionCommandResult> {
-    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant.id, chargingStation);
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenant, chargingStation);
     if (!chargingStationClient) {
       await Logging.logError({
         tenantID: tenant.id,

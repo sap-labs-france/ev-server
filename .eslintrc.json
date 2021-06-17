@@ -6,19 +6,20 @@
   },
   "plugins": [
     "eslint-plugin-import",
-    "eslint-plugin-jsdoc",
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "eslint-plugin-jsdoc"
   ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:jsdoc/recommended",
     "plugin:import/errors",
+    "plugin:jsdoc/recommended",
     "plugin:import/warnings",
     "plugin:import/typescript"
   ],
   "rules": {
+    "jsdoc/require-jsdoc": "off",
     "indent": "off",
     "@typescript-eslint/indent": [
       "error",

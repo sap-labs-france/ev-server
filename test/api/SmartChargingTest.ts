@@ -54,14 +54,14 @@ class TestData {
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
-    smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     sapSmartChargingSettings.limitBufferDC = 10,
     sapSmartChargingSettings.limitBufferAC = 5,
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    smartChargingIntegrationWithDifferentBufferValues = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegrationWithDifferentBufferValues = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     sapSmartChargingSettings.stickyLimitation = false;
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     expect(smartChargingIntegration).to.not.be.null;
     expect(smartChargingIntegrationWithDifferentBufferValues).to.not.be.null;
     expect(smartChargingIntegrationWithoutStickyLimit).to.not.be.null;

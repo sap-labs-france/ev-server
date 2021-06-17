@@ -15,7 +15,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
     const billingLock = await LockingHelper.createBillingSyncUsersLock(tenant.id);
     if (billingLock) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
           const synchronizeAction = await billingImpl.synchronizeUsers();
           if (synchronizeAction.inError > 0) {

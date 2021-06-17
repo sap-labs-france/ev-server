@@ -15,7 +15,7 @@ export default class SynchronizeBillingInvoicesTask extends SchedulerTask {
     const billingLock = await LockingHelper.createBillingSyncInvoicesLock(tenant.id);
     if (billingLock) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
         if (billingImpl) {
           // Synchronize new Invoices and Invoices changes
           const synchronizeActionResults = await billingImpl.synchronizeInvoices();

@@ -5,18 +5,12 @@ import OICPServiceConfiguration from '../../types/configuration/OICPServiceConfi
 export default class OICPServices {
 
   private cpoServices: AbstractOICPService[] = [];
-  // TODO: EMSP
-  // private emspServices: AbstractOICPService[] = [];
-
-  // Create OICP Service
   constructor(oicpRestConfig: OICPServiceConfiguration) {
     // Add available OICP services
-    // version 2.3.0
+    // Version 2.3.0
     this.cpoServices.push(new CPOService(oicpRestConfig));
-    // This.emspServices.push(new EMSPService(oicpRestConfig));
   }
 
-  // Return all OICP Service Implementation
   public getOICPServiceImplementations(): AbstractOICPService[] {
     return this.cpoServices; // .concat(this.emspServices);
   }

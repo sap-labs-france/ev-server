@@ -5,7 +5,6 @@ import AtessChargingStationVendorIntegration from './atess/AtessChargingStationV
 import CIRCONTROLChargingStationVendorIntegration from './circontrol/CIRCONTROLChargingStationVendorIntegration';
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DBTCEVChargingStationVendorIntegration from './dbtcev/DBTCEVChargingStationVendorIntegration';
-import DefaultChargingStationVendorIntegration from './default/DefaultChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import EVBOXChargingStationVendorIntegration from './evbox/EVBOXChargingStationVendorIntegration';
 import EVMeterChargingStationVendorIntegration from './evmeter/EVMeterChargingStationVendorIntegration';
@@ -83,10 +82,6 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.CIRCONTROL:
         chargingStationVendorImpl = new CIRCONTROLChargingStationVendorIntegration(chargingStation);
         break;
-      // FIXME: adding a default vendor class to only require a vendor class when existing methods need more adaptation to work
-      // default:
-      //   chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
-      //   break;
     }
     return chargingStationVendorImpl;
   }

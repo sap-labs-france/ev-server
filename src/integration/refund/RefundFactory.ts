@@ -8,24 +8,21 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'RefundFactory';
 
 export default class RefundFactory {
-  static async getRefundImpl(tenantID: string): Promise<RefundIntegration<RefundSetting>> {
-    // Get the tenant
-    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+  static async getRefundImpl(tenant: Tenant): Promise<RefundIntegration<RefundSetting>> {
     // Check if refund component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
-      const setting = await SettingStorage.getRefundSettings(tenantID);
+      const setting = await SettingStorage.getRefundSettings(tenant.id);
       // Check
       if (setting) {
         let refundIntegrationImpl = null;
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[RefundSettingsType.CONCUR]);
+            refundIntegrationImpl = new ConcurRefundIntegration(tenant, setting[RefundSettingsType.CONCUR]);
             break;
         }
         // Check if missing implementation
@@ -35,7 +32,7 @@ export default class RefundFactory {
         // Return the Refund implementation
         return refundIntegrationImpl;
       }
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.REFUND,
         module: MODULE_NAME,
