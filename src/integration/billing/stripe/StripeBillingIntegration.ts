@@ -17,6 +17,7 @@ import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
@@ -107,6 +108,43 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
+  }
+
+  public async checkTestDataCleanupPrerequisites(): Promise<void> {
+    // Make sure the STRIPE account is not live
+    let secretKey: string, publicKey: string;
+    try {
+      secretKey = await Cypher.decrypt(this.tenant.id, this.settings.stripe.secretKey);
+      publicKey = this.settings.stripe.publicKey;
+    } catch (error) {
+      // Ignore error
+    }
+    if (secretKey?.startsWith('sk_live_') || publicKey?.startsWith('pk_live_')) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'checkTestDataCleanupPrerequisites',
+        action: ServerAction.BILLING_TEST_DATA_CLEANUP,
+        message: 'Stripe Account is live - Test data cleanup has been aborted'
+      });
+    }
+  }
+
+  public async resetConnectionSettings(): Promise<BillingSettings> {
+    // Reset connection settings
+    const newBillingsSettings = this.settings;
+    newBillingsSettings.billing = {
+      isTransactionBillingActivated: false,
+      immediateBillingAllowed: false,
+      periodicBillingAllowed: false,
+      taxID: null
+    };
+    newBillingsSettings.stripe = {
+      url: null,
+      secretKey: null,
+      publicKey: null
+    };
+    await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
+    return newBillingsSettings;
   }
 
   public async getUsers(): Promise<BillingUser[]> {

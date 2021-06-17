@@ -371,7 +371,7 @@ export default abstract class BillingIntegration {
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public async clearTestData(): Promise<void> {
-    await this.checkConnection();
+    // await this.checkConnection(); - stripe connection is useless to cleanup test data
     await Logging.logInfo({
       tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
@@ -567,6 +567,10 @@ export default abstract class BillingIntegration {
   abstract checkConnection(): Promise<void>;
 
   abstract checkActivationPrerequisites(): Promise<void>;
+
+  abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+
+  abstract resetConnectionSettings() : Promise<BillingSettings>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
