@@ -142,11 +142,11 @@
     },
     "billingNewInvoicePaid": {
       "title": "Neue beglichene Rechnung",
-      "body": "Ihre Rechnung ({{invoiceNumber}}) in Höhe von {{amount}}€ wurde beglichen und ist nun verfügbar"
+      "body": "Ihre Rechnung ({{invoiceNumber}}) in Höhe von {{amount}} wurde beglichen und ist nun verfügbar"
     },
     "billingNewInvoiceOpen": {
       "title": "Neue offene Rechnung",
-      "body": "Eine neue Rechnung ({{invoiceNumber}}) in Höhe von {{amount}}€ ist jetzt verfügbar. Bitte prüfen Sie die E-Mail, um die Zahlung abzuschließen"
+      "body": "Eine neue Rechnung ({{invoiceNumber}}) in Höhe von {{amount}} ist jetzt verfügbar. Bitte prüfen Sie die E-Mail, um die Zahlung abzuschließen"
     },
     "endUserErrorNotification": {
       "title": "Ein Nutzer hat einen Fehler gemeldet",

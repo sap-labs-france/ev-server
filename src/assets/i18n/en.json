@@ -142,11 +142,11 @@
     },
     "billingNewInvoicePaid": {
       "title": "New invoice paid",
-      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}}€ has been paid and is now available"
+      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}} has been paid and is now available"
     },
     "billingNewInvoiceOpen": {
       "title": "New invoice to pay",
-      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}}€ is now available. Please check your email to finalize the payment"
+      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}} is now available. Please check your email to finalize the payment"
     },
     "endUserErrorNotification": {
       "title": "A User Reported an Error",

@@ -22,7 +22,7 @@
       "<% if(invoiceStatus === 'paid'){ %> Votre facture <%- invoiceNumber %> a été payée et est maintenant disponible. <% } else { %> Une nouvelle facture est disponible : <%- invoiceNumber %>. <br/><br/> Cliquez sur le lien ci-dessous pour finaliser le paiement. <% } %>"
     ],
     "stats": [
-      { "label": "Coût", "value": "<%- invoiceAmount %>€" }
+      { "label": "Montant <% if(invoiceStatus === 'paid'){ %> payé <% } else { %> dû <% } %>", "value": "<%- invoiceAmount %>" }
     ],
     "actions": [{
       "title": "Consulter",

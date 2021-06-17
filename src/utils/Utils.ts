@@ -353,6 +353,10 @@ export default class Utils {
     return Constants.DEFAULT_LOCALE;
   }
 
+  public static convertLocaleForCurrency(locale: string): string {
+    return locale.replace('_', '-');
+  }
+
   public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
     switch (limitSource) {
       case ConnectorCurrentLimitSource.CHARGING_PROFILE:
