@@ -21,16 +21,26 @@ describe('Billing Test Data Cleanup', function() {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
       await testData.initialize();
-      await testData.forceBillingSettings(true);
     });
 
-    after(async () => {
-      // Cleanup of the utbilling tenant is useless
-      // Anyway, there is no way to cleanup the utbilling stripe account!
+    describe('with a STRIPE live account (a fake one!)', () => {
+      before(async () => {
+        await testData.fakeLiveBillingSettings();
+      });
+
+      it('should NOT cleanup all billing test data', async () => {
+        await testData.checkTestDataCleanup(false);
+      });
     });
 
-    it('should cleanup all billing test data', async () => {
-      await testData.checkTestDataCleanup();
+    describe('with a STRIPE test account', () => {
+      before(async () => {
+        await testData.setBillingSystemValidCredentials(true);
+      });
+
+      it('should cleanup all billing test data', async () => {
+        await testData.checkTestDataCleanup(true);
+      });
     });
   });
 

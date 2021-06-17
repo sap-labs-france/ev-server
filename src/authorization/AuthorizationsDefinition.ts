@@ -158,7 +158,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE], attributes: ['*'] },
-      { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION] },
+      { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
       // ---------------------------------------------------------------------------------------------------
       // TODO - no use-case so far - clarify whether a SYNC INVOICES and CREATE INVOICE makes sense or not!

@@ -188,7 +188,7 @@ export default abstract class BillingIntegration {
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const invoices = await BillingStorage.getInvoices(this.tenant.id, filter, { sort, limit, skip });
+      const invoices = await BillingStorage.getInvoices(this.tenant, filter, { sort, limit, skip });
       if (Utils.isEmptyArray(invoices.result)) {
         break;
       }
@@ -389,7 +389,7 @@ export default abstract class BillingIntegration {
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public async clearTestData(): Promise<void> {
-    await this.checkConnection();
+    // await this.checkConnection(); - stripe connection is useless to cleanup test data
     await Logging.logInfo({
       tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
@@ -416,7 +416,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _clearAllInvoiceTestData(): Promise<void> {
-    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant.id, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
@@ -454,7 +454,7 @@ export default abstract class BillingIntegration {
       });
     }
     await this._clearTransactionsTestData(billingInvoice);
-    await BillingStorage.deleteInvoice(this.tenant.id, billingInvoice.id);
+    await BillingStorage.deleteInvoice(this.tenant, billingInvoice.id);
   }
 
   private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
@@ -585,6 +585,10 @@ export default abstract class BillingIntegration {
   abstract checkConnection(): Promise<void>;
 
   abstract checkActivationPrerequisites(): Promise<void>;
+
+  abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+
+  abstract resetConnectionSettings() : Promise<BillingSettings>;
 
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 

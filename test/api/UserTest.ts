@@ -2,6 +2,7 @@ import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
@@ -238,6 +239,23 @@ describe('User tests', function() {
           expect(updatedUser.name).to.equal(testData.newUser.name);
         });
 
+        it('Should update user\'s mobile token', async () => {
+          const response = await testData.userService.userApi.updateMobileToken(
+            testData.newUser.id,
+            'new_mobile_token',
+            'mobile_os'
+          );
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data).to.be.deep.eq(Constants.REST_RESPONSE_SUCCESS);
+        });
+
+        it('Should get user image', async () => {
+          const response = await testData.userService.userApi.getImage(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.id).to.be.eq(testData.newUser.id);
+          expect(response.data.image).to.be.null; // New users have a null image
+        });
+
         it('Should be able to delete the created user', async () => {
           // Delete the created entity
           await testData.userService.deleteEntity(
@@ -253,7 +271,6 @@ describe('User tests', function() {
             testData.newUser
           );
         });
-
       });
       describe('Using function "readAllInError"', () => {
 
