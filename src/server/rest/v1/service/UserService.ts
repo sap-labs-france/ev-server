@@ -119,6 +119,14 @@ export default class UserService {
           status = await billingImpl.precheckStartTransactionPrerequisites(user);
         }
       } catch (error) {
+        await Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleGetUserDefaultTagCar',
+          action: action,
+          message: `Start Transaction checks failed for ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
         status = StartTransactionCheck.BILLING_INCONSISTENT_SETTINGS;
       }
     }

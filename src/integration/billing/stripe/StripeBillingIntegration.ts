@@ -1444,32 +1444,61 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionCheck> {
-    let precheckStatus = StartTransactionCheck.OK;
-    if (this.settings.billing.isTransactionBillingActivated && !this.isUserInternal(user)) {
-      // Check billing prerequisites
+    // Check billing prerequisites
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      // Nothing to check - billing of transaction is not yet ON
+      return StartTransactionCheck.OK;
+    }
+    if (this.isUserInternal(user)) {
+      // Nothing to check - we do not bill internal user's transactions
+      return StartTransactionCheck.OK;
+    }
+    // Make sure the STRIPE connection is ok
+    try {
+      await this.checkConnection();
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Stripe Prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      return StartTransactionCheck.BILLING_NO_SETTINGS;
+    }
+    // Check that all settings that are necessary to bill a transaction are properly set
+    try {
+      await this.checkActivationPrerequisites(); // Makes sure the taxID is still valid
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Billing setting prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      return StartTransactionCheck.BILLING_NO_TAX;
+    }
+    // Check user prerequisites
+    const customerID: string = user?.billingData?.customerID;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
       try {
-        // Make sure the STRIPE connection is ok
-        await this.checkConnection();
-        // Make sure the taxID is still valid
-        await this.checkActivationPrerequisites();
+        // Check whether the customer exists or not
+        const customer = await this.checkStripeCustomer(customerID);
+        // Check whether the customer has a default payment method
+        this.checkStripePaymentMethod(customer);
       } catch (error) {
-        precheckStatus = StartTransactionCheck.BILLING_NO_SETTINGS;
-      }
-      if (precheckStatus === StartTransactionCheck.OK) {
-        // Check user prerequisites
-        const customerID: string = user?.billingData?.customerID;
-        if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
-          try {
-            // Check whether the customer exists or not
-            const customer = await this.checkStripeCustomer(customerID);
-            // Check whether the customer has a default payment method
-            this.checkStripePaymentMethod(customer);
-          } catch (error) {
-            precheckStatus = StartTransactionCheck.BILLING_NO_PAYMENT_METHOD;
-          }
-        }
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+          message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        return StartTransactionCheck.BILLING_NO_PAYMENT_METHOD;
       }
     }
-    return precheckStatus;
+    // Everything is fine!
+    return StartTransactionCheck.OK;
   }
 }
