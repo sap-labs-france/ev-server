@@ -147,29 +147,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return newBillingsSettings;
   }
 
-  public async getUsers(): Promise<BillingUser[]> {
-    const users = [];
-    let request;
-    const requestParams: Stripe.CustomerListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST };
-    // Check Stripe
-    await this.checkConnection();
-    do {
-      request = await this.stripe.customers.list(requestParams);
-      for (const customer of request.data) {
-        users.push({
-          email: customer.email,
-          billingData: {
-            customerID: customer.id
-          }
-        });
-      }
-      if (request.has_more) {
-        requestParams.starting_after = users[users.length - 1].billingData.customerID;
-      }
-    } while (request.has_more);
-    return users;
-  }
-
   private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
     if (!user) {
       throw new Error('Unexpected situation - user cannot be null');
@@ -552,18 +529,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
-    if (!customerID) {
-      // TODO: For now, we do not complain when the user is not in sync! Just return an empty list instead
-      return [];
-      // throw new BackendError({
-      //   message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
-      //   source: Constants.CENTRAL_SERVER,
-      //   module: MODULE_NAME,
-      //   method: 'getPaymentMethods',
-      //   action: ServerAction.BILLING_TRANSACTION
-      // });
-    }
-    // Let's do it!
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
     return paymentMethods;
   }
@@ -678,35 +643,37 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async _getPaymentMethods(user: User, customerID: string): Promise<BillingPaymentMethod[]> {
     const paymentMethods: BillingPaymentMethod[] = [];
     try {
-      let request;
-      const requestParams : Stripe.PaymentMethodListParams = {
-        limit: StripeBillingIntegration.STRIPE_MAX_LIST,
-        customer: customerID,
-        type: 'card',
-      };
       const customer = await this.getStripeCustomer(customerID);
-      do {
-        request = await this.stripe.paymentMethods.list(requestParams);
-        for (const paymentMethod of request.data) {
-          paymentMethods.push({
-            id: paymentMethod.id,
-            brand: paymentMethod.card.brand,
-            expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
-            last4: paymentMethod.card.last4,
-            type: paymentMethod.type,
-            createdOn: moment.unix(paymentMethod.created).toDate(),
-            isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
-          });
-        }
-        if (request.has_more) {
-          requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
-        }
-      } while (request.has_more);
+      if (customer) {
+        let response: Stripe.ApiList<Stripe.PaymentMethod>;
+        const requestParams : Stripe.PaymentMethodListParams = {
+          limit: StripeBillingIntegration.STRIPE_MAX_LIST,
+          customer: customerID,
+          type: 'card',
+        };
+        do {
+          response = await this.stripe.paymentMethods.list(requestParams);
+          for (const paymentMethod of response.data) {
+            paymentMethods.push({
+              id: paymentMethod.id,
+              brand: paymentMethod.card.brand,
+              expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
+              last4: paymentMethod.card.last4,
+              type: paymentMethod.type,
+              createdOn: moment.unix(paymentMethod.created).toDate(),
+              isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
+            });
+          }
+          if (response.has_more) {
+            requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
+          }
+        } while (response.has_more);
+      }
     } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        action: ServerAction.BILLING_PAYMENT_METHODS,
         actionOnUser: user,
         module: MODULE_NAME, method: '_getPaymentMethods',
         message: 'Failed to retrieve payment methods',
