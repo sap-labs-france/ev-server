@@ -24,7 +24,7 @@ export default class UserRouter {
     this.buildRouteUserSiteUnassign();
     this.buildRouteUserUpdateMobileToken();
     this.buildRouteUserGetImage();
-    this.buildRouteUserInError();
+    this.buildRouteUsersInError();
     this.buildRouteUserImport();
     this.buildRouteUserExport();
     return this.router;
@@ -103,7 +103,7 @@ export default class UserRouter {
     });
   }
 
-  protected buildRouteUserInError(): void {
+  protected buildRouteUsersInError(): void {
     this.router.get(`/${ServerRoute.REST_USERS_IN_ERROR}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(UserService.handleGetUsersInError.bind(this), ServerAction.USERS_IN_ERROR, req, res, next);
     });

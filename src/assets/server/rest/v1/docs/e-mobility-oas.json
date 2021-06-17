@@ -4608,7 +4608,7 @@
             "description": "Users exported successfully",
             "content": {
               "text/csv": {
-                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"60828e80cbb186935c6fbfd3\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.deeeeeemo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
+                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.demo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
               }
             }
           },
@@ -6225,7 +6225,7 @@
       "UserStatuses": {
         "in": "query",
         "name": "Status",
-        "description": "Pipe separated status attributes (P, A, I, B, L)",
+        "description": "Pipe separated statuses (P, A, I, B, L)",
         "schema": {
           "type": "string"
         }
