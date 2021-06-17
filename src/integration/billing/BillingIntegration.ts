@@ -1,5 +1,6 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
+import Transaction, { StartTransactionCheck } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -14,7 +15,6 @@ import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
@@ -23,7 +23,6 @@ import moment from 'moment';
 const MODULE_NAME = 'BillingIntegration';
 
 export default abstract class BillingIntegration {
-
   // Production Mode is set to true when the target account is a live one!
   protected productionMode = false;
 
@@ -615,4 +614,6 @@ export default abstract class BillingIntegration {
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+
+  abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionCheck>;
 }

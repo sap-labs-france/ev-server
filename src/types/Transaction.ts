@@ -32,6 +32,13 @@ export enum TransactionAction {
   END = 'end'
 }
 
+export enum StartTransactionCheck {
+  OK = 'ok',
+  BILLING_NO_PAYMENT_METHOD = 'no_payment_method', // start transaction is not possible - user has no payment method
+  BILLING_NO_SETTINGS = 'billing_no_settings', // start transaction not possible - billing settings are not set (or partially set)
+  BILLING_INCONSISTENT_SETTINGS = 'billing_inconsistent_settings', // start transaction not possible - billing settings are inconsistent
+}
+
 export default interface Transaction extends AbstractCurrentConsumption {
   id?: number;
   carID?: string;
