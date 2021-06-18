@@ -255,18 +255,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   basic: {
     grants: [
       {
-        resource: Entity.USERS, action: Action.LIST,
-        attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
-          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
-          'billingData.customerID', 'billingData.lastChangedOn'
-        ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
-        },
-      },
-      {
         resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
@@ -631,6 +619,18 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       'basic': {}
     },
     grants: [
+      {
+        resource: Entity.USERS, action: Action.LIST,
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+        },
+      },
       {
         resource: Entity.USER, action: [Action.READ], attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
