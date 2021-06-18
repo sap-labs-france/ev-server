@@ -3,6 +3,7 @@ import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/Char
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPAttribute, OCPPAuthorizeRequestExtended, OCPPMeasurand, OCPPMeterValue, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
+import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
 import Transaction, { InactivityStatus, TransactionAction, TransactionStop } from '../../../types/Transaction';
 
 import { ActionsResponse } from '../../../types/GlobalType';
@@ -112,12 +113,12 @@ export default class OCPPUtils {
         message: `OICP component requires at least one CPO endpoint to ${transactionAction} a Session`
       });
     }
-    let authorization;
+    let authorization: { sessionId: OICPSessionID; identification: OICPIdentification; };
     switch (transactionAction) {
       case TransactionAction.START:
         // Retrieve session Id and identification from (remote) authorization
         authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
-          tenant.id, chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
+          chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
         if (!authorization) {
           authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
         }

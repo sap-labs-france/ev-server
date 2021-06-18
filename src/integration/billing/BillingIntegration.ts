@@ -7,6 +7,7 @@ import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
+import Decimal from 'decimal.js';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -187,7 +188,7 @@ export default abstract class BillingIntegration {
     let skip = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const invoices = await BillingStorage.getInvoices(this.tenant.id, filter, { sort, limit, skip });
+      const invoices = await BillingStorage.getInvoices(this.tenant, filter, { sort, limit, skip });
       if (Utils.isEmptyArray(invoices.result)) {
         break;
       }
@@ -238,29 +239,46 @@ export default abstract class BillingIntegration {
     return actionsDone;
   }
 
-  public async sendInvoiceNotification(billingInvoice: BillingInvoice): Promise<void> {
-    // Do not send notifications for invoices that are not yet finalized!
-    if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
-      // Send link to the user using our notification framework (link to the front-end + download)
-      const tenant = await TenantStorage.getTenant(this.tenant.id);
-      // Send async notification
-      await NotificationHandler.sendBillingNewInvoiceNotification(
-        this.tenant.id,
-        billingInvoice.id,
-        billingInvoice.user,
-        {
-          user: billingInvoice.user,
-          evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-          invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
-          // Empty url allows to decide wether to display "pay" button in the email
-          payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
-          // Stripe saves amount in cents
-          invoiceAmount: Utils.createDecimal(billingInvoice.amount).div(100),
-          invoiceNumber: billingInvoice.number,
-          invoiceStatus: billingInvoice.status,
-        }
-      );
+  public async sendInvoiceNotification(billingInvoice: BillingInvoice): Promise<boolean> {
+    try {
+      // Do not send notifications for invoices that are not yet finalized!
+      if (billingInvoice.status === BillingInvoiceStatus.OPEN || billingInvoice.status === BillingInvoiceStatus.PAID) {
+        // Send link to the user using our notification framework (link to the front-end + download)
+        const tenant = await TenantStorage.getTenant(this.tenant.id);
+        // Stripe saves amount in cents
+        const decimInvoiceAmount = new Decimal(billingInvoice.amount).div(100);
+        // Format amunt with currency symbol depending on locale
+        const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
+        // Send async notification
+        await NotificationHandler.sendBillingNewInvoiceNotification(
+          this.tenant.id,
+          billingInvoice.id,
+          billingInvoice.user,
+          {
+            user: billingInvoice.user,
+            evseDashboardInvoiceURL: Utils.buildEvseBillingInvoicesURL(tenant.subdomain),
+            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+            invoiceDownloadUrl: Utils.buildEvseBillingDownloadInvoicesURL(tenant.subdomain, billingInvoice.id),
+            // Empty url allows to decide wether to display "pay" button in the email
+            payInvoiceUrl: billingInvoice.status === BillingInvoiceStatus.OPEN ? billingInvoice.payInvoiceUrl : '',
+            invoiceAmount: invoiceAmount,
+            invoiceNumber: billingInvoice.number,
+            invoiceStatus: billingInvoice.status,
+          }
+        );
+        // Needed only for testing
+        return true;
+      }
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'sendInvoiceNotification',
+        message: `Failed to send notification for invoice '${billingInvoice.id}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      return false;
     }
   }
 
@@ -371,7 +389,7 @@ export default abstract class BillingIntegration {
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public async clearTestData(): Promise<void> {
-    await this.checkConnection();
+    // await this.checkConnection(); - stripe connection is useless to cleanup test data
     await Logging.logInfo({
       tenantID: this.tenant.id,
       source: Constants.CENTRAL_SERVER,
@@ -398,7 +416,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _clearAllInvoiceTestData(): Promise<void> {
-    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant.id, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
+    const invoices: DataResult<BillingInvoice> = await BillingStorage.getInvoices(this.tenant, { liveMode: false }, Constants.DB_PARAMS_MAX_LIMIT);
     // Let's now finalize all invoices and attempt to get it paid
     for (const invoice of invoices.result) {
       try {
@@ -436,7 +454,7 @@ export default abstract class BillingIntegration {
       });
     }
     await this._clearTransactionsTestData(billingInvoice);
-    await BillingStorage.deleteInvoice(this.tenant.id, billingInvoice.id);
+    await BillingStorage.deleteInvoice(this.tenant, billingInvoice.id);
   }
 
   private async _clearTransactionsTestData(billingInvoice: BillingInvoice): Promise<void> {
@@ -568,6 +586,10 @@ export default abstract class BillingIntegration {
 
   abstract checkActivationPrerequisites(): Promise<void>;
 
+  abstract checkTestDataCleanupPrerequisites() : Promise<void>;
+
+  abstract resetConnectionSettings() : Promise<BillingSettings>;
+
   abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
   abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
@@ -581,8 +603,6 @@ export default abstract class BillingIntegration {
   abstract checkIfUserCanBeUpdated(user: User): Promise<boolean>;
 
   abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
-
-  abstract getUsers(): Promise<BillingUser[]>;
 
   abstract getUser(user: User): Promise<BillingUser>;
 

@@ -141,7 +141,7 @@ async function updateCryptoSettingsAndCheckResultSuccessful(crtData, blockCypher
   return update;
 }
 
-describe('Setting tests', function() {
+describe('Setting', function() {
   this.timeout(30000);
 
   before(async () => {
@@ -169,7 +169,7 @@ describe('Setting tests', function() {
     expect(res.status).to.equal(StatusCodes.OK);
   });
 
-  describe('Success cases (tenant utall)', () => {
+  describe('Success cases (utall)', () => {
     it('Check that retrieving refund settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
       const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, { limit: TestConstants.UNLIMITED, skip: 0 });
@@ -499,7 +499,7 @@ describe('Setting tests', function() {
     });
   });
 
-  describe('Error cases (tenant utall)', () => {
+  describe('Error cases (utall)', () => {
     before(async function() {
       await updatePricingWithSensitiveDataAndCheckResultSuccessful();
     });

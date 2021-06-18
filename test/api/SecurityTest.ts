@@ -59,7 +59,7 @@ function checkSensitiveDataIsObfuscated(message:any): void {
   }
 }
 
-describe('Security tests', function() {
+describe('Security', function() {
   this.timeout(120000);
 
   before(async function() {
@@ -83,7 +83,7 @@ describe('Security tests', function() {
     expect(res.status).to.equal(StatusCodes.OK);
   });
 
-  describe('Success cases (tenant utall)', () => {
+  describe('Success cases (utall)', () => {
     it('Check that sensitive data string (containing "=") is anonymized', async () => {
       const logId:string = await Logging.logDebug({
         source: 'test',

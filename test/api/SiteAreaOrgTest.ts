@@ -72,6 +72,9 @@ async function createSiteWithoutSiteAdmin() {
  */
 async function createSiteWithSiteAdmin() {
   // Create a site
+  console.log('🚀 ---------------');
+  console.log('🚀 ~ tenant', testData.tenantContext.getContext());
+  console.log('🚀 ---------------');
   testData.siteWithSiteAdmin = await testData.userService.createEntity(
     testData.userService.siteApi,
     Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
@@ -79,7 +82,6 @@ async function createSiteWithSiteAdmin() {
   await assignSiteAdmin(ContextDefinition.USER_CONTEXTS.BASIC_USER, testData.siteWithSiteAdmin);
   testData.createdSites.push(testData.siteWithSiteAdmin);
 }
-
 /**
  * @param userRole
  * @param site
@@ -92,7 +94,7 @@ async function assignSiteAdmin(userRole, site) {
   await testData.userService.siteApi.assignSiteAdmin(site.id, userContext.id);
 }
 
-describe('Site Area tests', function() {
+describe('Site Area', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -105,7 +107,7 @@ describe('Site Area tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all components (tenant utall)', () => {
+  describe('With all components (utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
@@ -118,33 +120,33 @@ describe('Site Area tests', function() {
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
     });
 
-    after(() => {
+    after(async () => {
       // Delete any created site area
-      testData.createdSiteAreas.forEach(async (siteArea) => {
+      for (const siteArea of testData.createdSiteAreas) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.siteAreaApi,
           siteArea,
           false
         );
-      });
+      }
       testData.createdSiteAreas = [];
       // Delete any created site
-      testData.createdSites.forEach(async (site) => {
+      for (const site of testData.createdSites) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.siteApi,
           site,
           false
         );
-      });
-      testData.createdSiteAreas = [];
+      }
+      testData.createdSites = [];
       // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
+      for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.userApi,
           user,
           false
         );
-      });
+      }
       testData.createdUsers = [];
     });
 

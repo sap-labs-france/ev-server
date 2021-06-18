@@ -14,7 +14,9 @@ import ExadysChargingStationVendorIntegration from './exadys/ExadysChargingStati
 import IESChargingStationVendorIntegration from './ies/IESChargingStationVendorIntegration';
 import IngeteamChargingStationVendorIntegration from './ingeteam/IngeteamChargingStationVendorIntegration';
 import InnogyChargingStationVendorIntegration from './innogy/InnogyChargingStationVendorIntegration';
+import JoinonChargingStationVendorIntegration from './joinon/JoinonChargingStationVendorIntegration';
 import KebaChargingStationVendorIntegration from './keba/KebaChargingStationVendorIntegration';
+import LafonChargingStationVendorIntegration from './lafon/LafonChargingStationVendorIntegration';
 import LegrandChargingStationVendorIntegration from './legrand/LegrandChargingStationVendorIntegration';
 import SAPLabsFranceChargingStationVendorIntegration from './sap/SAPLabsFranceChargingStationVendorIntegration';
 import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
@@ -64,6 +66,7 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.MENNEKES:
         chargingStationVendorImpl = new EbeeChargingStationVendorIntegration(chargingStation);
         break;
+      case ChargerVendor.DELTA_ELECTRONICS:
       case ChargerVendor.DELTA:
         chargingStationVendorImpl = new DeltaChargingStationVendorIntegration(chargingStation);
         break;
@@ -81,6 +84,12 @@ export default class ChargingStationVendorFactory {
         break;
       case ChargerVendor.CIRCONTROL:
         chargingStationVendorImpl = new CIRCONTROLChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.JOINON:
+        chargingStationVendorImpl = new JoinonChargingStationVendorIntegration(chargingStation);
+        break;
+      case ChargerVendor.LAFON_TECHNOLOGIES:
+        chargingStationVendorImpl = new LafonChargingStationVendorIntegration(chargingStation);
         break;
     }
     return chargingStationVendorImpl;

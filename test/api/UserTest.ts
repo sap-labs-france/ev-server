@@ -2,6 +2,7 @@ import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
@@ -40,7 +41,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function() {
+describe('User', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -57,7 +58,7 @@ describe('User tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -71,20 +72,21 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(() => {
+    after(async () => {
       // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
+      for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.userApi,
           user,
           false
         );
-      });
+      }
       testData.createdUsers = [];
       // Delete any created tag
-      testData.createdTags.forEach(async (tag) => {
+      for (const tag of testData.createdTags) {
         await testData.centralUserService.userApi.deleteTag(tag.id);
-      });
+
+      }
       testData.createdTags = [];
     });
 
@@ -238,6 +240,23 @@ describe('User tests', function() {
           expect(updatedUser.name).to.equal(testData.newUser.name);
         });
 
+        it('Should update user\'s mobile token', async () => {
+          const response = await testData.userService.userApi.updateMobileToken(
+            testData.newUser.id,
+            'new_mobile_token',
+            'mobile_os'
+          );
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data).to.be.deep.eq(Constants.REST_RESPONSE_SUCCESS);
+        });
+
+        it('Should get user image', async () => {
+          const response = await testData.userService.userApi.getImage(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.id).to.be.eq(testData.newUser.id);
+          expect(response.data.image).to.be.null; // New users have a null image
+        });
+
         it('Should be able to delete the created user', async () => {
           // Delete the created entity
           await testData.userService.deleteEntity(
@@ -253,7 +272,6 @@ describe('User tests', function() {
             testData.newUser
           );
         });
-
       });
       describe('Using function "readAllInError"', () => {
 
@@ -269,7 +287,6 @@ describe('User tests', function() {
           });
           expect(response.status).to.equal(StatusCodes.OK);
           response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
-
           await testData.userService.deleteEntity(
             testData.userService.userApi,
             user

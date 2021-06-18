@@ -9,6 +9,7 @@ import { Transaction } from '@google-cloud/firestore';
 export interface DataResult<T> {
   count: number;
   result: T[];
+  projectedFields?: string[];
 }
 
 export interface CompanyDataResult extends DataResult<Company>{

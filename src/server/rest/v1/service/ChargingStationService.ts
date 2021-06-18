@@ -29,11 +29,10 @@ import OCPPStorage from '../../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { OICPActionType } from '../../../../types/oicp/OICPEvseData';
 import OICPClientFactory from '../../../../client/oicp/OICPClientFactory';
-import OICPMapping from '../../../oicp/oicp-services-impl/oicp-2.3.0/OICPMapping';
+import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
@@ -140,7 +139,8 @@ export default class ChargingStationService {
                 countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
                 partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
               };
-              await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(req.tenant, chargingStation.siteArea, chargingStation, options), actionType);
+              await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
+                chargingStation.siteArea, chargingStation, options), actionType);
             }
           } catch (error) {
             await Logging.logError({
@@ -843,7 +843,8 @@ export default class ChargingStationService {
               countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
               partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
             };
-            await oicpClient.pushEvseData(OICPMapping.convertChargingStation2MultipleEvses(req.tenant, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
+            await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
+              chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
           }
         } catch (error) {
           await Logging.logError({
