@@ -317,8 +317,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const stripeInvoiceID = stripeInvoice.id;
     // Destructuring the STRIPE invoice to extract the required information
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
+    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency: invoiceCurrency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
+    const currency = invoiceCurrency?.toUpperCase();
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
     const userID = metadata?.userID;
