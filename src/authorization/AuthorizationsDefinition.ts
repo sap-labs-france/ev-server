@@ -387,7 +387,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
-          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
