@@ -29,6 +29,61 @@ const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
 
+  public static async handleClearBillingTestData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CLEAR_BILLING_TEST_DATA, Entity.BILLING, MODULE_NAME, 'handleClearBillingTestData');
+    if (!await Authorizations.canClearBillingTestData(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.BILLING, action: Action.CLEAR_BILLING_TEST_DATA,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check Prerequisites
+      await billingImpl.checkTestDataCleanupPrerequisites();
+      // Clear the test data
+      await billingImpl.clearTestData();
+      // Reset billing settings
+      const newSettings = await billingImpl.resetConnectionSettings();
+      // Ok
+      const operationResult: BillingOperationResult = {
+        succeeded: true,
+        internalData: newSettings
+      };
+      res.json(operationResult);
+    } catch (error) {
+      // Ko
+      await Logging.logError({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        message: 'Failed to clear billing test data',
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      const operationResult: BillingOperationResult = {
+        succeeded: false,
+        error
+      };
+      res.json(operationResult);
+    }
+    next();
+  }
+
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -279,7 +334,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
-    const invoices = await BillingStorage.getInvoices(req.user.tenantID,
+    const invoices = await BillingStorage.getInvoices(req.tenant,
       {
         userIDs: !Authorizations.isAdmin(req.user) ? [req.user.id] : (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
@@ -315,7 +370,7 @@ export default class BillingService {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Get invoice
-    const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID,
+    const invoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID,
       [
         'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
         ...userProject
@@ -645,7 +700,7 @@ export default class BillingService {
     // Filter
     const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
     // Get the Invoice
-    const billingInvoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID);
+    const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth

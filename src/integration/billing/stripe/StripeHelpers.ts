@@ -42,7 +42,7 @@ export default class StripeHelpers {
         session,
         lastError: billingError
       };
-      await BillingStorage.updateInvoiceAdditionalData(tenant.id, billingInvoice, additionalData);
+      await BillingStorage.updateInvoiceAdditionalData(tenant, billingInvoice, additionalData);
     }
   }
 
