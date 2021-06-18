@@ -23,7 +23,7 @@ const testData = {
   createdUsersDefaultTenant: []
 };
 
-describe('Authentication Service (tenant utall)', function() {
+describe('Authentication Service (utall)', function() {
   this.timeout(50000);
 
   before(() => {
@@ -34,16 +34,16 @@ describe('Authentication Service (tenant utall)', function() {
     testData.superAdminPassword = config.get('superadmin.password');
   });
 
-  after(() => {
+  after(async () => {
     // Delete all created users again
     if (testData.centralServiceDefaultTenant) {
-      testData.createdUsersDefaultTenant.forEach(async (user) => {
+      for (const user of testData.createdUsersDefaultTenant) {
         await testData.centralServiceDefaultTenant.userApi.delete(user.id);
-      });
+      }
     }
-    testData.createdUsersAdminTenant.forEach(async (user) => {
+    for (const user of testData.createdUsersAdminTenant) {
       await CentralServerService.defaultInstance.userApi.delete(user.id);
-    });
+    }
   });
 
   describe('Success cases', () => {

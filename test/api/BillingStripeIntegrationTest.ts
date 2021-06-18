@@ -16,7 +16,7 @@ describe('Billing Stripe Service', function() {
   this.pending = !testData.isBillingProperlyConfigured();
   this.timeout(1000000);
 
-  describe('With component Billing (tenant utbilling)', () => {
+  describe('With component Billing (utbilling)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
