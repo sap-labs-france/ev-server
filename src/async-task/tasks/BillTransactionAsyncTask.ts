@@ -43,7 +43,6 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
           }
         }
       } catch (error) {
-        // TODO: add root cause ? logging have been added to send notification
         await Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_TRANSACTION, error);
       }
     }
