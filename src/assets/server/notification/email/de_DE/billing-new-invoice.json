@@ -25,7 +25,7 @@
       { "label": "<% if(invoiceStatus === 'paid'){ %> Amount paid <% } else { %> Amount due <% } %>", "value": "<%- invoiceAmount %>" }
     ],
     "actions": [{
-        "title": "Consult invoices",
+        "title": "Rechnungen ansehen",
         "url": "<%- evseDashboardInvoiceURL %>"
       }, {
         "title": "Rechnung herunterladen",
