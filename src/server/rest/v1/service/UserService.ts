@@ -30,6 +30,7 @@ import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
@@ -90,10 +91,10 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Check and Get Sites
     const sites = await UtilsService.checkUserSitesAuthorization(
-      req.tenant, req.user, user, filteredRequest.siteIDs, action, {});
+      req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
       await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
@@ -115,11 +116,10 @@ export default class UserService {
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const userID = UserSecurity.filterUserByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action, {}, false);
-    // OCPI User
+      req.tenant, req.user, userID, Action.DELETE, action);
+    // Delete OCPI User
     if (!user.issuer) {
       // Delete User
       await UserStorage.deleteUser(req.user.tenantID, user.id);
@@ -134,119 +134,12 @@ export default class UserService {
       next();
       return;
     }
-    // Check Billing
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-        if (!billingImpl) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Billing service is not configured',
-            module: MODULE_NAME, method: 'handleGetBillingConnection',
-            user: req.user, actionOnUser: user
-          });
-        }
-        if (user.billingData) {
-          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
-          if (!userCanBeDeleted) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              action: action,
-              errorCode: HTTPError.BILLING_DELETE_ERROR,
-              message: 'User cannot be deleted due to billing constraints',
-              module: MODULE_NAME, method: 'handleGetBillingConnection',
-              user: req.user, actionOnUser: user
-            });
-          }
-        }
-      } catch (error) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: action,
-          errorCode: HTTPError.BILLING_DELETE_ERROR,
-          message: 'Error occurred in billing system',
-          module: MODULE_NAME, method: 'handleDeleteUser',
-          user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Synchronize badges with IOP (eMSP)
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      try {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Get tags
-          const tags = (await TagStorage.getTags(req.user.tenantID,
-            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-          for (const tag of tags) {
-            await ocpiClient.pushToken({
-              uid: tag.id,
-              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-              auth_id: tag.userID,
-              visual_number: tag.visualID,
-              issuer: tenant.name,
-              valid: false,
-              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-              last_updated: new Date()
-            });
-          }
-        }
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME,
-          method: 'handleUpdateTag',
-          action: action,
-          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Delete billing user
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-      try {
-        await billingImpl.deleteUser(user);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          action: action,
-          module: MODULE_NAME, method: 'handleDeleteUser',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
-          user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Delete cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (carUsers.count > 0) {
-        for (const carUser of carUsers.result) {
-          // Owner ?
-          if (carUser.owner) {
-            // Private ?
-            const car = await CarStorage.getCar(req.tenant.id, carUser.carID, { type: CarType.PRIVATE });
-            if (car) {
-              // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
-              // Delete Car
-              await CarStorage.deleteCar(req.user.tenantID, car.id);
-            } else {
-              // Delete User Car
-              await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-            }
-          } else {
-            // Delete User Car
-            await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-          }
-        }
-      }
-    }
+    // Delete Billing
+    await UserService.checkAndDeleteUserBilling(req.tenant, req.user, user);
+    // Delete OCPI
+    await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
+    // Delete Car
+    await UserService.checkAndDeleteUserCar(req.tenant, req.user, user);
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
@@ -1044,6 +937,111 @@ export default class UserService {
         detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
       return false;
+    }
+  }
+
+  private static async checkAndDeleteUserBilling(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
+        if (!billingImpl) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.USER_DELETE,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Billing service is not configured',
+            module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+            user: loggedUser, actionOnUser: user
+          });
+        }
+        if (user.billingData) {
+          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+          if (!userCanBeDeleted) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.USER_DELETE,
+              errorCode: HTTPError.BILLING_DELETE_ERROR,
+              message: 'User cannot be deleted due to billing constraints',
+              module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+              user: loggedUser, actionOnUser: user
+            });
+          }
+        }
+        await billingImpl.deleteUser(user);
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.USER_DELETE,
+          errorCode: HTTPError.BILLING_DELETE_ERROR,
+          message: 'Error occurred in billing system',
+          module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+          user: loggedUser, actionOnUser: user,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private static async checkAndDeleteUserOCPI(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+    // Synchronize badges with IOP (eMSP)
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Get tags
+          const tags = (await TagStorage.getTags(tenant.id,
+            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+          for (const tag of tags) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+              auth_id: tag.userID,
+              visual_number: tag.visualID,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+              last_updated: new Date()
+            });
+          }
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME,
+          method: 'checkAndDeleteUserOCPI',
+          action: ServerAction.USER_DELETE,
+          message: `Unable to disable tokens of user ${user.id} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private static async checkAndDeleteUserCar(tenant: Tenant, loggedUser: UserToken, user: User) {
+    // Delete cars
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
+      const carUsers = await CarStorage.getCarUsers(tenant.id, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (carUsers.count > 0) {
+        for (const carUser of carUsers.result) {
+          // Owner ?
+          if (carUser.owner) {
+            // Private ?
+            const car = await CarStorage.getCar(tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            if (car) {
+              // Delete All Users Car
+              await CarStorage.deleteCarUsersByCarID(tenant.id, car.id);
+              // Delete Car
+              await CarStorage.deleteCar(tenant.id, car.id);
+            } else {
+              // Delete User Car
+              await CarStorage.deleteCarUser(tenant.id, carUser.id);
+            }
+          } else {
+            // Delete User Car
+            await CarStorage.deleteCarUser(tenant.id, carUser.id);
+          }
+        }
+      }
     }
   }
 }

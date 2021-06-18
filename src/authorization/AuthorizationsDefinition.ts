@@ -65,7 +65,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } },
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['-OwnUser'] }
+        }
       },
       {
         resource: Entity.USER, action: Action.READ, attributes: [

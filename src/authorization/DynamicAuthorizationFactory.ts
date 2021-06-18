@@ -18,19 +18,31 @@ export default class DynamicAuthorizationFactory {
       filter: DynamicAuthorizationFilterName,
       existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>):
       Promise<DynamicAuthorizationFilter> {
+    // Check invertion of filter
+    console.log('🚀 -------------------');
+    console.log('🚀 ~ filter', filter);
+    let negateFilter = false;
+    if (filter?.startsWith('-')) {
+      negateFilter = true;
+      filter = filter.substring(1) as DynamicAuthorizationFilterName;
+    }
+    console.log('🚀 ~ filter', filter);
+    console.log('🚀 ~ negateFilter', negateFilter);
+    console.log('🚀 -------------------');
+    // Return the implementation
     let dynamicFilter: DynamicAuthorizationFilter;
     switch (filter) {
       case DynamicAuthorizationFilterName.ASSIGNED_SITES_COMPANIES:
-        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenant, userToken);
+        dynamicFilter = new AssignedSitesCompaniesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.SITES_ADMIN:
-        dynamicFilter = new SitesAdminDynamicAuthorizationFilter(tenant, userToken);
+        dynamicFilter = new SitesAdminDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.ASSIGNED_SITES:
-        dynamicFilter = new AssignedSitesDynamicAuthorizationFilter(tenant, userToken);
+        dynamicFilter = new AssignedSitesDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
       case DynamicAuthorizationFilterName.OWN_USER:
-        dynamicFilter = new OwnUserDynamicAuthorizationFilter(tenant, userToken);
+        dynamicFilter = new OwnUserDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source

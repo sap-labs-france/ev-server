@@ -421,8 +421,7 @@ export default class CarService {
       authorizationCarsFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addCarsAuthorizations(
-      req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter, filteredRequest);
+    await AuthorizationService.addCarsAuthorizations(req.tenant, req.user, cars as CarDataResult, authorizationCarsFilter);
     // Return
     res.json(cars);
     next();

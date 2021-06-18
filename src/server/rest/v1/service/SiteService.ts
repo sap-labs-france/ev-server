@@ -67,10 +67,10 @@ export default class SiteService {
     }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     // Log
@@ -121,10 +121,10 @@ export default class SiteService {
     }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
@@ -147,10 +147,10 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     // Check and Get Users
     const users = await UtilsService.checkSiteUsersAuthorization(
-      req.tenant, req.user, site, filteredRequest.userIDs, action, {});
+      req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
       await SiteStorage.addUsersToSite(req.user.tenantID, site.id, users.map((user) => user.id));
@@ -218,7 +218,7 @@ export default class SiteService {
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, siteID, Action.DELETE, action, {});
+      req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -287,7 +287,7 @@ export default class SiteService {
       authorizationSitesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter, filteredRequest);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return
     res.json(sites);
     next();
@@ -352,7 +352,7 @@ export default class SiteService {
     }
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check static auth
     if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
@@ -393,10 +393,10 @@ export default class SiteService {
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
