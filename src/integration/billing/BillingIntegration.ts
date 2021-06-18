@@ -604,8 +604,6 @@ export default abstract class BillingIntegration {
 
   abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  abstract getUsers(): Promise<BillingUser[]>;
-
   abstract getUser(user: User): Promise<BillingUser>;
 
   abstract createUser(user: User): Promise<BillingUser>;
