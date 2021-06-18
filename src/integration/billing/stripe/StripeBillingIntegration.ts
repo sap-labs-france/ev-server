@@ -1101,6 +1101,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice> {
     // Let's collect the required information
+    let refreshDataRequired = false;
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
@@ -1144,6 +1145,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!stripeInvoice) {
       // Let's create a new DRAFT invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
+    } else {
+      // Here an existing invoice is being reused
+      refreshDataRequired = true;
     }
     let operationResult: StripeChargeOperationResult;
     if (this.settings.billing?.immediateBillingAllowed) {
@@ -1164,9 +1168,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Reuse the operation result (for better performance)
         stripeInvoice = operationResult.invoice;
       } else {
-        // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
-        stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
+        // Something went wrong - we need to fetch the latest information from STRIPE again!
+        refreshDataRequired = true;
       }
+    }
+    // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
+    if (refreshDataRequired) {
+      stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
