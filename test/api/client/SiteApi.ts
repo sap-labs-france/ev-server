@@ -42,6 +42,13 @@ export default class SiteApi extends CrudApi {
     }, url);
   }
 
+  public async unassignSitesToUser(userId: string, siteIds: string[]) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userId });
+    return super.update({
+      siteIDs: siteIds,
+    }, url);
+  }
+
   public async readUsersForSite(siteId) {
     return super.read({
       SiteID: siteId

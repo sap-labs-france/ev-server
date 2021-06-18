@@ -27,9 +27,6 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-/**
- * @param userRole
- */
 function login(userRole) {
   testData.userContext = testData.tenantContext.getUserContext(userRole);
   if (testData.userContext === testData.centralUserContext) {
@@ -43,9 +40,6 @@ function login(userRole) {
   }
 }
 
-/**
- *
- */
 async function createSite() {
   // Create a site
   testData.newSite = await testData.userService.createEntity(
@@ -55,30 +49,25 @@ async function createSite() {
   testData.createdSites.push(testData.newSite);
 }
 
-/**
- * @param userRole
- * @param site
- */
 async function assignUserToSite(userRole, site): Promise<any> {
   // Assign the user to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
   return testData.userService.siteApi.addUsersToSite(site.id, [userContext.id]);
 }
 
-/**
- * @param userRole
- * @param sites
- */
+
 async function assignSitesToUser(userRole, sites: string[]): Promise<any> {
   // Assign the user to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
   return testData.userService.siteApi.addSitesToUser(userContext.id, sites);
 }
 
-/**
- * @param userRole
- * @param site
- */
+async function unassignSitesToUser(userRole, sites: string[]): Promise<any> {
+  // Assign the user to the site
+  const userContext = await testData.tenantContext.getUserContext(userRole);
+  return testData.userService.siteApi.unassignSitesToUser(userContext.id, sites);
+}
+
 async function assignSiteAdmin(userRole, site) {
   // Assign the user as admin to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -86,10 +75,6 @@ async function assignSiteAdmin(userRole, site) {
   await testData.userService.siteApi.assignSiteAdmin(site.id, userContext.id);
 }
 
-/**
- * @param userRole
- * @param site
- */
 async function assignSiteOwner(userRole, site) {
   // Assign the user as owner to the site
   const userContext = await testData.tenantContext.getUserContext(userRole);
@@ -182,8 +167,16 @@ describe('Site tests', function() {
         expect(res.data.result.map((site) => site.user.id)).to.contain(userContext.id);
       });
 
+      it('Should be able to unassign a site to a user', async () => {
+        await unassignSitesToUser(ContextDefinition.USER_CONTEXTS.BASIC_USER, [testData.newSite.id]);
+        const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
+        expect(res.data.count).to.eq(0);
+        const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        expect(res.data.result.map((site) => site.user.id)).to.not.contain(userContext.id);
+      });
+
       it('Should be able to assign a site to a user', async () => {
-        await assignSitesToUser(ContextDefinition.USER_CONTEXTS.BASIC_USER, [testData.newSite]);
+        await assignSitesToUser(ContextDefinition.USER_CONTEXTS.BASIC_USER, [testData.newSite.id]);
         const res = await testData.userService.siteApi.readUsersForSite(testData.newSite.id);
         expect(res.data.count).to.eq(1);
         const userContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);

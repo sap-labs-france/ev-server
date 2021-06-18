@@ -278,7 +278,7 @@ export interface BillingNewInvoiceNotification extends BaseNotification {
   invoiceDownloadUrl: string;
   payInvoiceUrl: string;
   invoiceNumber: string;
-  invoiceAmount: Decimal;
+  invoiceAmount: string;
   invoiceStatus: string;
 }
 

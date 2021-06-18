@@ -43,6 +43,9 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       });
       return;
     }
+    // Sort charging profiles
+    // Lower limits need to be set first. (When high limit is set first, it may appear that the corresponding low limit is not set yet)
+    chargingProfiles.sort((a, b) => a.profile.chargingSchedule.chargingSchedulePeriod[0].limit - b.profile.chargingSchedule.chargingSchedulePeriod[0].limit);
     // Apply the charging plans
     for (const chargingProfile of chargingProfiles) {
       try {
