@@ -19,16 +19,11 @@ export default class DynamicAuthorizationFactory {
       existingDataSources?: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>>):
       Promise<DynamicAuthorizationFilter> {
     // Check invertion of filter
-    console.log('🚀 -------------------');
-    console.log('🚀 ~ filter', filter);
     let negateFilter = false;
     if (filter?.startsWith('-')) {
       negateFilter = true;
       filter = filter.substring(1) as DynamicAuthorizationFilterName;
     }
-    console.log('🚀 ~ filter', filter);
-    console.log('🚀 ~ negateFilter', negateFilter);
-    console.log('🚀 -------------------');
     // Return the implementation
     let dynamicFilter: DynamicAuthorizationFilter;
     switch (filter) {

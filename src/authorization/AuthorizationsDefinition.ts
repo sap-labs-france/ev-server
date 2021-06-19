@@ -642,7 +642,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser', 'SiteAdminUsers'] }
+          args: { filters: ['SitesAdmin'] }
         },
       },
       {
