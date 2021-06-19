@@ -174,7 +174,7 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
-  filters?: DynamicAuthorizationFilterName[];
+  filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
 }
 
 export interface AuthorizationActions {

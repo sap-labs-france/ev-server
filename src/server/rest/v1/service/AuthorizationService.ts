@@ -788,26 +788,38 @@ export default class AuthorizationService {
   private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, action: Action, entity: Entity,
       authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, extraFilters?: Record<string, any>): Promise<void> {
     if (!Utils.isEmptyArray(authorizationContext.filters)) {
-      let authorized = false;
-      // Process filters
-      for (const filter of authorizationContext.filters) {
-        // Get the filter
-        const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant, userToken, filter, authorizationFilters.dataSources);
-        if (!dynamicFilter) {
-          // Filter not found -> Not authorized (all auth filter MUST work)
-          throw new AppAuthError({
-            errorCode: HTTPAuthError.FORBIDDEN,
-            user: userToken,
-            action, entity,
-            module: MODULE_NAME, method: 'processDynamicFilters'
-          });
+      // First array is an AND between filters
+      for (let filtersToProcess of authorizationContext.filters) {
+        authorizationFilters.authorized = false;
+        // Array?
+        if (!Array.isArray(filtersToProcess)) {
+          filtersToProcess = [filtersToProcess];
         }
-        // Process the filter
-        dynamicFilter.processFilter(authorizationFilters, extraFilters);
-        // At least one filter must authorize
-        authorized = authorized || authorizationFilters.authorized;
+        let authorized = false;
+        // Second array is an OR between filters
+        for (const filterToProcess of filtersToProcess) {
+          // Get the filter
+          const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant, userToken, filterToProcess, authorizationFilters.dataSources);
+          if (!dynamicFilter) {
+            // Filter not found -> Not authorized (all auth filter MUST work)
+            throw new AppAuthError({
+              errorCode: HTTPAuthError.FORBIDDEN,
+              user: userToken,
+              action, entity,
+              module: MODULE_NAME, method: 'processDynamicFilters'
+            });
+          }
+          // Process the filter
+          dynamicFilter.processFilter(authorizationFilters, extraFilters);
+          authorized = authorized || authorizationFilters.authorized;
+        }
+        // Assign
+        authorizationFilters.authorized = authorized;
+        // Failed?
+        if (!authorizationFilters.authorized) {
+          return;
+        }
       }
-      authorizationFilters.authorized = authorized;
     }
   }
 

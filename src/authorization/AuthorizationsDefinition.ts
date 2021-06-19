@@ -539,7 +539,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   demo: {
     grants: [
       {
-        resource: Entity.USER, action: [Action.READ], attributes: [
+        resource: Entity.USER, action: Action.READ, attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
           'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
         ],
