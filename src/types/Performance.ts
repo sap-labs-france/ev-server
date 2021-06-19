@@ -1,5 +1,3 @@
-import os, { CpuInfo } from 'os';
-
 import { ServerAction } from './Server';
 
 export default interface PerformanceRecord {
@@ -10,13 +8,13 @@ export default interface PerformanceRecord {
   sizeKb?: number;
   host: string;
   process: string;
-  processMemoryUsage: NodeJS.MemoryUsage,
-  processCPUUsage: NodeJS.CpuUsage,
-  cpusInfo: CpuInfo[],
+  processMemoryUsage: NodeJS.MemoryUsage;
+  processCPUUsage: NodeJS.CpuUsage;
+  numberOfCPU: number;
+  modelOfCPU: string;
   memoryTotalGb: number;
   memoryFreeGb: number;
-  loadAverageLastMin: number,
-  networkInterface: NodeJS.Dict<os.NetworkInterfaceInfo[]>,
+  loadAverageLastMin: number;
   numberOfChargingStations?: number;
   source: string;
   module: string;

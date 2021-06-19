@@ -83,7 +83,7 @@ async function assignSiteOwner(userRole, site) {
 
 }
 
-describe('Site tests', function() {
+describe('Site', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -96,7 +96,7 @@ describe('Site tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -114,23 +114,23 @@ describe('Site tests', function() {
       });
 
       after(async () => {
-      // Delete any created site
-        testData.createdSites.forEach(async (site) => {
+        // Delete any created site
+        for (const site of testData.createdSites) {
           await testData.centralUserService.deleteEntity(
             testData.centralUserService.siteApi,
             site,
             false
           );
-        });
+        }
         testData.createdSites = [];
         // Delete any created user
-        testData.createdUsers.forEach(async (user) => {
+        for (const user of testData.createdUsers) {
           await testData.centralUserService.deleteEntity(
             testData.centralUserService.userApi,
             user,
             false
           );
-        });
+        }
         testData.createdUsers = [];
       });
 
@@ -265,22 +265,22 @@ describe('Site tests', function() {
 
       after(async () => {
         // Delete any created site
-        testData.createdSites.forEach(async (site) => {
+        for (const site of testData.createdSites) {
           await testData.centralUserService.deleteEntity(
             testData.centralUserService.siteApi,
             site,
             false
           );
-        });
+        }
         testData.createdSites = [];
         // Delete any created user
-        testData.createdUsers.forEach(async (user) => {
+        for (const user of testData.createdUsers) {
           await testData.centralUserService.deleteEntity(
             testData.centralUserService.userApi,
             user,
             false
           );
-        });
+        }
         testData.createdUsers = [];
       });
 

@@ -27,7 +27,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Asset Test', function() {
+describe('Asset', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -44,7 +44,7 @@ describe('Asset Test', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Asset (tenant utasset)', () => {
+  describe('With component Asset (utasset)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET);
@@ -56,42 +56,42 @@ describe('Asset Test', function() {
       );
     });
 
-    after(() => {
-      // Delete any created company
-      testData.createdCompanies.forEach(async (company) => {
-        await testData.centralUserService.deleteEntity(
-          testData.centralUserService.companyApi,
-          company,
-          false
-        );
-      });
-      testData.createdCompanies = [];
-      // Delete any created site
-      testData.createdSites.forEach(async (site) => {
-        await testData.centralUserService.deleteEntity(
-          testData.centralUserService.siteApi,
-          site,
-          false
-        );
-      });
-      testData.createdSites = [];
+    after(async () => {
       // Delete any created site area
-      testData.createdSiteAreas.forEach(async (siteArea) => {
+      for (const siteArea of testData.createdSiteAreas) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.siteAreaApi,
           siteArea,
           false
         );
-      });
+      }
       testData.createdSiteAreas = [];
+      // Delete any created site
+      for (const site of testData.createdSites) {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteApi,
+          site,
+          false
+        );
+      }
+      testData.createdSites = [];
+      // Delete any created company
+      for (const company of testData.createdCompanies) {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.companyApi,
+          company,
+          false
+        );
+      }
+      testData.createdCompanies = [];
       // Delete any created asset
-      testData.createdAssets.forEach(async (asset) => {
+      for (const asset of testData.createdAssets) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.assetApi,
           asset,
           false
         );
-      });
+      }
       testData.createdAssets = [];
     });
 

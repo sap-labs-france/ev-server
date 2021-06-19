@@ -23,7 +23,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Transaction tests', function() {
+describe('Transaction', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -40,7 +40,7 @@ describe('Transaction tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With components Organization and Pricing (tenant utall)', () => {
+  describe('With components Organization and Pricing (utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
@@ -360,7 +360,7 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('With component Organization without ACL (tenant utorg)', () => {
+  describe('With component Organization without ACL (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -566,7 +566,7 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('Without any component (tenant utnothing)', () => {
+  describe('Without any component (utnothing)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);

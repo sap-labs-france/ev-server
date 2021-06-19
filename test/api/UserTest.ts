@@ -41,7 +41,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function() {
+describe('User', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -58,7 +58,7 @@ describe('User tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -72,20 +72,21 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(() => {
+    after(async () => {
       // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
+      for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.userApi,
           user,
           false
         );
-      });
+      }
       testData.createdUsers = [];
       // Delete any created tag
-      testData.createdTags.forEach(async (tag) => {
+      for (const tag of testData.createdTags) {
         await testData.centralUserService.userApi.deleteTag(tag.id);
-      });
+
+      }
       testData.createdTags = [];
     });
 
@@ -286,7 +287,6 @@ describe('User tests', function() {
           });
           expect(response.status).to.equal(StatusCodes.OK);
           response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
-
           await testData.userService.deleteEntity(
             testData.userService.userApi,
             user

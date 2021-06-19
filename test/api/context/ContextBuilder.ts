@@ -71,10 +71,10 @@ export default class ContextBuilder {
 
   async destroy(): Promise<void> {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
-      this.tenantsContexts.forEach(async (tenantContext) => {
+      for (const tenantContext of this.tenantsContexts) {
         console.log(`Delete Tenant context '${tenantContext.getTenant().id} (${tenantContext.getTenant().subdomain})`);
         await this.superAdminCentralServerService.deleteEntity(this.superAdminCentralServerService.tenantApi, tenantContext.getTenant());
-      });
+      }
     }
     // Delete all tenants
     for (const tenantContextDef of ContextDefinition.TENANT_CONTEXT_LIST) {
@@ -270,7 +270,8 @@ export default class ContextBuilder {
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         dummyCompany.issuer = true;
-        await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
+        console.log(`${buildTenant.id} (${buildTenant.name}) - Company '${dummyCompany.name}'`);
+        await CompanyStorage.saveCompany(buildTenant, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
       }
       // Build sites/sitearea according to tenant definition
