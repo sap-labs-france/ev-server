@@ -797,9 +797,9 @@ export default class AuthorizationService {
   private static async processDynamicFilters(tenant: Tenant, userToken: UserToken, action: Action, entity: Entity,
       authorizationFilters: AuthorizationFilter, authorizationContext: AuthorizationContext, extraFilters?: Record<string, any>): Promise<void> {
     if (!Utils.isEmptyArray(authorizationContext.filters)) {
+      let authorized = false;
+      // Process filters
       for (const filter of authorizationContext.filters) {
-        // Reset to false
-        authorizationFilters.authorized = false;
         // Get the filter
         const dynamicFilter = await DynamicAuthorizationFactory.getDynamicFilter(tenant, userToken, filter, authorizationFilters.dataSources);
         if (!dynamicFilter) {
@@ -813,11 +813,10 @@ export default class AuthorizationService {
         }
         // Process the filter
         dynamicFilter.processFilter(authorizationFilters, extraFilters);
-        // Check
-        if (!authorizationFilters.authorized) {
-          break;
-        }
+        // At least one filter must authorize
+        authorized = authorized || authorizationFilters.authorized;
       }
+      authorizationFilters.authorized = authorized;
     }
   }
 
