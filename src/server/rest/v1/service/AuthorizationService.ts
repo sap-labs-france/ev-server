@@ -232,21 +232,12 @@ export default class AuthorizationService {
     const authorizationFilters: AuthorizationFilter = {
       filters: {},
       dataSources: new Map(),
-      projectFields: [
-        'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
-        'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
-      ],
-      authorized: userToken.role === UserRole.ADMIN,
+      projectFields: [],
+      authorized: false
     };
-    // Filter projected fields
-    authorizationFilters.projectFields = AuthorizationService.filterProjectFields(authorizationFilters.projectFields,
-      filteredRequest.ProjectFields);
-    // Get authorization filters from users
-    const usersAuthorizationFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(tenant,
-      userToken, filteredRequest);
-    // Override
-    authorizationFilters.authorized = usersAuthorizationFilters.authorized;
-    authorizationFilters.filters = usersAuthorizationFilters.filters;
+    // Check static & dynamic authorization
+    await this.canPerformAuthorizationAction(
+      tenant, userToken, Entity.USERS, Action.IN_ERROR, authorizationFilters, filteredRequest);
     return authorizationFilters;
   }
 

@@ -62,14 +62,23 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   admin: {
     grants: [
       {
-        resource: Entity.USERS, action: Action.LIST,
+        resource: Entity.USERS,
+        action: [
+          Action.LIST, Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IMPORT
+        ],
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
           'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
           'billingData.customerID', 'billingData.lastChangedOn'
         ]
       },
-      { resource: Entity.USERS, action: [Action.SYNCHRONIZE_BILLING_USERS, Action.EXPORT, Action.IN_ERROR, Action.IMPORT] },
+      {
+        resource: Entity.USERS, action: Action.IN_ERROR,
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer',
+          'createdOn', 'lastChangedOn', 'errorCodeDetails', 'errorCode'
+        ]
+      },
       { resource: Entity.USER, action: [Action.CREATE, Action.UPDATE, Action.SYNCHRONIZE_BILLING_USER] },
       {
         resource: Entity.USER, action: Action.DELETE,
@@ -661,17 +670,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ],
       },
       {
-        resource: Entity.USERS_SITES, action: Action.LIST,
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
-        },
-        attributes: [
-          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
-        ]
-      },
-      {
-        resource: Entity.USERS_SITES, action: Action.UNASSIGN,
+        resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
