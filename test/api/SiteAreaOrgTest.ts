@@ -72,9 +72,6 @@ async function createSiteWithoutSiteAdmin() {
  */
 async function createSiteWithSiteAdmin() {
   // Create a site
-  console.log('🚀 ---------------');
-  console.log('🚀 ~ tenant', testData.tenantContext.getContext());
-  console.log('🚀 ---------------');
   testData.siteWithSiteAdmin = await testData.userService.createEntity(
     testData.userService.siteApi,
     Factory.site.build({ companyID: testData.tenantContext.getContext().companies[0].id })
