@@ -142,6 +142,45 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
+  static async getLastAssetConsumption(tenantID: string, params: { assetID: string }): Promise<Consumption> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastAssetConsumption');
+    // Check
+    await DatabaseUtils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        assetID: Utils.convertToObjectID(params.assetID)
+      }
+    });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Sort
+    aggregation.push({
+      $sort: { startedAt: -1 }
+    });
+    // Limit
+    aggregation.push({
+      $limit: 1
+    });
+    let consumption: Consumption = null;
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
+      .aggregate(aggregation, { allowDiskUse: true })
+      .toArray();
+    if (consumptionsMDB && consumptionsMDB.length > 0) {
+      consumption = consumptionsMDB[0];
+    }
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'getLastAssetConsumption', uniqueTimerID, consumptionsMDB);
+    return consumption;
+  }
+
   static async getSiteAreaConsumptions(tenantID: string,
       params: { siteAreaID: string; startDate: Date; endDate: Date },
       projectFields?: string[]): Promise<Consumption[]> {

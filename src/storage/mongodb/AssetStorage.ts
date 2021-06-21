@@ -57,7 +57,8 @@ export default class AssetStorage {
       powerWattsLastSmartChargingRun: Utils.convertToFloat(assetToSave.powerWattsLastSmartChargingRun),
       fluctuationPercent:  Utils.convertToFloat(assetToSave.fluctuationPercent),
       staticValueWatt: Utils.convertToFloat(assetToSave.staticValueWatt),
-      dynamicAsset: assetToSave.dynamicAsset,
+      dynamicAsset: Utils.convertToBoolean(assetToSave.dynamicAsset),
+      usesPushAPI: Utils.convertToBoolean(assetToSave.usesPushAPI),
       issuer: Utils.convertToBoolean(assetToSave.issuer),
       connectionID: assetToSave.connectionID,
       meterID: assetToSave.meterID,
@@ -223,7 +224,7 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean  } = {},
+      params: { search?: string; siteAreaIDs?: string[]; siteIDs?: string[]; errorType?: string[]; issuer?: boolean } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getAssetsInError');

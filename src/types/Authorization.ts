@@ -144,6 +144,7 @@ export enum Action {
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
+  CREATE_CONSUMPTION = 'CreateConsumption',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   REGISTER = 'Register',

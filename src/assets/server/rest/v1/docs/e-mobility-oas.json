@@ -3399,6 +3399,58 @@
         }
       }
     },
+    "/api/assets/{id}/consumption": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push latest asset consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetConsumption"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset consumption created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "consumption": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "Asset does not exist"
+          }
+        }
+      }
+    },
     "/api/charging-profiles": {
       "get": {
         "security": [
@@ -5595,6 +5647,75 @@
           }
         }
       },
+      "AssetConsumption": {
+        "type": "object",
+        "required": [
+          "assetID",
+          "startedAt",
+          "endedAt",
+          "instantWatts"
+        ],
+        "properties": {
+          "assetID": {
+            "$ref": "#/components/parameters/assetID"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2020-12-31T23:00:00.000Z"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2020-12-31T23:01:00.000Z"
+          },
+          "instantWatts": {
+            "type": "number"
+          },
+          "instantWattsL1": {
+            "type": "number"
+          },
+          "instantWattsL2": {
+            "type": "number"
+          },
+          "instantWattsL3": {
+            "type": "number"
+          },
+          "instantAmps": {
+            "type": "number"
+          },
+          "instantAmpsL1": {
+            "type": "number"
+          },
+          "instantAmpsL2": {
+            "type": "number"
+          },
+          "instantAmpsL3": {
+            "type": "number"
+          },
+          "instantVolts": {
+            "type": "number"
+          },
+          "instantVoltsL1": {
+            "type": "number"
+          },
+          "instantVoltsL2": {
+            "type": "number"
+          },
+          "instantVoltsL3": {
+            "type": "number"
+          },
+          "consumptionWh": {
+            "type": "number"
+          },
+          "consumptionAmps": {
+            "type": "number"
+          },
+          "stateOfCharge": {
+            "type": "number"
+          }
+        }
+      },
       "Notifications": {
         "type": "object",
         "properties": {
@@ -5876,6 +5997,15 @@
         "in": "path",
         "name": "id",
         "description": "Charging Station ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "assetID": {
+        "in": "path",
+        "name": "id",
+        "description": "Asset ID",
         "required": true,
         "schema": {
           "type": "string"

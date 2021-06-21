@@ -16,6 +16,7 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   issuer: boolean;
   image?: string;
   dynamicAsset: boolean;
+  usesPushAPI:boolean;
   connectionID?: string;
   meterID?: string;
   values: Consumption[],

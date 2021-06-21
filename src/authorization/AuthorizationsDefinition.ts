@@ -169,13 +169,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD, Action.READ], attributes: ['*'] },
       {
         resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
-          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION], attributes: ['*']
+          Action.CHECK_CONNECTION, Action.RETRIEVE_CONSUMPTION, Action.CREATE_CONSUMPTION], attributes: ['*']
       },
       {
         resource: Entity.ASSETS, action: [Action.LIST, Action.IN_ERROR],
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
-          'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
+          'dynamicAsset', 'usesPushAPI', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge', 'issuer'
         ]
       },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },

@@ -1341,20 +1341,20 @@ export default class UtilsService {
       }
     }
     if (asset.dynamicAsset) {
-      if (!asset.connectionID) {
+      if (!asset.connectionID && !asset.usesPushAPI) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset connection is mandatory',
+          message: 'Asset connection is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
       }
-      if (!asset.meterID) {
+      if (!asset.meterID && !asset.usesPushAPI) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset meter ID is mandatory',
+          message: 'Asset meter ID is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
