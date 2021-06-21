@@ -638,6 +638,13 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       },
       {
+        resource: Entity.USERS, action: Action.IMPORT, attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn', 'createdBy',
+          'lastChangedOn', 'lastChangedBy', 'eulaAcceptedOn', 'eulaAcceptedVersion', 'locale',
+          'billingData.customerID', 'billingData.lastChangedOn'
+        ]
+      },
+      {
         resource: Entity.USERS_SITES, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
@@ -697,7 +704,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
-      { resource: Entity.TAGS, action: Action.EXPORT, attributes: ['*'] },
+      { resource: Entity.TAGS, action: [Action.EXPORT, Action.IMPORT], attributes: ['*'] },
       {
         resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
         condition: {

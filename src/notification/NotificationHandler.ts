@@ -1,5 +1,5 @@
 import User, { UserRole } from '../types/User';
-import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { AccountVerificationNotification, AdminAccountVerificationNotification, BillingInvoiceSynchronizationFailedNotification, BillingNewInvoiceNotification, BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, ComputeAndApplyChargingProfilesFailedNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, EndUserErrorNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OICPPatchChargingStationsErrorNotification, OICPPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserCreatePassword, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -359,6 +359,30 @@ export default class NotificationHandler {
           'tenantLogoURL': sourceData.tenantLogoURL
         }
       );
+    }
+  }
+
+  static async sendUserCreatePassword(tenantID: string, notificationID: string, user: User, sourceData: UserCreatePassword): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
+      sourceData.tenantLogoURL = tenant.logo;
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(
+              tenantID, notificationSource.channel, notificationID, ServerAction.USER_CREATE_PASSWORD, { user });
+            // Send
+            await notificationSource.notificationTask.sendUserCreatePassword(
+              sourceData, user, tenant, NotificationSeverity.INFO);
+          } catch (error) {
+            await Logging.logActionExceptionMessage(tenantID, ServerAction.USER_CREATE_PASSWORD, error);
+          }
+        }
+      }
     }
   }
 

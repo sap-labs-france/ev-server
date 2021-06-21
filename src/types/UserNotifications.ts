@@ -54,7 +54,8 @@ export type UserNotificationKeys =
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification' |
  'sendAccountVerificationNotification' |
- 'sendAdminAccountVerificationNotification'
+ 'sendAdminAccountVerificationNotification' |
+ 'sendUserCreatePassword'
 ;
 
 export enum UserNotificationType {
@@ -344,4 +345,10 @@ export interface AdminAccountVerificationNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
   evseUserToVerifyURL: string;
+}
+
+export interface UserCreatePassword extends BaseNotification {
+  user: User;
+  evseDashboardURL: string;
+  evseDashboardCreatePasswordURL: string;
 }

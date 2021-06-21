@@ -42,9 +42,6 @@ export default class UserSecurity {
     if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
-    if (Utils.objectHasProperty(request, 'WithTag')) {
-      filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
-    }
     if (Utils.objectHasProperty(request, 'Search')) {
       filteredRequest.Search = sanitize(request.Search);
     }

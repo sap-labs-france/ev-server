@@ -268,6 +268,7 @@ export enum ServerAction {
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
+  USER_CREATE_PASSWORD = 'UserCreatePassword',
   ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',

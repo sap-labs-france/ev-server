@@ -284,7 +284,8 @@ export default class UserStorage {
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
+      autoActivateAtImport: importedUserToSave.autoActivateAtImport,
     };
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
@@ -306,7 +307,8 @@ export default class UserStorage {
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
+      autoActivateAtImport: importedUserToSave.autoActivateAtImport,
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenantID, 'importedusers').insertMany(

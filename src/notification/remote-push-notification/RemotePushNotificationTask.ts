@@ -434,6 +434,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
+  public async sendUserCreatePassword(): Promise<void> {
+    // Nothing to send
+    return Promise.resolve();
+  }
+
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
       title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks

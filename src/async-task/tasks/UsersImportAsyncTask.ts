@@ -8,6 +8,7 @@ import DbParams from '../../types/database/DbParams';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
+import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
@@ -70,14 +71,35 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               newUser.email = importedUser.email;
               newUser.createdBy = { id: importedUser.importedBy };
               newUser.createdOn = importedUser.importedOn;
+              newUser.autoActivateAtImport = importedUser.autoActivateAtImport;
               // Save the new User
               newUser.id = await UserStorage.saveUser(tenant.id, newUser);
               // Role need to be set separately
               await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
-              // Remove the imported User
+              await UserStorage.saveUserStatus(tenant.id, newUser.id, importedUser.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.PENDING);
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+              // Handle sending email for reseting password if user auto activated
+              if (importedUser.autoActivateAtImport) {
+                // Init Password info
+                const resetHash = Utils.generateUUID();
+                await UserStorage.saveUserPassword(tenant.id, newUser.id, { passwordResetHash: resetHash });
+                // Send create password link
+                const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
+                  '/define-password?hash=' + resetHash;
+                // Send account created with create password notification (Async)
+                await NotificationHandler.sendUserCreatePassword(
+                  tenant.id,
+                  Utils.generateUUID(),
+                  newUser,
+                  {
+                    'user': newUser,
+                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+                    'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
+                  });
+              } else {
+                // TODO : handle an informative email saying you will receive soon an email blabla - can reset password first ??
+              }
               result.inSuccess++;
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;

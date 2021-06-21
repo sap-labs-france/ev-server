@@ -38,6 +38,7 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   mobileLastChangedOn: Date;
   lastSelectedCarID?: string;
   authorizationID?: string;
+  autoActivateAtImport?: boolean;
 }
 
 export interface UserSite {
@@ -65,6 +66,7 @@ export interface ImportedUser {
   importedOn?: Date;
   status?: ImportStatus
   errorDescription?: string;
+  autoActivateAtImport?: boolean;
 }
 
 export enum UserStatus {
