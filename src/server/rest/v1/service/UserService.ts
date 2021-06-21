@@ -4,7 +4,6 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import { StartTransactionErrorCode, UserDefaultTagCar } from '../../../../types/Transaction';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -30,6 +29,7 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -59,60 +59,35 @@ export default class UserService {
       req.tenant, req.user, userID, Action.READ, action);
     // Handle Tag
     // Get the default Tag
-    let defaultTag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
+    let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
       issuer: true
     }, ['id', 'description', 'active']);
-    if (!defaultTag) {
+    if (!tag) {
       // Get the first active Tag
-      defaultTag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
+      tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
         issuer: true
       }, ['id', 'description', 'active']);
     }
     // Handle Car
-    let defaultCar: Car;
+    let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
-      defaultCar = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {},
+      car = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {},
         ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
       );
-      if (!defaultCar) {
+      if (!car) {
         // Get the first available car
-        defaultCar = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID,
+        car = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID,
           ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
         );
       }
     }
-    let errorCodes: Array<StartTransactionErrorCode> = [];
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-        if (billingImpl) {
-          errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
-        }
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME,
-          method: 'handleGetUserDefaultTagCar',
-          action: action,
-          message: `Start Transaction checks failed for ${user.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-        // Billing module is ON but the settings are not set or inconsistent
-        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
-      }
-    }
-    // Default parameters for the Start Transaction
-    const userDefaultTagCar: UserDefaultTagCar = {
-      tag,
-      car
-    };
-    if (errorCodes?.length > 0) {
-      // Start Transaction prerequisites are not met!
-      userDefaultTagCar.errorCodes = errorCodes;
-    }
-    // Return
-    res.json(userDefaultTagCar);
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    // Check Billing errors
+    await this.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    res.json({
+      tag, car, errorCodes,
+    });
     next();
   }
 
@@ -871,6 +846,30 @@ export default class UserService {
         detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
       return false;
+    }
+  }
+
+  private static async checkBillingErrorCodes(action: ServerAction, tenant: Tenant,
+      loggedUser: UserToken, user: User, errorCodes: StartTransactionErrorCode[]) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
+        if (billingImpl) {
+          errorCodes.push(
+            ...await billingImpl.precheckStartTransactionPrerequisites(user));
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME,
+          method: 'checkBillingErrorCodes',
+          action: action,
+          message: `Start Transaction checks failed for ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // Billing module is ON but the settings are not set or inconsistent
+        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
+      }
     }
   }
 
