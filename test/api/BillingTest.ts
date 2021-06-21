@@ -22,6 +22,7 @@ import StripeBillingIntegration from '../../src/integration/billing/stripe/Strip
 import TenantComponents from '../../src/types/TenantComponents';
 import TenantContext from './context/TenantContext';
 import TestConstants from './client/utils/TestConstants';
+import TestUtils from './TestUtils';
 import User from '../../src/types/User';
 import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
@@ -184,7 +185,7 @@ class TestData {
       }
       // Give some time to the asyncTask to bill the transaction
       console.log(`Waiting for async tasks - pending tasks: ${pending.count} - running tasks: ${running.count}`);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await TestUtils.sleep(1000);
     }
     if (!pending.count && !running.count) {
       console.log('Async tasks have been completed');
