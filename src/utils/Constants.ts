@@ -293,6 +293,10 @@ export default class Constants {
   public static readonly REGEX_VALIDATION_LONGITUDE = /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
 
+  public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
+    'stack'
+  ]);
+
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'captcha', 'email', 'coordinates', 'latitude', 'longitude',
     'Authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
