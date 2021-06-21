@@ -3,6 +3,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
+import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -20,7 +21,6 @@ import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import Tenant from '../../../types/Tenant';
-import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -88,6 +88,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async checkActivationPrerequisites(): Promise<void> {
+    await this.checkTaxPrerequisites();
+  }
+
+  public async checkTaxPrerequisites(): Promise<void> {
     // Check whether the taxID is set and still active
     const taxID = this.settings.billing?.taxID;
     if (taxID) {
@@ -145,29 +149,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
     return newBillingsSettings;
-  }
-
-  public async getUsers(): Promise<BillingUser[]> {
-    const users = [];
-    let request;
-    const requestParams: Stripe.CustomerListParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST };
-    // Check Stripe
-    await this.checkConnection();
-    do {
-      request = await this.stripe.customers.list(requestParams);
-      for (const customer of request.data) {
-        users.push({
-          email: customer.email,
-          billingData: {
-            customerID: customer.id
-          }
-        });
-      }
-      if (request.has_more) {
-        requestParams.starting_after = users[users.length - 1].billingData.customerID;
-      }
-    } while (request.has_more);
-    return users;
   }
 
   private convertToBillingUser(customer: Stripe.Customer, user: User) : BillingUser {
@@ -317,8 +298,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const stripeInvoiceID = stripeInvoice.id;
     // Destructuring the STRIPE invoice to extract the required information
     // eslint-disable-next-line id-blacklist, max-len
-    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
+    const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency: invoiceCurrency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
+    const currency = invoiceCurrency?.toUpperCase();
     const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
     const userID = metadata?.userID;
@@ -552,18 +534,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
-    if (!customerID) {
-      // TODO: For now, we do not complain when the user is not in sync! Just return an empty list instead
-      return [];
-      // throw new BackendError({
-      //   message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
-      //   source: Constants.CENTRAL_SERVER,
-      //   module: MODULE_NAME,
-      //   method: 'getPaymentMethods',
-      //   action: ServerAction.BILLING_TRANSACTION
-      // });
-    }
-    // Let's do it!
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
     return paymentMethods;
   }
@@ -678,35 +648,37 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async _getPaymentMethods(user: User, customerID: string): Promise<BillingPaymentMethod[]> {
     const paymentMethods: BillingPaymentMethod[] = [];
     try {
-      let request;
-      const requestParams : Stripe.PaymentMethodListParams = {
-        limit: StripeBillingIntegration.STRIPE_MAX_LIST,
-        customer: customerID,
-        type: 'card',
-      };
       const customer = await this.getStripeCustomer(customerID);
-      do {
-        request = await this.stripe.paymentMethods.list(requestParams);
-        for (const paymentMethod of request.data) {
-          paymentMethods.push({
-            id: paymentMethod.id,
-            brand: paymentMethod.card.brand,
-            expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
-            last4: paymentMethod.card.last4,
-            type: paymentMethod.type,
-            createdOn: moment.unix(paymentMethod.created).toDate(),
-            isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
-          });
-        }
-        if (request.has_more) {
-          requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
-        }
-      } while (request.has_more);
+      if (customer) {
+        let response: Stripe.ApiList<Stripe.PaymentMethod>;
+        const requestParams : Stripe.PaymentMethodListParams = {
+          limit: StripeBillingIntegration.STRIPE_MAX_LIST,
+          customer: customerID,
+          type: 'card',
+        };
+        do {
+          response = await this.stripe.paymentMethods.list(requestParams);
+          for (const paymentMethod of response.data) {
+            paymentMethods.push({
+              id: paymentMethod.id,
+              brand: paymentMethod.card.brand,
+              expiringOn: new Date(paymentMethod.card.exp_year, paymentMethod.card.exp_month, 0),
+              last4: paymentMethod.card.last4,
+              type: paymentMethod.type,
+              createdOn: moment.unix(paymentMethod.created).toDate(),
+              isDefault: paymentMethod.id === customer.invoice_settings.default_payment_method
+            });
+          }
+          if (response.has_more) {
+            requestParams.starting_after = paymentMethods[paymentMethods.length - 1].id;
+          }
+        } while (response.has_more);
+      }
     } catch (error) {
       // catch stripe errors and send the information back to the client
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
+        action: ServerAction.BILLING_PAYMENT_METHODS,
         actionOnUser: user,
         module: MODULE_NAME, method: '_getPaymentMethods',
         message: 'Failed to retrieve payment methods',
@@ -761,9 +733,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private isTransactionUserInternal(transaction: Transaction): boolean {
+    return this.isUserInternal(transaction?.user);
+  }
+
+  private isUserInternal(user: User): boolean {
     // slf
     if (this.tenant.id === '5be7fb271014d90008992f06') {
-      const email = transaction?.user?.email?.toLocaleLowerCase();
+      const email = user?.email?.toLocaleLowerCase();
       if (email?.endsWith('@sap.com') || email?.endsWith('@vinci-facilities.com')) {
         // Internal user
         return true;
@@ -1097,6 +1073,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice> {
     // Let's collect the required information
+    let refreshDataRequired = false;
     const userID: string = user.id;
     const customerID: string = user.billingData?.customerID;
     // Check whether a DRAFT invoice can be used
@@ -1140,6 +1117,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     if (!stripeInvoice) {
       // Let's create a new DRAFT invoice (if none has been found)
       stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
+    } else {
+      // Here an existing invoice is being reused
+      refreshDataRequired = true;
     }
     let operationResult: StripeChargeOperationResult;
     if (this.settings.billing?.immediateBillingAllowed) {
@@ -1160,9 +1140,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
         // Reuse the operation result (for better performance)
         stripeInvoice = operationResult.invoice;
       } else {
-        // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
-        stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
+        // Something went wrong - we need to fetch the latest information from STRIPE again!
+        refreshDataRequired = true;
       }
+    }
+    // Get fresh data only when necessary - e.g.: invoice has been finalized, however the payment attempt failed
+    if (refreshDataRequired) {
+      stripeInvoice = await this.getStripeInvoice(stripeInvoice.id);
     }
     // Let's replicate some information on our side
     const billingInvoice = await this.synchronizeAsBillingInvoice(stripeInvoice, false);
@@ -1437,5 +1421,66 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Everything else should throw an error
     // --------------------------------------------------------------
     return null;
+  }
+
+  public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]> {
+    // Check billing prerequisites
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      // Nothing to check - billing of transactions is not yet ON
+      return null;
+    }
+    if (this.isUserInternal(user)) {
+      // Nothing to check - we do not bill internal user's transactions
+      return null;
+    }
+    // Make sure the STRIPE connection is ok
+    try {
+      await this.checkConnection();
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Stripe Prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
+    }
+    // Check all settings that are necessary to bill a transaction
+    const errorCodes: StartTransactionErrorCode[] = [];
+    try {
+      await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Billing setting prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      errorCodes.push(StartTransactionErrorCode.BILLING_NO_TAX);
+    }
+    // Check user prerequisites
+    const customerID: string = user?.billingData?.customerID;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
+      try {
+        // Check whether the customer exists or not
+        const customer = await this.checkStripeCustomer(customerID);
+        // Check whether the customer has a default payment method
+        this.checkStripePaymentMethod(customer);
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+          message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // TODO - return a more precise error code when payment method has expired
+        errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
+      }
+    }
+    // Let's return the check results!
+    return errorCodes;
   }
 }

@@ -36,7 +36,7 @@ class TestData {
 const testData = new TestData();
 const lockKey = 'test-lock';
 
-describe('Locking Tests', function() {
+describe('Locking', function() {
   this.timeout(100000);
 
   before(async () => {

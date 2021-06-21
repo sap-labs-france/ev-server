@@ -19,7 +19,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Tenant tests', function() {
+describe('Tenant', function() {
   this.timeout(30000);
   before(async () => {
     testData.superAdminCentralService = new CentralServerService('');

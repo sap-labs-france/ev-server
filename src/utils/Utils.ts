@@ -353,6 +353,10 @@ export default class Utils {
     return Constants.DEFAULT_LOCALE;
   }
 
+  public static convertLocaleForCurrency(locale: string): string {
+    return locale.replace('_', '-');
+  }
+
   public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
     switch (limitSource) {
       case ConnectorCurrentLimitSource.CHARGING_PROFILE:
@@ -1488,6 +1492,7 @@ export default class Utils {
     module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
+    const cpuInfo = os.cpus();
     return {
       tenantID: params.tenantID,
       timestamp: new Date(),
@@ -1497,11 +1502,11 @@ export default class Utils {
       process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
       processMemoryUsage: process.memoryUsage(),
       processCPUUsage: process.cpuUsage(),
-      cpusInfo: os.cpus(),
+      numberOfCPU: cpuInfo.length,
+      modelOfCPU: cpuInfo.length > 0 ? cpuInfo[0].model : '',
       memoryTotalGb: Utils.createDecimal(os.totalmem()).div(Constants.ONE_BILLION).toNumber(),
       memoryFreeGb: Utils.createDecimal(os.freemem()).div(Constants.ONE_BILLION).toNumber(),
       loadAverageLastMin: os.loadavg()[0],
-      networkInterface: os.networkInterfaces(),
       numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
       source: params.source,
       module: params.module,

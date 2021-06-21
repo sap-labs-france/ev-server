@@ -247,17 +247,15 @@ export default class OCPPCommonTests {
       await this.centralUserService.settingApi.update(this.currentPricingSetting);
     }
     if (this.createdUsers && Array.isArray(this.createdUsers)) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.createdUsers.forEach(async (user) => {
+      for (const user of this.createdUsers) {
         await this.centralUserService.deleteEntity(
           this.centralUserService.userApi, user);
-      });
+      }
     }
     if (this.createdTags && Array.isArray(this.createdTags)) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.createdTags.forEach(async (tag) => {
+      for (const tag of this.createdTags) {
         await this.centralUserService.userApi.deleteTag(tag.id);
-      });
+      }
     }
   }
 
