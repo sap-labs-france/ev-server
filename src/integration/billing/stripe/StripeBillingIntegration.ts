@@ -3,7 +3,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
-import Transaction, { StartTransactionCheck } from '../../../types/Transaction';
+import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -88,6 +88,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async checkActivationPrerequisites(): Promise<void> {
+    await this.checkTaxPrerequisites();
+  }
+
+  public async checkTaxPrerequisites(): Promise<void> {
     // Check whether the taxID is set and still active
     const taxID = this.settings.billing?.taxID;
     if (taxID) {
@@ -1451,15 +1455,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionCheck> {
+  public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]> {
     // Check billing prerequisites
     if (!this.settings.billing.isTransactionBillingActivated) {
-      // Nothing to check - billing of transaction is not yet ON
-      return StartTransactionCheck.OK;
+      // Nothing to check - billing of transactions is not yet ON
+      return null;
     }
     if (this.isUserInternal(user)) {
       // Nothing to check - we do not bill internal user's transactions
-      return StartTransactionCheck.OK;
+      return null;
     }
     // Make sure the STRIPE connection is ok
     try {
@@ -1472,11 +1476,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Stripe Prerequisites to start a transaction are not met',
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      return StartTransactionCheck.BILLING_NO_SETTINGS;
+      return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
     }
-    // Check that all settings that are necessary to bill a transaction are properly set
+    // Check all settings that are necessary to bill a transaction
+    const errorCodes: StartTransactionErrorCode[] = [];
     try {
-      await this.checkActivationPrerequisites(); // Makes sure the taxID is still valid
+      await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
@@ -1485,7 +1490,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         message: 'Billing setting prerequisites to start a transaction are not met',
         detailedMessages: { error: error.message, stack: error.stack }
       });
-      return StartTransactionCheck.BILLING_NO_TAX;
+      errorCodes.push(StartTransactionErrorCode.BILLING_NO_TAX);
     }
     // Check user prerequisites
     const customerID: string = user?.billingData?.customerID;
@@ -1503,10 +1508,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
           message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
-        return StartTransactionCheck.BILLING_NO_PAYMENT_METHOD;
+        // TODO - return a more precise error code when payment method has expired
+        errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
       }
     }
-    // Everything is fine!
-    return StartTransactionCheck.OK;
+    // Let's return the check results!
+    return errorCodes;
   }
 }

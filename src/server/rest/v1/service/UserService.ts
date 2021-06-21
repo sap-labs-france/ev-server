@@ -4,6 +4,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import { StartTransactionErrorCode, UserDefaultTagCar } from '../../../../types/Transaction';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -29,7 +30,6 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import { StartTransactionCheck } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
@@ -111,12 +111,12 @@ export default class UserService {
         ]);
       }
     }
-    let status = StartTransactionCheck.OK;
+    let errorCodes: Array<StartTransactionErrorCode> = [];
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
         if (billingImpl) {
-          status = await billingImpl.precheckStartTransactionPrerequisites(user);
+          errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
         }
       } catch (error) {
         await Logging.logError({
@@ -127,11 +127,21 @@ export default class UserService {
           message: `Start Transaction checks failed for ${user.id}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
-        status = StartTransactionCheck.BILLING_INCONSISTENT_SETTINGS;
+        // Billing module is ON but the settings are not set or inconsistent
+        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
       }
     }
+    // Default parameters for the Start Transaction
+    const userDefaultTagCar: UserDefaultTagCar = {
+      tag,
+      car
+    };
+    if (errorCodes?.length > 0) {
+      // Start Transaction prerequisites are not met!
+      userDefaultTagCar.errorCodes = errorCodes;
+    }
     // Return
-    res.json({ tag, car, status });
+    res.json(userDefaultTagCar);
     next();
   }
 

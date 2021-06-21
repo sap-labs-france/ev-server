@@ -1,6 +1,6 @@
 import { BillingChargeInvoiceAction, BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
-import Transaction, { StartTransactionCheck } from '../../types/Transaction';
+import Transaction, { StartTransactionErrorCode } from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 
 import BackendError from '../../exception/BackendError';
@@ -615,5 +615,5 @@ export default abstract class BillingIntegration {
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
-  abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionCheck>;
+  abstract precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]>;
 }

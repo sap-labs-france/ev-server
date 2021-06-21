@@ -32,8 +32,13 @@ export enum TransactionAction {
   END = 'end'
 }
 
-export enum StartTransactionCheck {
-  OK = 'ok',
+export interface UserDefaultTagCar {
+  car: Car;
+  tag: Tag;
+  errorCodes?: StartTransactionErrorCode[];
+}
+
+export enum StartTransactionErrorCode {
   BILLING_NO_PAYMENT_METHOD = 'no_payment_method', // start transaction is not possible - user has no payment method
   BILLING_NO_TAX = 'billing_no_tax', // start transaction is not possible - the tax ID is not set or inconsistent
   BILLING_NO_SETTINGS = 'billing_no_settings', // start transaction not possible - billing settings are not set (or partially set)
