@@ -3,6 +3,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
+import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
 import AsyncTaskManager from '../../../async-task/AsyncTaskManager';
 import AxiosFactory from '../../../utils/AxiosFactory';
@@ -20,7 +21,6 @@ import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import Tenant from '../../../types/Tenant';
-import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -88,6 +88,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async checkActivationPrerequisites(): Promise<void> {
+    await this.checkTaxPrerequisites();
+  }
+
+  public async checkTaxPrerequisites(): Promise<void> {
     // Check whether the taxID is set and still active
     const taxID = this.settings.billing?.taxID;
     if (taxID) {
@@ -729,9 +733,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private isTransactionUserInternal(transaction: Transaction): boolean {
+    return this.isUserInternal(transaction?.user);
+  }
+
+  private isUserInternal(user: User): boolean {
     // slf
     if (this.tenant.id === '5be7fb271014d90008992f06') {
-      const email = transaction?.user?.email?.toLocaleLowerCase();
+      const email = user?.email?.toLocaleLowerCase();
       if (email?.endsWith('@sap.com') || email?.endsWith('@vinci-facilities.com')) {
         // Internal user
         return true;
@@ -1413,5 +1421,66 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Everything else should throw an error
     // --------------------------------------------------------------
     return null;
+  }
+
+  public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]> {
+    // Check billing prerequisites
+    if (!this.settings.billing.isTransactionBillingActivated) {
+      // Nothing to check - billing of transactions is not yet ON
+      return null;
+    }
+    if (this.isUserInternal(user)) {
+      // Nothing to check - we do not bill internal user's transactions
+      return null;
+    }
+    // Make sure the STRIPE connection is ok
+    try {
+      await this.checkConnection();
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Stripe Prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
+    }
+    // Check all settings that are necessary to bill a transaction
+    const errorCodes: StartTransactionErrorCode[] = [];
+    try {
+      await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: 'Billing setting prerequisites to start a transaction are not met',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      errorCodes.push(StartTransactionErrorCode.BILLING_NO_TAX);
+    }
+    // Check user prerequisites
+    const customerID: string = user?.billingData?.customerID;
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
+      try {
+        // Check whether the customer exists or not
+        const customer = await this.checkStripeCustomer(customerID);
+        // Check whether the customer has a default payment method
+        this.checkStripePaymentMethod(customer);
+      } catch (error) {
+        await Logging.logError({
+          tenantID: this.tenant.id,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+          message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // TODO - return a more precise error code when payment method has expired
+        errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
+      }
+    }
+    // Let's return the check results!
+    return errorCodes;
   }
 }
