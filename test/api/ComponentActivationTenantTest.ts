@@ -32,7 +32,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Tenant Settings test', function() {
+describe('Tenant Settings', function() {
   this.timeout(3000000); // Not mandatory will automatically stop the unit test after that period of time
 
   before(async function() {

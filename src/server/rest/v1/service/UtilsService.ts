@@ -194,7 +194,7 @@ export default class UtilsService {
       });
     }
     // Get Company
-    const company = await CompanyStorage.getCompany(tenant.id, companyID,
+    const company = await CompanyStorage.getCompany(tenant, companyID,
       { ...additionalFilters },
       applyProjectFields ? authorizationFilter.projectFields : null
     );

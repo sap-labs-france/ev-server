@@ -142,11 +142,11 @@
     },
     "billingNewInvoicePaid": {
       "title": "Nouvelle facture payée",
-      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ a été payée et est maintenant disponible"
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} a été payée et est maintenant disponible"
     },
     "billingNewInvoiceOpen": {
       "title": "Nouvelle facture a payer",
-      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}}€ est disponible, vérifiez vos emails pour finaliser le paiement"
+      "body": "Une nouvelle facture ({{invoiceNumber}}) d'un montant de {{amount}} est disponible, vérifiez vos emails pour finaliser le paiement"
     },
     "endUserErrorNotification": {
       "title": "Un utitilisateur a reporté une erreur",

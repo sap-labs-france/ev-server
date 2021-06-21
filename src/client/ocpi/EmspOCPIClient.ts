@@ -118,7 +118,7 @@ export default class EmspOCPIClient extends OCPIClient {
   }
 
   public async checkAndGetCompany(): Promise<Company> {
-    let company = await CompanyStorage.getCompany(this.tenant.id, this.ocpiEndpoint.id);
+    let company = await CompanyStorage.getCompany(this.tenant, this.ocpiEndpoint.id);
     if (!company) {
       company = {
         id: this.ocpiEndpoint.id,
@@ -126,7 +126,7 @@ export default class EmspOCPIClient extends OCPIClient {
         issuer: false,
         createdOn: new Date()
       } as Company;
-      await CompanyStorage.saveCompany(this.tenant.id, company, false);
+      await CompanyStorage.saveCompany(this.tenant, company, false);
     }
     return company;
   }

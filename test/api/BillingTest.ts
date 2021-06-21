@@ -1,9 +1,9 @@
+import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
 
-import { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
@@ -11,6 +11,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
+import { DataResult } from '../types/DataResult';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
@@ -173,17 +174,22 @@ class TestData {
   }
 
   public async waitForAsyncTasks() {
-    let counter = 0;
+    let counter = 0, pending: DataResult<AsyncTask>, running: DataResult<AsyncTask>;
     while (counter++ <= 10) {
       // Get the number of pending tasks
-      const pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
-      const running = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.RUNNING }, Constants.DB_PARAMS_COUNT_ONLY);
-      if (!pending?.count && !running?.count) {
+      pending = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_COUNT_ONLY);
+      running = await AsyncTaskStorage.getAsyncTasks({ status: AsyncTaskStatus.RUNNING }, Constants.DB_PARAMS_COUNT_ONLY);
+      if (!pending.count && !running.count) {
         break;
       }
       // Give some time to the asyncTask to bill the transaction
       console.log(`Waiting for async tasks - pending tasks: ${pending.count} - running tasks: ${running.count}`);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    if (!pending.count && !running.count) {
+      console.log('Async tasks have been completed');
+    } else {
+      console.warn(`Gave up after more than 10 seconds - pending tasks: ${pending.count} - running tasks: ${running.count}`);
     }
   }
 
@@ -236,7 +242,7 @@ describe('Billing Settings', function() {
   this.pending = !testData.isBillingProperlyConfigured();
   this.timeout(1000000);
 
-  describe('With component Billing (tenant utbilling)', () => {
+  describe('With component Billing (utbilling)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();

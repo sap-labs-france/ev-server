@@ -25,7 +25,7 @@ class TestData {
 }
 const testData: TestData = new TestData();
 let carID: number;
-describe('Car Tests', function() {
+describe('Car', function() {
   this.timeout(500000);
   before(async function() {
     // Init values
@@ -43,7 +43,7 @@ describe('Car Tests', function() {
   });
   describe('Success cases', () => {
 
-    describe('Without any component (tenant utnothing)', () => {
+    describe('Without any component (utnothing)', () => {
       describe('Where admin user', () => {
         before(function() {
 
@@ -80,7 +80,7 @@ describe('Car Tests', function() {
       });
     });
 
-    describe('With component Car (tenant utcar)', () => {
+    describe('With component Car (utcar)', () => {
       describe('Where admin user', () => {
 
         before(function() {
@@ -328,13 +328,13 @@ describe('Car Tests', function() {
           password: config.get('admin.password')
         });
         // Delete any created car
-        testData.createdCars.forEach(async (car) => {
+        for (const car of testData.createdCars) {
           await testData.centralService.deleteEntity(
             testData.centralService.carApi,
             car,
             false
           );
-        });
+        }
       });
     });
 
