@@ -4,6 +4,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import { StartTransactionErrorCode, UserDefaultTagCar } from '../../../../types/Transaction';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -81,7 +82,37 @@ export default class UserService {
         );
       }
     }
-    res.json({ tag: defaultTag, car: defaultCar });
+    let errorCodes: Array<StartTransactionErrorCode> = [];
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+        if (billingImpl) {
+          errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: req.user.tenantID,
+          module: MODULE_NAME,
+          method: 'handleGetUserDefaultTagCar',
+          action: action,
+          message: `Start Transaction checks failed for ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // Billing module is ON but the settings are not set or inconsistent
+        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
+      }
+    }
+    // Default parameters for the Start Transaction
+    const userDefaultTagCar: UserDefaultTagCar = {
+      tag,
+      car
+    };
+    if (errorCodes?.length > 0) {
+      // Start Transaction prerequisites are not met!
+      userDefaultTagCar.errorCodes = errorCodes;
+    }
+    // Return
+    res.json(userDefaultTagCar);
     next();
   }
 
