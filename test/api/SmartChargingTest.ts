@@ -275,7 +275,7 @@ describe('Smart Charging Service', function() {
   this.pending = testData.pending;
   this.timeout(1000000);
 
-  describe('With component SmartCharging (tenant utsmartcharging)', () => {
+  describe('With component SmartCharging (utsmartcharging)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();

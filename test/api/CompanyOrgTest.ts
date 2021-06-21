@@ -80,7 +80,7 @@ async function loginAsAdminAndRemoveUsersFromSite() {
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, []);
 }
 
-describe('Company Org tests', function() {
+describe('Company', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -93,7 +93,7 @@ describe('Company Org tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -105,32 +105,32 @@ describe('Company Org tests', function() {
     });
 
     after(async () => {
-      // Delete any created company
-      testData.createdCompanies.forEach(async (site) => {
-        await testData.centralUserService.deleteEntity(
-          testData.centralUserService.companyApi,
-          site,
-          false
-        );
-      });
-      testData.createdCompanies = [];
-      // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
-        await testData.centralUserService.deleteEntity(
-          testData.centralUserService.userApi,
-          user,
-          false
-        );
-      });
-      testData.createdSites = [];
-      // Remove sites
-      testData.createdSites.forEach(async (site) => {
+      // Delete any created site
+      for (const site of testData.createdSites) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.siteApi,
           site,
           false
         );
-      });
+      }
+      testData.createdSites = [];
+      // Delete any created company
+      for (const company of testData.createdCompanies) {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.companyApi,
+          company,
+          false
+        );
+      }
+      testData.createdCompanies = [];
+      // Delete any created user
+      for (const user of testData.createdUsers) {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.userApi,
+          user,
+          false
+        );
+      }
       testData.createdUsers = [];
     });
 

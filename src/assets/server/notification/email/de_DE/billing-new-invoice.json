@@ -22,7 +22,7 @@
       "<% if(invoiceStatus === 'paid'){ %> Ihre Rechnung <%- invoiceNumber %> wurde bezahlt und ist jetzt verfügbar. <% } else { %> Eine neue Rechnung ist verfügbar : <%- invoiceNumber %>. <br/><br/> Bitte folgen Sie dem unten stehenden Link, um die Zahlung abzuschließen <% } %>"
     ],
     "stats": [
-      { "label": "Kosten", "value": "<%- invoiceAmount %>€" }
+      { "label": "<% if(invoiceStatus === 'paid'){ %> Amount paid <% } else { %> Amount due <% } %>", "value": "<%- invoiceAmount %>" }
     ],
     "actions": [{
         "title": "Rechnungen ansehen",
