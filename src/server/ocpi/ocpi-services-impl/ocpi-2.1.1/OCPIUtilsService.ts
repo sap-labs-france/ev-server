@@ -1002,7 +1002,7 @@ export default class OCPIUtilsService {
             connector.currentInstantWatts = 0;
             connector.currentInactivityStatus = null;
           }
-          await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+          await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
         }
       }
     }

@@ -127,12 +127,10 @@ export default abstract class WSConnection {
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
         const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID());
-        // Found?
         if (chargingStation) {
           // Update CF Instance
-          chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
-          // Save it
-          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
+          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
+            this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
         }
       }
     } catch (error) {
