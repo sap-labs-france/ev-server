@@ -130,9 +130,11 @@ export default class OICPUtils {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
     const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant.id, evseID);
     let foundConnector: Connector;
-    for (const connector of chargingStation.connectors) {
-      if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation.id, connector.connectorId)) {
-        foundConnector = connector;
+    if (chargingStation) {
+      for (const connector of chargingStation.connectors) {
+        if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation.id, connector.connectorId)) {
+          foundConnector = connector;
+        }
       }
     }
     return {
