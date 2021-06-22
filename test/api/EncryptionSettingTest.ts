@@ -18,7 +18,7 @@ const FAKE_WORD = 'Expelliarmus';
 const testData: TestData = new TestData();
 let oldSetting = {};
 
-describe('Encryption Setting tests', function() {
+describe('Encryption Setting', function() {
   this.timeout(30000);
 
   before(function() {
@@ -36,7 +36,7 @@ describe('Encryption Setting tests', function() {
     // Housekeeping
   });
 
-  describe('Success cases (tenant utall)', () => {
+  describe('Success cases (utall)', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {

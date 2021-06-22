@@ -29,7 +29,9 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
@@ -69,7 +71,7 @@ export default class UserService {
     const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -83,7 +85,7 @@ export default class UserService {
     // Check user
     const user = await UserStorage.getUser(
       req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Handle Tag
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
@@ -110,8 +112,12 @@ export default class UserService {
         ]);
       }
     }
-    // Return
-    res.json({ tag, car });
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    // Check Billing errors
+    await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    res.json({
+      tag, car, errorCodes,
+    });
     next();
   }
 
@@ -151,7 +157,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -262,7 +268,7 @@ export default class UserService {
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+        const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
         if (!billingImpl) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -333,7 +339,7 @@ export default class UserService {
     }
     // Delete billing user
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       try {
         await billingImpl.deleteUser(user);
       } catch (error) {
@@ -459,7 +465,7 @@ export default class UserService {
     await UserStorage.saveUser(req.user.tenantID, user, true);
     // Check Billing
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           await billingImpl.synchronizeUser(user);
@@ -531,7 +537,7 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
+    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
@@ -589,7 +595,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.ID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -620,7 +626,7 @@ export default class UserService {
     const userID = UserSecurity.filterUserByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -668,7 +674,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
     // Check auth
-    if (!(await Authorizations.canReadUser(req.user)).authorized) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: filteredRequest.UserID })).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -1025,7 +1031,7 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user)) {
       // For integration with billing
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
@@ -1239,6 +1245,30 @@ export default class UserService {
         detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
       return false;
+    }
+  }
+
+  private static async checkBillingErrorCodes(action: ServerAction, tenant: Tenant,
+      loggedUser: UserToken, user: User, errorCodes: StartTransactionErrorCode[]) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
+        if (billingImpl) {
+          errorCodes.push(
+            ...await billingImpl.precheckStartTransactionPrerequisites(user));
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME,
+          method: 'checkBillingErrorCodes',
+          action: action,
+          message: `Start Transaction checks failed for ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // Billing module is ON but the settings are not set or inconsistent
+        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
+      }
     }
   }
 }

@@ -9,18 +9,19 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import SiteArea from '../../types/SiteArea';
 import { SmartChargingSetting } from '../../types/Setting';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import { Voltage } from '../../types/ChargingStation';
 
 const MODULE_NAME = 'SmartChargingIntegration';
 
 export default abstract class SmartChargingIntegration<T extends SmartChargingSetting> {
-  protected readonly tenantID: string;
+  protected readonly tenant: Tenant;
   protected readonly setting: T;
   private excludedChargingStations: string[] = [];
 
-  protected constructor(tenantID: string, setting: T) {
-    this.tenantID = tenantID;
+  protected constructor(tenant: Tenant, setting: T) {
+    this.tenant = tenant;
     this.setting = setting;
   }
 
@@ -35,29 +36,32 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea, this.excludedChargingStations);
     if (!chargingProfiles) {
       await Logging.logInfo({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
       return;
     }
+    // Sort charging profiles
+    // Lower limits need to be set first. (When high limit is set first, it may appear that the corresponding low limit is not set yet)
+    chargingProfiles.sort((a, b) => a.profile.chargingSchedule.chargingSchedulePeriod[0].limit - b.profile.chargingSchedule.chargingSchedulePeriod[0].limit);
     // Apply the charging plans
     for (const chargingProfile of chargingProfiles) {
       try {
         // Set Charging Profile
-        await OCPPUtils.setAndSaveChargingProfile(this.tenantID, chargingProfile);
+        await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
         actionsResponse.inSuccess++;
       } catch (error) {
         // Retry setting the profile and check if succeeded
-        if (await this.handleRefusedChargingProfile(this.tenantID, chargingProfile, siteArea.name)) {
+        if (await this.handleRefusedChargingProfile(this.tenant.id, chargingProfile, siteArea.name)) {
           actionsResponse.inSuccess++;
           continue;
         }
         actionsResponse.inError++;
         // Log failed
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
@@ -67,7 +71,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       }
     }
     // Log
-    await Logging.logActionsResponse(this.tenantID, ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
+    await Logging.logActionsResponse(this.tenant.id, ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
       MODULE_NAME, 'computeAndApplyChargingProfiles', actionsResponse,
       '{{inSuccess}} charging plan(s) were successfully pushed',
       '{{inError}} charging plan(s) failed to be pushed',
@@ -123,12 +127,12 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     for (let i = 0; i < 2; i++) {
       try {
         // Set Charging Profile
-        await OCPPUtils.setAndSaveChargingProfile(this.tenantID, chargingProfile);
+        await OCPPUtils.setAndSaveChargingProfile(this.tenant, chargingProfile);
         return true;
       } catch (error) {
         // Log failed
         await Logging.logError({
-          tenantID: this.tenantID,
+          tenantID: this.tenant.id,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'handleRefusedChargingProfile',

@@ -506,7 +506,6 @@ export default class AuthorizationService {
       authorizationFilter: AuthorizationFilter, filteredRequest: HttpSiteAreasRequest): Promise<void> {
     // Add canCreate flag to root
     siteAreas.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.SITE_AREA, Action.CREATE, authorizationFilter);
-
     // Enrich
     for (const siteArea of siteAreas.result) {
       await AuthorizationService.addSiteAreaAuthorizations(tenant, userToken, siteArea, authorizationFilter, filteredRequest);
@@ -605,7 +604,7 @@ export default class AuthorizationService {
 
   public static async addCarsAuthorizations(tenant: Tenant, userToken: UserToken, cars: CarDataResult, authorizationFilter: AuthorizationFilter,
       filteredRequest: Record<string, any>): Promise<void> {
-  // Add canCreate flag to root
+    // Add canCreate flag to root
     cars.canCreate = await AuthorizationService.canPerformAuthorizationAction(tenant, userToken, Entity.CAR, Action.CREATE, authorizationFilter);
     // Enrich
     for (const car of cars.result) {

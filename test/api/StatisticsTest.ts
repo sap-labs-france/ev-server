@@ -15,7 +15,7 @@ chai.use(chaiDatetime);
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-describe('Statistics tests', function() {
+describe('Statistics', function() {
   this.timeout(30000); // Will automatically stop the unit test after that period of time
 
   let tenantContextNothing: any;
@@ -84,7 +84,7 @@ describe('Statistics tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without activated component (tenant utnothing)', () => {
+  describe('Without activated component (utnothing)', () => {
 
     describe('Where even admin user', () => {
 
@@ -164,7 +164,7 @@ describe('Statistics tests', function() {
 
   });
 
-  describe('With activated component (tenant utall)', () => {
+  describe('With activated component (utall)', () => {
 
     describe('Where admin user', () => {
 
@@ -613,10 +613,3 @@ describe('Statistics tests', function() {
   });
 
 });
-
-/**
- * @param ms
- */
-async function timeout(ms) {
-  return await new Promise((resolve) => setTimeout(resolve, ms));
-}

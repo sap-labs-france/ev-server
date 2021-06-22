@@ -5,6 +5,7 @@ import Constants from '../../../utils/Constants';
 import Countries from 'i18n-iso-countries';
 import I18nManager from '../../../utils/I18nManager';
 import Stripe from 'stripe';
+import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 
@@ -16,7 +17,7 @@ export interface StripeChargeOperationResult {
 
 export default class StripeHelpers {
 
-  public static async updateInvoiceAdditionalData(tenantID: string,
+  public static async updateInvoiceAdditionalData(tenant: Tenant,
       billingInvoice: BillingInvoice,
       operationResult: StripeChargeOperationResult,
       billingInvoiceItem?: BillingInvoiceItem): Promise<void> {
@@ -41,7 +42,7 @@ export default class StripeHelpers {
         session,
         lastError: billingError
       };
-      await BillingStorage.updateInvoiceAdditionalData(tenantID, billingInvoice, additionalData);
+      await BillingStorage.updateInvoiceAdditionalData(tenant, billingInvoice, additionalData);
     }
   }
 

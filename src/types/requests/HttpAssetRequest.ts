@@ -6,6 +6,7 @@ export interface HttpAssetRequest extends HttpByIDRequest {
 }
 
 export interface HttpAssetsRequest extends HttpDatabaseRequest {
+  Issuer?: boolean;
   Search?: string;
   SiteAreaID?: string;
   SiteID?: string;

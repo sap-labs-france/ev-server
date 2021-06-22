@@ -3,12 +3,13 @@ import { PricedConsumption, PricingSource } from '../../../types/Pricing';
 import Consumption from '../../../types/Consumption';
 import PricingIntegration from '../PricingIntegration';
 import { SimplePricingSetting } from '../../../types/Setting';
+import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
 export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {
-  constructor(tenantID: string, readonly settings: SimplePricingSetting) {
-    super(tenantID, settings);
+  constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
+    super(tenant, settings);
   }
 
   public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {

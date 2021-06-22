@@ -13,6 +13,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -31,7 +32,7 @@ export default class CompanyService {
     const company = await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, companyID, Action.DELETE, action, {});
     // Delete
-    await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
+    await CompanyStorage.deleteCompany(req.tenant, company.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -66,8 +67,10 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyLogoRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
+    // Fetch Tenant Object by Tenant ID
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     // Get the Logo
-    const companyLogo = await CompanyStorage.getCompanyLogo(filteredRequest.TenantID, filteredRequest.ID);
+    const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
     // Return
     if (companyLogo?.logo) {
       let header = 'image';
@@ -100,7 +103,7 @@ export default class CompanyService {
       return;
     }
     // Get the companies
-    const companies = await CompanyStorage.getCompanies(req.user.tenantID,
+    const companies = await CompanyStorage.getCompanies(req.tenant,
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
@@ -150,7 +153,7 @@ export default class CompanyService {
       createdOn: new Date()
     } as Company;
     // Save
-    newCompany.id = await CompanyStorage.saveCompany(req.user.tenantID, newCompany);
+    newCompany.id = await CompanyStorage.saveCompany(req.tenant, newCompany);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -185,7 +188,7 @@ export default class CompanyService {
     company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
     // Update Company
-    await CompanyStorage.saveCompany(req.user.tenantID, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
+    await CompanyStorage.saveCompany(req.tenant, company, Utils.objectHasProperty(filteredRequest, 'logo') ? true : false);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

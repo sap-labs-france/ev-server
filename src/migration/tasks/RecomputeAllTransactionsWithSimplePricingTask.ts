@@ -74,7 +74,7 @@ export default class RecomputeAllTransactionsWithSimplePricingTask extends Migra
           // Flag the transaction as migrated
           transaction.migrationTag = `${TASK_NAME}~${this.getVersion()}`;
           // Rebuild the pricing
-          await OCPPUtils.rebuildTransactionSimplePricing(tenant.id, transaction);
+          await OCPPUtils.rebuildTransactionSimplePricing(tenant, transaction);
           // Read the priced transaction
           // FIXME: Power limitation will be lost in consumptions (to check the implementation)
           const pricedTransaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);

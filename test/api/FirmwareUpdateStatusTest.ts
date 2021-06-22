@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Firmware Update Status Tests', function() {
+describe('Firmware Update Status', function() {
   this.timeout(1000000); // Will automatically stop test after that period of time
 
   before(async () => {
@@ -39,7 +39,7 @@ describe('Firmware Update Status Tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all components (tenant utall)', () => {
+  describe('With all components (utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);

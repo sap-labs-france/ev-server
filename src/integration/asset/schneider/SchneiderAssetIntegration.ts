@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
@@ -17,9 +18,9 @@ const MODULE_NAME = 'SchneiderAssetIntegration';
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+    super(tenant, settings, connection);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
 
   public async checkConnection(): Promise<void> {
@@ -43,7 +44,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
         }
       );
       await Logging.logDebug({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Schneider web service has been called successfully`,
@@ -128,7 +129,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.schneiderConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenantID, this.connection.schneiderConnection.password));
+    params.append('password', await Cypher.decrypt(this.tenant.id, this.connection.schneiderConnection.password));
     return params;
   }
 

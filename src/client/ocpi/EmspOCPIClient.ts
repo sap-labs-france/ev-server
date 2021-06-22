@@ -118,7 +118,7 @@ export default class EmspOCPIClient extends OCPIClient {
   }
 
   public async checkAndGetCompany(): Promise<Company> {
-    let company = await CompanyStorage.getCompany(this.tenant.id, this.ocpiEndpoint.id);
+    let company = await CompanyStorage.getCompany(this.tenant, this.ocpiEndpoint.id);
     if (!company) {
       company = {
         id: this.ocpiEndpoint.id,
@@ -126,7 +126,7 @@ export default class EmspOCPIClient extends OCPIClient {
         issuer: false,
         createdOn: new Date()
       } as Company;
-      await CompanyStorage.saveCompany(this.tenant.id, company, false);
+      await CompanyStorage.saveCompany(this.tenant, company, false);
     }
     return company;
   }
@@ -225,7 +225,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(sessions)) {
         await Promise.map(sessions, async (session: OCPISession) => {
           try {
-            await OCPIUtilsService.updateTransaction(this.tenant.id, session);
+            await OCPIUtilsService.updateTransaction(this.tenant, session);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -283,7 +283,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!Utils.isEmptyArray(cdrs)) {
         await Promise.map(cdrs, async (cdr: OCPICdr) => {
           try {
-            await OCPIUtilsService.processCdr(this.tenant.id, cdr);
+            await OCPIUtilsService.processCdr(this.tenant, cdr);
             result.success++;
           } catch (error) {
             result.failure++;
@@ -405,6 +405,7 @@ export default class EmspOCPIClient extends OCPIClient {
         chargingStation.siteAreaID = siteArea.id;
         chargingStation.siteID = siteArea.siteID;
         await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant.id, chargingStation.id, chargingStation.ocpiData);
         await Logging.logDebug({
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,

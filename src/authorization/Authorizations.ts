@@ -693,6 +693,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
   }
 
+  public static async canClearBillingTestData(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CLEAR_BILLING_TEST_DATA);
+  }
+
   public static async canCheckBillingConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
@@ -1040,7 +1044,8 @@ export default class Authorizations {
           // Clean up
           if (!user.authorizationID) {
             chargingStation.remoteAuthorizations = [];
-            await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+            await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
+              tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
           }
         }
         // Retrieve Auth token from OCPI
