@@ -44,7 +44,6 @@ import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
-import { request } from 'http';
 
 const MODULE_NAME = 'UserService';
 
