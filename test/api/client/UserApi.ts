@@ -17,7 +17,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/UsersInError');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_USERS_IN_ERROR));
   }
 
   public async create(data) {
@@ -61,6 +61,10 @@ export default class UserApi extends CrudApi {
 
   public async exportTags(params) {
     return await super.read(params, '/client/api/TagsExport');
+  }
+
+  public async exportUsers(params) {
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USERS_EXPORT));
   }
 
   public async updateMobileToken(userID: string, mobileToken: string, mobileOS: string) {
