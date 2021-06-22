@@ -115,6 +115,10 @@ export default class UserService {
     const errorCodes: Array<StartTransactionErrorCode> = [];
     // Check Billing errors
     await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    // Add error if EULA are not accepted (use case -> at user import)
+    if (!user.eulaAcceptedOn) {
+      errorCodes.push(StartTransactionErrorCode.EULA_NOT_ACCEPTED);
+    }
     res.json({
       tag, car, errorCodes,
     });

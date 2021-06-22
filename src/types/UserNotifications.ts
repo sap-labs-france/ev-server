@@ -349,6 +349,7 @@ export interface AdminAccountVerificationNotification extends BaseNotification {
 
 export interface UserCreatePassword extends BaseNotification {
   user: User;
+  tenantName: string;
   evseDashboardURL: string;
   evseDashboardCreatePasswordURL: string;
 }

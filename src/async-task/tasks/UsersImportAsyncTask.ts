@@ -71,35 +71,32 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               newUser.email = importedUser.email;
               newUser.createdBy = { id: importedUser.importedBy };
               newUser.createdOn = importedUser.importedOn;
-              newUser.autoActivateAtImport = importedUser.autoActivateAtImport;
+              newUser.status = importedUser.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.PENDING;
               // Save the new User
               newUser.id = await UserStorage.saveUser(tenant.id, newUser);
               // Role need to be set separately
               await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, newUser.id, importedUser.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.PENDING);
+              await UserStorage.saveUserStatus(tenant.id, newUser.id, newUser.status);
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               // Handle sending email for reseting password if user auto activated
-              if (importedUser.autoActivateAtImport) {
-                // Init Password info
-                const resetHash = Utils.generateUUID();
-                await UserStorage.saveUserPassword(tenant.id, newUser.id, { passwordResetHash: resetHash });
-                // Send create password link
-                const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
-                  '/define-password?hash=' + resetHash;
-                // Send account created with create password notification (Async)
-                await NotificationHandler.sendUserCreatePassword(
-                  tenant.id,
-                  Utils.generateUUID(),
-                  newUser,
-                  {
-                    'user': newUser,
-                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-                    'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
-                  });
-              } else {
-                // TODO : handle an informative email saying you will receive soon an email blabla - can reset password first ??
-              }
+              // Init Password info
+              const resetHash = Utils.generateUUID();
+              await UserStorage.saveUserPassword(tenant.id, newUser.id, { passwordResetHash: resetHash });
+              // Send create password link
+              const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
+                '/define-password?hash=' + resetHash;
+              // Send account created with create password notification (Async)
+              await NotificationHandler.sendUserCreatePassword(
+                tenant.id,
+                Utils.generateUUID(),
+                newUser,
+                {
+                  'user': newUser,
+                  'tenantName': tenant.name,
+                  'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+                  'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
+                });
               result.inSuccess++;
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;

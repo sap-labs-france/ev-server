@@ -389,6 +389,13 @@ export default class OCPPService {
       // Check User
       const user = await Authorizations.isAuthorizedToStartTransaction(
         tenant, chargingStation, startTransaction.tagID, ServerAction.START_TRANSACTION, Action.START_TRANSACTION);
+      if (!user?.eulaAcceptedOn) {
+        throw new BackendError({
+          action: ServerAction.START_TRANSACTION,
+          message: 'User has never accepted the EULA - start transaction refused',
+          module: MODULE_NAME, method: 'authorizeToken',
+        });
+      }
       if (user) {
         startTransaction.userID = user.id;
       }
