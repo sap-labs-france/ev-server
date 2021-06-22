@@ -3160,7 +3160,7 @@
             "description": "Return Charging Station CSV file",
             "content": {
               "text/csv": {
-                "example": "Name\tCreated On\tNumber of Connectors\tSite Area\tLatitude\tLongitude\tCharge Point S/N\tModel\tCharge Box S/N\tVendor\tFirmware\tVersion\tOCPP Version\tOCPP Protocol\tLast Seen\tLast Reboot\tMaximum Power (Watt)\tPower Limit\tUnit\n####\t####\t2\t####\t49\t-0.3\t####\tMONOBLOCK\t####\t####\t3\t1.6\tjson\t12/20/2020 11:54 PM\t12/09/2020 7:00 PM\t44160\tA"
+                "example": "Name,Created On,Number of Connectors,Site Area,Latitude,Longitude,Charge Point S/N,Model,Charge Box S/N,Vendor,Firmware,Version,OCPP Version,OCPP Protocol,Last Seen,Last Reboot,Maximum Power (Watt),Power Limit,Unit,####,####,2,####,49,-0.3,####,MONOBLOCK,####,####,3,1.6,json,12/20/2020 11:54 PM,12/09/2020 7:00 PM,44160,A"
               }
             }
           },
@@ -3766,67 +3766,22 @@
             "$ref": "#/components/parameters/UserIDs"
           },
           {
-            "in": "query",
-            "name": "Role",
-            "required": false,
-            "description": "Role attribute",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "S",
-                "A",
-                "B",
-                "D"
-              ]
-            }
+            "$ref": "#/components/parameters/UserRoles"
           },
           {
-            "in": "query",
-            "name": "Status",
-            "description": "Status attribute",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "P",
-                "A",
-                "I",
-                "B",
-                "L"
-              ]
-            }
+            "$ref": "#/components/parameters/UserStatuses"
           },
           {
-            "in": "query",
-            "name": "ExcludeSiteID",
-            "required": false,
-            "description": "Site ID to exclude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserExcludeSiteID"
           },
           {
-            "in": "query",
-            "name": "ExcludeUserIDs",
-            "description": "Pipe separated user IDs to exclude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserExcludeUserIDs"
           },
           {
-            "in": "query",
-            "name": "IncludeCarUserIDs",
-            "description": "Pipe separated car IDs",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
           },
           {
-            "in": "query",
-            "name": "NotAssignedToCarID",
-            "description": "Car ID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserNotAssignedToCarID"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -4452,6 +4407,225 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/status/in-error": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Users in error",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserRoles"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "required": false,
+            "description": "Pipe separated error types (inactive_user, unassigned_user, inactive_user_account, failed_billing_synchro, no_billing_data)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users in error list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "email": "###",
+                      "createdOn": "2021-04-23T09:08:16.451Z",
+                      "firstName": "###",
+                      "issuer": true,
+                      "name": "###",
+                      "status": "P",
+                      "role": "B",
+                      "errorCode": "inactive_user",
+                      "id": "###",
+                      "canRead": true,
+                      "canUpdate": true,
+                      "canDelete": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/users/action/import": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Import users from file",
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users importation results",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 42,
+                  "inError": 0
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "description": "Invalid file format"
+          },
+          "584": {
+            "description": "Invalid CSV header format"
+          }
+        }
+      }
+    },
+    "/api/users/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export users",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserRoles"
+          },
+          {
+            "$ref": "#/components/parameters/UserStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/UserExcludeSiteID"
+          },
+          {
+            "$ref": "#/components/parameters/UserExcludeUserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserNotAssignedToCarID"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users exported successfully",
+            "content": {
+              "text/csv": {
+                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.demo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "description": "Invalid file format"
+          },
+          "584": {
+            "description": "Invalid CSV header format"
           }
         }
       }
@@ -6035,6 +6209,56 @@
         "name": "id",
         "description": "Transaction ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserRoles": {
+        "in": "query",
+        "name": "Role",
+        "required": false,
+        "description": "Pipe separated user roles (S, A, B, D)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserStatuses": {
+        "in": "query",
+        "name": "Status",
+        "description": "Pipe separated statuses (P, A, I, B, L)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserExcludeSiteID": {
+        "in": "query",
+        "name": "ExcludeSiteID",
+        "required": false,
+        "description": "Site ID to exclude",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserExcludeUserIDs": {
+        "in": "query",
+        "name": "ExcludeUserIDs",
+        "description": "Pipe separated user IDs to exclude",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserIncludeCarUserIDs": {
+        "in": "query",
+        "name": "IncludeCarUserIDs",
+        "description": "Pipe separated car IDs",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserNotAssignedToCarID": {
+        "in": "query",
+        "name": "NotAssignedToCarID",
+        "description": "Car ID",
         "schema": {
           "type": "string"
         }

@@ -135,7 +135,8 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       );
     }
     // Save Auth
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
+      tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
     // Start the transaction
     const result = await this.remoteStartTransaction(tenant, chargingStation, connector, authorizeRemoteStart);
     if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {

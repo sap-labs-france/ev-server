@@ -83,7 +83,7 @@ export default class TagStorage {
       { ordered: false }
     );
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedTags', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedTags', uniqueTimerID, importedTagsToSave);
     return result.insertedCount;
   }
 

@@ -110,14 +110,14 @@ export default abstract class ChargingStationVendorIntegration {
     }
     // Update the connectors limit
     if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-      result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+        result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Update the charger's connectors
       const limitAmpsPerConnector = this.chargePointToConnectorLimitAmps(chargePoint, maxAmps);
       for (const connector of chargingStation.connectors) {
+        // Set
         connector.amperageLimit = limitAmpsPerConnector;
       }
-      // Save it
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
     }
     return result;
   }
@@ -145,8 +145,8 @@ export default abstract class ChargingStationVendorIntegration {
               });
             }
           }
-          // Save it
-          await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+          // Save
+          await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
         }
       }
     }

@@ -864,7 +864,13 @@ export default class Logging {
       return anonymizedMessage;
     } else if (typeof message === 'object') { // If the message is an object
       for (const key of Object.keys(message)) {
-        if (typeof message[key] === 'string' && Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
+        // Ignore
+        if (Constants.EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA.includes(key)) {
+          continue;
+        }
+        // Check Type
+        if (typeof message[key] === 'string' &&
+            Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
           // If the key indicates sensitive data and the value is a string, Anonymize the value
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
