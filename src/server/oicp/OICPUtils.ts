@@ -54,11 +54,10 @@ export default class OICPUtils {
     for (const chargingStation of chargingStations) {
       if (chargingStation.issuer && chargingStation.public) {
         const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(chargingStation.siteArea, chargingStation, options);
-        // Update the Charging Station
-        chargingStation.oicpData = {
+        // Update the Charging Station's OICP Data
+        await ChargingStationStorage.saveChargingStationOicpData(tenant.id, chargingStation.id, {
           evses: chargingStationEvses
-        };
-        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+        });
         evses.push(...chargingStationEvses);
       }
     }
@@ -131,9 +130,11 @@ export default class OICPUtils {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
     const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant.id, evseID);
     let foundConnector: Connector;
-    for (const connector of chargingStation.connectors) {
-      if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation.id, connector.connectorId)) {
-        foundConnector = connector;
+    if (chargingStation) {
+      for (const connector of chargingStation.connectors) {
+        if (evseID === RoamingUtils.buildEvseID(evseIDComponents.countryCode, evseIDComponents.partyId, chargingStation.id, connector.connectorId)) {
+          foundConnector = connector;
+        }
       }
     }
     return {

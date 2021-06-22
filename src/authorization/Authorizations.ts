@@ -1048,7 +1048,8 @@ export default class Authorizations {
           // Clean up
           if (!user.authorizationID) {
             chargingStation.remoteAuthorizations = [];
-            await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+            await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
+              tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
           }
         }
         // Retrieve Auth token from OCPI
