@@ -967,7 +967,8 @@ export default class TransactionStorage {
   public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
       projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
-      transactionIDs: [id]
+      transactionIDs: [id],
+      withTag: true
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }

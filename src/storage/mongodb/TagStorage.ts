@@ -449,7 +449,8 @@ export default class TagStorage {
     return {
       count: (tagsCountMDB.length > 0 ?
         (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),
-      result: tagsMDB
+      result: tagsMDB,
+      projectedFields: projectFields
     };
   }
 }

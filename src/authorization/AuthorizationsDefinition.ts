@@ -423,7 +423,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TAGS, action: Action.LIST, attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
           'createdOn', 'lastChangedOn'
         ],
         condition: {
