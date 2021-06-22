@@ -289,7 +289,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (ocpiConnector.standard) {
       foundConnector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
     }
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
   }
 
   private async updateEvse(tenant: Tenant, evse: OCPIEvse, location: OCPILocation) {
@@ -359,7 +359,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
       });
     }
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
   }
 }
 

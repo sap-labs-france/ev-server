@@ -323,12 +323,13 @@ export default class TransactionStorage {
     if (params.ocpiSessionID) {
       filters['ocpiData.session.id'] = params.ocpiSessionID;
     }
+    // Authorization ID
     if (params.ocpiAuthorizationID) {
       filters['ocpiData.session.authorization_id'] = params.ocpiAuthorizationID;
     }
     // OICP ID
     if (params.oicpSessionID) {
-      filters['oicpData.session.SessionID'] = params.oicpSessionID;
+      filters['oicpData.session.id'] = params.oicpSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
