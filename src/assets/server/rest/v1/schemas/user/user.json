@@ -27,19 +27,24 @@
       "pattern": "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\\$%\\^&\\*\\.\\?\\-_\\+\\=\\(\\)])(?=.{8,})"
     },
     "costCenter": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "iNumber": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "image": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "mobile": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "locale": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "address": {
       "$ref": "common.json#/definitions/address"
@@ -50,97 +55,127 @@
       }
     },
     "phone": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "issuer": {
-      "type": "boolean"
+      "type": "boolean",
+      "sanitize": "mongo"
     },
     "notificationsActive": {
-      "type": "boolean"
+      "type": "boolean",
+      "sanitize": "mongo"
     },
     "status": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "plateID": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "role": {
-      "type": "string"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "notifications": {
       "type": "object",
       "properties": {
         "sendSessionStarted": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendOptimalChargeReached": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendEndOfCharge": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendEndOfSession": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendUserAccountStatusChanged": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendSessionNotStarted": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendCarCatalogSynchronizationFailed": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendUserAccountInactivity": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendPreparingSessionNotStarted": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendBillingSynchronizationFailed": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendBillingPeriodicOperationFailed": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendBillingNewInvoice": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendNewRegisteredUser": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendUnknownUserBadged": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendChargingStationStatusError": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendChargingStationRegistered": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendOcpiPatchStatusError": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendSmtpAuthError": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendSmtpError": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendOfflineChargingStations": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendEndUserErrorNotification": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendComputeAndApplyChargingProfilesFailed": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendAccountVerificationNotification": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         },
         "sendAdminAccountVerificationNotification": {
-          "type": "boolean"
+          "type": "boolean",
+          "sanitize": "mongo"
         }
       }
     },
@@ -149,7 +184,8 @@
       "sanitize": "mongo"
     },
     "passwordWrongNbrTrials": {
-      "type": "number"
+      "type": "number",
+      "sanitize": "mongo"
     }
   }
 }
