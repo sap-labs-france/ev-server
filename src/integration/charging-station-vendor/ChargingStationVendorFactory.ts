@@ -17,6 +17,7 @@ export default class ChargingStationVendorFactory {
         chargingStationVendorImpl = new KebaChargingStationVendorIntegration(chargingStation);
         break;
       case ChargerVendor.ABB:
+      case ChargerVendor.ARK_AC_EV_CHARGER:
       case ChargerVendor.DBTCEV:
       case ChargerVendor.SCHNEIDER:
       case ChargerVendor.EVMETER:

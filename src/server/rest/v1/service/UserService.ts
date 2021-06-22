@@ -114,7 +114,7 @@ export default class UserService {
     }
     const errorCodes: Array<StartTransactionErrorCode> = [];
     // Check Billing errors
-    await this.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     res.json({
       tag, car, errorCodes,
     });

@@ -299,6 +299,7 @@ export type OCPPParams = {
 };
 
 export enum ChargerVendor {
+  ARK_AC_EV_CHARGER = 'Ark AC EV Charger',
   BENDER = 'Bender GmbH Co. KG',
   DBTCEV = 'DBT-CEV',
   EBEE = 'Ebee',

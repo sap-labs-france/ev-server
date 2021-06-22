@@ -52,7 +52,8 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
             try {
               // Call the limitation
               const result = await chargingStationVendor.setStaticPowerLimitation(tenant, chargingStation, chargePoint, amperageChargePointMax);
-              if (result.status === OCPPConfigurationStatus.ACCEPTED || result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+              if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+                  result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
                 chargePointUpdated = true;
                 updated++;
               } else {
@@ -83,7 +84,7 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
                 connector.amperageLimit = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorID);
               }
             }
-            await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+            await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
             updated++;
           }
         }
@@ -94,7 +95,7 @@ export default class UpdateChargingStationStaticLimitationTask extends Migration
             connector.amperageLimit = connector.amperage;
           }
         }
-        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
         updated++;
       }
     }

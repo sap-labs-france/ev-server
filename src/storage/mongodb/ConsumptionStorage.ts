@@ -45,7 +45,7 @@ export default class ConsumptionStorage {
     // Insert
     await global.database.getCollection<any>(tenantID, 'consumptions').insertMany(consumptionsMDB);
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumptions', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveConsumptions', uniqueTimerID, consumptionsToSave);
     // Return
     return consumptionsMDB.map((consumptionMDB) => consumptionMDB._id);
   }

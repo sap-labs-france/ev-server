@@ -316,7 +316,7 @@ export default class UserStorage {
       { ordered: false }
     );
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUsers', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUsers', uniqueTimerID, importedUsersToSave);
     return result.insertedCount;
   }
 

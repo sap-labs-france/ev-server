@@ -405,6 +405,7 @@ export default class EmspOCPIClient extends OCPIClient {
         chargingStation.siteAreaID = siteArea.id;
         chargingStation.siteID = siteArea.siteID;
         await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant.id, chargingStation.id, chargingStation.ocpiData);
         await Logging.logDebug({
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
