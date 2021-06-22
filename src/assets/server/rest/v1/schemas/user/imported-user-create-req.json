@@ -31,7 +31,7 @@
       "$ref": "user.json#/definitions/status"
     },
     "passwordWrongNbrTrials": {
-      "$ref": ""
+      "$ref": "user.json#/definitions/passwordWrongNbrTrials"
     },
     "notificationsActive": {
       "type": "boolean"

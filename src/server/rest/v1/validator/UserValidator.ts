@@ -33,12 +33,7 @@ export default class UserValidator extends SchemaValidator {
   }
 
   validateUserCreate(user: any, loggedUser: UserToken): Partial<User> {
-    const request = Utils.cloneObject(user);
     this.validate(this.userCreate, user);
-    if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
-      this.validate(this.userAdminCreate, request);
-      user = request;
-    }
     user.password = user.passwords.password;
     return user;
   }
