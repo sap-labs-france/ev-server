@@ -311,27 +311,11 @@ export default class UserService {
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const userID = UserSecurity.filterUserByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
-    // Check auth
-    if (!(await Authorizations.canReadUser(req.user, { UserID: userID })).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        value: userID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Get the logged user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, 'handleGetUserImage', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.READ, action);
     // Get the user image
-    const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
+    const userImage = await UserStorage.getUserImage(req.user.tenantID, user.id);
     res.json(userImage);
     next();
   }

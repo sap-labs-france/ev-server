@@ -476,9 +476,20 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.CHARGING_STATION,
         action: [Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE, Action.START_TRANSACTION],
         condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
-        },
+          Fn: 'OR',
+          args: [
+            {
+              Fn: 'EQUALS',
+              args: { 'site': null }
+            },
+            {
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'sites': '$.site'
+              }
+            }
+          ]
+        }
       },
       {
         resource: Entity.TAGS, action: Action.LIST, attributes: [
@@ -520,8 +531,19 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.TRANSACTION, action: [Action.READ],
         condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser'] }
+          Fn: 'OR',
+          args: [
+            {
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
+            },
+            {
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
+            }
+          ]
         }
       },
       { resource: Entity.CONNECTIONS, action: Action.LIST },
