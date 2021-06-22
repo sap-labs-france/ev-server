@@ -94,7 +94,7 @@ export default class AssetService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE_CONSUMPTION, Entity.ASSETS, MODULE_NAME, 'handleCreateAssetConsumption');
-    // Filter
+    // Validate request
     const filteredRequest = AssetValidator.getInstance().validateCreateAssetConsumption({ ...req.params, ...req.body });
     UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
       'handleCreateAssetConsumption', req.user);
@@ -135,8 +135,8 @@ export default class AssetService {
         action: action
       });
     }
-    // Check if the latest consumption is pushed
-    const lastConsumption = await ConsumptionStorage.getLastAssetConsumption(req.user.tenantID, { assetID: filteredRequest.assetID });
+    // Get latest consumption and check dates
+    const lastConsumption = await ConsumptionStorage.getLastAssetConsumption(req.tenant, { assetID: filteredRequest.assetID });
     if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -153,15 +153,20 @@ export default class AssetService {
       siteAreaID: asset.siteAreaID,
       siteID: asset.siteArea.siteID,
     };
+    // Check consumption
+    if (Utils.isNullOrUndefined(consumptionToSave.consumptionWh)) {
+      const timePeriod = moment(consumptionToSave.endedAt).diff(moment(consumptionToSave.startedAt), 'minutes');
+      consumptionToSave.consumptionWh = Utils.createDecimal(consumptionToSave.instantWatts).mul(Utils.createDecimal(timePeriod).div(60)).toNumber();
+    }
+    // Add Amps
     if (Utils.isNullOrUndefined(consumptionToSave.instantAmps)) {
       consumptionToSave.instantAmps = Utils.createDecimal(consumptionToSave.instantWatts).div(asset.siteArea.voltage).toNumber();
     }
-    if (!Utils.isNullOrUndefined(consumptionToSave.consumptionWh) && Utils.isNullOrUndefined(consumptionToSave.consumptionAmps)) {
-      consumptionToSave.consumptionAmps = Utils.createDecimal(consumptionToSave.consumptionWh).div(asset.siteArea.voltage).toNumber();
-    }
+    // Add site limitation
     await OCPPUtils.addSiteLimitationToConsumption(req.tenant, asset.siteArea, consumptionToSave);
-    // Get the ConsumptionValues
+    // Save consumption
     await ConsumptionStorage.saveConsumption(req.user.tenantID, consumptionToSave);
+    // Assign to asset
     asset.currentConsumptionWh = filteredRequest.consumptionWh;
     asset.currentInstantAmps = filteredRequest.instantAmps;
     asset.currentInstantAmpsL1 = filteredRequest.instantAmpsL1;
@@ -176,9 +181,10 @@ export default class AssetService {
     asset.currentInstantWattsL2 = filteredRequest.instantWattsL2;
     asset.currentInstantWattsL3 = filteredRequest.instantWattsL3;
     asset.currentStateOfCharge = filteredRequest.stateOfCharge;
+    asset.lastConsumption = { timestamp: consumptionToSave.endedAt, value: consumptionToSave.consumptionWh };
     // Save Asset
     await AssetStorage.saveAsset(req.user.tenantID, asset);
-    // Return
+    // Create response
     res.status(StatusCodes.CREATED).json(Object.assign({ consumption: consumptionToSave }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }

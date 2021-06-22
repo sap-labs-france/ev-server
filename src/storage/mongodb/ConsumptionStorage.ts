@@ -7,6 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ConsumptionStorage';
@@ -142,11 +143,11 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getLastAssetConsumption(tenantID: string, params: { assetID: string }): Promise<Consumption> {
+  static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastAssetConsumption');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getLastAssetConsumption');
     // Check
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -170,14 +171,14 @@ export default class ConsumptionStorage {
     });
     let consumption: Consumption = null;
     // Read DB
-    const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     if (consumptionsMDB && consumptionsMDB.length > 0) {
       consumption = consumptionsMDB[0];
     }
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getLastAssetConsumption', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getLastAssetConsumption', uniqueTimerID, consumptionsMDB);
     return consumption;
   }
 
