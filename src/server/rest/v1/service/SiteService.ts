@@ -67,10 +67,10 @@ export default class SiteService {
     }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     // Log
@@ -81,7 +81,6 @@ export default class SiteService {
       message: `The User has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -122,10 +121,10 @@ export default class SiteService {
     }
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.UPDATE, action);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.userID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
     await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
@@ -136,7 +135,6 @@ export default class SiteService {
       message: `The User has been granted Site Owner on Site '${site.name}'`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -149,10 +147,10 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.siteID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
     // Check and Get Users
     const users = await UtilsService.checkSiteUsersAuthorization(
-      req.tenant, req.user, site, filteredRequest.userIDs, action, {});
+      req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
       await SiteStorage.addUsersToSite(req.user.tenantID, site.id, users.map((user) => user.id));
@@ -168,7 +166,6 @@ export default class SiteService {
       message: 'Site\'s Users have been removed successfully',
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -179,10 +176,10 @@ export default class SiteService {
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsers');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
-    // Check Site - is this needed? it works without.
+    // Check Site
     try {
       await UtilsService.checkAndGetSiteAuthorization(
-        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action, {}, true);
+        req.tenant, req.user, filteredRequest.SiteID, Action.READ, action);
     } catch (error) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -194,7 +191,7 @@ export default class SiteService {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get users
+    // Get Users
     const users = await SiteStorage.getSiteUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
@@ -221,7 +218,7 @@ export default class SiteService {
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, siteID, Action.DELETE, action, {});
+      req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -232,7 +229,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -291,7 +287,7 @@ export default class SiteService {
       authorizationSitesFilter.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter, filteredRequest);
+    await AuthorizationService.addSitesAuthorizations(req.tenant, req.user, sites as SiteDataResult, authorizationSitesFilter);
     // Return
     res.json(sites);
     next();
@@ -345,7 +341,7 @@ export default class SiteService {
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      req.tenant, req.user, { }, Action.CREATE);
+      req.tenant, req.user, {}, Action.CREATE);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -356,7 +352,7 @@ export default class SiteService {
     }
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check static auth
     if (!await Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
@@ -383,7 +379,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
@@ -398,10 +393,10 @@ export default class SiteService {
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check and Get Company
     await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
@@ -429,7 +424,6 @@ export default class SiteService {
       action: action,
       detailedMessages: { site }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

@@ -151,10 +151,12 @@ export enum Action {
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_ASSETS = 'AssignAssets',
-  UNASSIGN_ASSETS = 'UnassignAssets',
-  ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
-  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
+  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
+  UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
+  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
+  UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
+  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
+  UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
 }
@@ -173,7 +175,7 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
-  filters?: DynamicAuthorizationFilterName[];
+  filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
 }
 
 export interface AuthorizationActions {
@@ -201,16 +203,16 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
+  SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
-  SITE_ADMIN_USERS = 'SiteAdminUsers',
   OWN_USER = 'OwnUser',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
+  SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
-  SITE_ADMIN_USERS = 'SiteAdminUsers',
   OWN_USER = 'OwnUser',
 }
 
@@ -221,6 +223,10 @@ export interface AssignedSitesCompaniesDynamicAuthorizationDataSourceData extend
 }
 
 export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
+}
+
+export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
 }
 

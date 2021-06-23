@@ -1,7 +1,5 @@
 import Address from '../../../../../types/Address';
-import Authorizations from '../../../../../authorization/Authorizations';
 import Constants from '../../../../../utils/Constants';
-import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 

@@ -1,7 +1,6 @@
-import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -58,7 +57,7 @@ export default class BillingSecurity {
     };
   }
 
-  static filterDownloadInvoiceRequest(requestQuery: any): HttpByIDRequest {
+  static filterDownloadInvoiceRequest(requestQuery: any): HttpBillingRequest {
     return {
       ID: sanitize(requestQuery.ID)
     };

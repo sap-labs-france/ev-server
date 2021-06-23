@@ -7,11 +7,13 @@ import UserToken from '../types/UserToken';
 export default abstract class DynamicAuthorizationFilter {
   protected tenant: Tenant;
   protected userToken: UserToken;
+  protected negateFilter: boolean;
   private dataSources: Map<DynamicAuthorizationDataSourceName, DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>> = new Map();
 
-  public constructor(tenant: Tenant, user: UserToken) {
+  public constructor(tenant: Tenant, user: UserToken, negateFilter: boolean) {
     this.tenant = tenant;
     this.userToken = user;
+    this.negateFilter = negateFilter;
   }
 
   public getDataSources(): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>[] {

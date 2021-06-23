@@ -1,4 +1,4 @@
-import { HttpCarByIDRequest, HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarUpdateRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogImagesRequest, HttpCarCatalogRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarRequest, HttpCarUpdateRequest, HttpCarsRequest, HttpUsersCarsRequest } from '../../../../../types/requests/HttpCarRequest';
 
 import { UserCar } from '../../../../../types/User';
 import Utils from '../../../../../utils/Utils';
@@ -35,11 +35,10 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarCatalogRequest(request: any): HttpCarCatalogByIDRequest {
-    const filteredRequest: HttpCarCatalogByIDRequest = {
+  public static filterCarCatalogRequest(request: any): HttpCarCatalogRequest {
+    return {
       ID: Utils.convertToInt(sanitize(request.ID)),
-    } as HttpCarCatalogByIDRequest;
-    return filteredRequest;
+    };
   }
 
   public static filterCarCreateRequest(request: any): HttpCarCreateRequest {
@@ -104,10 +103,10 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarRequest(request: any): HttpCarByIDRequest {
-    const filteredRequest: HttpCarByIDRequest = {
+  public static filterCarRequest(request: any): HttpCarRequest {
+    const filteredRequest: HttpCarRequest = {
       ID: sanitize(request.ID),
-    } as HttpCarByIDRequest;
+    } as HttpCarRequest;
     return filteredRequest;
   }
 

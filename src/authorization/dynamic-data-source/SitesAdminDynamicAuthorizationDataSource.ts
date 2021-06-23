@@ -20,10 +20,10 @@ export default class SitesAdminDynamicAuthorizationDataSource
   }
 
   private async getSitesAdminSiteIDs(): Promise<string[]> {
-    // Get the Site IDs of the Sites for which the user is SiteAdmin
+    // Get the Site IDs of the Sites for which the user is Site Admin
     const sites = await UserStorage.getUserSites(this.tenant.id,
       {
-        userID: this.userToken.id,
+        userIDs: [this.userToken.id],
         siteAdmin: true
       }, Constants.DB_PARAMS_MAX_LIMIT,
       ['siteID']
