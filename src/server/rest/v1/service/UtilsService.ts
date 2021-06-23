@@ -33,6 +33,7 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -601,8 +602,9 @@ export default class UtilsService {
       ];
       authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
     }
+    const userTokenTenant = await TenantStorage.getTenant(userToken.tenantID);
     // Get Car
-    const car = await CarStorage.getCar(userToken.tenantID, carID,
+    const car = await CarStorage.getCar(userTokenTenant, carID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
