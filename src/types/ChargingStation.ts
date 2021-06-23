@@ -300,16 +300,23 @@ export type OCPPParams = {
 
 export enum ChargerVendor {
   ARK_AC_EV_CHARGER = 'Ark AC EV Charger',
+  ALFEN = 'Alfen BV',
+  ALPITRONIC = 'alpitronic GmbH',
   BENDER = 'Bender GmbH Co. KG',
+  CFOS = 'cFos',
   DBTCEV = 'DBT-CEV',
   EBEE = 'Ebee',
+  ECOTAP = 'Ecotap',
   ENPLUS = 'EN+',
   EXADYS = 'EXADYS',
   EVBOX = 'EV-BOX',
   EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
+  EFACEC = 'pt.efacec',
   IES = 'IES',
+  HDM = 'HDM',
+  HAGER = 'Hager',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
@@ -323,5 +330,11 @@ export enum ChargerVendor {
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
   JOINON = 'JOINON',
-  LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES'
+  JOINT = 'Joint',
+  NEXANS = 'Nexans',
+  AIXCHARGE = 'aixcharge',
+  LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
+  TRITIUM = 'Tritium',
+  GREEN_MOTION = 'Green Motion',
+  G2_MOBILITY = 'com.g2mobility'
 }
