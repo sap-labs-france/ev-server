@@ -268,6 +268,20 @@ describe('User', function() {
           expect(response.data.image).to.be.null; // New users have a null image
         });
 
+        it('Should get the user default car tag', async () => {
+          // Create a tag
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          let response = await testData.userService.userApi.createTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
+          // Retrieve it
+          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.tag.id).to.be.eq(testData.newTag.id);
+          expect(response.data.car).to.be.undefined;
+          expect(response.data.errorCodes).to.be.empty;
+        });
+
         it('Should be able to delete the created user', async () => {
           // Delete the created entity
           await testData.userService.deleteEntity(
