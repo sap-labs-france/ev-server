@@ -382,7 +382,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -767,7 +767,7 @@ export default class UserService {
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);

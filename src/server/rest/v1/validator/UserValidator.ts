@@ -1,7 +1,7 @@
+import { HttpUserAssignSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpUserAssignSitesRequest } from '../../../../types/requests/HttpUserRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -13,13 +13,15 @@ export default class UserValidator extends SchemaValidator {
   private userCreate: Schema;
   private userAssignSites: Schema;
   private userGetByID: Schema;
+  private usersGet: Schema;
 
   private constructor() {
     super('UserValidator');
     this.importedUserCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/imported-user-create-req.json`, 'utf8'));
     this.userCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
     this.userAssignSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-assign-sites.json`, 'utf8'));
-    this.userGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-by-id.json`, 'utf8'));
+    this.userGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
+    this.usersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-get.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -46,6 +48,11 @@ export default class UserValidator extends SchemaValidator {
 
   validateUserGetByID(data: any): HttpByIDRequest {
     this.validate(this.userGetByID, data);
+    return data;
+  }
+
+  validateUsersGet(data: any): HttpUsersRequest {
+    this.validate(this.usersGet, data);
     return data;
   }
 }

@@ -1,5 +1,5 @@
 {
-  "title": "Get a user by id",
+  "title": "Get a User by id",
   "type": "object",
   "definitions": {
     "ID": {
