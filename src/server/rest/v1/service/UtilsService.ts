@@ -33,6 +33,7 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -602,7 +603,7 @@ export default class UtilsService {
       authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
     }
     // Get Car
-    const car = await CarStorage.getCar(userToken.tenantID, carID,
+    const car = await CarStorage.getCar(tenant, carID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -1388,20 +1389,20 @@ export default class UtilsService {
       }
     }
     if (asset.dynamicAsset) {
-      if (!asset.connectionID) {
+      if (!asset.connectionID && !asset.usesPushAPI) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset connection is mandatory',
+          message: 'Asset connection is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
       }
-      if (!asset.meterID) {
+      if (!asset.meterID && !asset.usesPushAPI) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Asset meter ID is mandatory',
+          message: 'Asset meter ID is mandatory, if it is not using push API',
           module: MODULE_NAME, method: 'checkIfAssetValid',
           user: req.user.id
         });
