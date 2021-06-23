@@ -234,7 +234,7 @@ export default class CarService {
     // Keep the current user to add for Basic role
     const carUserToAdd = filteredRequest.usersAdded.find((carUser) => carUser.user.id === req.user.id);
     // Check Car
-    const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID,
+    const car = await CarStorage.getCarByVinLicensePlate(req.tenant,
       filteredRequest.licensePlate, filteredRequest.vin, {
         withUsers: Authorizations.isBasic(req.user) ? true : false,
       });
@@ -293,7 +293,7 @@ export default class CarService {
         converter: filteredRequest.converter,
         createdOn: new Date()
       } as Car;
-      newCar.id = await CarStorage.saveCar(req.user.tenantID, newCar);
+      newCar.id = await CarStorage.saveCar(req.tenant, newCar);
       // If Basic, this is the car owner
       if (Authorizations.isBasic(req.user)) {
         carUserToAdd.owner = true;
@@ -345,7 +345,7 @@ export default class CarService {
     }
     // Car already exists with same VIN and License Plate
     if (car.licensePlate !== filteredRequest.licensePlate || car.vin !== filteredRequest.vin) {
-      const checkCar = await CarStorage.getCarByVinLicensePlate(req.user.tenantID, filteredRequest.licensePlate, filteredRequest.vin);
+      const checkCar = await CarStorage.getCarByVinLicensePlate(req.tenant, filteredRequest.licensePlate, filteredRequest.vin);
       if (checkCar) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -366,7 +366,7 @@ export default class CarService {
       car.converter = filteredRequest.converter;
       car.lastChangedBy = { 'id': req.user.id };
       car.lastChangedOn = new Date();
-      await CarStorage.saveCar(req.user.tenantID, car);
+      await CarStorage.saveCar(req.tenant, car);
       // Log
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -384,7 +384,7 @@ export default class CarService {
       }
     } else {
       // Remove all users for Pool car
-      await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
+      await CarStorage.deleteCarUsersByCarID(req.tenant, car.id);
     }
     // Handle Users to Update/Remove/Add
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -404,7 +404,7 @@ export default class CarService {
       return;
     }
     // Get cars
-    const cars = await CarStorage.getCars(req.user.tenantID,
+    const cars = await CarStorage.getCars(req.tenant,
       {
         search: filteredRequest.Search,
         carMakers: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null,
@@ -464,7 +464,7 @@ export default class CarService {
       return;
     }
     // Get cars
-    const usersCars = await CarStorage.getCarUsers(req.user.tenantID,
+    const usersCars = await CarStorage.getCarUsers(req.tenant,
       {
         search: filteredRequest.Search,
         carIDs: [filteredRequest.CarID],
@@ -512,7 +512,7 @@ export default class CarService {
     // Basic User
     if (Authorizations.isBasic(req.user) && !carUser.owner) {
       // Delete the association
-      await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
+      await CarStorage.deleteCarUser(req.tenant, carUser.id);
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
@@ -525,9 +525,9 @@ export default class CarService {
     if (Authorizations.isAdmin(req.user) || (Authorizations.isBasic(req.user) && carUser.owner)) {
       // Check if Transaction exist (to Be implemented later)
       // Delete all the associations
-      await CarStorage.deleteCarUsersByCarID(req.user.tenantID, carId);
+      await CarStorage.deleteCarUsersByCarID(req.tenant, carId);
       // Delete the car
-      await CarStorage.deleteCar(req.user.tenantID, carId);
+      await CarStorage.deleteCar(req.tenant, carId);
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handleDeleteCar',
@@ -585,7 +585,7 @@ export default class CarService {
     // Users to Upsert
     if (!Utils.isEmptyArray(usersCarsToUpsert)) {
       // Read all car users
-      const carUsersDB = await CarStorage.getCarUsers(tenant.id,
+      const carUsersDB = await CarStorage.getCarUsers(tenant,
         { carUsersIDs: usersCarsToUpsert.map((userToUpsert) => userToUpsert.id) },
         Constants.DB_PARAMS_MAX_LIMIT);
       const userCarsToInsert: UserCar[] = [];
@@ -595,11 +595,11 @@ export default class CarService {
         const foundCarUserDB = carUsersDB.result.find((carUserDB) => carUserDB.id === userToUpsert.id);
         // Check Default
         if (userToUpsert.default && (!foundCarUserDB || (userToUpsert.default !== foundCarUserDB.default))) {
-          await CarStorage.clearCarUserDefault(tenant.id, userToUpsert.user.id);
+          await CarStorage.clearCarUserDefault(tenant, userToUpsert.user.id);
         }
         // Check Owner
         if (Authorizations.isAdmin(loggedUser) && userToUpsert.owner && (!foundCarUserDB || (userToUpsert.owner !== foundCarUserDB.owner))) {
-          await CarStorage.clearCarUserOwner(tenant.id, userToUpsert.carID);
+          await CarStorage.clearCarUserOwner(tenant, userToUpsert.carID);
         }
         // Update
         if (foundCarUserDB) {
@@ -608,7 +608,7 @@ export default class CarService {
           userToUpsert.lastChangedBy = { 'id': loggedUser.id };
           userToUpsert.lastChangedOn = new Date();
           // Save (multi updates one shot does not exist in MongoDB)
-          await CarStorage.saveCarUser(tenant.id, foundCarUserDB);
+          await CarStorage.saveCarUser(tenant, foundCarUserDB);
           // Create
         } else {
           userToUpsert.carID = car.id;
@@ -620,7 +620,7 @@ export default class CarService {
       }
       // Insert one shot
       if (!Utils.isEmptyArray(userCarsToInsert)) {
-        await CarStorage.insertCarUsers(tenant.id, userCarsToInsert);
+        await CarStorage.insertCarUsers(tenant, userCarsToInsert);
       }
       // Log
       await Logging.logDebug({
@@ -635,7 +635,7 @@ export default class CarService {
     // Users to Delete
     if (usersCarsToDelete.length > 0) {
       // Delete
-      await CarStorage.deleteCarUsers(tenant.id, usersCarsToDelete.map((userToDelete) => userToDelete.id));
+      await CarStorage.deleteCarUsers(tenant, usersCarsToDelete.map((userToDelete) => userToDelete.id));
       // Log
       await Logging.logDebug({
         tenantID: tenant.id,
