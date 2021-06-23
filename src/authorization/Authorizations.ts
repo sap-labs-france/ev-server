@@ -346,12 +346,10 @@ export default class Authorizations {
 
   public static async canImportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.TAGS, Action.IMPORT, authContext);
-    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
   public static async canExportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.TAGS, Action.EXPORT, authContext);
-    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.EXPORT);
   }
 
   public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -382,16 +380,16 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.SITE, Action.READ, authContext);
   }
 
-  public static async canCreateSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.CREATE);
+  public static async canCreateSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.CREATE, authContext);
   }
 
-  public static async canUpdateSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE);
+  public static async canUpdateSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.UPDATE, authContext);
   }
 
-  public static async canDeleteSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE);
+  public static async canDeleteSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.DELETE, authContext);
   }
 
   public static async canListSettings(loggedUser: UserToken): Promise<boolean> {

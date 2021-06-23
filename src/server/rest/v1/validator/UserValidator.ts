@@ -2,7 +2,6 @@ import User, { ImportedUser } from '../../../../types/User';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
-import UserToken from '../../../../types/UserToken';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
