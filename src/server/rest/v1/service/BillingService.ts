@@ -849,7 +849,7 @@ export default class BillingService {
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
-    const liveMode = BillingService.isConnectedToLiveAccount(req);
+    const liveMode = await BillingService.isConnectedToLiveAccount(req);
     // Ok
     res.json({
       ... billingSettings,
