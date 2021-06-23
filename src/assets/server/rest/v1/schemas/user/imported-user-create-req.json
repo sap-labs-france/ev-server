@@ -4,95 +4,40 @@
   "type": "object",
   "properties": {
     "email": {
-      "$ref": "common.json#/definitions/email"
+      "$ref": "user.json#/definitions/email"
     },
     "name": {
-      "$ref": "common.json#/definitions/name"
+      "$ref": "user.json#/definitions/name"
     },
     "firstName": {
-      "$ref": "common.json#/definitions/firstName"
+      "$ref": "user.json#/definitions/firstName"
     },
     "password": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 150
+      "$ref": "user.json#/definitions/password"
     },
     "locale": {
-      "type": "string"
+      "$ref": "user.json#/definitions/locale"
     },
     "issuer": {
-      "type": "boolean"
+      "$ref": "user.json#/definitions/issuer"
     },
     "deleted": {
-      "type": "boolean"
+      "$ref": "user.json#/definitions/deleted"
     },
     "role": {
-      "type": "string"
+      "$ref": "user.json#/definitions/role"
     },
     "status": {
-      "type": "string"
+      "$ref": "user.json#/definitions/status"
     },
     "passwordWrongNbrTrials": {
-      "type": "number"
+      "$ref": "user.json#/definitions/passwordWrongNbrTrials"
     },
     "notificationsActive": {
       "type": "boolean"
     },
     "notifications": {
-      "type": "object",
-      "properties": {
-        "sendSessionStarted": {
-          "type": "boolean"
-        },
-        "sendOptimalChargeReached": {
-          "type": "boolean"
-        },
-        "sendEndOfCharge": {
-          "type": "boolean"
-        },
-        "sendEndOfSession": {
-          "type": "boolean"
-        },
-        "sendUserAccountStatusChanged": {
-          "type": "boolean"
-        },
-        "sendNewRegisteredUser": {
-          "type": "boolean"
-        },
-        "sendUnknownUserBadged": {
-          "type": "boolean"
-        },
-        "sendChargingStationStatusError": {
-          "type": "boolean"
-        },
-        "sendChargingStationRegistered": {
-          "type": "boolean"
-        },
-        "sendOcpiPatchStatusError": {
-          "type": "boolean"
-        },
-        "sendSmtpAuthError": {
-          "type": "boolean"
-        },
-        "sendUserAccountInactivity": {
-          "type": "boolean"
-        },
-        "sendPreparingSessionNotStarted": {
-          "type": "boolean"
-        },
-        "sendOfflineChargingStations": {
-          "type": "boolean"
-        },
-        "sendBillingUserSynchronizationFailed": {
-          "type": "boolean"
-        },
-        "sendSessionNotStarted": {
-          "type": "boolean"
-        },
-        "sendCarCatalogSynchronizationFailed": {
-          "type": "boolean"
-        }
-      }
+      "$ref": "user.json#/definitions/notifications"
     }
   },
   "required": [

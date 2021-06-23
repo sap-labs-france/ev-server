@@ -735,7 +735,8 @@ export default class UserStorage {
     return {
       count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
-      result: usersMDB
+      result: usersMDB,
+      projectedFields: projectFields
     };
   }
 
@@ -970,7 +971,7 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenantID: string,
-      params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
+      params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserSites');
@@ -985,8 +986,10 @@ export default class UserStorage {
     // Set the filters
     const filters: FilterParams = {};
     // Filter
-    if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     if (params.siteAdmin) {
       filters.siteAdmin = params.siteAdmin;
@@ -1065,7 +1068,8 @@ export default class UserStorage {
     return {
       count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
-      result: siteUsersMDB
+      result: siteUsersMDB,
+      projectedFields: projectFields
     };
   }
 

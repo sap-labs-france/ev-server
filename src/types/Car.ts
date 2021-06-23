@@ -2,7 +2,7 @@ import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { UserCar } from './User';
 
-export interface CarCatalog extends CreatedUpdatedProps {
+export interface CarCatalog extends CreatedUpdatedProps, AuthorizationActions {
   id: number;
   vehicleMake: string;
   vehicleModel: string;

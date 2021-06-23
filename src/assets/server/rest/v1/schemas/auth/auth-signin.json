@@ -3,10 +3,10 @@
   "type": "object",
   "properties": {
     "email": {
-      "$ref": "common.json#/definitions/email"
+      "$ref": "user.json#/definitions/email"
     },
     "password": {
-      "$ref": "common.json#/definitions/password"
+      "$ref": "user.json#/definitions/password"
     },
     "acceptEula": {
       "$ref": "common.json#/definitions/acceptEula"
