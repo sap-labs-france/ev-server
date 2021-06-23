@@ -29,8 +29,10 @@ import { OICPRole } from '../../types/oicp/OICPRole';
 import OICPUtils from '../../server/oicp/OICPUtils';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -52,18 +54,23 @@ export default class CpoOICPClient extends OICPClient {
 
   public async startSession(chargingStation: ChargingStation, transaction: Transaction,
       sessionId: OICPSessionID, identification: OICPIdentification): Promise<void> {
+    const options: OCPILocationOptions = {
+      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
+      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
+      addChargeBoxID: true
+    };
+    // Get Site Area
     let siteArea: SiteArea;
     if (!chargingStation.siteArea) {
       siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
     } else {
       siteArea = chargingStation.siteArea;
     }
-    const options: OCPILocationOptions = {
-      countryID: this.getLocalCountryCode(ServerAction.OICP_PUSH_SESSIONS),
-      partyID: this.getLocalPartyID(ServerAction.OICP_PUSH_SESSIONS),
-      addChargeBoxID: true
-    };
-    const oicpEvse = OICPUtils.getEvseByConnectorId(this.tenant, siteArea, chargingStation, transaction.connectorId, options);
+    // Get Site
+    const site = await SiteStorage.getSite(this.tenant.id, chargingStation.siteID);
+    // Get Evse
+    const oicpEvse = OICPUtils.getEvseByConnectorId(
+      site, siteArea, chargingStation, transaction.connectorId, options);
     const oicpSession = {
       id: sessionId,
       start_datetime: transaction.timestamp,
@@ -76,6 +83,7 @@ export default class CpoOICPClient extends OICPClient {
       last_updated: transaction.timestamp,
       meterValueInBetween: [],
     } as OICPSession;
+    // Set OICP data
     transaction.oicpData = {
       session: oicpSession
     };
@@ -230,74 +238,86 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    let chargingStations: ChargingStation[];
-    let currentSkip = 0;
+    let sites: Site[];
+    let currentSiteSkip = 0;
     do {
-      // Get all charging stations from tenant
-      chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
-        { public: true }, { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
-      if (!Utils.isEmptyArray(chargingStations)) {
-        // Convert (public) charging stations to OICP EVSEs
-        const evses = await OICPUtils.convertChargingStationsToEVSEs(this.tenant, chargingStations, options);
-        let evsesToProcess: OICPEvseDataRecord[] = [];
-        let chargeBoxIDsToProcessFromInput = [];
-        // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
-        //    - EVSEs (ChargingStations) in error from previous push
-        //    - EVSEs (ChargingStations) with status notification from latest pushDate
-        if (processAllEVSEs) {
-          evsesToProcess = evses;
-          chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
-        } else {
-          let chargeBoxIDsToProcess = [];
-          // Get ChargingStation in Failure from previous run
-          chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
-          // Get ChargingStation with new status notification
-          chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
-          // Remove duplicates
-          chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
-          // Loop through EVSE
-          for (const evse of evses) {
-            if (evse) {
-              // Check if Charging Station should be processed
-              if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
-                continue;
-              }
-              // Process
-              evsesToProcess.push(evse);
-              chargeBoxIDsToProcessFromInput.push(evse.ChargingStationID);
-            }
-          }
-        }
-        // Only one post request to Hubject for multiple EVSEs
-        result.total = evsesToProcess.length;
-        if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
-          // In case of multiple batches:
-          // delete all EVSEs on Hubject by overwriting with empty array
-          // set action type to insert to avoid overwriting each batch with a full load request
-          await this.pushEvseData([], OICPActionType.FULL_LOAD);
-          actionType = OICPActionType.INSERT;
-        }
-        if (evsesToProcess) {
-          // Process it if not empty
+      // Get the public Sites
+      sites = (await SiteStorage.getSites(this.tenant.id,
+        { public: true }, { skip: currentSiteSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+      if (!Utils.isEmptyArray(sites)) {
+        for (const site of sites) {
+          let chargingStations: ChargingStation[];
+          let currentChargingStationSkip = 0;
           do {
-            // Send EVSEs in batches to avoid maxBodyLength limit of request.
-            const evseBatch = evsesToProcess.splice(0, OICPBatchSize.EVSE_DATA);
-            const evseIDBatch = chargeBoxIDsToProcessFromInput.splice(0, OICPBatchSize.EVSE_DATA);
-            try {
-              await this.pushEvseData(evseBatch, actionType);
-              result.success += evseBatch.length;
-            } catch (error) {
-              result.failure += evseBatch.length;
-              result.objectIDsInFailure.push(...evseIDBatch);
-              result.logs.push(
-                `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
-              );
+            // Get all charging stations from tenant
+            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+              { siteIDs: [site.id], public: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+            if (!Utils.isEmptyArray(chargingStations)) {
+              // Convert (public) charging stations to OICP EVSEs
+              const evses = await OICPUtils.convertChargingStationsToEVSEs(this.tenant, site, chargingStations, options);
+              let evsesToProcess: OICPEvseDataRecord[] = [];
+              let chargeBoxIDsToProcessFromInput = [];
+              // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
+              //    - EVSEs (ChargingStations) in error from previous push
+              //    - EVSEs (ChargingStations) with status notification from latest pushDate
+              if (processAllEVSEs) {
+                evsesToProcess = evses;
+                chargeBoxIDsToProcessFromInput = evsesToProcess.map((evse) => evse.ChargingStationID);
+              } else {
+                let chargeBoxIDsToProcess = [];
+                // Get ChargingStation in Failure from previous run
+                chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+                // Get ChargingStation with new status notification
+                chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
+                // Remove duplicates
+                chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
+                // Loop through EVSE
+                for (const evse of evses) {
+                  if (evse) {
+                    // Check if Charging Station should be processed
+                    if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.ChargingStationID)) {
+                      continue;
+                    }
+                    // Process
+                    evsesToProcess.push(evse);
+                    chargeBoxIDsToProcessFromInput.push(evse.ChargingStationID);
+                  }
+                }
+              }
+              // Only one post request to Hubject for multiple EVSEs
+              result.total = evsesToProcess.length;
+              if (evsesToProcess.length > OICPBatchSize.EVSE_DATA) {
+                // In case of multiple batches:
+                // delete all EVSEs on Hubject by overwriting with empty array
+                // set action type to insert to avoid overwriting each batch with a full load request
+                await this.pushEvseData([], OICPActionType.FULL_LOAD);
+                actionType = OICPActionType.INSERT;
+              }
+              if (evsesToProcess) {
+                // Process it if not empty
+                do {
+                  // Send EVSEs in batches to avoid maxBodyLength limit of request.
+                  const evseBatch = evsesToProcess.splice(0, OICPBatchSize.EVSE_DATA);
+                  const evseIDBatch = chargeBoxIDsToProcessFromInput.splice(0, OICPBatchSize.EVSE_DATA);
+                  try {
+                    await this.pushEvseData(evseBatch, actionType);
+                    result.success += evseBatch.length;
+                  } catch (error) {
+                    result.failure += evseBatch.length;
+                    result.objectIDsInFailure.push(...evseIDBatch);
+                    result.logs.push(
+                      `Failed to update the EVSEs from tenant '${this.tenant.id}': ${String(error.message)}`
+                    );
+                  }
+                } while (!Utils.isEmptyArray(evsesToProcess));
+              }
             }
-          } while (!Utils.isEmptyArray(evsesToProcess));
+            currentChargingStationSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+          } while (!Utils.isEmptyArray(chargingStations));
         }
       }
-      currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
-    } while (!Utils.isEmptyArray(chargingStations));
+      currentSiteSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+    } while (!Utils.isEmptyArray(sites));
     // Send notification to admins
     if (result.failure > 0) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
