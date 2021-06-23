@@ -9,7 +9,7 @@
         "left": {
           "height": 60,
           "url": "<%- tenantLogoURL %>"
-        },  
+        },
         "right": {
           "height": 50,
           "url": "<%- evseDashboardURL %>/assets/img/info.png"
@@ -19,13 +19,13 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "An account has just been created on your behalf in <%- subdomain %> organisation.",
-      "Click on the link bellow to create your password.",
-      "<strong>You will have to log at least once in this organisation to be able to charge your car.</strong>"
+      "An account has just been created on your behalf in <%- tenantName %> organisation.",
+      "",
+      "Click on the link below to complete the activation."
     ],
     "actions": [{
-      "title": "Create your password",
-      "url": "<%- evseDashboardCreatePasswordURL %>"
+      "title": "Activate your Account",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
       "Best Regards,",
@@ -35,3 +35,4 @@
     }
   }
 }
+

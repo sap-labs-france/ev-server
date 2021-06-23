@@ -259,6 +259,7 @@ export enum ServerAction {
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
   VERIFICATION_EMAIL = 'VerificationEmail',
+  VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImoprt',
   EMAIL_SERVER_ERROR = 'EmailServerError',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',

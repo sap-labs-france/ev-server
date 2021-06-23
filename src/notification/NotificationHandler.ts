@@ -440,6 +440,31 @@ export default class NotificationHandler {
     }
   }
 
+  static async sendVerificationEmailUserImport(tenantID: string, notificationID: string, user: User,
+      sourceData: VerificationEmailNotification): Promise<void> {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get the Tenant
+      const tenant = await TenantStorage.getTenant(tenantID, { withLogo: true });
+      sourceData.tenantLogoURL = tenant.logo;
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(
+              tenantID, notificationSource.channel, notificationID, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, { user });
+            // Send
+            await notificationSource.notificationTask.sendVerificationEmailUserImport(
+              sourceData, user, tenant, NotificationSeverity.INFO);
+          } catch (error) {
+            await Logging.logActionExceptionMessage(tenantID, ServerAction.VERIFICATION_EMAIL_USER_IMPORT, error);
+          }
+        }
+      }
+    }
+  }
+
   public static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
       sourceData: ChargingStationStatusErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {

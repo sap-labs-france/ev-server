@@ -83,20 +83,42 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               // Init Password info
               const resetHash = Utils.generateUUID();
               await UserStorage.saveUserPassword(tenant.id, newUser.id, { passwordResetHash: resetHash });
-              // Send create password link
-              const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
-                '/define-password?hash=' + resetHash;
-              // Send account created with create password notification (Async)
-              await NotificationHandler.sendUserCreatePassword(
-                tenant.id,
-                Utils.generateUUID(),
-                newUser,
-                {
-                  'user': newUser,
-                  'tenantName': tenant.name,
-                  'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-                  'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
-                });
+              if (newUser.status === UserStatus.ACTIVE) {
+                // Send create password link
+                const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
+                  '/define-password?hash=' + resetHash;
+                // Send account created with create password notification (Async)
+                await NotificationHandler.sendUserCreatePassword(
+                  tenant.id,
+                  Utils.generateUUID(),
+                  newUser,
+                  {
+                    'user': newUser,
+                    'tenantName': tenant.name,
+                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+                    'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
+                  });
+              } else if (newUser.status === UserStatus.PENDING) {
+                // Generate new verificationToken
+                const verificationToken = Utils.generateToken(newUser.email);
+                // Save User Verification Account
+                await UserStorage.saveUserAccountVerification(tenant.id, newUser.id, { verificationToken });
+                // Build account verif email with reset password embeded
+                const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
+                '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+                newUser.email + '&ResetToken=' + resetHash;
+                // Send activate account link
+                await NotificationHandler.sendVerificationEmailUserImport(
+                  tenant.id,
+                  Utils.generateUUID(),
+                  newUser,
+                  {
+                    'tenantName': tenant.name,
+                    'user': newUser,
+                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+                    'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+                  });
+              }
               result.inSuccess++;
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;

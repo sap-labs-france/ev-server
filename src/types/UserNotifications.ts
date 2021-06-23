@@ -181,6 +181,7 @@ export interface NewRegisteredUserNotification extends BaseNotification {
 
 export interface VerificationEmailNotification extends BaseNotification {
   user: User;
+  tenantName?: string;
   evseDashboardURL: string;
   evseDashboardVerifyEmailURL: string;
 }

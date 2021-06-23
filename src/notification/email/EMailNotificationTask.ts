@@ -96,6 +96,10 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
   }
 
+  public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('verification-email-user-import', data, user, tenant, severity);
+  }
+
   public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('smtp-error', data, user, tenant, severity, true);
   }

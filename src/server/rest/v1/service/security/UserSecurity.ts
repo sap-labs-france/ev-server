@@ -134,7 +134,7 @@ export default class UserSecurity {
       sendOfflineChargingStations: false,
       sendEndUserErrorNotification: false,
       sendComputeAndApplyChargingProfilesFailed: false,
-      sendAccountVerificationNotification: notifications ? Utils.convertToBoolean(notifications.sendAccountVerificationNotification) : false,
+      sendAccountVerificationNotification: notifications ? UtilsSecurity.filterBoolean(notifications.sendAccountVerificationNotification) : false,
       sendAdminAccountVerificationNotification: false,
     };
     // Admin Notif only

@@ -41,6 +41,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './security/UtilsSecurity';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
@@ -857,7 +858,7 @@ export default class UserService {
             // Set default value
             user.importedBy = importedBy;
             user.importedOn = importedOn;
-            user.autoActivateAtImport = Utils.convertToBoolean(req.headers.autoactivateatimport);
+            user.autoActivateAtImport = UtilsSecurity.filterBoolean(req.headers.autoactivateatimport);
             // Import
             const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
             if (!importSuccess) {
