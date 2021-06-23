@@ -386,71 +386,83 @@ export default class CpoOICPClient extends OICPClient {
     };
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-    let chargingStations: ChargingStation[];
-    let currentSkip = 0;
+    let sites: Site[];
+    let currentSiteSkip = 0;
     do {
-      // Get all charging stations from tenant
-      chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
-        { public: true }, { skip: currentSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
-      if (!Utils.isEmptyArray(chargingStations)) {
-        // Convert (public) charging stations to OICP EVSE Statuses
-        const evseStatuses = OICPUtils.convertChargingStationsToEvseStatuses(chargingStations, options);
-        let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
-        let chargeBoxIDsToProcessFromInput = [];
-        // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
-        //    - EVSEs (ChargingStations) in error from previous push
-        //    - EVSEs (ChargingStations) with status notification from latest pushDate
-        if (processAllEVSEs) {
-          evseStatusesToProcess = evseStatuses;
-          chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
-        } else {
-          let chargeBoxIDsToProcess = [];
-          // Get ChargingStation in Failure from previous run
-          chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
-          // Get ChargingStation with new status notification
-          chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
-          // Remove duplicates
-          chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
-          // Loop through EVSE statuses
-          for (const evseStatus of evseStatuses) {
-            if (evseStatus) {
-              // Check if Charging Station should be processed
-              if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
-                continue;
+      // Get the public Sites
+      sites = (await SiteStorage.getSites(this.tenant.id,
+        { public: true }, { skip: currentSiteSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+      if (!Utils.isEmptyArray(sites)) {
+        for (const site of sites) {
+          let chargingStations: ChargingStation[];
+          let currentChargingStationSkip = 0;
+          do {
+            // Get all charging stations from tenant
+            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+              { siteIDs: [site.id], public: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+            if (!Utils.isEmptyArray(chargingStations)) {
+              // Convert (public) charging stations to OICP EVSE Statuses
+              const evseStatuses = OICPUtils.convertChargingStationsToEvseStatuses(chargingStations, options);
+              let evseStatusesToProcess: OICPEvseStatusRecord[] = [];
+              let chargeBoxIDsToProcessFromInput = [];
+              // Check if all EVSE Statuses should be processed - in case of delta send - process only following EVSEs:
+              //    - EVSEs (ChargingStations) in error from previous push
+              //    - EVSEs (ChargingStations) with status notification from latest pushDate
+              if (processAllEVSEs) {
+                evseStatusesToProcess = evseStatuses;
+                chargeBoxIDsToProcessFromInput = evseStatusesToProcess.map((evseStatus) => evseStatus.ChargingStationID);
+              } else {
+                let chargeBoxIDsToProcess = [];
+                // Get ChargingStation in Failure from previous run
+                chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+                // Get ChargingStation with new status notification
+                chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
+                // Remove duplicates
+                chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
+                // Loop through EVSE statuses
+                for (const evseStatus of evseStatuses) {
+                  if (evseStatus) {
+                    // Check if Charging Station should be processed
+                    if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evseStatus.ChargingStationID)) {
+                      continue;
+                    }
+                    // Process
+                    evseStatusesToProcess.push(evseStatus);
+                    chargeBoxIDsToProcessFromInput.push(evseStatus.ChargingStationID);
+                  }
+                }
               }
-              // Process
-              evseStatusesToProcess.push(evseStatus);
-              chargeBoxIDsToProcessFromInput.push(evseStatus.ChargingStationID);
+              // Only one post request for multiple EVSE Statuses
+              result.total = evseStatusesToProcess.length;
+              if (!Utils.isEmptyArray(evseStatusesToProcess)) {
+                try {
+                  await this.pushEvseStatus(evseStatusesToProcess, actionType);
+                  result.success = result.total;
+                } catch (error) {
+                  result.failure = result.total;
+                  result.objectIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
+                  result.logs.push(
+                    `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
+                  );
+                }
+                if (result.failure > 0) {
+                  // Send notification to admins
+                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                  NotificationHandler.sendOICPPatchChargingStationsStatusesError(
+                    this.tenant.id,
+                    {
+                      evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
+                    }
+                  );
+                }
+              }
             }
-          }
-        }
-        // Only one post request for multiple EVSE Statuses
-        result.total = evseStatusesToProcess.length;
-        if (evseStatusesToProcess) {
-          try {
-            await this.pushEvseStatus(evseStatusesToProcess, actionType);
-            result.success = result.total;
-          } catch (error) {
-            result.failure = result.total;
-            result.objectIDsInFailure.push(...chargeBoxIDsToProcessFromInput);
-            result.logs.push(
-              `Failed to update the EVSE Statuses from tenant '${this.tenant.id}': ${String(error.message)}`
-            );
-          }
-          if (result.failure > 0) {
-            // Send notification to admins
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            NotificationHandler.sendOICPPatchChargingStationsStatusesError(
-              this.tenant.id,
-              {
-                evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
-              }
-            );
-          }
+            currentChargingStationSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+          } while (!Utils.isEmptyArray(chargingStations));
         }
       }
-      currentSkip += Constants.DB_RECORD_COUNT_DEFAULT;
-    } while (!Utils.isEmptyArray(chargingStations));
+      currentSiteSkip += Constants.DB_RECORD_COUNT_DEFAULT;
+    } while (!Utils.isEmptyArray(sites));
     // Save result in oicp endpoint
     this.oicpEndpoint.lastPatchJobOn = startDate;
     // Set result
