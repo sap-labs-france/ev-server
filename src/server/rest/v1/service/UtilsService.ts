@@ -596,7 +596,7 @@ export default class UtilsService {
     }
     // Check User
     let userProject: string[] = [];
-    if (await Authorizations.canReadUser(userToken)) {
+    if ((await Authorizations.canReadUser(userToken)).authorized) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName', 'carUsers.id',
         'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.user.email', 'carUsers.default', 'carUsers.owner'
       ];
