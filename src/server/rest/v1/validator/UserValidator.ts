@@ -1,5 +1,6 @@
 import User, { ImportedUser } from '../../../../types/User';
 
+import { HttpUserAssignSitesRequest } from '../../../../types/requests/HttpUserRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import UserToken from '../../../../types/UserToken';
@@ -10,11 +11,13 @@ export default class UserValidator extends SchemaValidator {
   private static instance: UserValidator|null = null;
   private importedUserCreation: Schema;
   private userCreate: Schema;
+  private userAssignSites: Schema;
 
   private constructor() {
     super('UserValidator');
     this.importedUserCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/imported-user-create-req.json`, 'utf8'));
     this.userCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
+    this.userAssignSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-assign-sites.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -32,5 +35,10 @@ export default class UserValidator extends SchemaValidator {
     this.validate(this.userCreate, user);
     user.password = user.passwords.password;
     return user;
+  }
+
+  validateUserAssignToSites(data: HttpUserAssignSitesRequest): HttpUserAssignSitesRequest {
+    this.validate(this.userAssignSites, data);
+    return data;
   }
 }

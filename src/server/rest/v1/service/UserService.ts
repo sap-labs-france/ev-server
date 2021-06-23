@@ -94,7 +94,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
-    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserAssignToSites(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
