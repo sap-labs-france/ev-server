@@ -602,9 +602,8 @@ export default class UtilsService {
       ];
       authorizationFilter.projectFields = authorizationFilter.projectFields.concat(userProject);
     }
-    const userTokenTenant = await TenantStorage.getTenant(userToken.tenantID);
     // Get Car
-    const car = await CarStorage.getCar(userTokenTenant, carID,
+    const car = await CarStorage.getCar(tenant, carID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
