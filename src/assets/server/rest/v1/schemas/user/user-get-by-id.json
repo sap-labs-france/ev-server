@@ -4,6 +4,9 @@
   "definitions": {
     "ID": {
       "$ref": "common.json#/definitions/id"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
     }
   },
   "required": [
