@@ -692,7 +692,7 @@ export default class OCPPService {
       return;
     }
     // Check last transaction
-    await this.checkLastTransaction(tenant, chargingStation, statusNotification, foundConnector);
+    await this.checkAndUpdateLastCompletedTransaction(tenant, chargingStation, statusNotification, foundConnector);
     // Set connector data
     foundConnector.connectorId = statusNotification.connectorId;
     foundConnector.status = statusNotification.status;
@@ -752,7 +752,7 @@ export default class OCPPService {
     }
   }
 
-  private async checkLastTransaction(tenant: Tenant, chargingStation: ChargingStation,
+  private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
       statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check last transaction
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
@@ -765,28 +765,55 @@ export default class OCPPService {
         if (Utils.objectHasProperty(statusNotification, 'timestamp')) {
           // Session is finished
           if (!lastTransaction.stop.extraInactivityComputed) {
-            const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
-            const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
-            // Diff
-            lastTransaction.stop.extraInactivitySecs =
-              Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+            // Calculate Extra Inactivity only between Finishing and Available status notification
+            if (connector.status === ChargePointStatus.FINISHING) {
+              const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
+              const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
+              // Diff
+              lastTransaction.stop.extraInactivitySecs =
+                Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+              // Negative inactivity
+              if (lastTransaction.stop.extraInactivitySecs < 0) {
+                await Logging.logWarning({
+                  tenantID: tenant.id,
+                  source: chargingStation.id,
+                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                  action: ServerAction.STATUS_NOTIFICATION,
+                  message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity is negative and will be ignored: ${lastTransaction.stop.extraInactivitySecs} secs`,
+                  detailedMessages: { statusNotification }
+                });
+                lastTransaction.stop.extraInactivitySecs = 0;
+              } else {
+                // Fix the Inactivity severity
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
+                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
+                // Build extra inactivity consumption
+                await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
+                await Logging.logInfo({
+                  tenantID: tenant.id,
+                  source: chargingStation.id,
+                  user: lastTransaction.userID,
+                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                  action: ServerAction.EXTRA_INACTIVITY,
+                  message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+                  detailedMessages: [statusNotification, connector, lastTransaction]
+                });
+              }
+            // No extra inactivity
+            } else {
+              lastTransaction.stop.extraInactivitySecs = 0;
+              await Logging.logInfo({
+                tenantID: tenant.id,
+                source: chargingStation.id,
+                user: lastTransaction.userID,
+                module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                action: ServerAction.EXTRA_INACTIVITY,
+                message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity for this transaction`,
+                detailedMessages: [statusNotification, connector, lastTransaction]
+              });
+            }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
-            // Fix the Inactivity severity
-            lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
-              lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
-            // Build extra inactivity consumption
-            await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
-            // Log
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              source: chargingStation.id,
-              user: lastTransaction.userID,
-              module: MODULE_NAME, method: 'checkLastTransaction',
-              action: ServerAction.EXTRA_INACTIVITY,
-              message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-              detailedMessages: [statusNotification, connector, lastTransaction]
-            });
           }
         }
         // OCPI: Post the CDR
@@ -803,12 +830,11 @@ export default class OCPPService {
         await Logging.logWarning({
           tenantID: tenant.id,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'checkLastTransaction',
+          module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
-
       }
     }
   }
