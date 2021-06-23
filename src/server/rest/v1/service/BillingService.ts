@@ -849,8 +849,12 @@ export default class BillingService {
     const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
+    const liveMode = this.isConnectedToLiveAccount(req);
     // Ok
-    res.json(billingSettings);
+    res.json({
+      ... billingSettings,
+      liveMode
+    });
     next();
   }
 
@@ -963,4 +967,18 @@ export default class BillingService {
     // Let's validate the new settings before activating
     await billingImpl.checkActivationPrerequisites();
   }
+
+  private static async isConnectedToLiveAccount(req: Request): Promise<boolean> {
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (billingImpl) {
+      try {
+        // Check
+        return await billingImpl.checkConnection();
+      } catch (error) {
+        // Ignore
+      }
+    }
+    return false;
+  }
+
 }

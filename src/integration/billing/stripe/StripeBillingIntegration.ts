@@ -54,7 +54,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  public async checkConnection(): Promise<void> {
+  public async checkConnection(): Promise<boolean> {
     // Initialize Stripe
     if (!this.stripe) {
       try {
@@ -85,6 +85,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
         });
       }
     }
+    // Returns whether the connected account is a live account or a test account
+    return this.productionMode;
   }
 
   public async checkActivationPrerequisites(): Promise<void> {

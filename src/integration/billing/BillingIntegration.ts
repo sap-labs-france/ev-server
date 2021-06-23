@@ -581,7 +581,7 @@ export default abstract class BillingIntegration {
     };
   }
 
-  abstract checkConnection(): Promise<void>;
+  abstract checkConnection(): Promise<boolean>;
 
   abstract checkActivationPrerequisites(): Promise<void>;
 
