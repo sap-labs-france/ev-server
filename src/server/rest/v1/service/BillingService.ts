@@ -846,15 +846,16 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
+    const billingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
-    const liveMode = await BillingService.isConnectedToLiveAccount(req);
+    try {
+      billingSettings.liveMode = await BillingService.isConnectedToLiveAccount(req);
+    } catch (error) {
+      // Ignore this error, but make sure NOT to set the liveMode property when the actual value could not be determined
+    }
     // Ok
-    res.json({
-      ... billingSettings,
-      liveMode
-    });
+    res.json(billingSettings);
     next();
   }
 
@@ -971,12 +972,7 @@ export default class BillingService {
   private static async isConnectedToLiveAccount(req: Request): Promise<boolean> {
     const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (billingImpl) {
-      try {
-        // Check
-        return await billingImpl.checkConnection();
-      } catch (error) {
-        // Ignore
-      }
+      return await billingImpl.checkConnection();
     }
     return false;
   }

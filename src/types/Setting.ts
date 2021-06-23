@@ -234,6 +234,7 @@ export interface BillingSettings extends Setting {
   type: BillingSettingsType;
   billing: BillingSetting;
   stripe?: StripeBillingSetting;
+  liveMode?: boolean; // This information is not persisted
 }
 
 export interface BillingSetting {
