@@ -39,6 +39,9 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
       );
       // Process them
       for (const asset of dynamicAssets.result) {
+        if (asset.usesPushAPI) {
+          continue;
+        }
         const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id, asset);
         if (assetLock) {
           try {
