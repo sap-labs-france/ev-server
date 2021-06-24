@@ -71,12 +71,12 @@ export default class UserService {
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {},
+      car = await CarStorage.getDefaultUserCar(req.tenant, userID, {},
         ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
       );
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID,
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, userID,
           ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
         );
       }
@@ -411,7 +411,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canImportUsers(req.user)) {
+    if (!(await Authorizations.canImportUsers(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -609,7 +609,7 @@ export default class UserService {
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canCreateUser(req.user)) {
+    if (!(await Authorizations.canCreateUser(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -936,25 +936,25 @@ export default class UserService {
   private static async checkAndDeleteUserCar(tenant: Tenant, loggedUser: UserToken, user: User) {
     // Delete cars
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(tenant.id, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      const carUsers = await CarStorage.getCarUsers(tenant, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
       if (carUsers.count > 0) {
         for (const carUser of carUsers.result) {
           // Owner ?
           if (carUser.owner) {
             // Private ?
-            const car = await CarStorage.getCar(tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            const car = await CarStorage.getCar(tenant, carUser.carID, { type: CarType.PRIVATE });
             if (car) {
               // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(tenant.id, car.id);
+              await CarStorage.deleteCarUsersByCarID(tenant, car.id);
               // Delete Car
-              await CarStorage.deleteCar(tenant.id, car.id);
+              await CarStorage.deleteCar(tenant, car.id);
             } else {
               // Delete User Car
-              await CarStorage.deleteCarUser(tenant.id, carUser.id);
+              await CarStorage.deleteCarUser(tenant, carUser.id);
             }
           } else {
             // Delete User Car
-            await CarStorage.deleteCarUser(tenant.id, carUser.id);
+            await CarStorage.deleteCarUser(tenant, carUser.id);
           }
         }
       }
