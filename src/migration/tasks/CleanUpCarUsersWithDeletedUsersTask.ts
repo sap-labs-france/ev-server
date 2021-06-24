@@ -32,21 +32,21 @@ export default class CleanUpCarUsersWithDeletedUsersTask extends MigrationTask {
           // Owner?
           if (carUserMDB.owner) {
             // Get the Private Cars of the Deleted User
-            const privateCar = await CarStorage.getCar(tenant.id, carUserMDB.carID.toString(), { type: CarType.PRIVATE });
+            const privateCar = await CarStorage.getCar(tenant, carUserMDB.carID.toString(), { type: CarType.PRIVATE });
             if (privateCar) {
               // Delete All Private Cars assignment
-              carUsersCounter += await CarStorage.deleteCarUsersByCarID(tenant.id, privateCar.id);
+              carUsersCounter += await CarStorage.deleteCarUsersByCarID(tenant, privateCar.id);
               // Delete Private Car
-              await CarStorage.deleteCar(tenant.id, privateCar.id);
+              await CarStorage.deleteCar(tenant, privateCar.id);
               carsCounter++;
             } else {
               // Delete Car assignment
-              await CarStorage.deleteCarUser(tenant.id, carUserMDB._id);
+              await CarStorage.deleteCarUser(tenant, carUserMDB._id);
               carUsersCounter++;
             }
           } else {
             // Delete Car assignment
-            await CarStorage.deleteCarUser(tenant.id, carUserMDB._id);
+            await CarStorage.deleteCarUser(tenant, carUserMDB._id);
             carUsersCounter++;
           }
         }

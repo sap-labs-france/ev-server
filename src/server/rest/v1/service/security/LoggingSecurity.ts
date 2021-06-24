@@ -1,5 +1,5 @@
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
-import { HttpLogsRequest } from '../../../../../types/requests/HttpLoggingRequest';
+import { HttpLogRequest, HttpLogsRequest } from '../../../../../types/requests/HttpLoggingRequest';
+
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -22,7 +22,7 @@ export default class LoggingSecurity {
     return filteredRequest;
   }
 
-  static filterLogRequest(request: any): HttpByIDRequest {
+  static filterLogRequest(request: any): HttpLogRequest {
     return {
       ID: sanitize(request.ID)
     };

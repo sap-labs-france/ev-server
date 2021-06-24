@@ -30,7 +30,7 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, companyID, Action.DELETE, action, {});
+      req.tenant, req.user, companyID, Action.DELETE, action);
     // Delete
     await CompanyStorage.deleteCompany(req.tenant, company.id);
     // Log
@@ -58,7 +58,6 @@ export default class CompanyService {
       req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
         withLogo: true
       }, true);
-    // Return
     res.json(company);
     next();
   }
@@ -178,7 +177,7 @@ export default class CompanyService {
     UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {});
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;

@@ -1,5 +1,6 @@
 import { CarConverter, CarType } from '../Car';
 
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import { UserCar } from '../User';
 
@@ -12,15 +13,15 @@ export interface HttpCarMakersRequest extends HttpDatabaseRequest {
   Search?: string;
 }
 
-export interface HttpCarCatalogImagesRequest extends HttpDatabaseRequest {
+export interface HttpCarCatalogImagesRequest extends HttpByIDRequest, HttpDatabaseRequest {
   ID: number;
 }
 
-export interface HttpCarCatalogByIDRequest {
+export interface HttpCarCatalogRequest extends HttpByIDRequest {
   ID: number;
 }
 
-export interface HttpCarByIDRequest {
+export interface HttpCarRequest extends HttpByIDRequest {
   ID: string;
 }
 

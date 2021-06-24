@@ -128,7 +128,7 @@ export default class Authorizations {
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getUserSites(tenantID, { userID: user.id },
+    const sites = (await UserStorage.getUserSites(tenantID, { userIDs: [user.id] },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
@@ -320,8 +320,8 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.USERS, Action.LIST, authContext);
   }
 
-  public static async canListUsersInErrors(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IN_ERROR);
+  public static async canListUsersInErrors(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.IN_ERROR, authContext);
   }
 
   public static async canListTags(loggedUser: UserToken): Promise<boolean> {
@@ -346,34 +346,30 @@ export default class Authorizations {
 
   public static async canImportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.TAGS, Action.IMPORT, authContext);
-    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.IMPORT);
   }
 
   public static async canExportTags(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.TAGS, Action.EXPORT, authContext);
-    // return Authorizations.canPerformAction(loggedUser, Entity.TAGS, Action.EXPORT);
   }
 
   public static async canReadUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.USER, Action.READ, authContext);
   }
 
-  public static async canCreateUser(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.CREATE);
+  public static async canCreateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.CREATE, authContext);
   }
 
-  public static async canImportUsers(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.IMPORT);
+  public static async canImportUsers(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.IMPORT, authContext);
   }
 
-  public static async canUpdateUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
-      { user: userID, owner: loggedUser.id });
+  public static async canUpdateUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.UPDATE, authContext);
   }
 
-  public static async canDeleteUser(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.DELETE,
-      { user: userID, owner: loggedUser.id });
+  public static async canDeleteUser(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.DELETE, authContext);
   }
 
   public static async canListSites(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -384,16 +380,16 @@ export default class Authorizations {
     return Authorizations.can(loggedUser, Entity.SITE, Action.READ, authContext);
   }
 
-  public static async canCreateSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.CREATE);
+  public static async canCreateSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.CREATE, authContext);
   }
 
-  public static async canUpdateSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE);
+  public static async canUpdateSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.UPDATE, authContext);
   }
 
-  public static async canDeleteSite(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE);
+  public static async canDeleteSite(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.SITE, Action.DELETE, authContext);
   }
 
   public static async canListSettings(loggedUser: UserToken): Promise<boolean> {
@@ -548,19 +544,19 @@ export default class Authorizations {
   }
 
   public static async canAssignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authContext);
   }
 
   public static async canUnassignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, authContext);
   }
 
   public static async canAssignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
   }
 
   public static async canUnassignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS, authContext);
+    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
   }
 
   public static async canListCompanies(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -599,12 +595,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
-  public static async canListUsersCars(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
+  public static async canListUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.LIST, authContext);
   }
 
-  public static async canAssignUsersCars(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.ASSIGN);
+  public static async canAssignUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.ASSIGN, authContext);
   }
 
   public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
@@ -701,12 +697,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION);
   }
 
-  public static async canSynchronizeUsersBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS);
+  public static async canSynchronizeUsersBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USERS, Action.SYNCHRONIZE_BILLING_USERS, authContext);
   }
 
-  public static async canSynchronizeUserBilling(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER);
+  public static async canSynchronizeUserBilling(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.USER, Action.SYNCHRONIZE_BILLING_USER, authContext);
   }
 
   public static async canReadTaxesBilling(loggedUser: UserToken): Promise<boolean> {
@@ -743,8 +739,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.RETRIEVE_CONSUMPTION);
   }
 
-  public static async canEndUserReportError(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.NOTIFICATION, Action.CREATE);
+  public static async canCreateAssetConsumption(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CREATE_CONSUMPTION);
+  }
+
+  public static async canEndUserReportError(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
+    return Authorizations.can(loggedUser, Entity.NOTIFICATION, Action.CREATE, authContext);
   }
 
   public static async canListPaymentMethod(loggedUser: UserToken): Promise<boolean> {
@@ -811,6 +811,240 @@ export default class Authorizations {
 
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+    // Check Organization
+    if (await Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
+      // Access Control is disabled?
+      if (!chargingStation.siteArea.accessControl) {
+        // No ACL: Always try to get the user
+        return UserStorage.getUserByTagId(tenant.id, tagID);
+      }
+    }
+    // Get Authorized Tag
+    const tag = await this.checkAndGetAuthorizedTag(action, tenant, chargingStation, tagID);
+    if (!tag) {
+      // Check OICP first
+      const user = await this.checkAndGetOICPAuthorizedUser(action, tenant, transaction, tagID);
+      if (user) {
+        return user;
+      }
+      // Create the Tag as inactive and abort
+      await this.createInactiveTagAndAbortAction(action, tenant, tagID, chargingStation);
+    }
+    // Get Authorized User
+    const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
+    // Check OCPI
+    if (user && !user.issuer) {
+      await this.checkOCPIAuthorizedUser(action, tenant, chargingStation, transaction, tag, user, authAction);
+    }
+    return user;
+  }
+
+  private static async checkOCPIAuthorizedUser(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, tag: Tag, user: User, authAction: Action) {
+    // OCPI Active?
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+      throw new BackendError({
+        user: user, action,
+        module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+        message: `Unable to authorize Tag ID '${tag.id}', Roaming is not active`,
+        detailedMessages: { tag }
+      });
+    }
+    // Got Token from OCPI
+    if (!tag.ocpiToken) {
+      throw new BackendError({
+        user: user, action,
+        module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+        message: `Tag ID '${tag.id}' cannot be authorized through OCPI protocol due to missing OCPI Token`,
+        detailedMessages: { tag }
+      });
+    }
+    // Check Charging Station
+    if (!chargingStation.public) {
+      throw new BackendError({
+        user: user, action,
+        module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+        message: `Tag ID '${tag.id}' cannot be authorized on a private Charging Station`,
+        detailedMessages: { tag, chargingStation }
+      });
+    }
+    // Request Authorization
+    if (authAction === Action.AUTHORIZE) {
+      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+      if (!ocpiClient) {
+        throw new BackendError({
+          user: user, action,
+          module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+          message: 'OCPI component requires at least one CPO endpoint to authorize users'
+        });
+      }
+      // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
+      const transactionConnector = transaction?.connectorId ?
+        Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
+      // Check Remote Authorization on Charging Station
+      if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
+        for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
+          // Check validity
+          if (remoteAuthorization.tagId === tag.ocpiToken.uid &&
+              OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+            await Logging.logDebug({
+              source: chargingStation.id,
+              tenantID: tenant.id, action,
+              message: `Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
+              module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+              detailedMessages: { response: remoteAuthorization }
+            });
+            user.authorizationID = remoteAuthorization.id;
+            break;
+          }
+        }
+        // Clean up the remote auth
+        if (!user.authorizationID) {
+          chargingStation.remoteAuthorizations = [];
+          await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
+            tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+        }
+      }
+      // Retrieve Auth token from OCPI
+      user.authorizationID = await ocpiClient.authorizeToken(
+        tag.ocpiToken, chargingStation, transactionConnector);
+    }
+  }
+
+  private static async checkAndGetAuthorizedUserFromTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
+      transaction: Transaction, tag: Tag, authAction: Action): Promise<User> {
+    // Get User
+    const user = await UserStorage.getUser(tenant.id, tag.user.id);
+    // User status
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: action,
+        message: `User with Tag ID '${tag.id}' is not Active ('${Utils.getStatusDescription(user.status)}')`,
+        module: MODULE_NAME,
+        method: 'checkAndGetAuthorizedUser',
+        user: user
+      });
+    }
+    // Check Auth if local User
+    if (user.issuer && authAction) {
+      // Build the JWT Token
+      const userToken = await Authorizations.buildUserToken(tenant.id, user, [tag]);
+      // Authorized?
+      const context: AuthorizationContext = {
+        user: transaction ? transaction.userID : null,
+        tagIDs: userToken.tagIDs,
+        tagID: transaction ? transaction.tagID : null,
+        owner: userToken.id,
+        site: chargingStation.siteID,
+        sites: userToken.sites,
+        sitesAdmin: userToken.sitesAdmin
+      };
+      if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          message: `User with Tag ID '${tag.id}' is not authorized to perform the action '${authAction}'`,
+          module: MODULE_NAME,
+          method: 'checkAndGetAuthorizedUser',
+          user: tag.user,
+          detailedMessages: { userToken, tag }
+        });
+      }
+    }
+    return user;
+  }
+
+  private static async createInactiveTagAndAbortAction(
+      action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
+    const tag: Tag = {
+      id: tagID,
+      visualID: new ObjectID().toString(),
+      description: `Badged on '${chargingStation.id}'`,
+      issuer: true,
+      active: false,
+      createdOn: new Date(),
+      default: false
+    };
+    // Save
+    await TagStorage.saveTag(tenant.id, tag);
+    // Notify (Async)
+    NotificationHandler.sendUnknownUserBadged(
+      tenant.id,
+      Utils.generateUUID(),
+      chargingStation,
+      {
+        chargeBoxID: chargingStation.id,
+        badgeID: tagID,
+        evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+        evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
+      }
+    ).catch(() => { });
+    throw new BackendError({
+      source: chargingStation.id,
+      action: action,
+      module: MODULE_NAME, method: 'createAndGetInactiveTag',
+      message: `Tag ID '${tagID}' is unknown and has been created successfully as an inactive Tag`,
+      detailedMessages: { tag }
+    });
+  }
+
+  private static async checkAndGetOICPAuthorizedUser(action: ServerAction, tenant: Tenant, transaction: Transaction, tagID: string) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
+      // Check if user has remote authorization or the session is already running
+      if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
+        return UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+      }
+      // Get the client
+      const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
+      if (!oicpClient) {
+        throw new BackendError({
+          action,
+          module: MODULE_NAME, method: 'checkAndGetOICPAuthorizedUser',
+          message: 'OICP component requires at least one CPO endpoint to start a Session'
+        });
+      }
+      // Check the Tag and retrieve the authorization
+      const response = await oicpClient.authorizeStart(tagID);
+      if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
+        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        virtualOICPUser.authorizationID = response.SessionID;
+        return virtualOICPUser;
+      }
+    }
+  }
+
+  private static async checkAndGetAuthorizedTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation, tagID: string): Promise<Tag> {
+    // Get Tag
+    const tag = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
+    if (tag) {
+      // Inactive Tag
+      if (!tag.active) {
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          message: `Tag ID '${tagID}' is not active`,
+          module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
+          user: tag.user,
+          detailedMessages: { tag }
+        });
+      }
+      // No User
+      if (!tag.user) {
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          message: `Tag ID '${tagID}' is not assigned to a User`,
+          module: MODULE_NAME, method: 'checkAndGetAuthorizedTag',
+          user: tag.user,
+          detailedMessages: { tag }
+        });
+      }
+    }
+    return tag;
+  }
+
+  private static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
     // Org component enabled?
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
       let foundSiteArea = true;
@@ -835,11 +1069,6 @@ export default class Authorizations {
           detailedMessages: { chargingStation }
         });
       }
-      // Access Control is disabled?
-      if (!chargingStation.siteArea.accessControl) {
-        // No ACL: Always try to get the user
-        return UserStorage.getUserByTagId(tenant.id, tagID);
-      }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ??
         (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant.id, chargingStation.siteArea.siteID) : null);
@@ -853,207 +1082,8 @@ export default class Authorizations {
           detailedMessages: { chargingStation }
         });
       }
+      return true;
     }
-    // Get Tag
-    let tag: Tag = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
-    if (!tag || !tag?.active) {
-      // Check OICP User
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
-        // Check if user has remote authorization or the session is already running
-        if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
-          return UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-        }
-        const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
-        if (!oicpClient) {
-          throw new BackendError({
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME,
-            method: 'handleAuthorize',
-            message: 'OICP component requires at least one CPO endpoint to start a Session'
-          });
-        }
-        // Check if user is OICP roaming user and authorized
-        // Call Hubject
-        const response = await oicpClient.authorizeStart(tagID);
-        if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
-          const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
-          virtualOICPUser.authorizationID = response.SessionID;
-          return virtualOICPUser;
-        }
-      }
-    }
-    if (!tag) {
-      // Create the tag as inactive
-      tag = {
-        id: tagID,
-        visualID: new ObjectID().toString(),
-        description: `Badged on '${chargingStation.id}'`,
-        issuer: true,
-        active: false,
-        createdOn: new Date(),
-        default: false
-      };
-      // Save
-      await TagStorage.saveTag(tenant.id, tag);
-      // Notify (Async)
-      NotificationHandler.sendUnknownUserBadged(
-        tenant.id,
-        Utils.generateUUID(),
-        chargingStation,
-        {
-          chargeBoxID: chargingStation.id,
-          badgeID: tagID,
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-          evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
-        }
-      ).catch(() => { });
-      // Log
-      await Logging.logWarning({
-        tenantID: tenant.id,
-        source: chargingStation.id,
-        action: action,
-        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-        message: `Tag ID '${tagID}' is unknown and has been created successfully as an inactive Tag`,
-        detailedMessages: { tag }
-      });
-    }
-    // Inactive Tag
-    if (!tag.active) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: action,
-        message: `Tag ID '${tagID}' is not active`,
-        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-        user: tag.user,
-        detailedMessages: { tag }
-      });
-    }
-    // No User
-    if (!tag.user) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: action,
-        message: `Tag ID '${tagID}' is not assigned to a User`,
-        module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-        user: tag.user,
-        detailedMessages: { tag }
-      });
-    }
-    // Check User
-    const user = await UserStorage.getUser(tenant.id, tag.user.id);
-    // User status
-    if (user.status !== UserStatus.ACTIVE) {
-      // Reject but save ok
-      throw new BackendError({
-        source: chargingStation.id,
-        action: action,
-        message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
-        module: MODULE_NAME,
-        method: 'isTagIDAuthorizedOnChargingStation',
-        user: user
-      });
-    }
-    // Check Auth if local User
-    if (user.issuer && authAction) {
-      // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenant.id, user, [tag]);
-      // Authorized?
-      const context: AuthorizationContext = {
-        user: transaction ? transaction.userID : null,
-        tagIDs: userToken.tagIDs,
-        tagID: transaction ? transaction.tagID : null,
-        owner: userToken.id,
-        site: chargingStation.siteID,
-        sites: userToken.sites,
-        sitesAdmin: userToken.sitesAdmin
-      };
-      if (!await Authorizations.canPerformActionOnChargingStation(userToken, authAction, chargingStation, context)) {
-        throw new BackendError({
-          source: chargingStation.id,
-          action: action,
-          message: `User with Tag ID '${tagID}' is not authorized to perform the action '${authAction}'`,
-          module: MODULE_NAME,
-          method: 'isTagIDAuthorizedOnChargingStation',
-          user: tag.user,
-          detailedMessages: { userToken, tag }
-        });
-      }
-    }
-    // Check OCPI User
-    if (user && !user.issuer) {
-      // OCPI Active?
-      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-        throw new BackendError({
-          user: user,
-          action: ServerAction.AUTHORIZE,
-          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Unable to authorize User with Tag ID '${tag.id}' not issued locally`,
-          detailedMessages: { tag }
-        });
-      }
-      // Got Token from OCPI
-      if (!tag.ocpiToken) {
-        throw new BackendError({
-          user: user,
-          action: ServerAction.AUTHORIZE,
-          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Tag ID '${tag.id}' cannot be authorized through OCPI protocol due to missing OCPI Token`,
-          detailedMessages: { tag }
-        });
-      }
-      // Check Charging Station
-      if (!chargingStation.public) {
-        throw new BackendError({
-          user: user,
-          action: ServerAction.AUTHORIZE,
-          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Tag ID '${tag.id}' cannot be authorized on a private charging station`,
-          detailedMessages: { tag, chargingStation }
-        });
-      }
-      // Request Authorization
-      if (authAction === Action.AUTHORIZE) {
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-        if (!ocpiClient) {
-          throw new BackendError({
-            user: user,
-            action: ServerAction.AUTHORIZE,
-            module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-            message: 'OCPI component requires at least one CPO endpoint to authorize users'
-          });
-        }
-        // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
-        const transactionConnector: Connector = transaction?.connectorId ?
-          Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
-        // Check Authorization in Charging Station
-        if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
-          for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
-            if (remoteAuthorization.tagId === tag.ocpiToken.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
-              await Logging.logDebug({
-                source: chargingStation.id,
-                tenantID: tenant.id,
-                action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-                message: `Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
-                module: MODULE_NAME, method: 'authorizeToken',
-                detailedMessages: { response: remoteAuthorization }
-              });
-              user.authorizationID = remoteAuthorization.id;
-              break;
-            }
-          }
-          // Clean up
-          if (!user.authorizationID) {
-            chargingStation.remoteAuthorizations = [];
-            await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-              tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
-          }
-        }
-        // Retrieve Auth token from OCPI
-        user.authorizationID = await ocpiClient.authorizeToken(
-          tag.ocpiToken, chargingStation, transactionConnector);
-      }
-    }
-    return user;
   }
 
   private static getConfiguration() {

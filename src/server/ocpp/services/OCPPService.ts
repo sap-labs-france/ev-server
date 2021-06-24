@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesRequestExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPPhase, OCPPProtocol, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
@@ -511,6 +511,8 @@ export default class OCPPService {
       this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
       // Transaction End has already been received?
       await this.checkAndApplyLastConsumptionInStopTransaction(tenant, chargingStation, transaction, stopTransaction);
+      // Signed Data
+      this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
       // Update Transaction with Stop Transaction and Stop MeterValues
       OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagID);
       // Bill
@@ -549,6 +551,25 @@ export default class OCPPService {
           status: OCPPAuthorizationStatus.INVALID
         }
       };
+    }
+  }
+
+  private checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction: Transaction, stopTransaction: OCPPStopTransactionRequestExtended) {
+    // Handle Signed Data in Stop Transaction
+    if (!Utils.isEmptyArray(stopTransaction.transactionData)) {
+      for (const meterValue of stopTransaction.transactionData as OCPPMeterValue[]) {
+        for (const sampledValue of meterValue.sampledValue) {
+          if (sampledValue.format === OCPPValueFormat.SIGNED_DATA) {
+            // Set Signed data in Start of Transaction
+            if (sampledValue.context === OCPPReadingContext.TRANSACTION_BEGIN) {
+              transaction.signedData = sampledValue.value;
+            }
+            if (sampledValue.context === OCPPReadingContext.TRANSACTION_END) {
+              transaction.currentSignedData = sampledValue.value;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -677,7 +698,7 @@ export default class OCPPService {
       return;
     }
     // Check last transaction
-    await this.checkLastTransaction(tenant, chargingStation, statusNotification, foundConnector);
+    await this.checkAndUpdateLastCompletedTransaction(tenant, chargingStation, statusNotification, foundConnector);
     // Set connector data
     foundConnector.connectorId = statusNotification.connectorId;
     foundConnector.status = statusNotification.status;
@@ -737,7 +758,7 @@ export default class OCPPService {
     }
   }
 
-  private async checkLastTransaction(tenant: Tenant, chargingStation: ChargingStation,
+  private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
       statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
     // Check last transaction
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
@@ -750,28 +771,55 @@ export default class OCPPService {
         if (Utils.objectHasProperty(statusNotification, 'timestamp')) {
           // Session is finished
           if (!lastTransaction.stop.extraInactivityComputed) {
-            const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
-            const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
-            // Diff
-            lastTransaction.stop.extraInactivitySecs =
-              Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+            // Calculate Extra Inactivity only between Finishing and Available status notification
+            if (connector.status === ChargePointStatus.FINISHING) {
+              const transactionStopTimestamp = Utils.convertToDate(lastTransaction.stop.timestamp);
+              const currentStatusNotifTimestamp = Utils.convertToDate(statusNotification.timestamp);
+              // Diff
+              lastTransaction.stop.extraInactivitySecs =
+                Math.floor((currentStatusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+              // Negative inactivity
+              if (lastTransaction.stop.extraInactivitySecs < 0) {
+                await Logging.logWarning({
+                  tenantID: tenant.id,
+                  source: chargingStation.id,
+                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                  action: ServerAction.STATUS_NOTIFICATION,
+                  message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity is negative and will be ignored: ${lastTransaction.stop.extraInactivitySecs} secs`,
+                  detailedMessages: { statusNotification }
+                });
+                lastTransaction.stop.extraInactivitySecs = 0;
+              } else {
+                // Fix the Inactivity severity
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
+                  lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
+                // Build extra inactivity consumption
+                await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
+                await Logging.logInfo({
+                  tenantID: tenant.id,
+                  source: chargingStation.id,
+                  user: lastTransaction.userID,
+                  module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                  action: ServerAction.EXTRA_INACTIVITY,
+                  message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+                  detailedMessages: [statusNotification, connector, lastTransaction]
+                });
+              }
+            // No extra inactivity
+            } else {
+              lastTransaction.stop.extraInactivitySecs = 0;
+              await Logging.logInfo({
+                tenantID: tenant.id,
+                source: chargingStation.id,
+                user: lastTransaction.userID,
+                module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
+                action: ServerAction.EXTRA_INACTIVITY,
+                message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity for this transaction`,
+                detailedMessages: [statusNotification, connector, lastTransaction]
+              });
+            }
             // Flag
             lastTransaction.stop.extraInactivityComputed = true;
-            // Fix the Inactivity severity
-            lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
-              lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
-            // Build extra inactivity consumption
-            await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
-            // Log
-            await Logging.logInfo({
-              tenantID: tenant.id,
-              source: chargingStation.id,
-              user: lastTransaction.userID,
-              module: MODULE_NAME, method: 'checkLastTransaction',
-              action: ServerAction.EXTRA_INACTIVITY,
-              message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-              detailedMessages: [statusNotification, connector, lastTransaction]
-            });
           }
         }
         // OCPI: Post the CDR
@@ -788,12 +836,11 @@ export default class OCPPService {
         await Logging.logWarning({
           tenantID: tenant.id,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'checkLastTransaction',
+          module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `Received status notification '${statusNotification.status}' on connector id ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `Connector ID '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
-
       }
     }
   }
@@ -1523,14 +1570,14 @@ export default class OCPPService {
         transaction.carID = user.lastSelectedCarID;
       } else {
         // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant.id, user.id, {}, ['id']);
+        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id']);
         if (defaultCar) {
           transaction.carID = defaultCar.id;
         }
       }
       // Set Car Catalog ID
       if (transaction.carID) {
-        const car = await CarStorage.getCar(tenant.id, transaction.carID, {}, ['id', 'carCatalogID']);
+        const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
         transaction.carCatalogID = car?.carCatalogID;
       }
       // Clear
@@ -1560,7 +1607,7 @@ export default class OCPPService {
     }
   }
 
-  private async createTransaction(tenant: Tenant, user, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
+  private async createTransaction(tenant: Tenant, user: User, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
     return {
       id: await TransactionStorage.findAvailableID(tenant.id),
       issuer: true,

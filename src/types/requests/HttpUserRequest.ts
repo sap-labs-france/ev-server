@@ -2,7 +2,9 @@ import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseR
 
 import HttpByIDRequest from './HttpByIDRequest';
 
-export type HttpUserRequest = HttpByIDRequest;
+export interface HttpUserRequest extends HttpByIDRequest {
+  ID: string;
+}
 
 export interface HttpSynchronizeUserRequest {
   id?: string;
@@ -47,14 +49,6 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
-}
-
-export interface HttpTagsRequest extends HttpDatabaseRequest {
-  Search: string;
-  UserID?: string;
-  Issuer?: boolean;
-  Active?: boolean;
-  WithUser: boolean;
 }
 
 export interface HttpLoginRequest {

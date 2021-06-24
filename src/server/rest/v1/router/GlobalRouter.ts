@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
+import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
@@ -38,6 +39,7 @@ export default class GlobalRouter {
       AuthService.checkSessionHash.bind(this),
       [
         new ChargingStationRouter().buildRoutes(),
+        new AssetRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),

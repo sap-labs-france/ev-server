@@ -306,7 +306,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
       params: {
         search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean; name?: string;
+        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; public?: boolean; name?: string;
         withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
       } = {},
@@ -365,8 +365,8 @@ export default class SiteStorage {
       filters.issuer = params.issuer;
     }
     // Public Site
-    if (params.onlyPublicSite) {
-      filters.public = params.onlyPublicSite;
+    if (params.public) {
+      filters.public = params.public;
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
