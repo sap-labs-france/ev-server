@@ -232,9 +232,8 @@ describe('User', function() {
 
         it('Should be able to export users list', async () => {
           const response = await testData.userService.userApi.exportUsers({});
-          const users = await testData.userService.userApi.readAll({});
+          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
           const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
-
           expect(response.status).eq(StatusCodes.OK);
           expect(response.data).not.null;
           // Verify we have as many users inserted as users in the export
