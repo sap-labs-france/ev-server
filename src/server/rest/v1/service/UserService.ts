@@ -259,7 +259,7 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({

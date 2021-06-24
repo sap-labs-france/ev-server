@@ -1,6 +1,6 @@
+import { HttpUserMobileTokenRequest, HttpUserSitesRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
-import { HttpUserSitesRequest } from '../../../../types/requests/HttpUserRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -12,6 +12,7 @@ export default class UserValidator extends SchemaValidator {
   private userCreate: Schema;
   private userGetSites: Schema;
   private userUpdate: Schema;
+  private userUpdateMobileToken: Schema;
 
   private constructor() {
     super('UserValidator');
@@ -19,6 +20,7 @@ export default class UserValidator extends SchemaValidator {
     this.userCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
     this.userGetSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-sites.json`, 'utf8'));
     this.userUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
+    this.userUpdateMobileToken = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update-mobile-token.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -45,6 +47,11 @@ export default class UserValidator extends SchemaValidator {
 
   validateUserUpdate(data: any): Partial<User> {
     this.validate(this.userUpdate, data);
+    return data;
+  }
+
+  validateUserUpdateMobileToken(data: any): HttpUserMobileTokenRequest {
+    this.validate(this.userUpdateMobileToken, data);
     return data;
   }
 }
