@@ -332,7 +332,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
-    const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
     // Check User
     try {
       await UtilsService.checkAndGetUserAuthorization(
