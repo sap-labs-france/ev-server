@@ -436,9 +436,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_UPDATE_TRANSACTION)) {
-      await this._updateTransactionsBillingData(billingInvoice);
-    }
+    await this._updateTransactionsBillingData(billingInvoice);
     return billingInvoice;
   }
 
@@ -770,12 +768,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     this.checkStartTransaction(transaction);
     // Check Start Transaction Prerequisites
     const customerID: string = transaction.user?.billingData?.customerID;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
-      // Check whether the customer exists or not
-      const customer = await this.checkStripeCustomer(customerID);
-      // Check whether the customer has a default payment method
-      this.checkStripePaymentMethod(customer);
-    }
+    // Check whether the customer exists or not
+    const customer = await this.checkStripeCustomer(customerID);
+    // Check whether the customer has a default payment method
+    this.checkStripePaymentMethod(customer);
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -807,16 +803,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_DEFAULT_PAYMENT_METHOD)) {
-      if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
-        throw new BackendError({
-          message: `Customer has no default payment method - ${customer.id}`,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+      throw new BackendError({
+        message: `Customer has no default payment method - ${customer.id}`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 
@@ -921,28 +915,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
-      // Create and Save async task
-      await AsyncTaskManager.createAndSaveAsyncTasks({
-        name: AsyncTasks.BILL_TRANSACTION,
-        action: ServerAction.BILLING_TRANSACTION,
-        type: AsyncTaskType.TASK,
-        tenantID: this.tenant.id,
-        parameters: {
-          transactionID: String(transaction.id),
-        },
-        module: MODULE_NAME,
-        method: 'stopTransaction',
-      });
-      // Inform the calling layer that the operation has been postponed
-      if (!transaction.billingData?.withBillingActive) {
-        return {
-          status: BillingStatus.PENDING
-        };
-      }
-    } else {
-      return await this.billTransaction(transaction);
-    }
+    // Create and Save async task
+    await AsyncTaskManager.createAndSaveAsyncTasks({
+      name: AsyncTasks.BILL_TRANSACTION,
+      action: ServerAction.BILLING_TRANSACTION,
+      type: AsyncTaskType.TASK,
+      tenantID: this.tenant.id,
+      parameters: {
+        transactionID: String(transaction.id),
+      },
+      module: MODULE_NAME,
+      method: 'stopTransaction',
+    });
+    // Inform the calling layer that the operation has been postponed
+    return {
+      status: BillingStatus.PENDING
+    };
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -1462,23 +1450,21 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check user prerequisites
     const customerID: string = user?.billingData?.customerID;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
-      try {
-        // Check whether the customer exists or not
-        const customer = await this.checkStripeCustomer(customerID);
-        // Check whether the customer has a default payment method
-        this.checkStripePaymentMethod(customer);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
-          message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-        // TODO - return a more precise error code when payment method has expired
-        errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
-      }
+    try {
+      // Check whether the customer exists or not
+      const customer = await this.checkStripeCustomer(customerID);
+      // Check whether the customer has a default payment method
+      this.checkStripePaymentMethod(customer);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      // TODO - return a more precise error code when payment method has expired
+      errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
     }
     // Let's return the check results!
     return errorCodes;
