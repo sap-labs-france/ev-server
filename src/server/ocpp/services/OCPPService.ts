@@ -1600,7 +1600,7 @@ export default class OCPPService {
     }
   }
 
-  private async createTransaction(tenant: Tenant, user, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
+  private async createTransaction(tenant: Tenant, user: User, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
     return {
       id: await TransactionStorage.findAvailableID(tenant.id),
       issuer: true,
