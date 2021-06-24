@@ -78,6 +78,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
               await UserStorage.saveUserStatus(tenant.id, newUser.id, newUser.status);
+              // TODO: add la gestion du assign des siteids
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               // Handle sending email for reseting password if user auto activated
               // Init Password info

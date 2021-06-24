@@ -286,6 +286,7 @@ export default class UserStorage {
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
       autoActivateAtImport: importedUserToSave.autoActivateAtImport,
+      siteIDs: importedUserToSave.siteIDs,
     };
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
@@ -309,6 +310,7 @@ export default class UserStorage {
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
       autoActivateAtImport: importedUserToSave.autoActivateAtImport,
+      siteIDs: importedUserToSave.siteIDs,
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenantID, 'importedusers').insertMany(

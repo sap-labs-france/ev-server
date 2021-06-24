@@ -45,6 +45,7 @@ import UtilsSecurity from './security/UtilsSecurity';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'UserService';
 
@@ -1230,6 +1231,7 @@ export default class UserService {
         firstName: importedUser.firstName,
         email: importedUser.email,
         autoActivateAtImport: importedUser.autoActivateAtImport,
+        siteIDs: importedUser.siteIDs
       };
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
