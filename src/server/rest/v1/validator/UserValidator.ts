@@ -11,12 +11,14 @@ export default class UserValidator extends SchemaValidator {
   private importedUserCreation: Schema;
   private userCreate: Schema;
   private userGetSites: Schema;
+  private userUpdate: Schema;
 
   private constructor() {
     super('UserValidator');
     this.importedUserCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/imported-user-create-req.json`, 'utf8'));
     this.userCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-create.json`, 'utf8'));
     this.userGetSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-sites.json`, 'utf8'));
+    this.userUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -38,6 +40,11 @@ export default class UserValidator extends SchemaValidator {
 
   validateUserGetSites(data: any): HttpUserSitesRequest {
     this.validate(this.userGetSites, data);
+    return data;
+  }
+
+  validateUserUpdate(data: any): Partial<User> {
+    this.validate(this.userUpdate, data);
     return data;
   }
 }
