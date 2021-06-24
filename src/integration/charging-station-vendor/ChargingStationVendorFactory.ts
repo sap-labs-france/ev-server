@@ -39,6 +39,19 @@ export default class ChargingStationVendorFactory {
       case ChargerVendor.CIRCONTROL:
       case ChargerVendor.JOINON:
       case ChargerVendor.LAFON_TECHNOLOGIES:
+      case ChargerVendor.ALFEN:
+      case ChargerVendor.ALPITRONIC:
+      case ChargerVendor.CFOS:
+      case ChargerVendor.ECOTAP:
+      case ChargerVendor.EFACEC:
+      case ChargerVendor.HDM:
+      case ChargerVendor.HAGER:
+      case ChargerVendor.JOINT:
+      case ChargerVendor.AIXCHARGE:
+      case ChargerVendor.TRITIUM:
+      case ChargerVendor.GREEN_MOTION:
+      case ChargerVendor.NEXANS:
+      case ChargerVendor.G2_MOBILITY:
         chargingStationVendorImpl = new DefaultChargingStationVendorIntegration(chargingStation);
         break;
     }
