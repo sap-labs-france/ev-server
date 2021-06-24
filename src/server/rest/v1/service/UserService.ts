@@ -684,7 +684,7 @@ export default class UserService {
       }
     }
     // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(req.user.tenantID,
+    const sites = await SiteStorage.getSites(req.tenant,
       { withAutoUserAssignment: true },
       Constants.DB_PARAMS_MAX_LIMIT
     );

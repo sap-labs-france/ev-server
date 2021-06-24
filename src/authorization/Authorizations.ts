@@ -844,7 +844,7 @@ export default class Authorizations {
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ??
-        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant.id, chargingStation.siteArea.siteID) : null);
+        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant, chargingStation.siteArea.siteID) : null);
       if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
         throw new BackendError({
