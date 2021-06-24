@@ -26,11 +26,6 @@
       "sanitize": "mongo",
       "pattern": "^[PAIBL](\\|[PAIBL])*$"
     },
-    "ErrorType": {
-      "type": "string",
-      "sanitize": "mongo",
-      "pattern": "^((inactive_user|unassigned_user|inactive_user_account|failed_billing_synchro|no_billing_data)(\\||inactive_user|unassigned_user|inactive_user_account|failed_billing_synchro|no_billing_data)*)$"
-    },
     "ExcludeSiteID": {
       "$ref": "common.json#/definitions/ids"
     },

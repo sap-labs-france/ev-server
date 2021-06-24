@@ -1,4 +1,4 @@
-import { HttpUserAssignSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -14,6 +14,7 @@ export default class UserValidator extends SchemaValidator {
   private userAssignSites: Schema;
   private userGetByID: Schema;
   private usersGet: Schema;
+  private usersGetInError: Schema;
 
   private constructor() {
     super('UserValidator');
@@ -22,6 +23,7 @@ export default class UserValidator extends SchemaValidator {
     this.userAssignSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-assign-sites.json`, 'utf8'));
     this.userGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
     this.usersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-get.json`, 'utf8'));
+    this.usersGetInError = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -53,6 +55,11 @@ export default class UserValidator extends SchemaValidator {
 
   validateUsersGet(data: any): HttpUsersRequest {
     this.validate(this.usersGet, data);
+    return data;
+  }
+
+  validateUsersGetInError(data: any): HttpUsersInErrorRequest {
+    this.validate(this.usersGetInError, data);
     return data;
   }
 }
