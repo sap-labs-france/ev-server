@@ -106,7 +106,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 // Build account verif email with reset password embeded
                 const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
                 '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-                newUser.email + '&ResetToken=' + resetHash;
+                newUser.email + '&ResetToken=' + resetHash + '&isImported=true';
                 // Send activate account link
                 await NotificationHandler.sendVerificationEmailUserImport(
                   tenant.id,

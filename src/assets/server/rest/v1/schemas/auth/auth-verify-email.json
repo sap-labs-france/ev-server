@@ -11,6 +11,10 @@
     "VerificationToken": {
       "type": "string",
       "sanitize": "mongo"
+    },
+    "IsImported": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": [

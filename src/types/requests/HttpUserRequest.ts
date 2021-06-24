@@ -90,7 +90,7 @@ export interface HttpVerifyEmailRequest {
   Email: string;
   Tenant: string;
   VerificationToken: string;
-  // TODO : rajouter FromImport?: boolean; pour savoir d'où on vient et pas que le user soit set inactif à cause des settings
+  IsImported: boolean;
 }
 
 export interface HttpResendVerificationMailRequest {

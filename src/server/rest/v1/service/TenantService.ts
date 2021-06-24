@@ -285,7 +285,7 @@ export default class TenantService {
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-      tenantUser.email + '&ResetToken=' + resetHash;
+      tenantUser.email + '&ResetToken=' + resetHash + '&isImported=false';
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
       filteredRequest.id,

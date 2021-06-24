@@ -258,7 +258,7 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
+        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email + '&isImported=false';
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
@@ -520,10 +520,15 @@ export default class AuthService {
         message: 'Wrong Verification Token'
       });
     }
-    const userSettings = await SettingStorage.getUserSettings(tenantID);
-    const userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+    let userStatus: UserStatus;
+    if (!filteredRequest.IsImported) {
+      const userSettings = await SettingStorage.getUserSettings(tenantID);
+      userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+      await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
+    } else {
+      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.PENDING);
+    }
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
@@ -666,7 +671,7 @@ export default class AuthService {
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-      user.email;
+      user.email + '&isImported=false';
     // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
