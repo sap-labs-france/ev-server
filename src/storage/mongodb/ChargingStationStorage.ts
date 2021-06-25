@@ -94,7 +94,7 @@ export default class ChargingStationStorage {
     if (chargePointVendor) {
       aggregation.push({
         $match: {
-          chargePointVendor
+          chargePointVendor: { $regex: chargePointVendor, $options: 'im' }
         }
       });
     }
@@ -210,9 +210,9 @@ export default class ChargingStationStorage {
     // Filter
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
@@ -432,9 +432,9 @@ export default class ChargingStationStorage {
     // Search filters
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
