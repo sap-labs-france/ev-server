@@ -90,23 +90,23 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates');
     // Create Aggregation
     const aggregation = [];
-    // Add in aggregation
-    if (chargePointVendor) {
-      aggregation.push({
-        $match: {
-          chargePointVendor: { $regex: chargePointVendor, $options: 'im' }
-        }
-      });
-    }
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
     const chargingStationTemplatesMDB: ChargingStationTemplate[] =
       await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
+    const chargingStationTemplates: ChargingStationTemplate[] = [];
+    // Reverse match the regexp in JSON template records against the charing station vendor string
+    for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
+      const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
+      if (regExp.test(chargePointVendor)) {
+        chargingStationTemplates.push(chargingStationTemplateMDB);
+      }
+    }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates', uniqueTimerID, chargingStationTemplatesMDB);
-    return chargingStationTemplatesMDB;
+    return chargingStationTemplates;
   }
 
   public static async deleteChargingStationTemplates(): Promise<void> {
