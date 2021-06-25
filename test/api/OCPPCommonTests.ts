@@ -1000,6 +1000,15 @@ export default class OCPPCommonTests {
     } else {
       expect(bootNotification.currentTime).to.beforeTime(new Date(bootNotification2.currentTime));
     }
+    for (const connector of this.chargingStationContext.getChargingStation().connectors) {
+      const statusNotificationResponse = await this.chargingStationContext.setConnectorStatus({
+        connectorId: connector.connectorId,
+        status: ChargePointStatus.AVAILABLE,
+        errorCode: ChargePointErrorCode.NO_ERROR,
+        timestamp: new Date().toISOString()
+      });
+      expect(statusNotificationResponse).to.eql({});
+    }
   }
 
   public async testTransactionIgnoringClockMeterValues() {

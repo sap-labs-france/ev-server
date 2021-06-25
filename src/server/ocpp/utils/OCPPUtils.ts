@@ -1752,7 +1752,7 @@ export default class OCPPUtils {
       foundConnector.currentTransactionID = 0;
       foundConnector.currentTransactionDate = null;
       foundConnector.currentTagID = null;
-      foundConnector.userID = null;
+      foundConnector.currentUserID = null;
     }
   }
 
