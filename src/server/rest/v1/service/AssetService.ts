@@ -137,15 +137,17 @@ export default class AssetService {
     }
     // Get latest consumption and check dates
     const lastConsumption = await ConsumptionStorage.getLastAssetConsumption(req.tenant, { assetID: filteredRequest.assetID });
-    if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
-        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
-        user: req.user,
-        action: action
-      });
+    if (!Utils.isNullOrUndefined(lastConsumption)) {
+      if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
+          module: MODULE_NAME, method: 'handleCreateAssetConsumption',
+          user: req.user,
+          action: action
+        });
+      }
     }
     // Add site area
     const consumptionToSave: Consumption = {

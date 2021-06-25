@@ -105,7 +105,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAGS, action: Action.LIST,
         attributes: [
           'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'createdOn', 'lastChangedOn'
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
         ]
       },
       { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT] },

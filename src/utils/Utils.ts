@@ -560,6 +560,13 @@ export default class Utils {
     return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
+  public static getBackupConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+    if (!chargingStation.backupConnectors) {
+      return null;
+    }
+    return chargingStation.backupConnectors.find((backupConnector) => backupConnector && (backupConnector.connectorId === connectorID));
+  }
+
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
     let totalAmps = 0;
     if (chargingStation) {

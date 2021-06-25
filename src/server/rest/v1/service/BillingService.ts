@@ -328,7 +328,8 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
+    // Temporary fix before new auth migration
+    if (!Authorizations.isDemo(req.user)) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter

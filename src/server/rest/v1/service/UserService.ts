@@ -36,7 +36,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
@@ -51,7 +50,7 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
@@ -94,7 +93,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter request
-    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserAssignToSites(req.body);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
@@ -121,7 +120,7 @@ export default class UserService {
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.DELETE, action);
@@ -163,7 +162,7 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
+    const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
@@ -259,7 +258,7 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
@@ -297,11 +296,11 @@ export default class UserService {
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetByID(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
         withImage: true
       }, true);
     res.json(user);
@@ -310,7 +309,7 @@ export default class UserService {
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterUserByIDRequest(req.query);
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.READ, action);
@@ -332,7 +331,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
-    const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
     // Check User
     try {
       await UtilsService.checkAndGetUserAuthorization(
@@ -382,7 +381,7 @@ export default class UserService {
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -398,7 +397,7 @@ export default class UserService {
         limit: filteredRequest.Limit,
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
       authorizationUserInErrorFilters.projectFields
     );
@@ -767,7 +766,7 @@ export default class UserService {
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -793,7 +792,7 @@ export default class UserService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationUsersFilters.projectFields

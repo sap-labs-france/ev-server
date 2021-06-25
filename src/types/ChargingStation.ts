@@ -50,6 +50,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   coordinates: number[];
   chargePoints: ChargePoint[];
   connectors: Connector[];
+  backupConnectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
   siteArea?: SiteArea;
@@ -135,6 +136,7 @@ export interface Connector {
   currentTransactionID?: number;
   currentTransactionDate?: Date;
   currentTagID?: string;
+  currentUserID?: string;
   status: ChargePointStatus;
   errorCode?: string;
   info?: string;
@@ -144,7 +146,6 @@ export interface Connector {
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
-  userID?: string;
   user?: User;
   statusLastChangedOn?: Date;
   numberOfConnectedPhase?: number;

@@ -167,10 +167,8 @@ class TestData {
       const stopTransactionResponse = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
       expect(stopTransactionResponse).to.be.transactionStatus('Accepted');
     }
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
-      // Give some time to the asyncTask to bill the transaction
-      await this.waitForAsyncTasks();
-    }
+    // Give some time to the asyncTask to bill the transaction
+    await this.waitForAsyncTasks();
     return transactionId;
   }
 
