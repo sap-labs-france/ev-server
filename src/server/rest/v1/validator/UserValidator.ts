@@ -1,4 +1,4 @@
-import { HttpUserAssignSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -15,6 +15,9 @@ export default class UserValidator extends SchemaValidator {
   private userGetByID: Schema;
   private usersGet: Schema;
   private usersGetInError: Schema;
+  private userGetSites: Schema;
+  private userUpdate: Schema;
+  private userUpdateMobileToken: Schema;
 
   private constructor() {
     super('UserValidator');
@@ -24,6 +27,9 @@ export default class UserValidator extends SchemaValidator {
     this.userGetByID = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get.json`, 'utf8'));
     this.usersGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-get.json`, 'utf8'));
     this.usersGetInError = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/users-inerror-get.json`, 'utf8'));
+    this.userGetSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-sites.json`, 'utf8'));
+    this.userUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
+    this.userUpdateMobileToken = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update-mobile-token.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -60,6 +66,21 @@ export default class UserValidator extends SchemaValidator {
 
   validateUsersGetInError(data: any): HttpUsersInErrorRequest {
     this.validate(this.usersGetInError, data);
+    return data;
+  }
+
+  validateUserGetSites(data: any): HttpUserSitesRequest {
+    this.validate(this.userGetSites, data);
+    return data;
+  }
+
+  validateUserUpdate(data: any): Partial<User> {
+    this.validate(this.userUpdate, data);
+    return data;
+  }
+
+  validateUserUpdateMobileToken(data: any): HttpUserMobileTokenRequest {
+    this.validate(this.userUpdateMobileToken, data);
     return data;
   }
 }
