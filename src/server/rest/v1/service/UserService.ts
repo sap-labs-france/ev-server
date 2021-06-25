@@ -45,7 +45,6 @@ import UtilsSecurity from './security/UtilsSecurity';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'UserService';
 

@@ -67,7 +67,7 @@ export interface ImportedUser {
   status?: ImportStatus
   errorDescription?: string;
   autoActivateAtImport?: boolean;
-  siteIDs?: string[];
+  siteIDs?: string;
 }
 
 export enum UserStatus {

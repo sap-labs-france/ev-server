@@ -38,6 +38,10 @@
     },
     "notifications": {
       "$ref": "user.json#/definitions/notifications"
+    },
+    "siteIDs": {
+      "type": "string",
+      "sanitize": "mongo"
     }
   },
   "required": [

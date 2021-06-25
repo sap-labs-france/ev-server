@@ -10,6 +10,8 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
@@ -42,6 +44,8 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         do {
           // Get the imported users
           importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
+          // To store existing sites to avoid getting the site erverytime
+          const existingSitesToAutoAssign: Record<string, boolean> = {};
           for (const importedUser of importedUsers.result) {
             try {
             // Existing Users
@@ -78,7 +82,44 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
               await UserStorage.saveUserStatus(tenant.id, newUser.id, newUser.status);
-              // TODO: add la gestion du assign des siteids
+              if (importedUser.siteIDs) {
+                // Check wheter site exists and save them to an array for assignement
+                const sitesToBeAssigned: string[] = [];
+                let site: Site = null;
+                for (const siteID of importedUser.siteIDs.split('|')) {
+                  if (siteID in existingSitesToAutoAssign) {
+                    // if siteID has been checked and it's not already in the sitesToBeAssigned array
+                    if (existingSitesToAutoAssign[siteID] === true && !(Object.values(sitesToBeAssigned).includes(siteID))) {
+                      sitesToBeAssigned.push(siteID);
+                    }
+                    continue;
+                  } else if (!Utils.isNullOrUndefined(site = await SiteStorage.getSite(tenant.id, siteID))) {
+                    if (site.autoUserSiteAssignment) {
+                      existingSitesToAutoAssign[siteID] = true;
+                      sitesToBeAssigned.push(siteID);
+                    } else {
+                      existingSitesToAutoAssign[siteID] = false;
+                      await Logging.logWarning({
+                        tenantID: tenant.id,
+                        action: ServerAction.USERS_IMPORT,
+                        module: MODULE_NAME, method: 'executeAsyncTask',
+                        message: `Site ${siteID} does not accept auto assignment`
+                      });
+                    }
+                  } else {
+                    existingSitesToAutoAssign[siteID] = false;
+                    await Logging.logWarning({
+                      tenantID: tenant.id,
+                      action: ServerAction.USERS_IMPORT,
+                      module: MODULE_NAME, method: 'executeAsyncTask',
+                      message: `Cannot assign user to site ${siteID} as this site has not been found`
+                    });
+                  }
+                }
+                if (!Utils.isEmptyArray(sitesToBeAssigned)) {
+                  await UserStorage.addSitesToUser(tenant.id, newUser.id, sitesToBeAssigned);
+                }
+              }
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               // Handle sending email for reseting password if user auto activated
               // Init Password info
@@ -131,7 +172,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
-                module: MODULE_NAME, method: 'processTenant',
+                module: MODULE_NAME, method: 'executeAsyncTask',
                 message: `Error when importing User with email '${importedUser.email}': ${error.message}`,
                 detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
               });
