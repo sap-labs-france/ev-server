@@ -1,8 +1,6 @@
 import User, { UserStatus } from './User';
 
-import { BillingInvoice } from './Billing';
 import ChargingStation from './ChargingStation';
-import Decimal from 'decimal.js';
 import NotificationTask from '../notification/NotificationTask';
 import { SMTPError } from 'emailjs';
 
@@ -54,8 +52,7 @@ export type UserNotificationKeys =
  'sendCarCatalogSynchronizationFailed' |
  'sendEndUserErrorNotification' |
  'sendAccountVerificationNotification' |
- 'sendAdminAccountVerificationNotification' |
- 'sendUserCreatePassword'
+ 'sendAdminAccountVerificationNotification'
 ;
 
 export enum UserNotificationType {
