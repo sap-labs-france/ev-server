@@ -362,6 +362,7 @@ export default class NotificationHandler {
     }
   }
 
+  // Use case -> users imported recieve a 'create your password' notification
   static async sendUserCreatePassword(tenantID: string, notificationID: string, user: User, sourceData: UserCreatePassword): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
