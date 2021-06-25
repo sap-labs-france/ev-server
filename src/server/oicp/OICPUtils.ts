@@ -177,8 +177,9 @@ export default class OICPUtils {
 
   public static getOICPIdentificationFromRemoteAuthorization(chargingStation: ChargingStation, connectorId: number,
       action?: ServerAction): { sessionId: OICPSessionID; identification: OICPIdentification; } {
+    // Check remote auth in Charging Station
     if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
-      const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find(
+      const existingAuthorization = chargingStation.remoteAuthorizations.find(
         (authorization) => authorization.connectorId === connectorId && authorization.oicpIdentification);
       if (existingAuthorization) {
         if (action === ServerAction.START_TRANSACTION) {
@@ -225,7 +226,6 @@ export default class OICPUtils {
         identification: OICPUtils.convertTagID2OICPIdentification(transaction.tagID)
       };
     }
-    return null;
   }
 
   public static async createOICPVirtualUser(tenantID: string): Promise<void> {

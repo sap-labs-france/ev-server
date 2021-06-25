@@ -1,0 +1,18 @@
+{
+  "title": "Assign sites to a User",
+  "type": "object",
+  "definitions": {
+    "userID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "siteIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/definitions/id"
+      }
+    }
+  },
+  "required": [
+    "userID"
+  ]
+}

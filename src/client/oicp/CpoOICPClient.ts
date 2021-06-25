@@ -6,7 +6,6 @@ import { OICPChargingNotificationEndCpoSend, OICPChargingNotificationErrorCpoSen
 import { OICPDefaultTagId, OICPIdentification, OICPSessionID } from '../../types/oicp/OICPIdentification';
 import { OICPEvseDataRecord, OICPEvseStatusRecord, OICPOperatorEvseData, OICPOperatorEvseStatus } from '../../types/oicp/OICPEvse';
 import { OICPSession, OICPSessionStatus } from '../../types/oicp/OICPSession';
-import Transaction, { TransactionAction } from '../../types/Transaction';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
@@ -30,11 +29,10 @@ import OICPUtils from '../../server/oicp/OICPUtils';
 import { OicpSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Site from '../../types/Site';
-import SiteArea from '../../types/SiteArea';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 
@@ -60,12 +58,7 @@ export default class CpoOICPClient extends OICPClient {
       addChargeBoxID: true
     };
     // Get Site Area
-    let siteArea: SiteArea;
-    if (!chargingStation.siteArea) {
-      siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
-    } else {
-      siteArea = chargingStation.siteArea;
-    }
+    const siteArea = chargingStation.siteArea;
     // Get Site
     const site = await SiteStorage.getSite(this.tenant.id, chargingStation.siteID);
     // Get Evse
@@ -87,14 +80,14 @@ export default class CpoOICPClient extends OICPClient {
     transaction.oicpData = {
       session: oicpSession
     };
-    // Log
     await Logging.logDebug({
       tenantID: this.tenant.id,
       user: transaction.user,
+      source: transaction.chargeBoxID,
       action: ServerAction.OICP_PUSH_SESSIONS,
-      message: `Start OICP Transaction ID (ID '${transaction.id}')`,
+      message: `Start OICP Session ID '${transaction.id}'`,
       module: MODULE_NAME, method: 'startSession',
-      detailedMessages: { payload: oicpSession }
+      detailedMessages: { session: oicpSession }
     });
   }
 
@@ -115,41 +108,14 @@ export default class CpoOICPClient extends OICPClient {
     if (transaction.lastConsumption && transaction.lastConsumption.value) {
       transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
     }
-    const sessionUpdate = {
-      kwh: transaction.oicpData.session.kwh,
-      last_updated: transaction.oicpData.session.last_updated,
-      currency: transaction.oicpData.session.currency,
-      total_cost: transaction.oicpData.session.total_cost > 0 ? transaction.oicpData.session.total_cost : 0,
-      status: transaction.oicpData.session.status
-    } as OICPSession;
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: transaction.user,
-      action: ServerAction.OICP_PUSH_SESSIONS,
-      message: 'OICP Session update',
-      module: MODULE_NAME, method: 'updateSession',
-      detailedMessages: { payload: sessionUpdate }
-    });
     // Call Hubject
-    let response: OICPAcknowledgment;
     if (transaction.oicpData.session.status === OICPSessionStatus.PENDING) {
       // Send start notification to Hubject when actual energy flow starts
-      response = await this.sendChargingNotificationStart(transaction);
+      await this.sendChargingNotificationStart(transaction);
       transaction.oicpData.session.status = OICPSessionStatus.ACTIVE;
     } else {
       // Send progress notification
-      response = await this.sendChargingNotificationProgress(transaction);
-    }
-    if (response) {
-      await Logging.logDebug({
-        tenantID: this.tenant.id,
-        user: transaction.user,
-        action: ServerAction.OICP_PUSH_SESSIONS,
-        message: `Update Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response received from Hubject`,
-        module: MODULE_NAME, method: 'updateSession',
-        detailedMessages: { response: response }
-      });
+      await this.sendChargingNotificationProgress(transaction);
     }
   }
 
@@ -189,26 +155,19 @@ export default class CpoOICPClient extends OICPClient {
     if (transaction.lastConsumption?.value) {
       transaction.oicpData.session.meterValueInBetween.push(transaction.lastConsumption.value);
     }
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: transaction.user,
-      action: ServerAction.OICP_PUSH_SESSIONS,
-      message: `Stop OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') to Hubject`,
-      module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { payload: transaction.oicpData.session }
-    });
     // Call Hubject
     await this.sendChargingNotificationEnd(transaction);
+    // Stop
     if (transaction.tagID !== OICPDefaultTagId.RemoteIdentification) {
       const response = await this.authorizeStop(transaction);
-      await Logging.logDebug({
+      await Logging.logInfo({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
-        message: `Push OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from Hubject`,
+        message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been stopped successfully`,
         module: MODULE_NAME, method: 'stopSession',
-        detailedMessages: { response: response }
+        detailedMessages: { session: transaction.oicpData.session, response }
       });
     }
   }
@@ -551,17 +510,9 @@ export default class CpoOICPClient extends OICPClient {
     operatorEvseData.OperatorID = this.getOperatorID(ServerAction.OICP_PUSH_EVSE_DATA);
     operatorEvseData.OperatorName = this.tenant.name;
     operatorEvseData.EvseDataRecord = evses;
-    const payload: OICPPushEvseDataCpoSend = {} as OICPPushEvseDataCpoSend;
+    const payload = {} as OICPPushEvseDataCpoSend;
     payload.ActionType = actionType;
     payload.OperatorEvseData = operatorEvseData;
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_EVSE_DATA,
-      message: `Push EVSEs from tenant: ${this.tenant.id}`,
-      module: MODULE_NAME, method: 'pushEvseData',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -573,14 +524,22 @@ export default class CpoOICPClient extends OICPClient {
     if (!pushEvseDataResponse?.Result || pushEvseDataResponse?.Result !== true) {
       throw new BackendError({
         action: ServerAction.OICP_PUSH_EVSE_DATA,
-        message: `'pushEvseData' Error: '${pushEvseDataResponse?.StatusCode?.AdditionalInfo ? pushEvseDataResponse?.StatusCode?.AdditionalInfo : pushEvseDataResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(pushEvseDataResponse, requestError),
         module: MODULE_NAME, method: 'pushEvseData',
         detailedMessages: {
-          response: pushEvseDataResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          evse: payload,
+          response: pushEvseDataResponse,
         }
+      });
+    } else {
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_EVSE_DATA,
+        message: `${evses.length} EVSEs have been pushed successfully`,
+        module: MODULE_NAME, method: 'pushEvseData',
+        detailedMessages: { evses: payload, response: pushEvseDataResponse }
       });
     }
     return pushEvseDataResponse;
@@ -605,17 +564,9 @@ export default class CpoOICPClient extends OICPClient {
     operatorEvseStatus.OperatorID = this.getOperatorID(ServerAction.OICP_PUSH_EVSE_STATUSES);
     operatorEvseStatus.OperatorName = this.tenant.name;
     operatorEvseStatus.EvseStatusRecord = evseStatuses;
-    const payload: OICPPushEvseStatusCpoSend = {} as OICPPushEvseStatusCpoSend;
+    const payload = {} as OICPPushEvseStatusCpoSend;
     payload.ActionType = actionType;
     payload.OperatorEvseStatus = operatorEvseStatus;
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-      message: `Push EVSE statuses from tenant: ${this.tenant.id}`,
-      module: MODULE_NAME, method: 'pushEvseStatus',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -628,14 +579,22 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_PUSH_EVSE_STATUSES,
-        message: `'pushEvseStatus' Error: '${pushEvseStatusResponse?.StatusCode?.AdditionalInfo ? pushEvseStatusResponse?.StatusCode?.AdditionalInfo : pushEvseStatusResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(pushEvseStatusResponse, requestError),
         module: MODULE_NAME, method: 'pushEvseStatus',
         detailedMessages: {
-          response: pushEvseStatusResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          evseStatus: payload,
+          response: pushEvseStatusResponse,
         }
+      });
+    } else {
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        action: ServerAction.OICP_PUSH_EVSE_STATUSES,
+        message: `${evseStatuses.length} EVSE Statuses have been pushed successfully`,
+        module: MODULE_NAME, method: 'pushEvseStatus',
+        detailedMessages: { evses: payload, response: pushEvseStatusResponse }
       });
     }
     return pushEvseStatusResponse;
@@ -656,7 +615,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get authorize start endpoint url
     const fullUrl = this.getEndpointUrl('authorizeStart', ServerAction.OICP_AUTHORIZE_START);
     // Build payload
-    const payload: OICPAuthorizeStartCpoSend = {} as OICPAuthorizeStartCpoSend;
+    const payload = {} as OICPAuthorizeStartCpoSend;
     payload.SessionID; // Optional
     if (transactionId) {
       payload.CPOPartnerSessionID = String(transactionId); // Optional
@@ -666,14 +625,6 @@ export default class CpoOICPClient extends OICPClient {
     payload.Identification = identification;
     payload.PartnerProductID; // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_START);
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_AUTHORIZE_START,
-      message: 'Start Authorization',
-      module: MODULE_NAME, method: 'authorizeStart',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -686,13 +637,13 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
-        message: `'authorizeStart' Error: '${authorizeResponse?.StatusCode?.AdditionalInfo ? authorizeResponse?.StatusCode?.AdditionalInfo : authorizeResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
         module: MODULE_NAME, method: 'authorizeStart',
         detailedMessages: {
-          response: authorizeResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          authorize: payload,
+          response: authorizeResponse,
         }
       });
     }
@@ -701,19 +652,16 @@ export default class CpoOICPClient extends OICPClient {
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
         module: MODULE_NAME, method: 'authorizeStart',
-        message: `User with Authorization '${tagID}' cannot ${TransactionAction.START} Transaction through OICP protocol due to missing Authorization`,
-        detailedMessages: {
-          response: authorizeResponse
-        }
+        message: `OICP Tag ID '${tagID}' has not been authorized`,
+        detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     } else {
-      // Log
-      await Logging.logInfo({
+      await Logging.logDebug({
         tenantID: this.tenant.id,
         action: ServerAction.OICP_AUTHORIZE_START,
-        message: `User with Authorization '${tagID}' authorized through OICP protocol`,
+        message: `OICP Tag ID '${tagID}' has been authorized`,
         module: MODULE_NAME, method: 'authorizeStart',
-        detailedMessages: { authorizeResponse }
+        detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     }
     return authorizeResponse;
@@ -735,7 +683,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get authorize stop endpoint url
     const fullUrl = this.getEndpointUrl('authorizeStop', ServerAction.OICP_AUTHORIZE_STOP);
     // Build payload
-    const payload: OICPAuthorizeStopCpoSend = {} as OICPAuthorizeStopCpoSend;
+    const payload = {} as OICPAuthorizeStopCpoSend;
     payload.SessionID = transaction.oicpData.session.id;
     if (transaction.id) {
       payload.CPOPartnerSessionID = String(transaction.id); // Optional
@@ -744,15 +692,6 @@ export default class CpoOICPClient extends OICPClient {
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_AUTHORIZE_STOP);
     payload.EvseID = transaction.oicpData.session.evse.EvseID; // Optional
     payload.Identification = transaction.oicpData.session.identification;
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: user,
-      action: ServerAction.OICP_AUTHORIZE_STOP,
-      message: 'Stop Authorization',
-      module: MODULE_NAME, method: 'authorizeStop',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -764,38 +703,38 @@ export default class CpoOICPClient extends OICPClient {
     if (requestError) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
-        message: `'authorizeStop' Error: '${authorizeResponse?.StatusCode?.AdditionalInfo ? authorizeResponse?.StatusCode?.AdditionalInfo : authorizeResponse?.StatusCode?.Description}' '${String(requestError?.message)}'`,
+        message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
         module: MODULE_NAME, method: 'authorizeStop',
         detailedMessages: {
-          response: authorizeResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          authorize: payload,
+          response: authorizeResponse,
         }
       });
     }
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
         module: MODULE_NAME, method: 'authorizeStop',
-        message: `User '${user.id}' cannot ${TransactionAction.STOP} Transaction through OICP protocol due to missing Authorization`,
-        detailedMessages: {
-          response: authorizeResponse
-        }
+        message: `User ID '${user.id}' is not authorized to Stop a Transaction`,
+        detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     } else {
-      // Log
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
-        message: `'authorizeStop': '${authorizeResponse?.AuthorizationStatus}'`,
+        message: 'Stop Transaction has been authorized',
         module: MODULE_NAME, method: 'authorizeStop',
-        detailedMessages: { authorizeResponse }
+        detailedMessages: { authorize: payload, response: authorizeResponse }
       });
     }
     return authorizeResponse;
@@ -826,7 +765,7 @@ export default class CpoOICPClient extends OICPClient {
       throw new BackendError({
         source: transaction.chargeBoxID,
         action: ServerAction.OICP_PUSH_CDRS,
-        message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') not stopped`,
+        message: `OICP Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has not been stopped`,
         module: MODULE_NAME, method: 'pushCdr',
         user: transaction.user
       });
@@ -859,16 +798,7 @@ export default class CpoOICPClient extends OICPClient {
     cdr.HubOperatorID; // Optional
     cdr.HubProviderID; // Optional
     transaction.oicpData.cdr = cdr;
-    const payload: OICPChargeDetailRecord = transaction.oicpData.cdr;
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: transaction.user,
-      action: ServerAction.OICP_PUSH_CDRS,
-      message: `Post CDR of OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') at ${fullUrl}`,
-      module: MODULE_NAME, method: 'pushCdr',
-      detailedMessages: { payload: transaction.oicpData.cdr }
-    });
+    const payload = transaction.oicpData.cdr;
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -880,31 +810,33 @@ export default class CpoOICPClient extends OICPClient {
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
-        message: `'pushCdr' Error: '${pushCdrResponse?.StatusCode?.AdditionalInfo ? pushCdrResponse?.StatusCode?.AdditionalInfo : pushCdrResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(pushCdrResponse, requestError),
         module: MODULE_NAME, method: 'pushCdr',
         detailedMessages: {
-          response: pushCdrResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          cdr: payload,
+          response: pushCdrResponse,
         }
       });
     } else {
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
-        message: `Push CDR of OICP Transaction ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') response retrieved from ${fullUrl}`,
+        message: `CDR of Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been pushed successfully`,
         module: MODULE_NAME, method: 'pushCdr',
-        detailedMessages: { response: pushCdrResponse }
+        detailedMessages: { cdr: payload, response: pushCdrResponse }
       });
     }
     return pushCdrResponse;
   }
 
-  public async sendChargingNotificationStart(transaction: Transaction): Promise<OICPAcknowledgment> {
+  public async sendChargingNotificationStart(transaction: Transaction): Promise<void> {
     let notificationStartResponse: OICPAcknowledgment;
     let requestError: any;
     // Check for input parameter
@@ -929,7 +861,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get notification endpoint url
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START);
     // Build payload
-    const payload: OICPChargingNotificationStartCpoSend = {} as OICPChargingNotificationStartCpoSend;
+    const payload = {} as OICPChargingNotificationStartCpoSend;
     payload.Type = OICPChargingNotification.Start;
     payload.SessionID = transaction.oicpData.session.id;
     if (transaction.id) {
@@ -943,15 +875,6 @@ export default class CpoOICPClient extends OICPClient {
     payload.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START); // Optional
     payload.PartnerProductID; // Optional
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: transaction.user,
-      action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
-      message: `Send Charging Notification Start for EVSE: ${payload.EvseID}`,
-      module: MODULE_NAME, method: 'sendChargingNotificationStart',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -963,22 +886,32 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
-        message: `'sendChargingNotificationStart' Error: '${notificationStartResponse?.StatusCode?.AdditionalInfo ? notificationStartResponse?.StatusCode?.AdditionalInfo : notificationStartResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(notificationStartResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
         detailedMessages: {
-          response: notificationStartResponse,
           error: requestError?.message,
+          chargingStart: payload,
           stack: requestError?.stack,
-          payload: payload
+          response: notificationStartResponse,
         }
       });
+    } else {
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
+        user: transaction.user,
+        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
+        message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been started successfully`,
+        module: MODULE_NAME, method: 'sendChargingNotificationStart',
+        detailedMessages: { chargingStart: payload, response: notificationStartResponse }
+      });
     }
-    return notificationStartResponse;
   }
 
-  public async sendChargingNotificationProgress(transaction: Transaction): Promise<OICPAcknowledgment> {
+  public async sendChargingNotificationProgress(transaction: Transaction): Promise<void> {
     if (this.checkProgressUpdateInterval(transaction)) {
       let notificationProgressResponse: OICPAcknowledgment;
       let requestError: any;
@@ -1004,7 +937,7 @@ export default class CpoOICPClient extends OICPClient {
       // Get notification endpoint url
       const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS);
       // Build payload
-      const payload: OICPChargingNotificationProgressCpoSend = {} as OICPChargingNotificationProgressCpoSend;
+      const payload = {} as OICPChargingNotificationProgressCpoSend;
       payload.Type = OICPChargingNotification.Progress;
       payload.SessionID = transaction.oicpData.session.id;
       if (transaction.id) {
@@ -1021,15 +954,6 @@ export default class CpoOICPClient extends OICPClient {
       payload.MeterValueStart = Utils.convertWattHourToKiloWattHour(transaction.meterStart, 3); // Optional
       payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS); // Optional
       payload.PartnerProductID; // Optional
-      // Log
-      await Logging.logDebug({
-        tenantID: this.tenant.id,
-        user: transaction.user,
-        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
-        message: `Send Charging Notification Progress for EVSE: ${payload.EvseID}`,
-        module: MODULE_NAME, method: 'sendChargingNotificationProgress',
-        detailedMessages: { payload }
-      });
       // Call Hubject
       try {
         const response = await this.axiosInstance.post(fullUrl, payload);
@@ -1042,19 +966,29 @@ export default class CpoOICPClient extends OICPClient {
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
         await Logging.logWarning({
           tenantID: this.tenant.id,
+          source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
-          message: `'sendChargingNotificationProgress' Error: '${notificationProgressResponse?.StatusCode?.AdditionalInfo ? notificationProgressResponse?.StatusCode?.AdditionalInfo : notificationProgressResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+          message: this.buildOICPChargingNotificationErrorMessage(notificationProgressResponse, requestError),
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
           detailedMessages: {
-            response: notificationProgressResponse,
-            payload: payload,
             error: requestError?.message,
-            stack: requestError?.stack
+            stack: requestError?.stack,
+            chargingProgress: payload,
+            response: notificationProgressResponse,
           }
         });
+      } else {
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          source: transaction.chargeBoxID,
+          user: transaction.user,
+          action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
+          message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been updated successfully`,
+          module: MODULE_NAME, method: 'sendChargingNotificationProgress',
+          detailedMessages: { chargingProgress: payload, response: notificationProgressResponse }
+        });
       }
-      return notificationProgressResponse;
     }
   }
 
@@ -1092,7 +1026,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get notification endpoint url
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END);
     // Build payload
-    const payload: OICPChargingNotificationEndCpoSend = {} as OICPChargingNotificationEndCpoSend;
+    const payload = {} as OICPChargingNotificationEndCpoSend;
     payload.Type = OICPChargingNotification.End;
     payload.SessionID = transaction.oicpData.session.id;
     if (transaction.id) {
@@ -1115,14 +1049,6 @@ export default class CpoOICPClient extends OICPClient {
     payload.OperatorID = this.getOperatorID(ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END); // Optional
     payload.PartnerProductID; // Optional
     payload.PenaltyTimeStart = transaction.stop.timestamp; // Optional
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
-      message: `Send Charging Notification End for EVSE: ${payload.EvseID}`,
-      module: MODULE_NAME, method: 'sendChargingNotificationEnd',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -1134,16 +1060,27 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
-        message: `'sendChargingNotificationEnd' Error: '${notificationEndResponse?.StatusCode?.AdditionalInfo ? notificationEndResponse?.StatusCode?.AdditionalInfo : notificationEndResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(notificationEndResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
         detailedMessages: {
-          response: notificationEndResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          chargingEnd: payload,
+          response: notificationEndResponse,
         }
+      });
+    } else {
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
+        user: transaction.user,
+        action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
+        message: `Session ID '${transaction.oicpData.session.id}' (ID '${transaction.id}') has been ended successfully`,
+        module: MODULE_NAME, method: 'sendChargingNotificationEnd',
+        detailedMessages: { chargingEnd: payload, response: notificationEndResponse }
       });
     }
     return notificationEndResponse;
@@ -1174,7 +1111,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get notification endpoint url
     const fullUrl = this.getEndpointUrl('notifications', ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR);
     // Build payload
-    const payload: OICPChargingNotificationErrorCpoSend = {} as OICPChargingNotificationErrorCpoSend;
+    const payload = {} as OICPChargingNotificationErrorCpoSend;
     payload.Type = OICPChargingNotification.Error;
     payload.SessionID = transaction.oicpData.session.id;
     if (transaction.id) {
@@ -1185,15 +1122,6 @@ export default class CpoOICPClient extends OICPClient {
     payload.EvseID = transaction.oicpData.session.evse.EvseID;
     payload.ErrorType = error;
     payload.ErrorAdditionalInfo = errorAdditionalInfo; // Optional
-    // Log
-    await Logging.logDebug({
-      tenantID: this.tenant.id,
-      user: transaction.user,
-      action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
-      message: `Send Charging Notification Error for EVSE: ${payload.EvseID}`,
-      module: MODULE_NAME, method: 'sendChargingNotificationError',
-      detailedMessages: { payload }
-    });
     // Call Hubject
     try {
       const response = await this.axiosInstance.post(fullUrl, payload);
@@ -1205,15 +1133,16 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
-        message: `'sendChargingNotificationError' Error: '${notificationErrorResponse?.StatusCode?.AdditionalInfo ? notificationErrorResponse?.StatusCode?.AdditionalInfo : notificationErrorResponse?.StatusCode?.Description}' '${String(requestError?.message)}`,
+        message: this.buildOICPChargingNotificationErrorMessage(notificationErrorResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationError',
         detailedMessages: {
-          response: notificationErrorResponse,
           error: requestError?.message,
           stack: requestError?.stack,
-          payload: payload
+          chargingError: payload,
+          response: notificationErrorResponse,
         }
       });
     }
@@ -1287,5 +1216,20 @@ export default class CpoOICPClient extends OICPClient {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
+  }
+
+  private buildOICPChargingNotificationErrorMessage(notificationProgressResponse: OICPAcknowledgment | OICPAuthorizeStopCpoReceive, requestError: Error): string {
+    let errorMessage = '';
+    if (notificationProgressResponse) {
+      errorMessage = notificationProgressResponse?.StatusCode?.AdditionalInfo?.length > 0 ?
+        notificationProgressResponse?.StatusCode?.AdditionalInfo : notificationProgressResponse?.StatusCode?.Description;
+    }
+    if (requestError) {
+      if (errorMessage.length > 0) {
+        errorMessage += ' ';
+      }
+      errorMessage += requestError.message;
+    }
+    return errorMessage;
   }
 }

@@ -187,6 +187,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     if (!response.data.data) {
       throw new BackendError({
+        source: chargingStation.id,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
         message: 'Invalid response from Post Authorize',
         module: MODULE_NAME, method: 'authorizeToken',
@@ -196,16 +197,18 @@ export default class CpoOCPIClient extends OCPIClient {
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
     if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
       throw new BackendError({
+        source: chargingStation.id,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-        message: 'Authorization rejected',
+        message: `OCPI Tag ID '${token.uid}' has been rejected`,
         module: MODULE_NAME, method: 'authorizeToken',
         detailedMessages: { locationReference, authorizationInfo }
       });
     }
     if (!authorizationInfo.authorization_id) {
       throw new BackendError({
+        source: chargingStation.id,
         action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-        message: 'Authorization allowed without \'authorization_id\'',
+        message: `OCPI Tag ID '${token.uid}' has been rejected (no Authorization ID)`,
         module: MODULE_NAME, method: 'authorizeToken',
         detailedMessages: { locationReference, authorizationInfo }
       });
@@ -214,7 +217,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       source: chargingStation.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
-      message: `OCPI Authorization ID '${authorizationInfo.authorization_id}' has been issued successfully`,
+      message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
       module: MODULE_NAME, method: 'authorizeToken',
       detailedMessages: { locationReference, response: response.data }
     });
@@ -432,7 +435,7 @@ export default class CpoOCPIClient extends OCPIClient {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.OCPI_PATCH_STATUS,
-        message: 'Charging Station must be associated to a site area',
+        message: 'Charging Station must be associated to a Site Area',
         module: MODULE_NAME, method: 'removeChargingStation',
       });
     }
