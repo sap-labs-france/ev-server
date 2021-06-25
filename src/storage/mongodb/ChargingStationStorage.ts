@@ -97,7 +97,7 @@ export default class ChargingStationStorage {
       await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
     const chargingStationTemplates: ChargingStationTemplate[] = [];
-    // Reverse match the regexp in JSON template records against the charing station vendor string
+    // Reverse match the regexp in JSON template records against the charging station vendor string
     for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
       const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
       if (regExp.test(chargePointVendor)) {
