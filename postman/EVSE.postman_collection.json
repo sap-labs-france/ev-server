@@ -329,7 +329,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"ssssssss\",\r\n  \"firstName\": \"sdfsdf\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"captcha\": \"03AHqfIOkrqjt2RAg3fYA5zheYBKQKwPGppT69OdbWEFaMAXpe-dAcTsAZi-G7Lwdb6BYhKT_hJxIvDktmZ7EB9i3Ifq8LmeDrr5KMFy5tJ_6cuqT1T0MwuYe_uOkvZ9bH07nCaI6P0fWwaUZcoar_-0rKefUVLipvO4thr3-zQjIk5OO6dEY16H5JF1b1EdOoORGzPkXdUbIRH-QcfkykhfAf7UOHpB7V4_Y8P3ZRUXkoS7RQREFfT8tYU4ZWN4LbUPRqi8jxhi2Ye_i7frsFOIDuvOwVwgB77LZSaPOLpkH8lTpm3Na_dT9BPH-WwX7jDk40zpa0wp00ozcpb-7vrPRNZtEnmTSfl7jJpHAbzA5DbkSRgZLphkS6s6x4TfEtWv4dyC8ECZofasu098KMFDgR8_4xLkZ7X18rCAFS77MAyLi7CyHIys0\",\r\n  \"passwords\": {\r\n    \"password\": \"aaa\",\r\n    \"repeatPassword\": \"aaa\"\r\n  },\r\n  \"acceptEula\": true,\r\n  \"tenant\": \"slf\"\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"ssssssss\",\r\n  \"firstName\": \"sdfsdf\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"captcha\": \"03AHqfIOkrqjt2RAg3fYA5zheYBKQKwPGppT69OdbWEFaMAXpe-dAcTsAZi-G7Lwdb6BYhKT_hJxIvDktmZ7EB9i3Ifq8LmeDrr5KMFy5tJ_6cuqT1T0MwuYe_uOkvZ9bH07nCaI6P0fWwaUZcoar_-0rKefUVLipvO4thr3-zQjIk5OO6dEY16H5JF1b1EdOoORGzPkXdUbIRH-QcfkykhfAf7UOHpB7V4_Y8P3ZRUXkoS7RQREFfT8tYU4ZWN4LbUPRqi8jxhi2Ye_i7frsFOIDuvOwVwgB77LZSaPOLpkH8lTpm3Na_dT9BPH-WwX7jDk40zpa0wp00ozcpb-7vrPRNZtEnmTSfl7jJpHAbzA5DbkSRgZLphkS6s6x4TfEtWv4dyC8ECZofasu098KMFDgR8_4xLkZ7X18rCAFS77MAyLi7CyHIys0\",\r\n  \"passwords\": {\r\n    \"password\": \"Azerty123!\",\r\n    \"repeatPassword\": \"Azerty123!\"\r\n  },\r\n  \"acceptEula\": true,\r\n  \"tenant\": \"slf\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/auth/signon",
@@ -3071,6 +3071,78 @@
 						"v1",
 						"api",
 						"users"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Role",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Status",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ExcludeSiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ExcludeUserIDs",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "IncludeCarUserIDs",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": null,
+							"disabled": true
+						}
 					]
 				}
 			},
@@ -3092,6 +3164,443 @@
 				"method": "GET",
 				"header": [],
 				"url": {
+					"raw": "{{base_url}}/v1/api/users/592e969f89d8e07a2b16a78f",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"592e969f89d8e07a2b16a78f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UsersInError",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/status/in-error",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"status",
+						"in-error"
+					],
+					"query": [
+						{
+							"key": "Role",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": "User",
+							"disabled": true
+						},
+						{
+							"key": "ErrorType",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UsersExport",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/action/export",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"action",
+						"export"
+					],
+					"query": [
+						{
+							"key": "Issuer",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Search",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "UserID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Role",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Status",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ExcludeSiteID",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ExcludeUserIDs",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "IncludeCarUserIDs",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Skip",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "Limit",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "SortFields",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "OnlyRecordCount",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UsersImport",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": ""
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/action/import",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"action",
+						"import"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserDefaultTag",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/default-car-tag",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"default-car-tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserSites",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/sites",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"sites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserAddSites",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"siteIDs\": [\n        \"{{siteID}}\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/sites",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"sites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserUnassignSites",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"siteIDs\": [\n        \"{{siteID}}\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/sites",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						"{{userID}}",
+						"sites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"CreateName\",\n  \"firstName\": \"CreateFirstname\",\n  \"email\": \"firstname.lastname@sap.com\",\n  \"passwords\": {\n    \"password\": \"Azerty123!\",\n    \"repeatPassword\": \"Azerty123!\"\n  },\n  \"acceptEula\": true,\n  \"tenant\": \"slf\",\n  \"role\": \"B\",\n  \"status\": \"A\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/users/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"passwords\": {\r\n    \"password\": \"\",\r\n    \"repeatPassword\": \"\"\r\n  }\r\n}\r\n"
+				},
+				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",
 					"host": [
 						"{{base_url}}"
@@ -3107,7 +3616,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-UserImages",
+			"name": "FE-UserUpdateMobileToken",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -3119,17 +3628,28 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "PUT",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"mobileToken\": \"new_token\",\n    \"mobileOS\": \"mobile_os\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{base_url}}/client/api/UserImages",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/mobile-token",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"UserImages"
+						"users",
+						"{{userID}}",
+						"mobile-token"
 					]
 				}
 			},
@@ -3151,20 +3671,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/client/api/UserImage?ID=592e969f89d8e07a2b16a795",
+					"raw": "{{base_url}}/v1/api/users/{{userID}}/image",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"client",
+						"v1",
 						"api",
-						"UserImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "592e969f89d8e07a2b16a795"
-						}
+						"users",
+						"{{userID}}",
+						"image"
 					]
 				}
 			},
@@ -3412,45 +3928,6 @@
 							"key": "Year",
 							"value": "2018"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-UserUpdate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"passwords\": {\r\n    \"password\": \"\",\r\n    \"repeatPassword\": \"\"\r\n  }\r\n}\r\n"
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/api/users/{{userID}}",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"api",
-						"users",
-						"{{userID}}"
 					]
 				}
 			},
@@ -4999,7 +5476,12 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>",
+					"options": {
+						"raw": {
+							"language": "xml"
+						}
+					}
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
