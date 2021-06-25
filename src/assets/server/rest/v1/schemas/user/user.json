@@ -76,7 +76,8 @@
     },
     "role": {
       "type": "string",
-      "sanitize": "mongo"
+      "sanitize": "mongo",
+      "enum": ["S", "A", "B", "D"]
     },
     "notifications": {
       "type": "object",
