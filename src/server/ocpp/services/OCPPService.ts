@@ -191,7 +191,7 @@ export default class OCPPService {
         return {};
       }
       // Update only the given Connector ID
-      await this.updateConnectorStatusFromStatusNotification(tenant, chargingStation, statusNotification);
+      await this.processConnectorStatusNotification(tenant, chargingStation, statusNotification);
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
@@ -651,7 +651,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateConnectorStatusFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
+  private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
     const connector = await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
     // Status must be different
