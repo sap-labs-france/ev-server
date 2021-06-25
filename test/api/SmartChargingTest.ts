@@ -490,9 +490,9 @@ describe('Smart Charging Service', function() {
         // Do not save the last profile to check if this is the only one build in the upcoming test
       });
 
-      it('Test if charging profiles are returned, when they are already applied', async () => {
+      it('Test if charging profiles are not returned, when they are already applied', async () => {
         const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
-        // Charging Profiles should be empty, they were already applied in the test before
+        // Charging Profiles should only contain the charging profile, which was not saved in the last run
         TestData.validateChargingProfile(chargingProfiles[0], transaction2);
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
