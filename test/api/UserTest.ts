@@ -166,7 +166,7 @@ describe('User', function() {
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
-            testData.newUser
+            { ...testData.newUser, passwords: { password: testData.newUser.password } }
           );
         });
 

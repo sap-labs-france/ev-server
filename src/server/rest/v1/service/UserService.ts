@@ -36,7 +36,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
@@ -168,7 +167,7 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
+    const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
@@ -264,7 +263,7 @@ export default class UserService {
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest({ ...req.params, ...req.body });
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
@@ -335,7 +334,7 @@ export default class UserService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
-    const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
     // Check User
     try {
       await UtilsService.checkAndGetUserAuthorization(

@@ -43,7 +43,7 @@ export interface ConnectorMDB {
   voltage: Voltage;
   amperage: number;
   amperageLimit: number;
-  userID: ObjectID;
+  currentUserID: ObjectID;
   statusLastChangedOn: Date;
   numberOfConnectedPhase: number;
   currentType: CurrentType;
@@ -577,6 +577,8 @@ export default class ChargingStationStorage {
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
         (connector) => ChargingStationStorage.filterConnectorMDB(connector)) : [],
+      backupConnectors: chargingStationToSave.backupConnectors ? chargingStationToSave.backupConnectors.map(
+        (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
       coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
@@ -598,25 +600,50 @@ export default class ChargingStationStorage {
     return chargingStationMDB._id;
   }
 
-  public static async saveChargingStationConnectors(tenantID: string, id: string, connectors: Connector[]): Promise<void> {
+  public static async saveChargingStationConnectors(tenantID: string, id: string, connectors: Connector[], backupConnectors?: Connector[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationConnectors');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    const updatedProps: any = {};
+    // Set connectors
+    updatedProps.connectors = connectors.map((connector) =>
+      ChargingStationStorage.filterConnectorMDB(connector));
+    // Set backup connector
+    if (backupConnectors) {
+      updatedProps.backupConnectors = backupConnectors.map((backupConnector) =>
+        ChargingStationStorage.filterConnectorMDB(backupConnector));
+    }
+    // Modify document
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: updatedProps
+      },
+      { upsert: true });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
+  }
+
+  public static async saveChargingStationBackupConnectors(tenantID: string, id: string, backupConnectors: Connector[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
     // Ensure good typing
-    const connectorsMDB = connectors.map((connector) =>
+    const backupConnectorsMDB = backupConnectors.map((connector) =>
       ChargingStationStorage.filterConnectorMDB(connector));
     // Modify document
     await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
-          connectors: connectorsMDB
+          backupConnectors: backupConnectorsMDB
         }
       },
       { upsert: true });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors', uniqueTimerID, backupConnectors);
   }
 
   public static async saveChargingStationCFApplicationIDAndInstanceIndex(tenantID: string, id: string,
@@ -1103,6 +1130,8 @@ export default class ChargingStationStorage {
         currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
         currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
         currentTagID: connector.currentTagID,
+        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
+        currentUserID: Utils.convertToObjectID(connector.currentUserID),
         status: connector.status,
         errorCode: connector.errorCode,
         info: connector.info,
@@ -1112,8 +1141,6 @@ export default class ChargingStationStorage {
         voltage: Utils.convertToInt(connector.voltage),
         amperage: Utils.convertToInt(connector.amperage),
         amperageLimit: Utils.convertToInt(connector.amperageLimit),
-        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
-        userID: Utils.convertToObjectID(connector.userID),
         statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
         currentInactivityStatus: connector.currentInactivityStatus,
         numberOfConnectedPhase: connector.numberOfConnectedPhase,
