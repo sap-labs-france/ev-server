@@ -46,6 +46,12 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   NotAssignedToCarID: string;
 }
 
+export interface HttpUsersInErrorRequest extends HttpDatabaseRequest {
+  Search: string;
+  Role?: string;
+  ErrorType?: string;
+}
+
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
