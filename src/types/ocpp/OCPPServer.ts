@@ -119,8 +119,7 @@ export interface OCPPMeterValuesRequest {
 export type OCPPMeterValuesRequestExtended = OCPPMeterValuesRequest;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPMeterValuesResponse {
-}
+export interface OCPPMeterValuesResponse {}
 
 export interface OCPPNormalizedMeterValues {
   chargeBoxID: string;

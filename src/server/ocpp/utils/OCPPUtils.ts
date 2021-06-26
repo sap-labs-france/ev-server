@@ -1060,8 +1060,7 @@ export default class OCPPUtils {
   public static async getChargingStationTemplate(chargingStation: ChargingStation): Promise<ChargingStationTemplate> {
     let foundTemplate: ChargingStationTemplate = null;
     // Get the Templates
-    const chargingStationTemplates: ChargingStationTemplate[] =
-      await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
+    const chargingStationTemplates: ChargingStationTemplate[] = await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
     // Parse them
     for (const chargingStationTemplate of chargingStationTemplates) {
       // Keep it
