@@ -17,7 +17,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/UsersInError');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_USERS_IN_ERROR));
   }
 
   public async create(data) {
@@ -63,6 +63,10 @@ export default class UserApi extends CrudApi {
     return await super.read(params, '/client/api/TagsExport');
   }
 
+  public async exportUsers(params) {
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_USERS_EXPORT));
+  }
+
   public async updateMobileToken(userID: string, mobileToken: string, mobileOS: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_UPDATE_MOBILE_TOKEN, { id: userID });
     return await super.update({
@@ -72,6 +76,11 @@ export default class UserApi extends CrudApi {
 
   public async getImage(userID: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_IMAGE, { id: userID });
+    return await super.read({}, url);
+  }
+
+  public async getDefaultTagCar(userID: string) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { id: userID });
     return await super.read({}, url);
   }
 }

@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "email": {
-      "$ref": "common.json#/definitions/email"
+      "$ref": "user.json#/definitions/email"
     },
     "tenant": {
       "$ref": "common.json#/definitions/authSubdomain"

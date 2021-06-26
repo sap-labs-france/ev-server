@@ -323,12 +323,13 @@ export default class TransactionStorage {
     if (params.ocpiSessionID) {
       filters['ocpiData.session.id'] = params.ocpiSessionID;
     }
+    // Authorization ID
     if (params.ocpiAuthorizationID) {
       filters['ocpiData.session.authorization_id'] = params.ocpiAuthorizationID;
     }
     // OICP ID
     if (params.oicpSessionID) {
-      filters['oicpData.session.SessionID'] = params.oicpSessionID;
+      filters['oicpData.session.id'] = params.oicpSessionID;
     }
     // Transaction
     if (!Utils.isEmptyArray(params.transactionIDs)) {
@@ -984,9 +985,9 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOICPTransactionBySessionID(tenantID: string, oicpSessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
-      { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { oicpSessionID: oicpSessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 

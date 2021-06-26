@@ -1,7 +1,6 @@
-import { HttpCompaniesRequest, HttpCompanyLogoRequest } from '../../../../../types/requests/HttpCompanyRequest';
+import { HttpCompaniesRequest, HttpCompanyLogoRequest, HttpCompanyRequest } from '../../../../../types/requests/HttpCompanyRequest';
 
 import Company from '../../../../../types/Company';
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -19,7 +18,7 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompanyRequest(request: any): HttpByIDRequest {
+  public static filterCompanyRequest(request: any): HttpCompanyRequest {
     return {
       ID: sanitize(request.ID)
     };

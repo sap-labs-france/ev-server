@@ -33,6 +33,7 @@ import OICPUtils from '../../../oicp/OICPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
 import Tenant from '../../../../types/Tenant';
@@ -139,8 +140,11 @@ export default class ChargingStationService {
                 countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
                 partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
               };
+              // Get Site
+              const site = await SiteStorage.getSite(req.tenant.id, chargingStation.siteID);
+              // Push EVSE to OICP platform
               await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
-                chargingStation.siteArea, chargingStation, options), actionType);
+                site, chargingStation.siteArea, chargingStation, options), actionType);
             }
           } catch (error) {
             await Logging.logError({
@@ -843,8 +847,11 @@ export default class ChargingStationService {
               countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
               partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
             };
+            // Get Site
+            const site = await SiteStorage.getSite(req.tenant.id, chargingStation.siteID);
+            // Push EVSE to OICP platform
             await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
-              chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
+              site, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
           }
         } catch (error) {
           await Logging.logError({

@@ -62,10 +62,3 @@ describe('Template for Dev Unit Test', function() {
   describe('usage of non assigned CS', () => {
   });
 });
-
-/**
- * @param ms
- */
-async function timeout(ms: number): Promise<void> {
-  return await new Promise((resolve) => setTimeout(resolve, ms));
-}

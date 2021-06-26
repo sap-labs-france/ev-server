@@ -166,7 +166,7 @@ describe('User', function() {
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
-            testData.newUser
+            { ...testData.newUser, passwords: { password: testData.newUser.password } }
           );
         });
 
@@ -230,6 +230,16 @@ describe('User', function() {
         //   testData.importedTags.push(tag);
         // });
 
+        it('Should be able to export users list', async () => {
+          const response = await testData.userService.userApi.exportUsers({});
+          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          // Verify we have as many users inserted as users in the export
+          expect(responseFileArray.length).to.be.eql(users.data.result.length);
+        });
+
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id
           const updatedUser = await testData.userService.getEntityById(
@@ -255,6 +265,20 @@ describe('User', function() {
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.id).to.be.eq(testData.newUser.id);
           expect(response.data.image).to.be.null; // New users have a null image
+        });
+
+        it('Should get the user default car tag', async () => {
+          // Create a tag
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          let response = await testData.userService.userApi.createTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
+          // Retrieve it
+          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.tag.id).to.be.eq(testData.newTag.id);
+          expect(response.data.car).to.be.undefined;
+          expect(response.data.errorCodes).to.be.empty;
         });
 
         it('Should be able to delete the created user', async () => {

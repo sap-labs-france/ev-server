@@ -117,39 +117,39 @@ export default class OCPPValidation extends SchemaValidator {
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
-    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
+    const connectorTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer
       meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
       // Yes: Check Transaction ID (ABB)
-      if (meterValues.transactionId !== chargerTransactionId) {
+      if (meterValues.transactionId !== connectorTransactionId) {
         // Check if valid
-        if (chargerTransactionId > 0) {
+        if (connectorTransactionId > 0) {
           // No: Log that the transaction ID will be reused
           await Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.METER_VALUES,
-            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionId}'`
           });
         }
         // Always assign, even if equals to 0
-        meterValues.transactionId = chargerTransactionId;
+        meterValues.transactionId = connectorTransactionId;
       }
-      // Transaction is not provided: check if there is a transaction assigned on the connector
-    } else if (chargerTransactionId > 0) {
+    // Transaction is not provided: check if there is a transaction assigned on the connector
+    } else if (connectorTransactionId > 0) {
       // Yes: Use Connector's Transaction ID
       await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
-        message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+        message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionId}'`
       });
       // Override it
-      meterValues.transactionId = chargerTransactionId;
+      meterValues.transactionId = connectorTransactionId;
     }
   }
 }

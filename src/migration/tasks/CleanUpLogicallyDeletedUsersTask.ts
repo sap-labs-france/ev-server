@@ -28,25 +28,25 @@ export default class CleanUpLogicallyDeletedUsersTask extends MigrationTask {
     let counter = 0;
     for (const deletedUserMDB of deletedUsersMDB) {
       const userID = deletedUserMDB._id.toString();
-      const carUsers = await CarStorage.getCarUsers(tenant.id, { userIDs : [userID] }, Constants.DB_PARAMS_MAX_LIMIT);
+      const carUsers = await CarStorage.getCarUsers(tenant, { userIDs : [userID] }, Constants.DB_PARAMS_MAX_LIMIT);
       if (!Utils.isEmptyArray(carUsers.result)) {
         for (const carUser of carUsers.result) {
           // Owner?
           if (carUser.owner) {
             // Get the Private Cars of the Deleted User
-            const privateCar = await CarStorage.getCar(tenant.id, carUser.carID, { type: CarType.PRIVATE });
+            const privateCar = await CarStorage.getCar(tenant, carUser.carID, { type: CarType.PRIVATE });
             if (privateCar) {
               // Delete All Private Cars assignment
-              await CarStorage.deleteCarUsersByCarID(tenant.id, privateCar.id);
+              await CarStorage.deleteCarUsersByCarID(tenant, privateCar.id);
               // Delete Private Car
-              await CarStorage.deleteCar(tenant.id, privateCar.id);
+              await CarStorage.deleteCar(tenant, privateCar.id);
             } else {
               // Delete Car assignment
-              await CarStorage.deleteCarUser(tenant.id, carUser.id);
+              await CarStorage.deleteCarUser(tenant, carUser.id);
             }
           } else {
             // Delete Car assignment
-            await CarStorage.deleteCarUser(tenant.id, carUser.id);
+            await CarStorage.deleteCarUser(tenant, carUser.id);
           }
         }
       }
