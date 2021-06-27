@@ -1412,14 +1412,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]> {
+    const errorCodes: StartTransactionErrorCode[] = [];
     // Check billing prerequisites
     if (!this.settings.billing.isTransactionBillingActivated) {
       // Nothing to check - billing of transactions is not yet ON
-      return null;
+      return errorCodes;
     }
     if (this.isUserInternal(user)) {
       // Nothing to check - we do not bill internal user's transactions
-      return null;
+      return errorCodes;
     }
     // Make sure the STRIPE connection is ok
     try {
@@ -1435,7 +1436,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
     }
     // Check all settings that are necessary to bill a transaction
-    const errorCodes: StartTransactionErrorCode[] = [];
     try {
       await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
     } catch (error) {
