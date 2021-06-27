@@ -36,6 +36,7 @@ export default class Constants {
   public static readonly EXPORT_RECORD_MAX_COUNT = 100000;
   public static readonly IMPORT_PAGE_SIZE = 1000;
   public static readonly IMPORT_BATCH_INSERT_SIZE = 250;
+  public static readonly BATCH_PAGE_SIZE = 1000;
 
   public static readonly HEALTH_CHECK_ROUTE = '/health-check';
 
@@ -291,6 +292,10 @@ export default class Constants {
   public static readonly REGEX_VALIDATION_LATITUDE = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/;
   public static readonly REGEX_VALIDATION_LONGITUDE = /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
   public static readonly MAX_GPS_DISTANCE_METERS = 40000000; // Earth
+
+  public static readonly EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA = Object.freeze([
+    'stack'
+  ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'captcha', 'email', 'coordinates', 'latitude', 'longitude',

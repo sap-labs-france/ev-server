@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Registration token tests', function() {
+describe('Registration Token', function() {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -36,7 +36,7 @@ describe('Registration token tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all component (tenant utall)', () => {
+  describe('With all component (utall)', () => {
     describe('Where admin user', () => {
       // Create
       it('Should be able to create a new registration token', async () => {

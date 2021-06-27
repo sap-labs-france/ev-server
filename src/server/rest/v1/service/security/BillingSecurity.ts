@@ -1,7 +1,6 @@
-import { HttpBillingInvoiceRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
 import Utils from '../../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -18,7 +17,7 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
+  static filterGetInvoicesRequest(requestQuery: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
     if (Utils.objectHasProperty(requestQuery, 'UserID')) {
       filteredRequest.UserID = sanitize(requestQuery.UserID);
@@ -40,6 +39,12 @@ export default class BillingSecurity {
     return filteredRequest;
   }
 
+  static filterGetInvoiceRequest(requestQuery: any): HttpBillingInvoiceRequest {
+    return {
+      ID: sanitize(requestQuery.ID)
+    } as HttpBillingInvoiceRequest;
+  }
+
   static filterForceSynchronizeUserInvoicesRequest(requestBody: any): HttpForceSynchronizeUserInvoicesRequest {
     return {
       userID: sanitize(requestBody.userID)
@@ -52,7 +57,7 @@ export default class BillingSecurity {
     };
   }
 
-  static filterDownloadInvoiceRequest(requestQuery: any): HttpByIDRequest {
+  static filterDownloadInvoiceRequest(requestQuery: any): HttpBillingRequest {
     return {
       ID: sanitize(requestQuery.ID)
     };

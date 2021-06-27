@@ -2,6 +2,7 @@ import chai, { assert, expect } from 'chai';
 
 import CentralServerService from '../api/client/CentralServerService';
 import ChargingStationContext from './context/ChargingStationContext';
+import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
@@ -40,7 +41,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function() {
+describe('User', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -57,7 +58,7 @@ describe('User tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -71,20 +72,21 @@ describe('User tests', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
-    after(() => {
+    after(async () => {
       // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
+      for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.userApi,
           user,
           false
         );
-      });
+      }
       testData.createdUsers = [];
       // Delete any created tag
-      testData.createdTags.forEach(async (tag) => {
+      for (const tag of testData.createdTags) {
         await testData.centralUserService.userApi.deleteTag(tag.id);
-      });
+
+      }
       testData.createdTags = [];
     });
 
@@ -164,7 +166,7 @@ describe('User tests', function() {
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
-            testData.newUser
+            { ...testData.newUser, passwords: { password: testData.newUser.password } }
           );
         });
 
@@ -228,6 +230,16 @@ describe('User tests', function() {
         //   testData.importedTags.push(tag);
         // });
 
+        it('Should be able to export users list', async () => {
+          const response = await testData.userService.userApi.exportUsers({});
+          const users = await testData.userService.userApi.readAll({}, { limit: 1000, skip: 0 });
+          const responseFileArray = TestUtils.convertExportFileToObjectArray(response.data);
+          expect(response.status).eq(StatusCodes.OK);
+          expect(response.data).not.null;
+          // Verify we have as many users inserted as users in the export
+          expect(responseFileArray.length).to.be.eql(users.data.result.length);
+        });
+
         it('Should find the updated user by id', async () => {
           // Check if the updated entity can be retrieved with its id
           const updatedUser = await testData.userService.getEntityById(
@@ -236,6 +248,37 @@ describe('User tests', function() {
           );
           // Check
           expect(updatedUser.name).to.equal(testData.newUser.name);
+        });
+
+        it('Should update user\'s mobile token', async () => {
+          const response = await testData.userService.userApi.updateMobileToken(
+            testData.newUser.id,
+            'new_mobile_token',
+            'mobile_os'
+          );
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data).to.be.deep.eq(Constants.REST_RESPONSE_SUCCESS);
+        });
+
+        it('Should get user image', async () => {
+          const response = await testData.userService.userApi.getImage(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.id).to.be.eq(testData.newUser.id);
+          expect(response.data.image).to.be.null; // New users have a null image
+        });
+
+        it('Should get the user default car tag', async () => {
+          // Create a tag
+          testData.newTag = Factory.tag.build({ userID: testData.newUser.id });
+          let response = await testData.userService.userApi.createTag(testData.newTag);
+          expect(response.status).to.equal(StatusCodes.CREATED);
+          testData.createdTags.push(testData.newTag);
+          // Retrieve it
+          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
+          expect(response.status).to.be.eq(StatusCodes.OK);
+          expect(response.data.tag.id).to.be.eq(testData.newTag.id);
+          expect(response.data.car).to.be.undefined;
+          expect(response.data.errorCodes).to.be.empty;
         });
 
         it('Should be able to delete the created user', async () => {
@@ -253,7 +296,6 @@ describe('User tests', function() {
             testData.newUser
           );
         });
-
       });
       describe('Using function "readAllInError"', () => {
 
@@ -269,7 +311,6 @@ describe('User tests', function() {
           });
           expect(response.status).to.equal(StatusCodes.OK);
           response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
-
           await testData.userService.deleteEntity(
             testData.userService.userApi,
             user

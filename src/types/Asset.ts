@@ -16,10 +16,19 @@ export default interface Asset extends CreatedUpdatedProps, AbstractCurrentConsu
   issuer: boolean;
   image?: string;
   dynamicAsset: boolean;
+  usesPushAPI:boolean;
   connectionID?: string;
   meterID?: string;
   values: Consumption[],
   excludeFromSmartCharging?: boolean,
+  variationThresholdPercent?: number,
+  powerWattsLastSmartChargingRun?: number
+}
+
+export interface WitDataSet {
+  wType: string,
+  T: Date,
+  V: number,
 }
 
 export enum AssetType {

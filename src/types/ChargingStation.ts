@@ -5,6 +5,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { OICPEvseDataRecord } from './oicp/OICPEvse';
 import { OICPIdentification } from './oicp/OICPIdentification';
 import SiteArea from './SiteArea';
 import User from './User';
@@ -49,6 +50,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   coordinates: number[];
   chargePoints: ChargePoint[];
   connectors: Connector[];
+  backupConnectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
   siteArea?: SiteArea;
@@ -57,10 +59,15 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppVendorParameters?: KeyValue[];
   distanceMeters?: number;
   ocpiData?: ChargingStationOcpiData;
+  oicpData?: ChargingStationOicpData;
 }
 
 export interface ChargingStationOcpiData {
   evses?: OCPIEvse[];
+}
+
+export interface ChargingStationOicpData {
+  evses?: OICPEvseDataRecord[];
 }
 
 export interface ChargingStationQRCode {
@@ -129,6 +136,7 @@ export interface Connector {
   currentTransactionID?: number;
   currentTransactionDate?: Date;
   currentTagID?: string;
+  currentUserID?: string;
   status: ChargePointStatus;
   errorCode?: string;
   info?: string;
@@ -138,7 +146,6 @@ export interface Connector {
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
-  userID?: string;
   user?: User;
   statusLastChangedOn?: Date;
   numberOfConnectedPhase?: number;
@@ -293,19 +300,28 @@ export type OCPPParams = {
 };
 
 export enum ChargerVendor {
+  ARK_AC_EV_CHARGER = 'Ark AC EV Charger',
+  ALFEN = 'Alfen BV',
+  ALPITRONIC = 'alpitronic GmbH',
   BENDER = 'Bender GmbH Co. KG',
+  CFOS = 'cFos',
   DBTCEV = 'DBT-CEV',
   EBEE = 'Ebee',
+  ECOTAP = 'Ecotap',
   ENPLUS = 'EN+',
   EXADYS = 'EXADYS',
   EVBOX = 'EV-BOX',
   EVMETER = 'EV Meter',
   INNOGY = 'innogy',
   INGETEAM = 'INGETEAM',
+  EFACEC = 'pt.efacec',
   IES = 'IES',
+  HDM = 'HDM',
+  HAGER = 'Hager',
   WALLBOX_CHARGERS = 'Wall Box Chargers',
   SCHNEIDER = 'Schneider Electric',
   WEBASTO = 'Webasto',
+  DELTA_ELECTRONICS = 'Delta Electronics',
   DELTA = 'DELTA',
   ABB = 'ABB',
   LEGRAND = 'Legrand',
@@ -314,4 +330,12 @@ export enum ChargerVendor {
   KEBA = 'Keba AG',
   SAP_LABS_FRANCE = 'SAP Labs France Caen',
   CIRCONTROL = 'CIRCONTROL',
+  JOINON = 'JOINON',
+  JOINT = 'Joint',
+  NEXANS = 'Nexans',
+  AIXCHARGE = 'aixcharge',
+  LAFON_TECHNOLOGIES = 'LAFON TECHNOLOGIES',
+  TRITIUM = 'Tritium',
+  GREEN_MOTION = 'Green Motion',
+  G2_MOBILITY = 'com.g2mobility'
 }

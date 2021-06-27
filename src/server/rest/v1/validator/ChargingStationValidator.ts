@@ -2,6 +2,7 @@ import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpCha
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import Utils from '../../../../utils/Utils';
@@ -27,6 +28,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingProfilesGet: Schema;
   private chargingProfileDelete: Schema;
   private chargingProfileUpdate: Schema;
+  private chargingStationNotificationsGet: Schema;
 
   private constructor() {
     super('ChargingStationValidator');
@@ -47,6 +49,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingProfilesGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingprofiles-get.json`, 'utf8'));
     this.chargingProfileDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingprofile-delete.json`, 'utf8'));
     this.chargingProfileUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingprofile-update.json`, 'utf8'));
+    this.chargingStationNotificationsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-notifications.json`, 'utf8'));
   }
 
   public static getInstance(): ChargingStationValidator {
@@ -74,7 +77,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationDeleteReq(data: any): HttpByIDRequest {
+  public validateChargingStationDeleteReq(data: any): HttpChargingStationRequest {
     // Validate schema
     this.validate(this.chargingStationDelete, data);
     return data;
@@ -140,6 +143,12 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
+  public validateChargingStationNotificationsGetReq(data: any): HttpDatabaseRequest {
+    // Validate schema
+    this.validate(this.chargingStationNotificationsGet, data);
+    return data;
+  }
+
   public validateChargingProfilesGetReq(data: any): HttpChargingProfilesRequest {
     // Validate schema
     this.validate(this.chargingProfilesGet, data);
@@ -152,7 +161,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingProfileDeleteReq(data: any): HttpByIDRequest {
+  public validateChargingProfileDeleteReq(data: any): HttpChargingStationRequest {
     // Validate schema
     this.validate(this.chargingProfileDelete, data);
     return data;

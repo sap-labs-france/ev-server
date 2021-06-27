@@ -43,11 +43,11 @@ export default class ConnectionService {
     }
     // Check User
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get it
-    const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID,
+    const connection = await ConnectionStorage.getConnection(req.tenant, connectionID,
       [ 'id', 'connectorId', 'createdAt', 'validUntil', 'lastChangedOn', 'createdOn', ...userProject ]);
     UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' does not exist`,
       MODULE_NAME, 'handleGetConnection', req.user);
@@ -69,11 +69,11 @@ export default class ConnectionService {
     const filteredRequest = ConnectionSecurity.filterConnectionsRequest(req.query);
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get
-    const connections = await ConnectionStorage.getConnectionsByUserId(req.user.tenantID, filteredRequest.UserID,
+    const connections = await ConnectionStorage.getConnectionsByUserId(req.tenant, filteredRequest.UserID,
       [ 'id', 'connectorId', 'createdAt', 'validUntil', 'lastChangedOn', 'createdOn', ...userProject ]);
     res.json(connections);
     next();
@@ -92,7 +92,7 @@ export default class ConnectionService {
     // Filter
     const filteredRequest = ConnectionSecurity.filterConnectionCreateRequest(req.body);
     // Get factory
-    const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     // Create
     const connection = await refundConnector.createConnection(filteredRequest.userId, filteredRequest.data);
     // Check
@@ -123,11 +123,11 @@ export default class ConnectionService {
       });
     }
     // Get connection
-    const connection = await ConnectionStorage.getConnection(req.user.tenantID, connectionID);
+    const connection = await ConnectionStorage.getConnection(req.tenant, connectionID);
     UtilsService.assertObjectExists(action, connection, `Connection ID '${connectionID}' does not exist`,
       MODULE_NAME, 'handleDeleteConnection', req.user);
     // Delete
-    await ConnectionStorage.deleteConnectionById(req.user.tenantID, connection.id);
+    await ConnectionStorage.deleteConnectionById(req.tenant, connection.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

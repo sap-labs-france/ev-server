@@ -26,11 +26,15 @@ export default class SitesAdminDynamicAuthorizationFilter extends DynamicAuthori
     if (!Utils.isEmptyArray(authorizationFilters.filters.siteIDs)) {
       authorizationFilters.authorized = true;
     }
+    if (this.negateFilter) {
+      authorizationFilters.authorized = !authorizationFilters.authorized;
+    }
   }
 
   public getApplicableEntities(): Entity[] {
     return [
-      Entity.SITE
+      Entity.SITE,
+      Entity.USERS
     ];
   }
 

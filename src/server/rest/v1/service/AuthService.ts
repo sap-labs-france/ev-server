@@ -14,6 +14,7 @@ import { HTTPError } from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../../../types/Server';
 import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -23,7 +24,6 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import jwt from 'jsonwebtoken';
@@ -60,7 +60,7 @@ export default class AuthService {
 
   public static async checkSessionHash(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if User has been updated and require new login
-    if (!await SessionHashService.isSessionHashUpdated(req, res, next)) {
+    if (!await SessionHashService.areTokenUserAndTenantStillValid(req, res, next)) {
       next();
     }
   }
@@ -207,7 +207,8 @@ export default class AuthService {
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
-      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomIntSafe().toString(),
+      id: Utils.generateTagID(newUser.name, newUser.firstName),
+      visualID: new ObjectID().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
@@ -251,7 +252,7 @@ export default class AuthService {
       user: newUser, action: action,
       module: MODULE_NAME,
       method: 'handleRegisterUser',
-      message: `User with Email '${req.body.email}' has been created successfully`,
+      message: `User with Email '${req.body.email as string}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
     if (tenantID !== Constants.DEFAULT_TENANT) {
@@ -304,7 +305,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
+        message: `The reCaptcha score is too low, got ${response.data.score as string} and expected to be >= 0.5`,
         module: MODULE_NAME,
         method: 'checkAndSendResetPasswordConfirmationEmail'
       });
@@ -322,7 +323,7 @@ export default class AuthService {
       user: user, action: action,
       module: MODULE_NAME,
       method: 'checkAndSendResetPasswordConfirmationEmail',
-      message: `User with Email '${req.body.email}' will receive an email to reset his password`
+      message: `User with Email '${req.body.email as string}' will receive an email to reset his password`
     });
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
@@ -481,6 +482,18 @@ export default class AuthService {
         message: 'Cannot verify email in the Super Tenant'
       });
     }
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    if (!tenant) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        action: action,
+        module: MODULE_NAME,
+        method: 'handleVerifyEmail',
+        message: `Tenant ID '${tenantID}' does not exist!`
+      });
+    }
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
@@ -512,7 +525,7 @@ export default class AuthService {
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
     // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
       try {
         await billingImpl.synchronizeUser(user);
@@ -744,7 +757,7 @@ export default class AuthService {
     // Get the tags (limited) to avoid an overweighted token
     const tags = await TagStorage.getTags(tenantID, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
-    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user, tags.result);
+    const payload = await Authorizations.buildUserToken(tenantID, user, tags.result);
     // Build token
     let token: string;
     // Role Demo?
@@ -772,7 +785,8 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
-  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async checkUserLogin(action: ServerAction, tenantID: string, user: User,
+      filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
     if (!user) {
       throw new AppError({

@@ -5,12 +5,15 @@ import AssetFactory from '../../integration/asset/AssetFactory';
 import AssetStorage from '../../storage/mongodb/AssetStorage';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from '../../storage/mongodb/ConsumptionStorage';
+import Decimal from 'decimal.js';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import SiteArea from '../../types/SiteArea';
+import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -23,6 +26,9 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Check if Asset component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
+      const smartChargingActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
+      // Create Helper Array with site areas to trigger smart charging
+      const triggerSmartChargingSiteAreas = [];
       // Get dynamic assets only
       const dynamicAssets = await AssetStorage.getAssets(tenant.id,
         {
@@ -33,51 +39,60 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
       );
       // Process them
       for (const asset of dynamicAssets.result) {
+        if (asset.usesPushAPI) {
+          continue;
+        }
         const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id, asset);
         if (assetLock) {
           try {
             // Get asset factory
-            const assetImpl = await AssetFactory.getAssetImpl(tenant.id, asset.connectionID);
+            const assetImpl = await AssetFactory.getAssetImpl(tenant, asset.connectionID);
             if (assetImpl) {
               // Retrieve Consumption
               const assetConsumptions = await assetImpl.retrieveConsumptions(asset);
-              // Create helper for site area limit
-              const siteAreaLimitConsumption: Consumption = {
-                startedAt: assetConsumptions[0].lastConsumption.timestamp,
-                cumulatedConsumptionWh: assetConsumptions[0].currentConsumptionWh,
-                cumulatedConsumptionAmps: Math.floor(assetConsumptions[0].currentConsumptionWh / asset.siteArea.voltage),
-              };
-              await OCPPUtils.addSiteLimitationToConsumption(tenant.id, asset.siteArea, siteAreaLimitConsumption);
-              // Create Consumptions
-              for (const consumption of assetConsumptions) {
-                // Check if last consumption already exists
-                if (asset.lastConsumption?.timestamp && moment(consumption.lastConsumption.timestamp).diff(moment(asset.lastConsumption.timestamp), 'seconds') < 50) {
-                  continue;
+              if (!Utils.isEmptyArray(assetConsumptions)) {
+                // Create helper for site area limit
+                const siteAreaLimitConsumption = {} as Consumption;
+                await OCPPUtils.addSiteLimitationToConsumption(tenant, asset.siteArea, siteAreaLimitConsumption);
+                // Create Consumptions
+                for (const consumption of assetConsumptions) {
+                  // Check if last consumption already exists
+                  if (asset.lastConsumption?.timestamp && moment(consumption.lastConsumption.timestamp).diff(moment(asset.lastConsumption.timestamp), 'seconds') < 50) {
+                    continue;
+                  }
+                  // Create Consumption to save
+                  const consumptionToSave: Consumption = {
+                    startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),
+                    endedAt: consumption.lastConsumption.timestamp,
+                    assetID: asset.id,
+                    siteAreaID: asset.siteAreaID,
+                    siteID: asset.siteArea.siteID,
+                    cumulatedConsumptionWh: consumption.currentConsumptionWh,
+                    cumulatedConsumptionAmps: Math.floor(consumption.currentConsumptionWh / asset.siteArea.voltage),
+                    instantAmps: consumption.currentInstantAmps,
+                    instantWatts: consumption.currentInstantWatts,
+                    stateOfCharge: consumption.currentStateOfCharge,
+                    limitSiteAreaWatts: siteAreaLimitConsumption.limitSiteAreaWatts,
+                    limitSiteAreaAmps: siteAreaLimitConsumption.limitSiteAreaAmps,
+                    limitSiteAreaSource: siteAreaLimitConsumption.limitSiteAreaSource,
+                    smartChargingActive: siteAreaLimitConsumption.smartChargingActive,
+                  };
+                  // Save Consumption
+                  await ConsumptionStorage.saveConsumption(tenant.id, consumptionToSave);
+                  // Set Consumption to Asset
+                  this.assignAssetConsumption(asset, consumption);
                 }
-                // Create Consumption to save
-                const consumptionToSave: Consumption = {
-                  startedAt: asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment(consumption.lastConsumption.timestamp).subtract(1, 'minutes').toDate(),
-                  endedAt: consumption.lastConsumption.timestamp,
-                  assetID: asset.id,
-                  siteAreaID: asset.siteAreaID,
-                  siteID: asset.siteArea.siteID,
-                  cumulatedConsumptionWh: consumption.currentConsumptionWh,
-                  cumulatedConsumptionAmps: Math.floor(consumption.currentConsumptionWh / asset.siteArea.voltage),
-                  instantAmps: consumption.currentInstantAmps,
-                  instantWatts: consumption.currentInstantWatts,
-                  stateOfCharge: consumption.currentStateOfCharge,
-                  limitSiteAreaWatts: siteAreaLimitConsumption.limitSiteAreaWatts,
-                  limitSiteAreaAmps: siteAreaLimitConsumption.limitSiteAreaAmps,
-                  limitSiteAreaSource: siteAreaLimitConsumption.limitSiteAreaSource,
-                  smartChargingActive: siteAreaLimitConsumption.smartChargingActive,
-                };
-                // Save Consumption
-                await ConsumptionStorage.saveConsumption(tenant.id, consumptionToSave);
-                // Set Consumption to Asset
-                this.assignAssetConsumption(asset, consumption);
+                // Save Asset
+                await AssetStorage.saveAsset(tenant.id, asset);
+                // Check if variation since last smart charging run exceeds the variation threshold
+                if (smartChargingActive && this.checkVariationSinceLastSmartChargingRun(asset)) {
+                  // Check if Site Area is already pushed
+                  const siteAreaAlreadyPushed = triggerSmartChargingSiteAreas.findIndex((siteArea) => siteArea.id === asset.siteArea.id);
+                  if (siteAreaAlreadyPushed === -1) {
+                    triggerSmartChargingSiteAreas.push(asset.siteArea);
+                  }
+                }
               }
-              // Save Asset
-              await AssetStorage.saveAsset(tenant.id, asset);
             }
           } catch (error) {
             // Log error
@@ -87,6 +102,42 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
             await LockingManager.release(assetLock);
           }
         }
+      }
+      // Execute smart charging on site areas which are exceeding variation threshold
+      for (const siteArea of triggerSmartChargingSiteAreas) {
+        await this.triggerSmartCharging(tenant, siteArea);
+      }
+    }
+  }
+
+  private checkVariationSinceLastSmartChargingRun(asset: Asset): boolean {
+    // Check if smart charging active for site area
+    if (asset.siteArea?.smartCharging) {
+      // Calculate consumption variation since last smart charging run
+      const consumptionVariation = asset.currentInstantWatts - asset.powerWattsLastSmartChargingRun;
+      if (consumptionVariation === 0 || !(asset.variationThresholdPercent > 0)) {
+        return false;
+      }
+      // Calculate the variation threshold in Watts
+      const variationThreshold = new Decimal(asset.staticValueWatt).mul(asset.variationThresholdPercent / 100).toNumber();
+      if (variationThreshold < Math.abs(consumptionVariation)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
+    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+    if (siteAreaLock) {
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        }
+      } finally {
+        // Release lock
+        await LockingManager.release(siteAreaLock);
       }
     }
   }

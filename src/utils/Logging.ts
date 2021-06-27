@@ -40,76 +40,72 @@ export default class Logging {
 
   // Debug DB
   public static traceStart(tenantID: string, module: string, method: string): string {
-    if (Utils.isDevelopmentEnv()) {
-      const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
-      Logging.traceCalls[key] = new Date().getTime();
-      return key;
-    }
+    const key = `${tenantID}~${module}~${method}~${Utils.generateUUID()}`;
+    Logging.traceCalls[key] = new Date().getTime();
+    return key;
   }
 
   // Debug DB
   public static async traceEnd(tenantID: string, module: string, method: string, key: string, data: any = {}): Promise<void> {
-    if (Utils.isDevelopmentEnv()) {
-      // Compute duration if provided
-      let executionDurationMillis: number;
-      let found = false;
-      if (Logging.traceCalls[key]) {
-        executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
-        delete Logging.traceCalls[key];
-        found = true;
-      }
-      const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
-      const numberOfRecords = Array.isArray(data) ? data.length : 0;
-      const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
-      console.debug(chalk.green(message));
-      if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-        const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
-        await Logging.logWarning({
-          tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.PERFORMANCES,
-          module, method,
-          message: `${message}: ${error.message}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-        if (Utils.isDevelopmentEnv()) {
-          console.warn(chalk.yellow('===================================='));
-          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-          console.warn(chalk.yellow(error));
-          console.warn(chalk.yellow(message));
-          console.warn(chalk.yellow('===================================='));
-        }
-      }
-      if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-        const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
-        await Logging.logWarning({
-          tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.PERFORMANCES,
-          module, method,
-          message: `${message}: ${error.message}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-        if (Utils.isDevelopmentEnv()) {
-          console.warn(chalk.yellow('===================================='));
-          console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
-          console.warn(chalk.yellow(error));
-          console.warn(chalk.yellow(message));
-          console.warn(chalk.yellow('===================================='));
-        }
-      }
-      await PerformanceStorage.savePerformanceRecord(
-        Utils.buildPerformanceRecord({
-          tenantID,
-          group: PerformanceRecordGroup.MONGO_DB,
-          durationMs: executionDurationMillis,
-          sizeKb: sizeOfDataKB,
-          source: Constants.DATABASE_SERVER,
-          module, method,
-          action: key,
-        })
-      );
+    // Compute duration if provided
+    let executionDurationMillis: number;
+    let found = false;
+    if (Logging.traceCalls[key]) {
+      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[key]);
+      delete Logging.traceCalls[key];
+      found = true;
     }
+    const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
+    const numberOfRecords = Array.isArray(data) ? data.length : 0;
+    const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
+    if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
+      const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
+      await Logging.logWarning({
+        tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.PERFORMANCES,
+        module, method,
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
+      }
+    }
+    if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
+      await Logging.logWarning({
+        tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.PERFORMANCES,
+        module, method,
+        message: `${message}: ${error.message}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      if (Utils.isDevelopmentEnv()) {
+        console.warn(chalk.yellow('===================================='));
+        console.warn(chalk.yellow(`Tenant ID '${tenantID}'`));
+        console.warn(chalk.yellow(error));
+        console.warn(chalk.yellow(message));
+        console.warn(chalk.yellow('===================================='));
+      }
+    }
+    await PerformanceStorage.savePerformanceRecord(
+      Utils.buildPerformanceRecord({
+        tenantID,
+        group: PerformanceRecordGroup.MONGO_DB,
+        durationMs: executionDurationMillis,
+        sizeKb: sizeOfDataKB,
+        source: Constants.DATABASE_SERVER,
+        module, method,
+        action: key,
+      })
+    );
   }
 
   // Log Debug
@@ -521,7 +517,7 @@ export default class Logging {
 
   public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
       action: ServerAction, args: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, args, '<<');
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, args, '<<');
   }
 
   public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
@@ -531,7 +527,7 @@ export default class Logging {
 
   public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
       action: ServerAction, payload: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID,chargeBoxID, action, payload, '>>');
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, action, payload, '>>');
   }
 
   public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
@@ -541,7 +537,7 @@ export default class Logging {
 
   // Used to log exception in catch(...) only
   public static async logException(error: Error, action: ServerAction, source: string,
-      module: string, method: string, tenantID: string, user?: UserToken|User|string): Promise<void> {
+      module: string, method: string, tenantID: string, user?: UserToken | User | string): Promise<void> {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       await Logging.logSecurityError(log);
@@ -623,7 +619,7 @@ export default class Logging {
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
         'stack': exception.stack,
-        'previous' : exception.params.detailedMessages
+        'previous': exception.params.detailedMessages
       };
     } else {
       exception.params.detailedMessages = {
@@ -650,7 +646,7 @@ export default class Logging {
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
         'stack': exception.stack,
-        'previous' : exception.params.detailedMessages
+        'previous': exception.params.detailedMessages
       };
     } else {
       exception.params.detailedMessages = {
@@ -691,7 +687,7 @@ export default class Logging {
   }
 
   private static _buildLog(error, action: ServerAction, source: string, module: string,
-      method: string, tenantID: string, user: UserToken|User|string): Log {
+      method: string, tenantID: string, user: UserToken | User | string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
@@ -868,7 +864,13 @@ export default class Logging {
       return anonymizedMessage;
     } else if (typeof message === 'object') { // If the message is an object
       for (const key of Object.keys(message)) {
-        if (typeof message[key] === 'string' && Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
+        // Ignore
+        if (Constants.EXCEPTION_JSON_KEYS_IN_SENSITIVE_DATA.includes(key)) {
+          continue;
+        }
+        // Check Type
+        if (typeof message[key] === 'string' &&
+            Constants.SENSITIVE_DATA.filter((sensitiveData) => key.toLocaleLowerCase() === sensitiveData.toLocaleLowerCase()).length > 0) {
           // If the key indicates sensitive data and the value is a string, Anonymize the value
           message[key] = Constants.ANONYMIZED_VALUE;
         } else { // Otherwise, apply the anonymizeSensitiveData function
@@ -905,7 +907,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-      action: ServerAction, args: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
     // Keep duration
     Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
     // Log
@@ -919,7 +921,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
-      action: ServerAction, detailedMessages: any, direction: '<<'|'>>'): Promise<void> {
+      action: ServerAction, detailedMessages: any, direction: '<<' | '>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;

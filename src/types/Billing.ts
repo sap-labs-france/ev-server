@@ -1,5 +1,4 @@
-import { ActionsResponse, DocumentEncoding, DocumentType } from './GlobalType';
-
+import { ActionsResponse } from './GlobalType';
 import User from './User';
 
 export interface BillingTransactionData {
@@ -19,10 +18,13 @@ export interface BillingDataTransactionUpdate {
 export enum BillingStatus {
   UNBILLED = 'unbilled',
   BILLED = 'billed',
+  PENDING = 'pending',
+  FAILED = 'failed',
 }
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceID?: string;
+  invoiceNumber?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
 }
@@ -87,6 +89,12 @@ export interface BillingInvoiceItem {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
+  parkingData?: BillingParkingData
+}
+
+export interface BillingParkingData {
+  description: string;
+  pricingData: BillingPricingData;
 }
 
 export interface BillingSessionData {
@@ -105,14 +113,9 @@ export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
-}
-
-export interface BillingInvoiceDocument {
-  id: string;
-  invoiceID: string;
-  content: string; // Base64 format
-  type: DocumentType;
-  encoding: DocumentEncoding;
+  VOID = 'void',
+  UNCOLLECTIBLE = 'uncollectible',
+  DELETED = 'deleted',
 }
 
 export interface BillingOperationResult {

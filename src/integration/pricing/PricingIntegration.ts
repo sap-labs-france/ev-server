@@ -1,14 +1,15 @@
 import Consumption from '../../types/Consumption';
 import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
+import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 
 export default abstract class PricingIntegration<T extends PricingSetting> {
-  protected readonly tenantID: string;
+  protected readonly tenant: Tenant;
   protected readonly setting: T;
 
-  protected constructor(tenantID: string, setting: T) {
-    this.tenantID = tenantID;
+  protected constructor(tenant: Tenant, setting: T) {
+    this.tenant = tenant;
     this.setting = setting;
   }
 

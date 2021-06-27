@@ -1,5 +1,5 @@
-import HttpByIDRequest from '../../../../../types/requests/HttpByIDRequest';
-import { HttpTagsRequest } from '../../../../../types/requests/HttpUserRequest';
+import { HttpTagRequest, HttpTagsRequest } from '../../../../../types/requests/HttpTagRequest';
+
 import Tag from '../../../../../types/Tag';
 import UserToken from '../../../../../types/UserToken';
 import Utils from '../../../../../utils/Utils';
@@ -39,6 +39,7 @@ export default class TagSecurity {
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
+        visualID: sanitize(tag.visualID),
         description: sanitize(tag.description),
         active: UtilsSecurity.filterBoolean(tag.active),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),
@@ -49,8 +50,8 @@ export default class TagSecurity {
     return filteredTag;
   }
 
-  public static filterTagRequestByID(request: any): HttpByIDRequest {
-    const filteredRequest: HttpByIDRequest = {
+  public static filterTagRequestByID(request: any): HttpTagRequest {
+    const filteredRequest: HttpTagRequest = {
       ID: sanitize(request.ID)
     };
     UtilsSecurity.filterProject(request, filteredRequest);

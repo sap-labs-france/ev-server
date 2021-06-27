@@ -9,14 +9,18 @@ import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
 import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
+import AssetValidator from '../validator/AssetValidator';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../../utils/Logging';
+import OCPPUtils from '../../../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -86,6 +90,108 @@ export default class AssetService {
     next();
   }
 
+  public static async handleCreateAssetConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.CREATE_CONSUMPTION, Entity.ASSETS, MODULE_NAME, 'handleCreateAssetConsumption');
+    // Validate request
+    const filteredRequest = AssetValidator.getInstance().validateCreateAssetConsumption({ ...req.params, ...req.body });
+    UtilsService.assertIdIsProvided(action, filteredRequest.assetID, MODULE_NAME,
+      'handleCreateAssetConsumption', req.user);
+    // Check auth
+    if (!await Authorizations.canCreateAssetConsumption(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.CREATE_CONSUMPTION, entity: Entity.ASSET,
+        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
+        value: filteredRequest.assetID
+      });
+    }
+    // Get Asset
+    const asset = await AssetStorage.getAsset(req.user.tenantID, filteredRequest.assetID, { withSiteArea: true });
+    UtilsService.assertObjectExists(action, asset, `Asset ID '${filteredRequest.assetID}' does not exist`,
+      MODULE_NAME, 'handleCreateAssetConsumption', req.user);
+    // Check if connection ID exists
+    if (!Utils.isNullOrUndefined(asset.connectionID)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The asset '${asset.name}' has a defined connection. The push API can not be used`,
+        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check dates order
+    if (filteredRequest.startedAt && filteredRequest.endedAt &&
+        !moment(filteredRequest.endedAt).isAfter(moment(filteredRequest.startedAt))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The requested start date '${moment(filteredRequest.startedAt).toISOString()}' is after the end date '${moment(filteredRequest.endedAt).toISOString()}' `,
+        module: MODULE_NAME, method: 'handleCreateAssetConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+    // Get latest consumption and check dates
+    const lastConsumption = await ConsumptionStorage.getLastAssetConsumption(req.tenant, { assetID: filteredRequest.assetID });
+    if (!Utils.isNullOrUndefined(lastConsumption)) {
+      if (moment(filteredRequest.startedAt).isBefore(moment(lastConsumption.endedAt))) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `The start date '${moment(filteredRequest.startedAt).toISOString()}' of the pushed consumption is before the end date '${moment(lastConsumption.endedAt).toISOString()}' of the latest asset consumption`,
+          module: MODULE_NAME, method: 'handleCreateAssetConsumption',
+          user: req.user,
+          action: action
+        });
+      }
+    }
+    // Add site area
+    const consumptionToSave: Consumption = {
+      ...filteredRequest,
+      siteAreaID: asset.siteAreaID,
+      siteID: asset.siteArea.siteID,
+    };
+    // Check consumption
+    if (Utils.isNullOrUndefined(consumptionToSave.consumptionWh)) {
+      const timePeriod = moment(consumptionToSave.endedAt).diff(moment(consumptionToSave.startedAt), 'minutes');
+      consumptionToSave.consumptionWh = Utils.createDecimal(consumptionToSave.instantWatts).mul(Utils.createDecimal(timePeriod).div(60)).toNumber();
+    }
+    // Add Amps
+    if (Utils.isNullOrUndefined(consumptionToSave.instantAmps)) {
+      consumptionToSave.instantAmps = Utils.createDecimal(consumptionToSave.instantWatts).div(asset.siteArea.voltage).toNumber();
+    }
+    // Add site limitation
+    await OCPPUtils.addSiteLimitationToConsumption(req.tenant, asset.siteArea, consumptionToSave);
+    // Save consumption
+    await ConsumptionStorage.saveConsumption(req.user.tenantID, consumptionToSave);
+    // Assign to asset
+    asset.currentConsumptionWh = filteredRequest.consumptionWh;
+    asset.currentInstantAmps = filteredRequest.instantAmps;
+    asset.currentInstantAmpsL1 = filteredRequest.instantAmpsL1;
+    asset.currentInstantAmpsL2 = filteredRequest.instantAmpsL2;
+    asset.currentInstantAmpsL3 = filteredRequest.instantAmpsL3;
+    asset.currentInstantVolts = filteredRequest.instantVolts;
+    asset.currentInstantVoltsL1 = filteredRequest.instantVoltsL1;
+    asset.currentInstantVoltsL2 = filteredRequest.instantVoltsL2;
+    asset.currentInstantVoltsL3 = filteredRequest.instantVoltsL3;
+    asset.currentInstantWatts = filteredRequest.instantWatts;
+    asset.currentInstantWattsL1 = filteredRequest.instantWattsL1;
+    asset.currentInstantWattsL2 = filteredRequest.instantWattsL2;
+    asset.currentInstantWattsL3 = filteredRequest.instantWattsL3;
+    asset.currentStateOfCharge = filteredRequest.stateOfCharge;
+    asset.lastConsumption = { timestamp: consumptionToSave.endedAt, value: consumptionToSave.consumptionWh };
+    // Save Asset
+    await AssetStorage.saveAsset(req.user.tenantID, asset);
+    // Create response
+    res.status(StatusCodes.CREATED).json(Object.assign({ consumption: consumptionToSave }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+
   public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
@@ -93,7 +199,7 @@ export default class AssetService {
     // Filter request
     const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
     // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest);
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
@@ -167,8 +273,20 @@ export default class AssetService {
         detailedMessages: { asset }
       });
     }
+    // Uses Push API
+    if (asset.usesPushAPI) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, method: 'handleRetrieveConsumption',
+        action: action,
+        user: req.user,
+        message: 'This Asset is using the push API, no consumption can be retrieved',
+        detailedMessages: { asset }
+      });
+    }
     // Get asset factory
-    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, asset.connectionID);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, asset.connectionID);
     if (!assetImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -184,7 +302,7 @@ export default class AssetService {
       const consumption = consumptions[0];
       // Assign
       if (consumption) {
-        asset.lastConsumption = consumption.lastConsumption;
+        // Do not save last consumption on manual call to not disturb refresh interval (no consumption is created here)
         asset.currentConsumptionWh = consumption.currentConsumptionWh;
         asset.currentInstantAmps = consumption.currentInstantAmps;
         asset.currentInstantAmpsL1 = consumption.currentInstantAmpsL1;
@@ -230,6 +348,7 @@ export default class AssetService {
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.user.tenantID,
       {
+        issuer: filteredRequest.Issuer,
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
@@ -373,6 +492,7 @@ export default class AssetService {
     const assets = await AssetStorage.getAssets(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
@@ -424,6 +544,7 @@ export default class AssetService {
       coordinates: filteredRequest.coordinates,
       image: filteredRequest.image,
       dynamicAsset: filteredRequest.dynamicAsset,
+      usesPushAPI: filteredRequest.usesPushAPI,
       connectionID: filteredRequest.connectionID,
       meterID: filteredRequest.meterID,
       createdBy: { id: req.user.id },
@@ -491,11 +612,13 @@ export default class AssetService {
     asset.siteID = siteArea ? siteArea.siteID : null,
     asset.assetType = filteredRequest.assetType;
     asset.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
+    asset.variationThresholdPercent = filteredRequest.variationThresholdPercent;
     asset.fluctuationPercent = filteredRequest.fluctuationPercent;
     asset.staticValueWatt = filteredRequest.staticValueWatt;
     asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
     asset.dynamicAsset = filteredRequest.dynamicAsset;
+    asset.usesPushAPI = filteredRequest.usesPushAPI;
     asset.connectionID = filteredRequest.connectionID;
     asset.meterID = filteredRequest.meterID;
     asset.lastChangedBy = { 'id': req.user.id };

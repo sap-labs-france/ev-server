@@ -297,7 +297,7 @@ export default class SiteStorage {
     await global.database.getCollection(tenantID, 'siteimages').findOneAndUpdate(
       { _id: Utils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteImage', uniqueTimerID, siteImageToSave);
@@ -306,7 +306,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
       params: {
         search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; onlyPublicSite?: boolean; name?: string;
+        userID?: string; excludeSitesOfUserID?: boolean; issuer?: boolean; public?: boolean; name?: string;
         withAvailableChargingStations?: boolean; withOnlyChargingStations?: boolean; withCompany?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; withImage?: boolean;
       } = {},
@@ -365,8 +365,8 @@ export default class SiteStorage {
       filters.issuer = params.issuer;
     }
     // Public Site
-    if (params.onlyPublicSite) {
-      filters.public = params.onlyPublicSite;
+    if (params.public) {
+      filters.public = params.public;
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
@@ -490,6 +490,7 @@ export default class SiteStorage {
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getSites', uniqueTimerID, sites);
     return {
+      projectedFields: projectFields,
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites

@@ -428,6 +428,17 @@
                     "type": "string",
                     "example": "demo.demo@sap.com"
                   },
+                  "passwords": {
+                    "type": "object",
+                    "properties": {
+                      "password": {
+                        "type": "string"
+                      },
+                      "repeatPassword": {
+                        "type": "string"
+                      }
+                    }
+                  },
                   "captcha": {
                     "type": "string",
                     "example": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA"
@@ -451,7 +462,12 @@
                   "summary": "Validate password reset",
                   "value": {
                     "email": "demo.demo@sap.com",
+                    "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
+                    "passwords": {
+                      "password": "Azerty123?",
+                      "repeatPassword": "Azerty123?"
+                    },
                     "tenant": "slf"
                   }
                 }
@@ -3144,7 +3160,7 @@
             "description": "Return Charging Station CSV file",
             "content": {
               "text/csv": {
-                "example": "Name\tCreated On\tNumber of Connectors\tSite Area\tLatitude\tLongitude\tCharge Point S/N\tModel\tCharge Box S/N\tVendor\tFirmware\tVersion\tOCPP Version\tOCPP Protocol\tLast Seen\tLast Reboot\tMaximum Power (Watt)\tPower Limit\tUnit\n####\t####\t2\t####\t49\t-0.3\t####\tMONOBLOCK\t####\t####\t3\t1.6\tjson\t12/20/2020 11:54 PM\t12/09/2020 7:00 PM\t44160\tA"
+                "example": "Name,Created On,Number of Connectors,Site Area,Latitude,Longitude,Charge Point S/N,Model,Charge Box S/N,Vendor,Firmware,Version,OCPP Version,OCPP Protocol,Last Seen,Last Reboot,Maximum Power (Watt),Power Limit,Unit,####,####,2,####,49,-0.3,####,MONOBLOCK,####,####,3,1.6,json,12/20/2020 11:54 PM,12/09/2020 7:00 PM,44160,A"
               }
             }
           },
@@ -3259,6 +3275,178 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/charging-stations/notifications/boot": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Stations boot notifications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the boot notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "###",
+                      "chargeBoxID": "###",
+                      "chargePointVendor": "###",
+                      "chargePointModel": "###",
+                      "chargePointSerialNumber": "###",
+                      "chargeBoxSerialNumber": null,
+                      "firmwareVersion": "4.3.0.25",
+                      "ocppVersion": "1.6",
+                      "ocppProtocol": "json",
+                      "endpoint": "###",
+                      "timestamp": "2020-11-03T09:56:02.908Z",
+                      "createdBy": null,
+                      "lastChangedBy": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/charging-stations/notifications/status": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get Charging Stations status notifications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          }
+        ],
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the status notification list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "_id": "####",
+                      "chargeBoxID": "####",
+                      "connectorId": 2,
+                      "timestamp": "2019-03-25T10:45:42.000Z",
+                      "status": "####",
+                      "errorCode": "####",
+                      "info": null,
+                      "vendorId": null,
+                      "vendorErrorCode": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/assets/{id}/consumption": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push latest asset consumption",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/assetID"
+          }
+        ],
+        "tags": [
+          "Assets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetConsumption"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asset consumption created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "consumption": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "description": "Asset does not exist"
           }
         }
       }
@@ -3630,67 +3818,22 @@
             "$ref": "#/components/parameters/UserIDs"
           },
           {
-            "in": "query",
-            "name": "Role",
-            "required": false,
-            "description": "Role attribute",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "S",
-                "A",
-                "B",
-                "D"
-              ]
-            }
+            "$ref": "#/components/parameters/UserRoles"
           },
           {
-            "in": "query",
-            "name": "Status",
-            "description": "Status attribute",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "P",
-                "A",
-                "I",
-                "B",
-                "L"
-              ]
-            }
+            "$ref": "#/components/parameters/UserStatuses"
           },
           {
-            "in": "query",
-            "name": "ExcludeSiteID",
-            "required": false,
-            "description": "Site ID to exclude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserExcludeSiteID"
           },
           {
-            "in": "query",
-            "name": "ExcludeUserIDs",
-            "description": "Pipe separated user IDs to exclude",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserExcludeUserIDs"
           },
           {
-            "in": "query",
-            "name": "IncludeCarUserIDs",
-            "description": "Pipe separated car IDs",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
           },
           {
-            "in": "query",
-            "name": "NotAssignedToCarID",
-            "description": "Car ID",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/UserNotAssignedToCarID"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -3988,6 +4131,553 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/default-car-tag": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get the User's default car tag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved default car tag and car",
+            "content": {
+              "application/json": {
+                "example": {
+                  "tag": {
+                    "active": true,
+                    "description": "###",
+                    "id": "###"
+                  },
+                  "car": {
+                    "licensePlate": "###",
+                    "type": "#",
+                    "carCatalog": {
+                      "vehicleMake": "###",
+                      "vehicleModel": "###",
+                      "vehicleModelVersion": "###"
+                    },
+                    "id": "###"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/sites": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's assigned sites",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved assigned sites list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "userID": "###",
+                      "siteAdmin": false,
+                      "site": {
+                        "address": {
+                          "city": "###",
+                          "country": "###"
+                        },
+                        "name": "###",
+                        "id": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Assign sites to a user",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "siteIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully assigned to sites",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Unassign sites to a user",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "siteIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully unassigned to sites",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/mobile-token": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update user's mobile tokens",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "mobileToken"
+                ],
+                "properties": {
+                  "mobileToken": {
+                    "type": "string"
+                  },
+                  "mobileOS": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mobile token successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/image": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get user's image",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved user image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "User ID"
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "Base 64 encoded image"
+                    }
+                  }
+                },
+                "example": {
+                  "id": "###",
+                  "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAC..."
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/users/status/in-error": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Users in error",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserRoles"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "required": false,
+            "description": "Pipe separated error types (inactive_user, unassigned_user, inactive_user_account, failed_billing_synchro, no_billing_data)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return users in error list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "email": "###",
+                      "createdOn": "2021-04-23T09:08:16.451Z",
+                      "firstName": "###",
+                      "issuer": true,
+                      "name": "###",
+                      "status": "P",
+                      "role": "B",
+                      "errorCode": "inactive_user",
+                      "id": "###",
+                      "canRead": true,
+                      "canUpdate": true,
+                      "canDelete": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/users/action/import": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Import users from file",
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users importation results",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 42,
+                  "inError": 0
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "description": "Invalid file format"
+          },
+          "584": {
+            "description": "Invalid CSV header format"
+          }
+        }
+      }
+    },
+    "/api/users/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export users",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserRoles"
+          },
+          {
+            "$ref": "#/components/parameters/UserStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/UserExcludeSiteID"
+          },
+          {
+            "$ref": "#/components/parameters/UserExcludeUserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserNotAssignedToCarID"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Users exported successfully",
+            "content": {
+              "text/csv": {
+                "example": "id,name,firstName,locale,role,status,email,eulaAcceptedOn,createdOn,changedOn,changedBy\n\"###\",\"DEMO\",\"User\",\"en_EN\",\"B\",\"P\",\"user.demo@sap.com\",\"2021-06-09\",\"2021-04-23\",\"2021-06-09\",\"\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "description": "Invalid file format"
+          },
+          "584": {
+            "description": "Invalid CSV header format"
           }
         }
       }
@@ -5131,6 +5821,75 @@
           }
         }
       },
+      "AssetConsumption": {
+        "type": "object",
+        "required": [
+          "assetID",
+          "startedAt",
+          "endedAt",
+          "instantWatts"
+        ],
+        "properties": {
+          "assetID": {
+            "$ref": "#/components/parameters/assetID"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2020-12-31T23:00:00.000Z"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2020-12-31T23:01:00.000Z"
+          },
+          "instantWatts": {
+            "type": "number"
+          },
+          "instantWattsL1": {
+            "type": "number"
+          },
+          "instantWattsL2": {
+            "type": "number"
+          },
+          "instantWattsL3": {
+            "type": "number"
+          },
+          "instantAmps": {
+            "type": "number"
+          },
+          "instantAmpsL1": {
+            "type": "number"
+          },
+          "instantAmpsL2": {
+            "type": "number"
+          },
+          "instantAmpsL3": {
+            "type": "number"
+          },
+          "instantVolts": {
+            "type": "number"
+          },
+          "instantVoltsL1": {
+            "type": "number"
+          },
+          "instantVoltsL2": {
+            "type": "number"
+          },
+          "instantVoltsL3": {
+            "type": "number"
+          },
+          "consumptionWh": {
+            "type": "number"
+          },
+          "consumptionAmps": {
+            "type": "number"
+          },
+          "stateOfCharge": {
+            "type": "number"
+          }
+        }
+      },
       "Notifications": {
         "type": "object",
         "properties": {
@@ -5417,6 +6176,15 @@
           "type": "string"
         }
       },
+      "assetID": {
+        "in": "path",
+        "name": "id",
+        "description": "Asset ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "connectorID": {
         "in": "path",
         "name": "connectorId",
@@ -5571,6 +6339,56 @@
         "name": "id",
         "description": "Transaction ID",
         "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserRoles": {
+        "in": "query",
+        "name": "Role",
+        "required": false,
+        "description": "Pipe separated user roles (S, A, B, D)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserStatuses": {
+        "in": "query",
+        "name": "Status",
+        "description": "Pipe separated statuses (P, A, I, B, L)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserExcludeSiteID": {
+        "in": "query",
+        "name": "ExcludeSiteID",
+        "required": false,
+        "description": "Site ID to exclude",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserExcludeUserIDs": {
+        "in": "query",
+        "name": "ExcludeUserIDs",
+        "description": "Pipe separated user IDs to exclude",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserIncludeCarUserIDs": {
+        "in": "query",
+        "name": "IncludeCarUserIDs",
+        "description": "Pipe separated car IDs",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "UserNotAssignedToCarID": {
+        "in": "query",
+        "name": "NotAssignedToCarID",
+        "description": "Car ID",
         "schema": {
           "type": "string"
         }

@@ -28,22 +28,20 @@ import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import { StatusCodes } from 'http-status-codes';
+import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
-import fs from 'fs';
 import moment from 'moment';
 
 const MODULE_NAME = 'UserService';
@@ -51,50 +49,20 @@ const MODULE_NAME = 'UserService';
 export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canReadTag(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.TAG,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadCar(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
-    const userID = UserSecurity.filterDefaultTagCarRequestByUserID(req.query);
+    // Filter
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserDefaultTagCar'
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Check user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.READ, action);
     // Handle Tag
     // Get the default Tag
-    let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
+    let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
       issuer: true
     }, ['id', 'description', 'active']);
     if (!tag) {
       // Get the first active Tag
-      tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, userID, {
+      tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
         issuer: true
       }, ['id', 'description', 'active']);
     }
@@ -102,279 +70,81 @@ export default class UserService {
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.user.tenantID, userID, {
-      }, [
-        'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-      ]);
+      car = await CarStorage.getDefaultUserCar(req.tenant, userID, {},
+        ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+      );
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.user.tenantID, userID, [
-          'id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
-        ]);
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, userID,
+          ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
+        );
       }
     }
-    // Return
-    res.json({ tag, car });
+    const errorCodes: Array<StartTransactionErrorCode> = [];
+    // Check Billing errors
+    await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
+    res.json({
+      tag, car, errorCodes,
+    });
     next();
   }
 
   public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
-    // Check auth
-    if (action === ServerAction.ADD_SITES_TO_USER) {
-      if (!await Authorizations.canAssignUsersSites(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: Action.ASSIGN, entity: Entity.USERS_SITES,
-          module: MODULE_NAME, method: 'handleAssignSitesToUser'
-        });
-      }
-    } else if (!await Authorizations.canUnassignUsersSites(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UNASSIGN, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser'
-      });
-    }
-    // Filter
-    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
-    // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.userID, MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    if (!filteredRequest.siteIDs || Utils.isEmptyArray(filteredRequest.siteIDs)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Site\'s IDs must be provided',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        value: filteredRequest.userID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.userID });
-    // Get the User
-    const user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
-      MODULE_NAME, 'handleAssignSitesToUser', req.user);
-    // OCPI User
-    if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleAssignSitesToUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
-    // Check auth
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndAssignUserSitesAuthorizationFilters(
-      req.tenant, action, req.user, filteredRequest);
-    if (!authorizationUserSitesFilters.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: action === ServerAction.ADD_SITES_TO_USER ? Action.ASSIGN : Action.UNASSIGN,
-        entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleAssignSitesToUser'
-      });
-    }
+    // Filter request
+    const filteredRequest = UserValidator.getInstance().validateUserAssignToSites(req.body);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.userID, Action.READ, action);
+    // Check and Get Sites
+    const sites = await UtilsService.checkUserSitesAuthorization(
+      req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
     } else {
-      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: MODULE_NAME, method: 'handleAssignSitesToUser',
+      user: req.user,
+      module: MODULE_NAME,
+      method: 'handleAssignSitesToUser',
       message: 'User\'s Sites have been assigned successfully', action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterUserByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleDeleteUser', req.user);
-    // Check auth
-    if (!await Authorizations.canDeleteUser(req.user, userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.DELETE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        value: userID
-      });
-    }
-    // Same user
-    if (userID === req.user.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User cannot delete himself',
-        module: MODULE_NAME, method: 'handleDeleteUser',
-        user: req.user,
-        action: action
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Check user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`, MODULE_NAME, 'handleDeleteUser', req.user);
-    // OCPI User
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.DELETE, action);
+    // Delete OCPI User
     if (!user.issuer) {
-      // Delete all tags
-      const numberOfDeletedTags = await TagStorage.deleteTagsByUser(req.user.tenantID, user.id);
       // Delete User
       await UserStorage.deleteUser(req.user.tenantID, user.id);
-      // Log
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
         module: MODULE_NAME, method: 'handleDeleteUser',
-        message: `User with ID '${user.id}' has been deleted successfully along '${numberOfDeletedTags}' Tag(s)`,
+        message: `User with ID '${user.id}' has been deleted successfully`,
         action: action
       });
-      // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
       return;
     }
-    // Check Billing
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      try {
-        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-        if (!billingImpl) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Billing service is not configured',
-            module: MODULE_NAME, method: 'handleGetBillingConnection',
-            user: req.user, actionOnUser: user
-          });
-        }
-        if (user.billingData) {
-          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
-          if (!userCanBeDeleted) {
-            throw new AppError({
-              source: Constants.CENTRAL_SERVER,
-              action: action,
-              errorCode: HTTPError.BILLING_DELETE_ERROR,
-              message: 'User cannot be deleted due to billing constraints',
-              module: MODULE_NAME, method: 'handleGetBillingConnection',
-              user: req.user, actionOnUser: user
-            });
-          }
-        }
-      } catch (error) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: action,
-          errorCode: HTTPError.BILLING_DELETE_ERROR,
-          message: 'Error occurred in billing system',
-          module: MODULE_NAME, method: 'handleDeleteUser',
-          user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
-      try {
-        const tenant = await TenantStorage.getTenant(req.user.tenantID);
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Get tags
-          const tags = (await TagStorage.getTags(req.user.tenantID,
-            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-          for (const tag of tags) {
-            await ocpiClient.pushToken({
-              uid: tag.id,
-              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
-              auth_id: tag.id,
-              visual_number: user.id,
-              issuer: tenant.name,
-              valid: false,
-              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-              last_updated: new Date()
-            });
-          }
-        }
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME,
-          method: 'handleUpdateTag',
-          action: action,
-          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Delete billing user
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-      try {
-        await billingImpl.deleteUser(user);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: req.user.tenantID,
-          action: action,
-          module: MODULE_NAME, method: 'handleDeleteUser',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
-          user: req.user, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    }
-    // Delete cars
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(req.user.tenantID, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (carUsers.count > 0) {
-        for (const carUser of carUsers.result) {
-          // Owner ?
-          if (carUser.owner) {
-            // Private ?
-            const car = await CarStorage.getCar(req.tenant.id, carUser.carID, { type: CarType.PRIVATE });
-            if (car) {
-              // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(req.user.tenantID, car.id);
-              // Delete Car
-              await CarStorage.deleteCar(req.user.tenantID, car.id);
-            } else {
-              // Delete User Car
-              await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-            }
-          } else {
-            // Delete User Car
-            await CarStorage.deleteCarUser(req.user.tenantID, carUser.id);
-          }
-        }
-      }
-    }
+    // Delete Billing
+    await UserService.checkAndDeleteUserBilling(req.tenant, req.user, user);
+    // Delete OCPI
+    await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
+    // Delete Car
+    await UserService.checkAndDeleteUserCar(req.tenant, req.user, user);
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
@@ -385,7 +155,6 @@ export default class UserService {
       message: `User with ID '${user.id}' has been deleted successfully`,
       action: action
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -393,40 +162,12 @@ export default class UserService {
   public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let statusHasChanged = false;
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateRequest({ ...req.params, ...req.body }, req.user);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateUser', req.user);
-    // Check auth
-    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        value: filteredRequest.id
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.id });
-    // Get User
-    let user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateUser', req.user);
-    // OCPI User
-    if (!user.issuer) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User not issued by the organization',
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user, actionOnUser: user,
-        action: action
-      });
-    }
-    // Check email
+    const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
+    // Check and Get User
+    let user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+    // Check email already exists
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
-    // Check if EMail is already taken
     if (userWithEmail && user.id !== userWithEmail.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -438,8 +179,7 @@ export default class UserService {
       });
     }
     // Check if Status has been changed
-    if (filteredRequest.status &&
-      filteredRequest.status !== user.status) {
+    if (filteredRequest.status && filteredRequest.status !== user.status) {
       statusHasChanged = true;
     }
     // Update timestamp
@@ -460,25 +200,7 @@ export default class UserService {
     };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
-    // Check Billing
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-      if (billingImpl) {
-        try {
-          await billingImpl.synchronizeUser(user);
-        } catch (error) {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            action: action,
-            module: MODULE_NAME, method: 'handleUpdateUser',
-            user: req.user, actionOnUser: user,
-            message: 'User cannot be updated in billing system',
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
-      }
-    }
-    // Save User password
+    // Save User's password
     if (filteredRequest.password) {
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
@@ -490,12 +212,13 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
+    // Only Admin can save these data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      // Save User Status
+      // Save User's Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
       }
-      // Save User Role
+      // Save User's Role
       if (filteredRequest.role) {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
@@ -506,6 +229,8 @@ export default class UserService {
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
       }
     }
+    // Update Billing
+    await UserService.updateUserBilling(ServerAction.USER_UPDATE, req.tenant, req.user, user);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -515,7 +240,7 @@ export default class UserService {
       action: action
     });
     // Notify
-    if (statusHasChanged && req.user.tenantID !== Constants.DEFAULT_TENANT) {
+    if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,
@@ -527,14 +252,13 @@ export default class UserService {
         }
       ).catch(() => { });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
+    const filteredRequest = UserValidator.getInstance().validateUserUpdateMobileToken({ ...req.params, ...req.body });
     // Check Mandatory fields
     if (!filteredRequest.mobileToken) {
       throw new AppError({
@@ -546,31 +270,15 @@ export default class UserService {
         action: action
       });
     }
-    // Check auth
-    if (!await Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleUpdateUserMobileToken',
-        value: filteredRequest.id
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.id });
-    // Get User
-    const user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
-      MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
       mobileToken: filteredRequest.mobileToken,
       mobileOs: filteredRequest.mobileOS,
       mobileLastChangedOn: new Date()
     });
-    // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: user,
@@ -582,67 +290,31 @@ export default class UserService {
         mobileOS: filteredRequest.mobileOS
       }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
   public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = UserSecurity.filterUserRequest(req.query);
+    const filteredRequest = UserValidator.getInstance().validateUserGetByID(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUser',
-        value: filteredRequest.ID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID,
-      {
-        withImage: true,
-        ...authorizationUserFilters.filters
-      },
-      authorizationUserFilters.projectFields
-    );
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleGetUser', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
+        withImage: true
+      }, true);
     res.json(user);
     next();
   }
 
   public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserSecurity.filterUserByIDRequest(req.query);
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserImage', req.user);
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserImage',
-        value: userID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: userID });
-    // Get the logged user
-    const user = await UserStorage.getUser(
-      req.user.tenantID, userID, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
-      MODULE_NAME, 'handleGetUserImage', req.user);
+    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, userID, Action.READ, action);
     // Get the user image
-    const userImage = await UserStorage.getUserImage(req.user.tenantID, userID);
-    // Ok
+    const userImage = await UserStorage.getUserImage(req.user.tenantID, user.id);
     res.json(userImage);
     next();
   }
@@ -658,54 +330,28 @@ export default class UserService {
   public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
-    // Check auth
-    if (!await Authorizations.canListUsersSites(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS_SITES,
-        module: MODULE_NAME, method: 'handleGetSites'
-      });
-    }
     // Filter
-    const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetSites', req.user);
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.UPDATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetSites',
-        value: filteredRequest.UserID
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: filteredRequest.UserID });
-    if (!authorizationUserFilters.authorized) {
+    const filteredRequest = UserValidator.getInstance().validateUserGetSites(req.query);
+    // Check User
+    try {
+      await UtilsService.checkAndGetUserAuthorization(
+        req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
+    } catch (error) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get User
-    const user = await UserStorage.getUser(
-      req.user.tenantID, filteredRequest.UserID, authorizationUserFilters.filters);
-    if (!user) {
-      UtilsService.sendEmptyDataResult(res, next);
-      return;
-    }
-    // Check auth
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(
-      req.tenant, req.user, filteredRequest);
+    // Check dynamic auth for reading Sites
+    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(req.tenant,
+      req.user, filteredRequest);
     if (!authorizationUserSitesFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
     }
-    // Get users
-    const userSites = await UserStorage.getUserSites(req.user.tenantID,
+    // Get Sites
+    const sites = await UserStorage.getUserSites(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userID: filteredRequest.UserID,
+        userIDs: [filteredRequest.UserID],
         ...authorizationUserSitesFilters.filters
       },
       {
@@ -717,13 +363,13 @@ export default class UserService {
       authorizationUserSitesFilters.projectFields
     );
     // Filter
-    userSites.result = userSites.result.map((userSite) => ({
+    sites.result = sites.result.map((userSite) => ({
       userID: userSite.userID,
       siteAdmin: userSite.siteAdmin,
       siteOwner: userSite.siteOwner,
       site: userSite.site
     }));
-    res.json(userSites);
+    res.json(sites);
     next();
   }
 
@@ -734,22 +380,8 @@ export default class UserService {
   }
 
   public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!await Authorizations.canListUsersInErrors(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.IN_ERROR, entity: Entity.USERS,
-        module: MODULE_NAME, method: 'handleGetUsersInError'
-      });
-    }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsersInError');
-    }
+    const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
     // Get authorization filters
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -765,13 +397,12 @@ export default class UserService {
         limit: filteredRequest.Limit,
         onlyRecordCount: filteredRequest.OnlyRecordCount,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
     await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
-    // Return
     res.json(users);
     next();
   }
@@ -779,7 +410,7 @@ export default class UserService {
   // eslint-disable-next-line @typescript-eslint/require-await
   public static async handleImportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canImportUsers(req.user)) {
+    if (!(await Authorizations.canImportUsers(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -977,7 +608,7 @@ export default class UserService {
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canCreateUser(req.user)) {
+    if (!(await Authorizations.canCreateUser(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -986,7 +617,7 @@ export default class UserService {
       });
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
+    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get the email
@@ -1025,33 +656,7 @@ export default class UserService {
           passwordBlockedUntil: null
         });
     }
-    // Save Admin Data
-    if (Authorizations.isAdmin(req.user)) {
-      // For integration with billing
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-      if (billingImpl) {
-        try {
-          const user = await UserStorage.getUser(req.user.tenantID, newUser.id);
-          await billingImpl.synchronizeUser(user);
-          await Logging.logInfo({
-            tenantID: req.user.tenantID,
-            action: action,
-            module: MODULE_NAME, method: 'handleCreateUser',
-            user: newUser.id,
-            message: 'User successfully created in billing system',
-          });
-        } catch (error) {
-          await Logging.logError({
-            tenantID: req.user.tenantID,
-            module: MODULE_NAME, method: 'handleCreateUser',
-            action: action,
-            user: newUser.id,
-            message: 'User cannot be created in billing system',
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
-      }
-    }
+    // Only Admin can save these data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (newUser.status) {
@@ -1082,12 +687,12 @@ export default class UserService {
       { withAutoUserAssignment: true },
       Constants.DB_PARAMS_MAX_LIMIT
     );
-    if (sites.count > 0) {
+    if (!Utils.isEmptyArray(sites.result)) {
       const siteIDs = sites.result.map((site) => site.id);
-      if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
-      }
+      await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
     }
+    // Update Billing
+    await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -1096,131 +701,8 @@ export default class UserService {
       message: `User with ID '${newUser.id}' has been created successfully`,
       action: action
     });
-    // Ok
     res.json(Object.assign({ id: newUser.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
-  }
-
-  public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!await Authorizations.canReadUser(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.READ, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        value: id
-      });
-    }
-    // Get authorization filters
-    const authorizationUserFilters = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, { ID: id });
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id, authorizationUserFilters.filters);
-    UtilsService.assertObjectExists(action, user, `User ID '${id}' does not exist`,
-      MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Get the settings
-    const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
-    if (!pricingSetting || !pricingSetting.convergentCharging) {
-      await Logging.logException(
-        new Error('Convergent Charging setting is missing'),
-        action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        message: 'An issue occurred while creating the invoice',
-      });
-    }
-    // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition, see https://github.com/sap-labs-france/ev-dashboard/issues/1542
-    // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber: string;
-    try {
-      // pragma await ratingService.loadChargedItemsToInvoicing();
-      // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    if (!invoiceNumber) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: StatusCodes.NOT_FOUND,
-        message: 'No invoices available',
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    let invoice;
-    try {
-      // pragma const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      if (!invoice) {
-        // Retry to get invoice
-        // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      }
-      if (!invoice) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-          message: `An error occurred while requesting invoice ${invoiceNumber}`,
-          module: MODULE_NAME, method: 'handleGetUserInvoice',
-          user: req.user,
-          action: action
-        });
-      }
-      const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => {
-        if (err) {
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              throw err3;
-            }
-          });
-        });
-      });
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-        message: `An error occurred while requesting invoice ${invoiceNumber}`,
-        module: MODULE_NAME, method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
   }
 
   private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
@@ -1262,7 +744,7 @@ export default class UserService {
       ];
       headers = headerArray.join(Constants.CSV_SEPARATOR);
     }
-    // Content
+    // Conten t
     const rows = users.map((user) => {
       const row = [
         user.id,
@@ -1276,33 +758,15 @@ export default class UserService {
         moment(user.createdOn).format('YYYY-MM-DD'),
         moment(user.lastChangedOn).format('YYYY-MM-DD'),
         (user.lastChangedBy ? Utils.buildUserFullName(user.lastChangedBy as User, false) : '')
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
   private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
-    // Check auth
-    if (!await Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.LIST, entity: Entity.USERS,
-        module: MODULE_NAME, method: 'getUsers'
-      });
-    }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
-    }
-    if (filteredRequest.NotAssignedToCarID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-        Action.READ, Entity.USER, MODULE_NAME, 'getUsers');
-    }
+    const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
     const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -1316,6 +780,7 @@ export default class UserService {
         issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
+        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
@@ -1327,7 +792,7 @@ export default class UserService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationUsersFilters.projectFields
@@ -1341,11 +806,10 @@ export default class UserService {
   private static async processUser(action: ServerAction, req: Request, importedUser: ImportedUser, usersToBeImported: ImportedUser[]): Promise<boolean> {
     try {
       const newImportedUser: ImportedUser = {
-        name: importedUser.name.toUpperCase().replace(/^"|"$/g, ''),
-        firstName: importedUser.firstName.replace(/^"|"$/g, ''),
-        email: importedUser.email.replace(/^"|"$/g, ''),
+        name: importedUser.name.toUpperCase(),
+        firstName: importedUser.firstName,
+        email: importedUser.email,
       };
-
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
       // Set properties
@@ -1364,6 +828,154 @@ export default class UserService {
         detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
       });
       return false;
+    }
+  }
+
+  private static async checkBillingErrorCodes(action: ServerAction, tenant: Tenant,
+      loggedUser: UserToken, user: User, errorCodes: StartTransactionErrorCode[]) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
+        if (billingImpl) {
+          errorCodes.push(
+            ...await billingImpl.precheckStartTransactionPrerequisites(user));
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME,
+          method: 'checkBillingErrorCodes',
+          action: action,
+          message: `Start Transaction checks failed for ${user.id}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        // Billing module is ON but the settings are not set or inconsistent
+        errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
+      }
+    }
+  }
+
+  private static async checkAndDeleteUserBilling(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(tenant);
+        if (!billingImpl) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: ServerAction.USER_DELETE,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Billing service is not configured',
+            module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+            user: loggedUser, actionOnUser: user
+          });
+        }
+        if (user.billingData) {
+          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+          if (!userCanBeDeleted) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: ServerAction.USER_DELETE,
+              errorCode: HTTPError.BILLING_DELETE_ERROR,
+              message: 'User cannot be deleted due to billing constraints',
+              module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+              user: loggedUser, actionOnUser: user
+            });
+          }
+        }
+        await billingImpl.deleteUser(user);
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.USER_DELETE,
+          errorCode: HTTPError.BILLING_DELETE_ERROR,
+          message: 'Error occurred in billing system',
+          module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
+          user: loggedUser, actionOnUser: user,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private static async checkAndDeleteUserOCPI(tenant: Tenant, loggedUser: UserToken, user: User): Promise<void> {
+    // Synchronize badges with IOP (eMSP)
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.OCPI)) {
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Get tags
+          const tags = (await TagStorage.getTags(tenant.id,
+            { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+          for (const tag of tags) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: OCPIUtils.getOCPITokenTypeFromID(tag.id),
+              auth_id: tag.userID,
+              visual_number: tag.visualID,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+              last_updated: new Date()
+            });
+          }
+        }
+      } catch (error) {
+        await Logging.logError({
+          tenantID: tenant.id,
+          module: MODULE_NAME,
+          method: 'checkAndDeleteUserOCPI',
+          action: ServerAction.USER_DELETE,
+          message: `Unable to disable tokens of user ${user.id} with IOP`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+  }
+
+  private static async checkAndDeleteUserCar(tenant: Tenant, loggedUser: UserToken, user: User) {
+    // Delete cars
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
+      const carUsers = await CarStorage.getCarUsers(tenant, { userIDs : [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (carUsers.count > 0) {
+        for (const carUser of carUsers.result) {
+          // Owner ?
+          if (carUser.owner) {
+            // Private ?
+            const car = await CarStorage.getCar(tenant, carUser.carID, { type: CarType.PRIVATE });
+            if (car) {
+              // Delete All Users Car
+              await CarStorage.deleteCarUsersByCarID(tenant, car.id);
+              // Delete Car
+              await CarStorage.deleteCar(tenant, car.id);
+            } else {
+              // Delete User Car
+              await CarStorage.deleteCarUser(tenant, carUser.id);
+            }
+          } else {
+            // Delete User Car
+            await CarStorage.deleteCarUser(tenant, carUser.id);
+          }
+        }
+      }
+    }
+  }
+
+  private static async updateUserBilling(action: ServerAction, tenant: Tenant, loggedUser: UserToken, user: User) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(tenant);
+      if (billingImpl) {
+        try {
+          await billingImpl.synchronizeUser(user);
+        } catch (error) {
+          await Logging.logError({
+            tenantID: tenant.id, action,
+            module: MODULE_NAME, method: 'updateUserBilling',
+            user: loggedUser, actionOnUser: user,
+            message: 'User cannot be updated in billing system',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }
     }
   }
 }

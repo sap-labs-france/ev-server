@@ -1,4 +1,4 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Cypher from '../../utils/Cypher';
@@ -449,8 +449,7 @@ export default class OCPPStorage {
           module: MODULE_NAME, method: 'saveMeterValues',
           action: ServerAction.METER_VALUES,
           message: 'An error occurred while trying to save the meter value',
-          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave,
-            meterValues: meterValuesToSave }
+          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave, meterValues: meterValuesToSave }
         });
       }
     }

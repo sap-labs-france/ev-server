@@ -1,3 +1,4 @@
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import Site, { SiteUser } from '../../types/Site';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 import { UserInError, UserInErrorType } from '../../types/InError';
@@ -234,6 +235,7 @@ export default class UserStorage {
         sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
         sendBillingSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingSynchronizationFailed) : false,
+        sendBillingPeriodicOperationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingPeriodicOperationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
         sendCarCatalogSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarCatalogSynchronizationFailed) : false,
         sendEndUserErrorNotification: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndUserErrorNotification) : false,
@@ -262,7 +264,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
       { $set: userMDB },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Delegate saving image as well if specified
     if (saveImage) {
       await UserStorage.saveUserImage(tenantID, userMDB._id.toHexString(), userToSave.image);
@@ -287,7 +289,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
       { $set: userMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
@@ -312,7 +314,7 @@ export default class UserStorage {
       { ordered: false }
     );
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUsers', uniqueTimerID);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUsers', uniqueTimerID, importedUsersToSave);
     return result.insertedCount;
   }
 
@@ -484,20 +486,26 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUserBillingData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    if (billingData) {
     // Set data
-    const updatedUserMDB: any = {
-      billingData: {
-        customerID: billingData.customerID,
-        liveMode: Utils.convertToBoolean(billingData.liveMode),
-        hasSynchroError: billingData.hasSynchroError,
-        invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
-        lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
-      }
-    };
-    // Modify and return the modified document
-    await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
-      { $set: updatedUserMDB });
+      const updatedUserMDB: any = {
+        billingData: {
+          customerID: billingData.customerID,
+          liveMode: Utils.convertToBoolean(billingData.liveMode),
+          hasSynchroError: billingData.hasSynchroError,
+          invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
+          lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
+        }
+      };
+      // Modify and return the modified document
+      await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+        { '_id': Utils.convertToObjectID(userID) },
+        { $set: updatedUserMDB });
+    } else {
+      await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+        { '_id': Utils.convertToObjectID(userID) },
+        { $unset: { billingData: '' } }); // This removes the field from the document
+    }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserBillingData', uniqueTimerID, billingData);
   }
@@ -521,7 +529,7 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { image: userImageToSave } },
-      { upsert: true, returnOriginal: false });
+      { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserImage', uniqueTimerID, userImageToSave);
   }
@@ -531,8 +539,9 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date;
+        statuses?: string[]; withImage?: boolean; billingUserID?: string;
+        notSynchronizedBillingData?: boolean; withTestBillingData?: boolean;
+        notifications?: any; noLoginSince?: Date; tagIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -612,6 +621,14 @@ export default class UserStorage {
         { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
       ];
     }
+    // Select users with test billing data
+    if (params.withTestBillingData) {
+      const expectedLiveMode = !params.withTestBillingData;
+      filters.$and = [
+        { 'billingData': { '$exists': true } },
+        { 'billingData.liveMode': { $eq: expectedLiveMode } }
+      ];
+    }
     // Add filters
     aggregation.push({
       $match: filters
@@ -638,6 +655,15 @@ export default class UserStorage {
       // Add
       aggregation.push({
         $match: notAssignedToCarIDFilter
+      });
+    }
+    // Add Tags
+    if (params.tagIDs) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
+      });
+      aggregation.push({
+        $match: { 'tag.id': { $in: params.tagIDs } }
       });
     }
     // Add Site
@@ -709,7 +735,8 @@ export default class UserStorage {
     return {
       count: (!Utils.isEmptyArray(usersCountMDB) ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
-      result: usersMDB
+      result: usersMDB,
+      projectedFields: projectFields
     };
   }
 
@@ -867,6 +894,10 @@ export default class UserStorage {
         ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
+      if (type === UserInErrorType.NO_BILLING_DATA && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USERS)) {
+        // LAZY User Synchronization - no BillingData is not an Error anymore
+        continue;
+      }
       array.push(`$${type}`);
       facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
@@ -940,7 +971,7 @@ export default class UserStorage {
   }
 
   public static async getUserSites(tenantID: string,
-      params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
+      params: { search?: string; userIDs: string[]; siteAdmin?: boolean; siteOwner?: boolean },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getUserSites');
@@ -955,8 +986,10 @@ export default class UserStorage {
     // Set the filters
     const filters: FilterParams = {};
     // Filter
-    if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = {
+        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     if (params.siteAdmin) {
       filters.siteAdmin = params.siteAdmin;
@@ -1035,7 +1068,8 @@ export default class UserStorage {
     return {
       count: (!Utils.isEmptyArray(sitesCountMDB) ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
-      result: siteUsersMDB
+      result: siteUsersMDB,
+      projectedFields: projectFields
     };
   }
 
@@ -1072,6 +1106,7 @@ export default class UserStorage {
         sendSmtpError: false,
         sendOfflineChargingStations: false,
         sendBillingSynchronizationFailed: false,
+        sendBillingPeriodicOperationFailed: false,
         sendCarCatalogSynchronizationFailed: false,
         sendEndUserErrorNotification: false,
         sendComputeAndApplyChargingProfilesFailed: false,

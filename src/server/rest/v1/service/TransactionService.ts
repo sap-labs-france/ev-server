@@ -26,6 +26,7 @@ import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -48,7 +49,8 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'roundedPrice', 'price', 'priceUnit', 'tagID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'billingData.invoiceID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+      'billingData.stop.invoiceNumber',
       'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]));
     next();
@@ -137,7 +139,7 @@ export default class TransactionService {
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
-    const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -160,7 +162,7 @@ export default class TransactionService {
       });
     }
     // Refund
-    const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
+    const refundedTransactions = await refundConnector.refund(user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
@@ -233,8 +235,8 @@ export default class TransactionService {
       const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
-          // Post CDR
-          await OCPPUtils.processOCPITransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
+          // Roaming
+          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
           // Ok
@@ -429,7 +431,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${transactionId}' does not exist`,
       MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, [transactionId]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -448,7 +450,7 @@ export default class TransactionService {
       });
     }
     // Delete
-    const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
+    const result = await TransactionService.deleteTransactions(action, req.tenant, req.user, transactionsIds);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -543,7 +545,7 @@ export default class TransactionService {
         ];
       }
     }
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       projectFields = [
         ...projectFields,
         'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
@@ -565,7 +567,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: transaction.userID })).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -629,7 +631,8 @@ export default class TransactionService {
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
       'currentCumulatedPrice', 'currentInactivityStatus', 'signedData',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData', 'stop.tagID', 'tag.description',
+      'billingData.stop.status', 'billingData.stop.invoiceID', 'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
     ]);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
@@ -644,7 +647,7 @@ export default class TransactionService {
       });
     }
     // Check User
-    if (!await Authorizations.canReadUser(req.user)) {
+    if (!(await Authorizations.canReadUser(req.user, { UserID: transaction.userID })).authorized) {
       // Remove User
       delete transaction.user;
       delete transaction.userID;
@@ -666,7 +669,9 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge', 'currentInactivityStatus',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -702,7 +707,9 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -720,7 +727,9 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'tagID', 'stop.tagID',
     ]);
     res.json(transactions);
     next();
@@ -741,7 +750,7 @@ export default class TransactionService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       userProject = ['userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID'];
     }
     const filter: any = { stop: { $exists: true } };
@@ -785,7 +794,9 @@ export default class TransactionService {
     return TransactionService.getTransactions(req, ServerAction.TRANSACTIONS_EXPORT, { withTag: true }, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.invoiceID', 'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'ocpi', 'ocpiWithCdr', 'tagID', 'stop.tagID', 'tag.description'
     ]);
   }
 
@@ -802,7 +813,9 @@ export default class TransactionService {
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID',
       'refundData.reportId', 'refundData.refundedAt', 'refundData.status',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'billingData.invoiceID', 'tagID', 'stop.tagID',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs',
+      'billingData.stop.invoiceNumber',
+      'tagID', 'stop.tagID',
     ]);
   }
 
@@ -930,21 +943,21 @@ export default class TransactionService {
           (transaction.stop.totalInactivitySecs ? Utils.truncTo(Utils.createDecimal(transaction.stop.totalInactivitySecs).div(60).toNumber(), 2) : 0) : '',
         transaction.stop ? transaction.stop.roundedPrice : '',
         transaction.stop ? transaction.stop.priceUnit : ''
-      ].map((value) => Utils.replaceDoubleQuotes(value));
+      ].map((value) => Utils.escapeCsvValue(value));
       return row;
     }).join(Constants.CR_LF);
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async deleteTransactions(action: ServerAction, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+  private static async deleteTransactions(action: ServerAction, tenant: Tenant, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
     const transactionsIDsToDelete = [];
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
     // Check if transaction has been refunded
-    const refundConnector = await RefundFactory.getRefundImpl(loggedUser.tenantID);
-    const billingImpl = await BillingFactory.getBillingImpl(loggedUser.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(tenant);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     for (const transactionID of transactionsIDs) {
       // Get
       const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionID);
@@ -989,9 +1002,8 @@ export default class TransactionService {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
-            // Clear connector
             OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
-            await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
+            await ChargingStationStorage.saveChargingStationConnectors(loggedUser.tenantID, transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
           // To Delete
           transactionsIDsToDelete.push(transactionID);
@@ -1027,7 +1039,7 @@ export default class TransactionService {
       });
     }
     // Check Users
-    if (await Authorizations.canListUsers(req.user)) {
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
       if (projectFields) {
         projectFields = [
           ...projectFields,

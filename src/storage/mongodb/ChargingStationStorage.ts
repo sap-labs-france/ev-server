@@ -1,6 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, Voltage } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectID } from 'mongodb';
 import global, { FilterParams } from '../../types/GlobalType';
@@ -43,7 +43,7 @@ export interface ConnectorMDB {
   voltage: Voltage;
   amperage: number;
   amperageLimit: number;
-  userID: ObjectID;
+  currentUserID: ObjectID;
   statusLastChangedOn: Date;
   numberOfConnectedPhase: number;
   currentType: CurrentType;
@@ -90,23 +90,23 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates');
     // Create Aggregation
     const aggregation = [];
-    // Add in aggregation
-    if (chargePointVendor) {
-      aggregation.push({
-        $match: {
-          chargePointVendor
-        }
-      });
-    }
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
     const chargingStationTemplatesMDB: ChargingStationTemplate[] =
       await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
+    const chargingStationTemplates: ChargingStationTemplate[] = [];
+    // Reverse match the regexp in JSON template records against the charging station vendor string
+    for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
+      const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
+      if (regExp.test(chargePointVendor)) {
+        chargingStationTemplates.push(chargingStationTemplateMDB);
+      }
+    }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates', uniqueTimerID, chargingStationTemplatesMDB);
-    return chargingStationTemplatesMDB;
+    return chargingStationTemplates;
   }
 
   public static async deleteChargingStationTemplates(): Promise<void> {
@@ -162,11 +162,19 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
 
+  public static async getChargingStationByOicpEvseID(tenantID: string, oicpEvseID: string = Constants.UNKNOWN_STRING_ID,
+      projectFields?: string[]): Promise<ChargingStation> {
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      oicpEvseID: oicpEvseID,
+    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
+  }
+
   public static async getChargingStations(tenantID: string,
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
-        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string;
+        ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
         siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
@@ -202,9 +210,9 @@ export default class ChargingStationStorage {
     // Filter
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
@@ -238,6 +246,10 @@ export default class ChargingStationStorage {
     // OCPI Evse ID
     if (params.ocpiEvseID) {
       filters['ocpiData.evses.evse_id'] = params.ocpiEvseID;
+    }
+    // OICP Evse ID
+    if (params.oicpEvseID) {
+      filters['oicpData.evses.EvseID'] = params.oicpEvseID;
     }
     // Filter on lastSeen
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
@@ -420,9 +432,9 @@ export default class ChargingStationStorage {
     // Search filters
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
@@ -565,16 +577,16 @@ export default class ChargingStationStorage {
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
         (connector) => ChargingStationStorage.filterConnectorMDB(connector)) : [],
+      backupConnectors: chargingStationToSave.backupConnectors ? chargingStationToSave.backupConnectors.map(
+        (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
       coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
         (coordinate) => Utils.convertToFloat(coordinate)) : [],
-      remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
-      ocpiData: chargingStationToSave.ocpiData
     };
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
@@ -588,22 +600,88 @@ export default class ChargingStationStorage {
     return chargingStationMDB._id;
   }
 
-  public static async saveChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connector: Connector): Promise<void> {
+  public static async saveChargingStationConnectors(tenantID: string, id: string, connectors: Connector[], backupConnectors?: Connector[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationConnector');
-    // Ensure good typing
-    const connectorMDB = ChargingStationStorage.filterConnectorMDB(connector);
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationConnectors');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    const updatedFields: any = {};
-    updatedFields['connectors.' + (connector.connectorId - 1).toString()] = connectorMDB;
+    const updatedProps: any = {};
+    // Set connectors
+    updatedProps.connectors = connectors.map((connector) =>
+      ChargingStationStorage.filterConnectorMDB(connector));
+    // Set backup connector
+    if (backupConnectors) {
+      updatedProps.backupConnectors = backupConnectors.map((backupConnector) =>
+        ChargingStationStorage.filterConnectorMDB(backupConnector));
+    }
     // Modify document
-    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
-      { '_id': chargingStation.id },
-      { $set: updatedFields },
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: updatedProps
+      },
       { upsert: true });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnector', uniqueTimerID, updatedFields);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
+  }
+
+  public static async saveChargingStationBackupConnectors(tenantID: string, id: string, backupConnectors: Connector[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Ensure good typing
+    const backupConnectorsMDB = backupConnectors.map((connector) =>
+      ChargingStationStorage.filterConnectorMDB(connector));
+    // Modify document
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          backupConnectors: backupConnectorsMDB
+        }
+      },
+      { upsert: true });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors', uniqueTimerID, backupConnectors);
+  }
+
+  public static async saveChargingStationCFApplicationIDAndInstanceIndex(tenantID: string, id: string,
+      cfApplicationIDAndInstanceIndex: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationCFApplicationIDAndInstanceIndex');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          cfApplicationIDAndInstanceIndex
+        }
+      },
+      { upsert: true });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationCFApplicationIDAndInstanceIndex', uniqueTimerID, cfApplicationIDAndInstanceIndex);
+  }
+
+  public static async saveChargingStationOicpData(tenantID: string, id: string,
+      oicpData: ChargingStationOicpData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationOicpData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          oicpData
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationOicpData', uniqueTimerID, oicpData);
   }
 
   public static async saveChargingStationLastSeen(tenantID: string, id: string,
@@ -650,6 +728,25 @@ export default class ChargingStationStorage {
       { upsert: false });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationOcpiData', uniqueTimerID, ocpiData);
+  }
+
+  public static async saveChargingStationRemoteAuthorizations(tenantID: string, id: string,
+      remoteAuthorizations: RemoteAuthorization[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationRemoteAuthorizations');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          remoteAuthorizations
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationRemoteAuthorizations', uniqueTimerID, remoteAuthorizations);
   }
 
   public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
@@ -717,7 +814,7 @@ export default class ChargingStationStorage {
       }
     }, {
       upsert: true,
-      returnOriginal: false
+      returnDocument: 'after'
     });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcppParameters', uniqueTimerID, parameters);
@@ -1033,6 +1130,8 @@ export default class ChargingStationStorage {
         currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
         currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
         currentTagID: connector.currentTagID,
+        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
+        currentUserID: Utils.convertToObjectID(connector.currentUserID),
         status: connector.status,
         errorCode: connector.errorCode,
         info: connector.info,
@@ -1042,8 +1141,6 @@ export default class ChargingStationStorage {
         voltage: Utils.convertToInt(connector.voltage),
         amperage: Utils.convertToInt(connector.amperage),
         amperageLimit: Utils.convertToInt(connector.amperageLimit),
-        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
-        userID: Utils.convertToObjectID(connector.userID),
         statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
         currentInactivityStatus: connector.currentInactivityStatus,
         numberOfConnectedPhase: connector.numberOfConnectedPhase,

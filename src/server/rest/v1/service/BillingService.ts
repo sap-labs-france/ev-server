@@ -20,17 +20,69 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import { StatusCodes } from 'http-status-codes';
 import TenantComponents from '../../../../types/TenantComponents';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import _ from 'lodash';
-import fs from 'fs';
 
 const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
+
+  public static async handleClearBillingTestData(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.CLEAR_BILLING_TEST_DATA, Entity.BILLING, MODULE_NAME, 'handleClearBillingTestData');
+    if (!await Authorizations.canClearBillingTestData(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.BILLING, action: Action.CLEAR_BILLING_TEST_DATA,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check Prerequisites
+      await billingImpl.checkTestDataCleanupPrerequisites();
+      // Clear the test data
+      await billingImpl.clearTestData();
+      // Reset billing settings
+      const newSettings = await billingImpl.resetConnectionSettings();
+      // Ok
+      const operationResult: BillingOperationResult = {
+        succeeded: true,
+        internalData: newSettings
+      };
+      res.json(operationResult);
+    } catch (error) {
+      // Ko
+      await Logging.logError({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleClearBillingTestData',
+        message: 'Failed to clear billing test data',
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      const operationResult: BillingOperationResult = {
+        succeeded: false,
+        error
+      };
+      res.json(operationResult);
+    }
+    next();
+  }
 
   public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -44,7 +96,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -76,7 +128,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canSynchronizeUsersBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUsersBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -87,7 +139,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USERS, Entity.USERS, MODULE_NAME, 'handleSynchronizeUsers');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -129,7 +181,7 @@ export default class BillingService {
 
   public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -140,7 +192,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USERS, Entity.USER, MODULE_NAME, 'handleSynchronizeUser');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -182,7 +234,7 @@ export default class BillingService {
 
   public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -193,7 +245,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE_BILLING_USER, Entity.USER, MODULE_NAME, 'handleForceSynchronizeUser');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -244,7 +296,7 @@ export default class BillingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
     // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -276,13 +328,14 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if (await Authorizations.canListUsers(req.user)) {
+    // Temporary fix before new auth migration
+    if (!Authorizations.isDemo(req.user)) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
-    const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    const filteredRequest = BillingSecurity.filterGetInvoicesRequest(req.query);
     // Get invoices
-    const invoices = await BillingStorage.getInvoices(req.user.tenantID,
+    const invoices = await BillingStorage.getInvoices(req.tenant,
       {
         userIDs: !Authorizations.isAdmin(req.user) ? [req.user.id] : (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
@@ -302,6 +355,39 @@ export default class BillingService {
       ]);
     // Return
     res.json(invoices);
+    next();
+  }
+
+  public static async handleGetInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetInvoice');
+    // Filter
+    const filteredRequest = BillingSecurity.filterGetInvoiceRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check Users
+    let userProject: string[] = [];
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
+      userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
+    }
+    // Get invoice
+    const invoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID,
+      [
+        'id', 'number', 'status', 'amount', 'createdOn', 'currency', 'downloadable', 'sessions',
+        ...userProject
+      ]);
+    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`, MODULE_NAME, 'handleGetInvoice', req.user);
+    // Check auth
+    if (!await Authorizations.canReadInvoiceBilling(req.user, invoice.userID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        entity: Entity.INVOICE, action: Action.READ,
+        module: MODULE_NAME, method: 'handleGetInvoice',
+      });
+    }
+    // Return
+    res.json(invoice);
     next();
   }
 
@@ -326,7 +412,7 @@ export default class BillingService {
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -378,7 +464,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.SYNCHRONIZE, Entity.INVOICES, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -441,7 +527,7 @@ export default class BillingService {
     // }
     // const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
     // // Get Billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     // if (!billingImpl) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
@@ -499,7 +585,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -539,7 +625,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -579,7 +665,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -595,7 +681,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
-    await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
+    const operationResult: BillingOperationResult = await billingImpl.deletePaymentMethod(user, filteredRequest.paymentMethodId);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -604,18 +690,18 @@ export default class BillingService {
       action: action
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(operationResult);
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
     // Filter
     const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
     // Get the Invoice
-    const billingInvoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID);
+    const billingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, billingInvoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDownloadInvoice', req.user);
     // Check Auth
@@ -628,7 +714,7 @@ export default class BillingService {
       });
     }
     // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -639,31 +725,22 @@ export default class BillingService {
         user: req.user
       });
     }
-    // Get the PDF document directly from the Invoice
-    const invoiceDocument = await billingImpl.downloadInvoiceDocument(billingInvoice);
-    // Send the Document
-    if (invoiceDocument && invoiceDocument.content) {
-      const base64RawData = invoiceDocument.content.split(`;${invoiceDocument.encoding},`).pop();
-      const filename = 'invoice_' + billingInvoice.number + '.' + invoiceDocument.type;
-      fs.writeFile(filename, base64RawData, { encoding: invoiceDocument.encoding }, (err) => {
-        if (err) {
-          console.error(err);
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            console.error(err2);
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              console.error(err3);
-              throw err3;
-            }
-          });
-        });
+
+    const buffer = await billingImpl.downloadInvoiceDocument(billingInvoice);
+    if (!billingInvoice.number || !buffer) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invoice document not found',
+        module: MODULE_NAME, method: 'handleDownloadInvoice',
+        action: action,
+        user: req.user
       });
     }
+    const fileName = 'invoice_' + billingInvoice.number + '.pdf';
+    res.attachment(fileName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.end(buffer, 'binary');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
@@ -689,7 +766,7 @@ export default class BillingService {
     // //   });
     // // }
     // // Get the billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     // if (!billingImpl) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
@@ -721,17 +798,26 @@ export default class BillingService {
     // How to check it - no JWT!
     // Retrieve Tenant ID from the URL Query Parameters
     if (!filteredRequest.tenantID) {
-
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unexpected situation - TenantID is not set',
         module: MODULE_NAME, method: 'handleBillingWebHook',
         action: action,
-        // User: req.user
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(filteredRequest.tenantID);
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
+    if (!tenant) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        action: action,
+        module: MODULE_NAME, method: 'handleBillingWebHook',
+        message: `Tenant ID '${filteredRequest.tenantID}' does not exist!`
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -739,7 +825,6 @@ export default class BillingService {
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleBillingWebHook',
         action: action,
-        // User: req.user
       });
     }
     // STRIPE expects a fast response - make sure to postpone time consuming operations when handling these events
@@ -863,7 +948,7 @@ export default class BillingService {
   }
 
   private static async checkActivationPrerequisites(action: ServerAction, req: Request) : Promise<void> {
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

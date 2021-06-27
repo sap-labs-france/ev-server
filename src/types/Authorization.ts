@@ -142,17 +142,21 @@ export enum Action {
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   CHECK_CONNECTION = 'CheckConnection',
+  CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',
   RETRIEVE_CONSUMPTION = 'RetrieveConsumption',
+  CREATE_CONSUMPTION = 'CreateConsumption',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   REGISTER = 'Register',
   TRIGGER_JOB = 'TriggerJob',
   DOWNLOAD = 'Download',
   IMPORT = 'Import',
-  ASSIGN_ASSETS = 'AssignAssets',
-  UNASSIGN_ASSETS = 'UnassignAssets',
-  ASSIGN_CHARGING_STATIONS = 'AssignChargingStations',
-  UNASSIGN_CHARGING_STATIONS = 'UnassignChargingStations',
+  ASSIGN_USERS_TO_SITE = 'AssignUsersToSite',
+  UNASSIGN_USERS_TO_SITE = 'UnassignUsersToSite',
+  ASSIGN_ASSETS_TO_SITE_AREA = 'AssignAssetsToSiteArea',
+  UNASSIGN_ASSETS_TO_SITE_AREA = 'UnassignAssetsToSiteArea',
+  ASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'AssignChargingStationsToSiteArea',
+  UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA = 'UnassignChargingStationsToSiteArea',
   EXPORT_OCPP_PARAMS = 'ExportOCPPParams',
   GENERATE_QR = 'GenerateQrCode',
 }
@@ -171,7 +175,7 @@ export interface AuthorizationContext {
   companies?: string[];
   asset?: string;
   assets?: string[];
-  filters?: DynamicAuthorizationFilterName[];
+  filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
 }
 
 export interface AuthorizationActions {
@@ -193,21 +197,23 @@ export interface SiteAuthorizationActions extends AuthorizationActions {
   canAssignUsers?: boolean;
   canUnassignUsers?: boolean;
   canExportOCPPParams?: boolean;
-  canGenerateQrCode?:boolean;
+  canGenerateQrCode?: boolean;
 }
 
 export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
-  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
+  OWN_USER = 'OwnUser',
 }
 
 export enum DynamicAuthorizationDataSourceName {
   ASSIGNED_SITES_COMPANIES = 'AssignedSitesCompanies',
   SITES_ADMIN = 'SitesAdmin',
-  ASSIGNED_SITE_AREAS = 'AssignedSiteAreas',
+  SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
+  OWN_USER = 'OwnUser',
 }
 
 export interface DynamicAuthorizationDataSourceData {}
@@ -220,10 +226,18 @@ export interface SitesAdminDynamicAuthorizationDataSourceData extends DynamicAut
   siteIDs?: string[];
 }
 
-export interface AssignedSiteAreasDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
-  siteAreaIDs?: string[];
+export interface SitesOwnerDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  siteIDs?: string[];
 }
 
 export interface AssignedSitesDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
   siteIDs?: string[];
+}
+
+export interface SiteAdminUsersDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  userIDs?: string[];
+}
+
+export interface OwnUserDynamicAuthorizationDataSourceData extends DynamicAuthorizationDataSourceData {
+  userID?: string;
 }

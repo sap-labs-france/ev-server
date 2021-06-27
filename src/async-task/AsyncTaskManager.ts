@@ -3,6 +3,7 @@ import AsyncTask, { AsyncTaskStatus, AsyncTasks } from '../types/AsyncTask';
 import AbstractAsyncTask from './AsyncTask';
 import { ActionsResponse } from '../types/GlobalType';
 import AsyncTaskStorage from '../storage/mongodb/AsyncTaskStorage';
+import BillTransactionAsyncTask from './tasks/BillTransactionAsyncTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import LockingHelper from '../locking/LockingHelper';
@@ -63,7 +64,6 @@ export default class AsyncTaskManager {
       const asyncTasks = await AsyncTaskStorage.getAsyncTasks(
         { status: AsyncTaskStatus.PENDING }, Constants.DB_PARAMS_MAX_LIMIT);
       // Process them
-      let abstractAsyncTask: AbstractAsyncTask;
       if (!Utils.isEmptyArray(asyncTasks.result)) {
         await Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -74,7 +74,11 @@ export default class AsyncTaskManager {
         await Promise.map(asyncTasks.result,
           async (asyncTask: AsyncTask) => {
             // Tasks
+            let abstractAsyncTask: AbstractAsyncTask;
             switch (asyncTask.name) {
+              case AsyncTasks.BILL_TRANSACTION:
+                abstractAsyncTask = new BillTransactionAsyncTask(asyncTask);
+                break;
               case AsyncTasks.TAGS_IMPORT:
                 abstractAsyncTask = new TagsImportAsyncTask(asyncTask);
                 break;

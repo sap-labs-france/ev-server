@@ -54,14 +54,14 @@ class TestData {
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
-    smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegration = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     sapSmartChargingSettings.limitBufferDC = 10,
     sapSmartChargingSettings.limitBufferAC = 5,
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    smartChargingIntegrationWithDifferentBufferValues = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegrationWithDifferentBufferValues = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     sapSmartChargingSettings.stickyLimitation = false;
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
-    smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant().id);
+    smartChargingIntegrationWithoutStickyLimit = await SmartChargingFactory.getSmartChargingImpl(testData.tenantContext.getTenant());
     expect(smartChargingIntegration).to.not.be.null;
     expect(smartChargingIntegrationWithDifferentBufferValues).to.not.be.null;
     expect(smartChargingIntegrationWithoutStickyLimit).to.not.be.null;
@@ -275,7 +275,7 @@ describe('Smart Charging Service', function() {
   this.pending = testData.pending;
   this.timeout(1000000);
 
-  describe('With component SmartCharging (tenant utsmartcharging)', () => {
+  describe('With component SmartCharging (utsmartcharging)', () => {
     before(async () => {
       global.database = new MongoDBStorage(config.get('storage'));
       await global.database.start();
@@ -487,7 +487,28 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[2]);
+        // Do not save the last profile to check if this is the only one build in the upcoming test
+      });
+
+      it('Test if charging profiles are not returned, when they are already applied', async () => {
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        // Charging Profiles should only contain the charging profile, which was not saved in the last run
+        TestData.validateChargingProfile(chargingProfiles[0], transaction2);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          }
+        ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
       });
 
 

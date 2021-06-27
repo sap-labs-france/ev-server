@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'SchneiderAssetIntegration';
@@ -17,16 +18,20 @@ const MODULE_NAME = 'SchneiderAssetIntegration';
 export default class SchneiderAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+    super(tenant, settings, connection);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
 
   public async checkConnection(): Promise<void> {
     await this.connect();
   }
 
-  public async retrieveConsumptions(asset: Asset): Promise<AbstractCurrentConsumption[]> {
+  public async retrieveConsumptions(asset: Asset, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
+      return [];
+    }
     // Set new Token
     const token = await this.connect();
     const request = `${this.connection.url}/${asset.meterID}`;
@@ -38,8 +43,8 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
           headers: this.buildAuthHeader(token)
         }
       );
-      Logging.logDebug({
-        tenantID: this.tenantID,
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > Schneider web service has been called successfully`,
@@ -124,7 +129,7 @@ export default class SchneiderAssetIntegration extends AssetIntegration<AssetSet
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.schneiderConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenantID, this.connection.schneiderConnection.password));
+    params.append('password', await Cypher.decrypt(this.tenant.id, this.connection.schneiderConnection.password));
     return params;
   }
 

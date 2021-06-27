@@ -1,4 +1,5 @@
 import CrudApi from './utils/CrudApi';
+import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class SiteApi extends CrudApi {
@@ -32,6 +33,20 @@ export default class SiteApi extends CrudApi {
       siteID: siteId,
       userIDs: userIds
     }, '/client/api/AddUsersToSite');
+  }
+
+  public async addSitesToUser(userId: string, siteIds: string[]) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userId });
+    return super.create({
+      siteIDs: siteIds,
+    }, url);
+  }
+
+  public async unassignSitesToUser(userId: string, siteIds: string[]) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_SITES, { id: userId });
+    return super.update({
+      siteIDs: siteIds,
+    }, url);
   }
 
   public async readUsersForSite(siteId) {

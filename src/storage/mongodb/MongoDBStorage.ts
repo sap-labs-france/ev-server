@@ -80,6 +80,7 @@ export default class MongoDBStorage {
     // Invoices
     await this.handleIndexesInCollection(tenantID, 'invoices', [
       { fields: { invoiceID: 1 }, options: { unique: true } },
+      { fields: { createdOn: 1 } },
     ]);
     // Logs
     await this.handleIndexesInCollection(tenantID, 'logs', [
@@ -104,7 +105,8 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'tags', [
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
-      { fields: { userID: 1, issuer: 1 } }
+      { fields: { userID: 1, issuer: 1 } },
+      { fields: { visualID: 1 } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -157,6 +159,7 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'chargingstations', [
       { fields: { coordinates: '2dsphere' } },
       { fields: { deleted: 1, issuer: 1 } },
+      { fields: { 'connectors.status': 1 } },
     ]);
     await Logging.logDebug({
       tenantID: tenantID,
@@ -333,7 +336,7 @@ export default class MongoDBStorage {
       try {
         await this.db.createCollection(tenantCollectionName);
       } catch (error) {
-        console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message}`);
+        console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message as string}`);
       }
     }
     // Indexes?
@@ -348,11 +351,13 @@ export default class MongoDBStorage {
         const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
         if (!foundIndex) {
           if (Utils.isDevelopmentEnv()) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.log(`Drop index ${databaseIndex.name} on collection ${tenantID}.${name}`);
           }
           try {
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
           } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             console.error(`>>>>> Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`);
           }
         }
@@ -368,7 +373,7 @@ export default class MongoDBStorage {
             // eslint-disable-next-line @typescript-eslint/await-thenable
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
           } catch (error) {
-            console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message}`);
+            console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`);
           }
         }
       }

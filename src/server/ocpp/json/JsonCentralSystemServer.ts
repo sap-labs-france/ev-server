@@ -47,7 +47,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     const id = `${tenantID}~${chargingStationID}`;
     // Get the Json Web Socket
     let jsonWebSocket: JsonWSConnection;
-    for (const [wsClientID, wsClient] of this.jsonChargingStationClients) {
+    const jsonChargingStationClientsReversedMap = new Map<string, JsonWSConnection>(Array.from(this.jsonChargingStationClients).reverse());
+    for (const [wsClientID, wsClient] of jsonChargingStationClientsReversedMap) {
       if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
         jsonWebSocket = wsClient;
         break;
@@ -162,7 +163,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
-        void Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+        await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }

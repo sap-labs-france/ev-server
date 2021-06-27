@@ -37,7 +37,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
       await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').findOneAndUpdate(
         { '_id': user['_id'] },
         { $set: user },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }
@@ -66,6 +66,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
         sendSmtpError: user.notifications?.sendSmtpError ? user.notifications.sendSmtpError : false,
         sendOfflineChargingStations: user.notifications?.sendOfflineChargingStations ? user.notifications.sendOfflineChargingStations : false,
         sendBillingSynchronizationFailed: user.notifications?.sendBillingSynchronizationFailed ? user.notifications.sendBillingSynchronizationFailed : false,
+        sendBillingPeriodicOperationFailed: user.notifications?.sendBillingPeriodicOperationFailed ? user.notifications.sendBillingPeriodicOperationFailed : false,
         sendCarCatalogSynchronizationFailed: user.notifications?.sendCarCatalogSynchronizationFailed ? user.notifications.sendCarCatalogSynchronizationFailed : false,
         sendComputeAndApplyChargingProfilesFailed: user.notifications?.sendComputeAndApplyChargingProfilesFailed ?
           user.notifications.sendComputeAndApplyChargingProfilesFailed : false,
@@ -83,7 +84,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
       await global.database.getCollection(tenant.id, 'users').findOneAndUpdate(
         { '_id': user['_id'] },
         { $set: user },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnDocument: 'after' }
       );
     }
   }

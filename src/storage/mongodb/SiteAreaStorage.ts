@@ -124,7 +124,7 @@ export default class SiteAreaStorage {
     await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
       { _id: siteAreaMDB._id },
       { $set: siteAreaMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     if (saveImage) {
       await SiteAreaStorage.saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
@@ -316,6 +316,7 @@ export default class SiteAreaStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreas', uniqueTimerID, siteAreasMDB);
     // Ok
     return {
+      projectedFields: projectFields,
       count: (siteAreasCountMDB.length > 0 ?
         (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
@@ -425,7 +426,7 @@ export default class SiteAreaStorage {
     await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(siteAreaID) },
       { $set: { image: siteAreaImageToSave } },
-      { upsert: true, returnOriginal: false }
+      { upsert: true, returnDocument: 'after' }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteAreaImage', uniqueTimerID, siteAreaImageToSave);

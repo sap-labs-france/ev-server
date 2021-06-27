@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import moment from 'moment';
 
@@ -18,9 +19,9 @@ const MODULE_NAME = 'GreencomAssetIntegration';
 export default class GreencomAssetIntegration extends AssetIntegration<AssetSetting> {
   private axiosInstance: AxiosInstance;
 
-  public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings, connection);
-    this.axiosInstance = AxiosFactory.getAxiosInstance(tenantID);
+  public constructor(tenant: Tenant, settings: AssetSetting, connection: AssetConnectionSetting) {
+    super(tenant, settings, connection);
+    this.axiosInstance = AxiosFactory.getAxiosInstance(tenant.id);
   }
 
   public async checkConnection(): Promise<void> {
@@ -28,6 +29,10 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
   }
 
   public async retrieveConsumptions(asset: Asset, manualCall?: boolean): Promise<AbstractCurrentConsumption[]> {
+    // Check if refresh interval of connection is exceeded
+    if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
+      return [];
+    }
     // Set new Token
     const token = await this.connect();
     const request = manualCall ?
@@ -43,7 +48,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         }
       );
       await Logging.logDebug({
-        tenantID: this.tenantID,
+        tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: `${asset.name} > GreenCom web service has been called successfully`,
@@ -175,7 +180,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     return {
       'grant_type': 'client_credentials',
       'client_id': this.connection.greencomConnection.clientId,
-      'client_secret': await Cypher.decrypt(this.tenantID, this.connection.greencomConnection.clientSecret)
+      'client_secret': await Cypher.decrypt(this.tenant.id, this.connection.greencomConnection.clientSecret)
     };
   }
 

@@ -25,7 +25,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function() {
+describe('OCPP Service (all versions)', function() {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -42,7 +42,7 @@ describe('OCPP tests (all versions)', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without any component (tenant utnothing)', () => {
+  describe('Without any component (utnothing)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
@@ -304,7 +304,7 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With component Organization only (tenant utorg)', () => {
+  describe('With component Organization only (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -749,7 +749,7 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With components Organization and Pricing (tenant utall)', () => {
+  describe('With components Organization and Pricing (utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
@@ -883,10 +883,6 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testDeleteTransaction(true);
           });
 
-          it('Start user should be able to start a new transaction which can be stopped by StatusNotification', async () => {
-            await testData.ocppCommonTests.testConnectorStatusToStopTransaction();
-          });
-
         });
 
       });
@@ -928,10 +924,6 @@ describe('OCPP tests (all versions)', function() {
 
           it('Start user should not be able to delete his transaction', async () => {
             await testData.ocppCommonTests.testDeleteTransaction(true);
-          });
-
-          it('Start user should be able to start a new transaction which can be stopped by StatusNotification', async () => {
-            await testData.ocppCommonTests.testConnectorStatusToStopTransaction();
           });
 
         });

@@ -26,7 +26,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPI Service Tests (tenant utocpi)', function() {
+describe('OCPI Service Tests (utocpi)', function() {
   this.timeout(100000);
   before(async () => {
     if (!OCPIService.isConfigAvailable()) {

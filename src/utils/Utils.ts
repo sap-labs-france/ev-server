@@ -15,6 +15,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
+import Logging from './Logging';
 import { ObjectID } from 'mongodb';
 import QRCode from 'qrcode';
 import { Request } from 'express';
@@ -38,6 +39,8 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import { v4 as uuid } from 'uuid';
 import validator from 'validator';
+
+const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
@@ -350,6 +353,10 @@ export default class Utils {
     return Constants.DEFAULT_LOCALE;
   }
 
+  public static convertLocaleForCurrency(locale: string): string {
+    return locale.replace('_', '-');
+  }
+
   public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
     switch (limitSource) {
       case ConnectorCurrentLimitSource.CHARGING_PROFILE:
@@ -551,6 +558,13 @@ export default class Utils {
       return null;
     }
     return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
+  }
+
+  public static getBackupConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+    if (!chargingStation.backupConnectors) {
+      return null;
+    }
+    return chargingStation.backupConnectors.find((backupConnector) => backupConnector && (backupConnector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
@@ -1076,7 +1090,20 @@ export default class Utils {
     if (Utils.isNullOrUndefined(object)) {
       return object;
     }
-    return JSON.parse(JSON.stringify(object)) as T;
+    let cloneObject: T;
+    try {
+      cloneObject = _.cloneDeep(object);
+    } catch (error) {
+      void Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'cloneObject',
+        action: ServerAction.LOGGING,
+        message: `Failed to clone object with error: ${error}`,
+        detailedMessages: { error }
+      });
+    }
+    return cloneObject;
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -1472,6 +1499,7 @@ export default class Utils {
     module: string; method: string; action: ServerAction|string; group?: PerformanceRecordGroup;
     httpUrl?: string; httpMethod?: string; httpCode?: number; chargingStationID?: string,
   }): PerformanceRecord {
+    const cpuInfo = os.cpus();
     return {
       tenantID: params.tenantID,
       timestamp: new Date(),
@@ -1481,11 +1509,11 @@ export default class Utils {
       process: cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master',
       processMemoryUsage: process.memoryUsage(),
       processCPUUsage: process.cpuUsage(),
-      cpusInfo: os.cpus(),
+      numberOfCPU: cpuInfo.length,
+      modelOfCPU: cpuInfo.length > 0 ? cpuInfo[0].model : '',
       memoryTotalGb: Utils.createDecimal(os.totalmem()).div(Constants.ONE_BILLION).toNumber(),
       memoryFreeGb: Utils.createDecimal(os.freemem()).div(Constants.ONE_BILLION).toNumber(),
       loadAverageLastMin: os.loadavg()[0],
-      networkInterface: os.networkInterfaces(),
       numberOfChargingStations: global.centralSystemJsonServer?.getNumberOfJsonConnections(),
       source: params.source,
       module: params.module,
@@ -1503,7 +1531,15 @@ export default class Utils {
     return Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
-  public static replaceDoubleQuotes(value: any): string {
-    return typeof value === 'string' ? '"' + value.replace(/^"|"$/g, '').replace(/"/g, '""') + '"' : value;
+  // when exporting values
+  public static escapeCsvValue(value: any): string {
+    // add double quote start and end
+    // replace double quotes inside value to double double quotes to display double quote correctly in csv editor
+    return typeof value === 'string' ? '"' + value.replace(/"/g, '""') + '"' : value;
+  }
+
+  // when importing values
+  public static unescapeCsvValue(value: any): void {
+    // double quotes are handle by csvToJson
   }
 }

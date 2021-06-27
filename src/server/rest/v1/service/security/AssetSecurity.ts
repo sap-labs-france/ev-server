@@ -35,6 +35,9 @@ export default class AssetSecurity {
       DynamicOnly: UtilsSecurity.filterBoolean(request.DynamicOnly),
       ErrorType: sanitize(request.ErrorType)
     } as HttpAssetsRequest;
+    if (Utils.objectHasProperty(request, 'Issuer')) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -66,10 +69,12 @@ export default class AssetSecurity {
     filteredRequest.siteAreaID = sanitize(request.siteAreaID),
     filteredRequest.assetType = sanitize(request.assetType),
     filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(sanitize(request.excludeFromSmartCharging));
+    filteredRequest.variationThresholdPercent = sanitize(request.variationThresholdPercent),
     filteredRequest.fluctuationPercent = sanitize(request.fluctuationPercent),
     filteredRequest.staticValueWatt = sanitize(request.staticValueWatt),
     filteredRequest.image = request.image;
     filteredRequest.dynamicAsset = UtilsSecurity.filterBoolean(request.dynamicAsset);
+    filteredRequest.usesPushAPI = UtilsSecurity.filterBoolean(request.usesPushAPI);
     if (Utils.objectHasProperty(request, 'coordinates') && !Utils.isEmptyArray(request.coordinates) && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),

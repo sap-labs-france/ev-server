@@ -1,7 +1,9 @@
 import { BillingInvoiceStatus } from '../Billing';
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpBillingRequest {
+export interface HttpBillingRequest extends HttpByIDRequest {
+  ID: string;
 }
 
 export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
@@ -10,6 +12,7 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;
+  ID?: string;
 }
 
 export interface HttpBillingWebHookRequest {

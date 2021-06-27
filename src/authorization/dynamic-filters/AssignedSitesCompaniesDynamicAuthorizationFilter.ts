@@ -26,6 +26,9 @@ export default class AssignedSitesCompaniesDynamicAuthorizationFilter extends Dy
     if (!Utils.isEmptyArray(authorizationFilters.filters.companyIDs)) {
       authorizationFilters.authorized = true;
     }
+    if (this.negateFilter) {
+      authorizationFilters.authorized = !authorizationFilters.authorized;
+    }
   }
 
   public getApplicableEntities(): Entity[] {

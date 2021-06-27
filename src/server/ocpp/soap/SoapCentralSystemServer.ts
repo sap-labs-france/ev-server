@@ -46,12 +46,12 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer12.log = (type, data) => {
-        this.handleSoapServerLog(OCPPVersion.VERSION_12, type, data);
+      soapServer12.log = async (type, data) => {
+        await this.handleSoapServerLog(OCPPVersion.VERSION_12, type, data);
       };
       // Log Request
-      soapServer12.on('request', (request, methodName) => {
-        this.handleSoapServerMessage(OCPPVersion.VERSION_12, request, methodName);
+      soapServer12.on('request', async (request, methodName) => {
+        await this.handleSoapServerMessage(OCPPVersion.VERSION_12, request, methodName);
       });
     }
     // OCPP 1.5 -----------------------------------------
@@ -59,12 +59,12 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer15.log = (type, data) => {
-        this.handleSoapServerLog(OCPPVersion.VERSION_15, type, data);
+      soapServer15.log = async (type, data) => {
+        await this.handleSoapServerLog(OCPPVersion.VERSION_15, type, data);
       };
       // Log Request
-      soapServer15.on('request', (request, methodName) => {
-        this.handleSoapServerMessage(OCPPVersion.VERSION_15, request, methodName);
+      soapServer15.on('request', async (request, methodName) => {
+        await this.handleSoapServerMessage(OCPPVersion.VERSION_15, request, methodName);
       });
     }
     // OCPP 1.6 -----------------------------------------
@@ -72,12 +72,12 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer16.log = (type, data) => {
-        this.handleSoapServerLog(OCPPVersion.VERSION_16, type, data);
+      soapServer16.log = async (type, data) => {
+        await this.handleSoapServerLog(OCPPVersion.VERSION_16, type, data);
       };
       // Log Request
-      soapServer16.on('request', (request, methodName) => {
-        this.handleSoapServerMessage(OCPPVersion.VERSION_16, request, methodName);
+      soapServer16.on('request', async (request, methodName) => {
+        await this.handleSoapServerMessage(OCPPVersion.VERSION_16, request, methodName);
       });
     }
     // Post init
@@ -88,9 +88,9 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
-  private handleSoapServerMessage(ocppVersion: OCPPVersion, request: any, methodName: string) {
+  private async handleSoapServerMessage(ocppVersion: OCPPVersion, request: any, methodName: string) {
     // Log
-    Logging.logDebug({
+    await Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
       method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
@@ -99,11 +99,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  private handleSoapServerLog(ocppVersion: OCPPVersion, type: string, data: any) {
+  private async handleSoapServerLog(ocppVersion: OCPPVersion, type: string, data: any) {
     // Do not log 'Info'
     if (type === 'replied') {
       // Log
-      Logging.logDebug({
+      await Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
         method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,

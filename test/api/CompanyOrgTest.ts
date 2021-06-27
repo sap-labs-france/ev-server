@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 
 import CentralServerService from './client/CentralServerService';
+import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
@@ -17,6 +18,8 @@ class TestData {
   public userContext: any;
   public userService: CentralServerService;
   public newCompany: any;
+  public companyWithSite: Company;
+  public companyWithNoSite: Company;
   public newSite: any;
   public createdCompanies: any[] = [];
   public createdUsers: any[] = [];
@@ -43,29 +46,30 @@ function login(userRole) {
 /**
  *
  */
-async function loginAsAdminAndCreateCompanyWithASite() {
+async function loginAsAdminAndCreateTestData() {
   login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
   // Create a company
-  testData.newCompany = await testData.userService.createEntity(
+  testData.companyWithSite = await testData.userService.createEntity(
     testData.userService.companyApi,
     Factory.company.build()
   );
-  testData.createdCompanies.push(testData.newCompany);
   // Create a site and assign it to the created company
   testData.newSite = await testData.userService.createEntity(
     testData.userService.siteApi,
-    Factory.site.build({ companyID: testData.newCompany.id })
+    Factory.site.build({ companyID: testData.companyWithSite.id })
   );
   testData.createdSites.push(testData.newSite);
   // Assign the basic user to the site
   const basicUserContext = await testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, [basicUserContext.id]);
+  testData.createdCompanies.push(testData.companyWithSite);
+
   // Create a company with no sites
-  testData.newCompany = await testData.userService.createEntity(
+  testData.companyWithNoSite = await testData.userService.createEntity(
     testData.userService.companyApi,
     Factory.company.build()
   );
-  testData.createdCompanies.push(testData.newCompany);
+  testData.createdCompanies.push(testData.companyWithNoSite);
 }
 
 /**
@@ -76,7 +80,7 @@ async function loginAsAdminAndRemoveUsersFromSite() {
   await testData.userService.siteApi.addUsersToSite(testData.newSite.id, []);
 }
 
-describe('Company Org tests', function() {
+describe('Company', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -89,7 +93,7 @@ describe('Company Org tests', function() {
     await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant utorg)', () => {
+  describe('With component Organization (utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -101,29 +105,36 @@ describe('Company Org tests', function() {
     });
 
     after(async () => {
-      // Delete any created company
-      testData.createdCompanies.forEach(async (site) => {
+      // Delete any created site
+      for (const site of testData.createdSites) {
         await testData.centralUserService.deleteEntity(
-          testData.centralUserService.companyApi,
+          testData.centralUserService.siteApi,
           site,
           false
         );
-      });
+      }
+      testData.createdSites = [];
+      // Delete any created company
+      for (const company of testData.createdCompanies) {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.companyApi,
+          company,
+          false
+        );
+      }
       testData.createdCompanies = [];
       // Delete any created user
-      testData.createdUsers.forEach(async (user) => {
+      for (const user of testData.createdUsers) {
         await testData.centralUserService.deleteEntity(
           testData.centralUserService.userApi,
           user,
           false
         );
-      });
+      }
       testData.createdUsers = [];
-      // Remove sites
     });
 
     describe('Where admin user', () => {
-
       before(() => {
         login(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       });
@@ -188,21 +199,19 @@ describe('Company Org tests', function() {
           testData.newCompany
         );
       });
-
     });
-
   });
   describe('Where basic user', () => {
 
     before(async () => {
-      await loginAsAdminAndCreateCompanyWithASite();
+      await loginAsAdminAndCreateTestData();
       login(ContextDefinition.USER_CONTEXTS.BASIC_USER);
     });
 
     it('Should be able to read company with site he is assigned to ', async () => {
       await testData.userService.getEntityById(
         testData.userService.companyApi,
-        testData.createdCompanies[0]
+        testData.companyWithSite
       );
     });
 
@@ -210,7 +219,7 @@ describe('Company Org tests', function() {
       try {
         await testData.userService.getEntityById(
           testData.userService.companyApi,
-          testData.createdCompanies[1]
+          testData.companyWithNoSite
         );
       } catch (error) {
         expect(error.actual).to.eq(403);
@@ -224,7 +233,7 @@ describe('Company Org tests', function() {
       try {
         await testData.userService.getEntityById(
           testData.userService.companyApi,
-          testData.createdCompanies[0]
+          testData.companyWithSite
         );
       } catch (error) {
         expect(error.actual).to.eq(403);
@@ -249,7 +258,7 @@ describe('Company Org tests', function() {
         // Try to update
         await testData.userService.updateEntity(
           testData.userService.companyApi,
-          testData.newCompany
+          testData.companyWithNoSite
         );
       } catch (error) {
         expect(error.actual).to.eq(403);
@@ -261,7 +270,7 @@ describe('Company Org tests', function() {
       // Try to delete
         await testData.userService.deleteEntity(
           testData.userService.companyApi,
-          testData.newCompany
+          testData.companyWithNoSite
         );
       } catch (error) {
         expect(error.actual).to.equal(StatusCodes.FORBIDDEN);

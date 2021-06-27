@@ -8,25 +8,17 @@ import OICPEndpoint from '../types/oicp/OICPEndpoint';
 import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
-  public static async tryCreateSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeout: number): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`);
-    if (!(await LockingManager.tryAcquire(lock, timeout))) {
-      return null;
-    }
-    return lock;
-  }
-
   public static async createAsyncTaskLock(tenantID: string, asyncTask: AsyncTask): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, `${asyncTask.id}`);
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.ASYNC_TASK, `${asyncTask.id}`, 300);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
     return lock;
   }
 
-  public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea): Promise<Lock | null> {
-    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`);
-    if (!(await LockingManager.acquire(lock))) {
+  public static async createSiteAreaSmartChargingLock(tenantID: string, siteArea: SiteArea, timeoutMs: number): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 180);
+    if (!(await LockingManager.acquire(lock, timeoutMs))) {
       return null;
     }
     return lock;
@@ -66,6 +58,14 @@ export default class LockingHelper {
 
   public static async createBillingSyncInvoicesLock(tenantID: string): Promise<Lock | null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'synchronize-billing-invoices');
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createBillingPeriodicOperationLock(tenantID: string): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.INVOICE, 'periodic-billing');
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }
@@ -146,6 +146,14 @@ export default class LockingHelper {
 
   public static async createOICPPushCdrLock(tenantID: string, transactionID: number): Promise<Lock|null> {
     const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `push-cdr-${transactionID}`);
+    if (!(await LockingManager.acquire(lock))) {
+      return null;
+    }
+    return lock;
+  }
+
+  public static async createBillTransactionLock(tenantID: string, transactionID: number): Promise<Lock | null> {
+    const lock = LockingManager.createExclusiveLock(tenantID, LockEntity.TRANSACTION, `bill-transaction-${transactionID}`);
     if (!(await LockingManager.acquire(lock))) {
       return null;
     }

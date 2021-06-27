@@ -112,16 +112,14 @@ export interface OCPP15MeterValueValue {
 export interface OCPPMeterValuesRequest {
   connectorId: number;
   transactionId?: number;
-  meterValue: OCPPMeterValue | OCPPMeterValue[];
+  meterValue: OCPPMeterValue | OCPPMeterValue[]; // OCPP 1.6
+  values?: OCPPMeterValue | OCPPMeterValue[]; // OCPP 1.5
 }
 
-export interface OCPPMeterValuesRequestExtended extends OCPPMeterValuesRequest {
-  values: OCPPMeterValue | OCPPMeterValue[];
-}
+export type OCPPMeterValuesRequestExtended = OCPPMeterValuesRequest;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface OCPPMeterValuesResponse {
-}
+export interface OCPPMeterValuesResponse {}
 
 export interface OCPPNormalizedMeterValues {
   chargeBoxID: string;

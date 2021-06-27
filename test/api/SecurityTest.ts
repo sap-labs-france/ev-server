@@ -59,8 +59,8 @@ function checkSensitiveDataIsObfuscated(message:any): void {
   }
 }
 
-describe('Security tests', function() {
-  this.timeout(30000);
+describe('Security', function() {
+  this.timeout(120000);
 
   before(async function() {
     global.database = new MongoDBStorage(config.get('storage'));
@@ -83,7 +83,7 @@ describe('Security tests', function() {
     expect(res.status).to.equal(StatusCodes.OK);
   });
 
-  describe('Success cases (tenant utall)', () => {
+  describe('Success cases (utall)', () => {
     it('Check that sensitive data string (containing "=") is anonymized', async () => {
       const logId:string = await Logging.logDebug({
         source: 'test',
