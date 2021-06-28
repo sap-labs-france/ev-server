@@ -11,7 +11,7 @@ import Utils from '../../utils/Utils';
 export default class BillingPeriodicOperationTask extends SchedulerTask {
   async processTenant(tenant: Tenant, /* taskConfig: BillingPeriodicOperationTaskConfig */): Promise<void> {
     // Get the lock
-    const billingLock = await LockingHelper.createBillingPeriodicOperationLock(tenant.id);
+    const billingLock = await LockingHelper.acquireBillingPeriodicOperationLock(tenant.id);
     if (billingLock) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);

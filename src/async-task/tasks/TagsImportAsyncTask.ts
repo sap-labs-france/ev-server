@@ -20,7 +20,7 @@ const MODULE_NAME = 'TagsImportAsyncTask';
 
 export default class TagsImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
-    const importTagsLock = await LockingHelper.createImportTagsLock(this.asyncTask.tenantID);
+    const importTagsLock = await LockingHelper.acquireImportTagsLock(this.asyncTask.tenantID);
     if (importTagsLock) {
       const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {

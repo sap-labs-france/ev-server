@@ -155,7 +155,7 @@ export default class CarService {
       });
     }
     // Get the lock
-    const syncCarCatalogsLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    const syncCarCatalogsLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (!syncCarCatalogsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

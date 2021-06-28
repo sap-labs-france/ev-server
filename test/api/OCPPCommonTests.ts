@@ -1000,14 +1000,25 @@ export default class OCPPCommonTests {
     } else {
       expect(bootNotification.currentTime).to.beforeTime(new Date(bootNotification2.currentTime));
     }
+    // Boot notification empty the connectors
+    // Send status notifications
     for (const connector of this.chargingStationContext.getChargingStation().connectors) {
-      const statusNotificationResponse = await this.chargingStationContext.setConnectorStatus({
+      // Send async on purpose
+      void this.chargingStationContext.setConnectorStatus({
         connectorId: connector.connectorId,
         status: ChargePointStatus.AVAILABLE,
         errorCode: ChargePointErrorCode.NO_ERROR,
         timestamp: new Date().toISOString()
       });
-      expect(statusNotificationResponse).to.eql({});
+    }
+    // Wait for both status notification to be processed
+    await Utils.sleep(2000);
+    // Check Connectors are recreated
+    chargingStationResponse = await this.chargingStationContext.readChargingStation();
+    expect(chargingStationResponse.data.connectors.length).to.equal(this.chargingStationContext.getChargingStation().connectors.length);
+    // Check they are all available
+    for (const connector of chargingStationResponse.data.connectors) {
+      expect(connector.status).to.eql(ChargePointStatus.AVAILABLE);
     }
   }
 

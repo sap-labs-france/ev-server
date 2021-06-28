@@ -17,7 +17,7 @@ const MODULE_NAME = 'UsersImportAsyncTask';
 
 export default class UsersImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
-    const importUsersLock = await LockingHelper.createImportUsersLock(this.asyncTask.tenantID);
+    const importUsersLock = await LockingHelper.acquireImportUsersLock(this.asyncTask.tenantID);
     if (importUsersLock) {
       const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
