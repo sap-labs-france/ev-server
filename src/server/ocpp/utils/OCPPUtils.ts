@@ -151,8 +151,8 @@ export default class OCPPUtils {
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
-        lastConsumption.startedAt = lastConsumption.endedAt;
-        lastConsumption.endedAt = moment(lastConsumption.startedAt).add(transaction.stop.extraInactivitySecs, 's').toDate();
+        lastConsumption.startedAt = transaction.stop.timestamp;
+        lastConsumption.endedAt = moment(transaction.stop.timestamp).add(transaction.stop.extraInactivitySecs, 's').toDate();
         // Set inactivity
         lastConsumption.consumptionAmps = 0;
         lastConsumption.consumptionWh = 0;
@@ -170,7 +170,8 @@ export default class OCPPUtils {
         await ConsumptionStorage.saveConsumption(tenant.id, lastConsumption);
         // Update the Stop transaction data
         transaction.stop.timestamp = lastConsumption.endedAt;
-        transaction.stop.totalDurationSecs = Math.floor((transaction.stop.timestamp.getTime() - transaction.timestamp.getTime()) / 1000);
+        transaction.stop.totalDurationSecs = Utils.createDecimal(
+          Math.floor((transaction.stop.timestamp.getTime() - transaction.timestamp.getTime()))).div(1000).toNumber();
         transaction.stop.extraInactivityComputed = true;
         return true;
       }
@@ -1059,8 +1060,7 @@ export default class OCPPUtils {
   public static async getChargingStationTemplate(chargingStation: ChargingStation): Promise<ChargingStationTemplate> {
     let foundTemplate: ChargingStationTemplate = null;
     // Get the Templates
-    const chargingStationTemplates: ChargingStationTemplate[] =
-      await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
+    const chargingStationTemplates: ChargingStationTemplate[] = await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
     // Parse them
     for (const chargingStationTemplate of chargingStationTemplates) {
       // Keep it

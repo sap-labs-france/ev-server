@@ -191,7 +191,7 @@ export default class OCPPService {
         return {};
       }
       // Update only the given Connector ID
-      await this.updateConnectorStatusFromStatusNotification(tenant, chargingStation, statusNotification);
+      await this.processConnectorStatusNotification(tenant, chargingStation, statusNotification);
       return {};
     } catch (error) {
       this.addChargingStationToException(error, headers.chargeBoxIdentity);
@@ -591,7 +591,7 @@ export default class OCPPService {
     if (transaction.stop) {
       throw new BackendError({
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'handleStopTransaction',
+        module: MODULE_NAME, method: 'checkAuthorizeStopTransactionAndGetUsers',
         message: `Connector ID '${transaction.connectorId.toString()}' > Transaction ID '${transaction.id.toString()}' > Transaction has already been stopped`,
         action: ServerAction.STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : user),
@@ -616,7 +616,7 @@ export default class OCPPService {
           await Logging.logError({
             tenantID: tenant.id,
             source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStopTransaction',
+            module: MODULE_NAME, method: 'triggerSmartChargingStopTransaction',
             action: ServerAction.STOP_TRANSACTION,
             message: `Connector ID '${transaction.connectorId.toString()}' > Transaction ID '${transaction.id.toString()}' > Smart Charging exception occurred`,
             detailedMessages: { error: error.message, stack: error.stack, transaction, chargingStation }
@@ -642,7 +642,7 @@ export default class OCPPService {
           source: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' > TX Charging Profile with ID '${chargingProfile.id}'`,
-          module: MODULE_NAME, method: 'handleStopTransaction',
+          module: MODULE_NAME, method: 'deleteAllTransactionTxProfile',
           detailedMessages: { chargingProfile }
         });
       } catch (error) {
@@ -651,14 +651,14 @@ export default class OCPPService {
           source: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
-          module: MODULE_NAME, method: 'handleStopTransaction',
+          module: MODULE_NAME, method: 'deleteAllTransactionTxProfile',
           detailedMessages: { error: error.message, stack: error.stack, chargingProfile }
         });
       }
     }
   }
 
-  private async updateConnectorStatusFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
+  private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
     const connector = await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
     // Status must be different
@@ -693,7 +693,7 @@ export default class OCPPService {
     await Logging.logInfo({
       tenantID: tenant.id,
       source: chargingStation.id,
-      module: MODULE_NAME, method: 'updateConnectorStatus',
+      module: MODULE_NAME, method: 'processConnectorStatusNotification',
       action: ServerAction.STATUS_NOTIFICATION,
       message: `Connector ID '${statusNotification.connectorId}' > Transaction ID '${connector.currentTransactionID}' > Status has been saved: '${this.buildConnectorStatusDescription(connector)}'`,
       detailedMessages: [statusNotification, connector]
@@ -713,7 +713,7 @@ export default class OCPPService {
         await Logging.logError({
           tenantID: tenant.id,
           source: chargingStation.id,
-          module: MODULE_NAME, method: 'updateConnectorStatus',
+          module: MODULE_NAME, method: 'processSmartChargingStatusNotification',
           action: ServerAction.STATUS_NOTIFICATION,
           message: `Connector ID '${connector.connectorId.toString()}' > Transaction ID '${connector.currentTransactionID.toString()}' > Smart Charging exception occurred`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -745,7 +745,7 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'updateConnectorStatus',
+        module: MODULE_NAME, method: 'hasStatusNotificationChanged',
         action: ServerAction.STATUS_NOTIFICATION,
         message: `Connector ID '${statusNotification.connectorId}' > Transaction ID '${connector.currentTransactionID}' > Status has not changed: '${this.buildConnectorStatusDescription(connector)}'`,
         detailedMessages: { connector: connector }
@@ -954,7 +954,7 @@ export default class OCPPService {
       await Logging.logError({
         tenantID: tenant.id,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'updateOICPStatus',
+        module: MODULE_NAME, method: 'updateOICPConnectorStatus',
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
         message: `An error occurred while updating the charging station status of ${chargingStation.id}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -981,11 +981,11 @@ export default class OCPPService {
         Utils.generateUUID(),
         chargingStation,
         {
-          'chargeBoxID': chargingStation.id,
-          'connectorId': Utils.getConnectorLetterFromConnectorID(connector.connectorId),
-          'error': this.buildConnectorStatusDescription(connector),
-          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-          'evseDashboardChargingStationURL': Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
+          chargeBoxID: chargingStation.id,
+          connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
+          error: this.buildConnectorStatusDescription(connector),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+          evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
       ).catch(() => { });
     }
@@ -1194,15 +1194,15 @@ export default class OCPPService {
         transaction.user,
         chargingStation,
         {
-          'user': transaction.user,
-          'transactionId': transaction.id,
-          'chargeBoxID': chargingStation.id,
-          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
-          'stateOfCharge': transaction.currentStateOfCharge,
-          'totalDuration': this.transactionDurationToString(transaction),
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+          user: transaction.user,
+          transactionId: transaction.id,
+          chargeBoxID: chargingStation.id,
+          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
+          stateOfCharge: transaction.currentStateOfCharge,
+          totalDuration: this.transactionDurationToString(transaction),
+          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1219,14 +1219,14 @@ export default class OCPPService {
         transaction.user,
         chargingStation,
         {
-          'user': transaction.user,
-          'chargeBoxID': chargingStation.id,
-          'transactionId': transaction.id,
-          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
-          'stateOfCharge': transaction.currentStateOfCharge,
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
-          'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+          user: transaction.user,
+          chargeBoxID: chargingStation.id,
+          transactionId: transaction.id,
+          connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
+          totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
+          stateOfCharge: transaction.currentStateOfCharge,
+          evseDashboardChargingStationURL: Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress'),
+          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -1385,12 +1385,12 @@ export default class OCPPService {
 
   private buildMeterValueAttributes(sampledValue: OCPPSampledValue): OCPPAttribute {
     return {
-      context: (sampledValue.context ? sampledValue.context : OCPPReadingContext.SAMPLE_PERIODIC),
-      format: (sampledValue.format ? sampledValue.format : OCPPValueFormat.RAW),
-      measurand: (sampledValue.measurand ? sampledValue.measurand : OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER),
-      location: (sampledValue.location ? sampledValue.location : OCPPLocation.OUTLET),
-      unit: (sampledValue.unit ? sampledValue.unit : OCPPUnitOfMeasure.WATT_HOUR),
-      phase: (sampledValue.phase ? sampledValue.phase : null)
+      context: sampledValue.context ? sampledValue.context : OCPPReadingContext.SAMPLE_PERIODIC,
+      format: sampledValue.format ? sampledValue.format : OCPPValueFormat.RAW,
+      measurand: sampledValue.measurand ? sampledValue.measurand : OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+      location: sampledValue.location ? sampledValue.location : OCPPLocation.OUTLET,
+      unit: sampledValue.unit ? sampledValue.unit : OCPPUnitOfMeasure.WATT_HOUR,
+      phase: sampledValue.phase ? sampledValue.phase : null
     };
   }
 
