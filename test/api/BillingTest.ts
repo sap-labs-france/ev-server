@@ -417,6 +417,12 @@ describe('Billing Service', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       // Initialize the Billing module
       testData.billingImpl = await testData.setBillingSystemValidCredentials();
+      // Make sure the required users are in sync
+      const adminUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      const basicUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      // Synchronize at least these 2 users - this creates a customer on the STRIPE side
+      await testData.billingImpl.forceSynchronizeUser(adminUser);
+      await testData.billingImpl.forceSynchronizeUser(basicUser);
     });
 
     describe('Where admin user (essential)', () => {
