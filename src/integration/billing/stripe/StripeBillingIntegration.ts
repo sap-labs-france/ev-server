@@ -99,16 +99,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (!billingTax) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkActivationPrerequisites',
-          action: ServerAction.CHECK_BILLING_CONNECTION,
+          module: MODULE_NAME, method: 'checkTaxPrerequisites',
+          action: ServerAction.BILLING_TAXES,
           message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
         });
       }
     } else {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkActivationPrerequisites',
-        action: ServerAction.CHECK_BILLING_CONNECTION,
+        module: MODULE_NAME, method: 'checkTaxPrerequisites',
+        action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
@@ -512,7 +512,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
       });
     }
     // Let's do it!
@@ -533,6 +533,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      user,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_PAYMENT_METHODS,
+      module: MODULE_NAME, method: 'getPaymentMethods',
+      message: `Number of payment methods: ${paymentMethods?.length}`
+    });
     return paymentMethods;
   }
 
@@ -547,7 +555,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
       });
     }
     // Let's do it!
@@ -943,6 +951,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billTransaction',
+          message: `Billing process is about to start - transaction ID: ${transaction.id}`
+        });
         const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
       }
@@ -952,7 +968,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'stopTransaction',
+        module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
