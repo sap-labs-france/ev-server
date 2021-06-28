@@ -12,6 +12,7 @@ export default class TagValidator extends SchemaValidator {
   private tagCreate: Schema;
   private tagUpdate: Schema;
   private tagsGet: Schema;
+  private tagsDeleteMany: Schema;
 
   private constructor() {
     super('TagValidator');
@@ -19,6 +20,7 @@ export default class TagValidator extends SchemaValidator {
     this.tagCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create.json`, 'utf8'));
     this.tagUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-update.json`, 'utf8'));
     this.tagsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-get.json`, 'utf8'));
+    this.tagsDeleteMany = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-delete.json`, 'utf8'));
   }
 
   public static getInstance(): TagValidator {
@@ -44,6 +46,11 @@ export default class TagValidator extends SchemaValidator {
 
   validateTagsGet(data: any): HttpTagsRequest {
     this.validate(this.tagsGet, data);
+    return data;
+  }
+
+  validateTagsDeleteMany(data: { tagIDs: string[] }): { tagIDs: string[] } {
+    this.validate(this.tagsDeleteMany, data);
     return data;
   }
 }

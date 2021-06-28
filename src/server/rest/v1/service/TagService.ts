@@ -63,7 +63,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIDs = TagSecurity.filterTagRequestByIDs(req.body);
+    const tagsIDs = TagValidator.getInstance().validateTagsDeleteMany(req.body).tagIDs;
     // Delete
     const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
     // Return
@@ -757,7 +757,7 @@ export default class TagService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationTagsFilters.projectFields,
