@@ -116,7 +116,7 @@ export default class OCPIUtilsService {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id,
+    const sites = await SiteStorage.getSites(tenant,
       { issuer: true, public: true },
       limit === 0 ? Constants.DB_PARAMS_MAX_LIMIT : { limit, skip },
       ['id', 'name', 'address', 'lastChangedOn', 'createdOn']);
@@ -127,7 +127,7 @@ export default class OCPIUtilsService {
     }
     let nbrOfSites = sites.count;
     if (nbrOfSites === -1) {
-      const sitesCount = await SiteStorage.getSites(tenant.id,
+      const sitesCount = await SiteStorage.getSites(tenant,
         { issuer: true, public: true }, Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfSites = sitesCount.count;
     }
