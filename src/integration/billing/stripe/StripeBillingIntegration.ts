@@ -99,7 +99,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (!billingTax) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkActivationPrerequisites',
+          module: MODULE_NAME, method: 'checkTaxPrerequisites',
           action: ServerAction.BILLING_TAXES,
           message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
         });
@@ -107,7 +107,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } else {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkActivationPrerequisites',
+        module: MODULE_NAME, method: 'checkTaxPrerequisites',
         action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
