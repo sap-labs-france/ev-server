@@ -21,7 +21,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
         if (billingImpl) {
           // Get the Transaction to bill
           const transactionID: string = this.asyncTask.parameters.transactionID;
-          const transactionLock = await LockingHelper.createBillTransactionLock(tenant.id, Number(transactionID));
+          const transactionLock = await LockingHelper.acquireBillTransactionLock(tenant.id, Number(transactionID));
           if (transactionLock) {
             try {
               const transaction = await TransactionStorage.getTransaction(tenant.id, Number(transactionID));

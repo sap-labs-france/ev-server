@@ -155,7 +155,7 @@ export default class BillingService {
       inError: 0,
       inSuccess: 0,
     };
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync users
@@ -208,7 +208,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the lock
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync user
@@ -261,7 +261,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         await billingImpl.forceSynchronizeUser(user);
@@ -428,7 +428,7 @@ export default class BillingService {
       inSuccess: 0,
     };
     // Get the Invoice lock
-    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices
@@ -485,7 +485,7 @@ export default class BillingService {
       inError: 0,
       inSuccess: 0,
     };
-    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices

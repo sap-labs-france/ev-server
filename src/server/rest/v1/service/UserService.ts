@@ -419,7 +419,7 @@ export default class UserService {
       });
     }
     // Acquire the lock
-    const importUsersLock = await LockingHelper.createImportUsersLock(req.tenant.id);
+    const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
