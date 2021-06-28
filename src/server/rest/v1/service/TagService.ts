@@ -83,7 +83,7 @@ export default class TagService {
 
   public static async handleCreateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagCreateRequest(req.body, req.user);
+    const filteredRequest = TagValidator.getInstance().validateTagCreate(req.body);
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth

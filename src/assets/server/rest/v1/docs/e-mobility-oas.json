@@ -5710,6 +5710,10 @@
             "type": "string",
             "example": "T12345678"
           },
+          "visualID": {
+            "type": "string",
+            "example": "###"
+          },
           "userID": {
             "type": "string",
             "example": "###"

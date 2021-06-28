@@ -1,4 +1,5 @@
-import { ImportedTag } from '../../../../types/Tag';
+import Tag, { ImportedTag } from '../../../../types/Tag';
+
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -7,10 +8,12 @@ import global from '../../../../types/GlobalType';
 export default class TagValidator extends SchemaValidator {
   private static instance: TagValidator|null = null;
   private importedTagCreation: Schema;
+  private tagCreate: Schema;
 
   private constructor() {
     super('TagValidator');
     this.importedTagCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/imported-tag-create-req.json`, 'utf8'));
+    this.tagCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create.json`, 'utf8'));
   }
 
   public static getInstance(): TagValidator {
@@ -22,5 +25,10 @@ export default class TagValidator extends SchemaValidator {
 
   validateImportedTagCreation(importedTag: ImportedTag): void {
     this.validate(this.importedTagCreation, importedTag);
+  }
+
+  validateTagCreate(tag: Tag): Tag {
+    this.validate(this.tagCreate, tag);
+    return tag;
   }
 }
