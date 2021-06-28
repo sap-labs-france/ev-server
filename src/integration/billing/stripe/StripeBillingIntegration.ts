@@ -100,7 +100,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'checkActivationPrerequisites',
-          action: ServerAction.CHECK_BILLING_CONNECTION,
+          action: ServerAction.BILLING_TAXES,
           message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
         });
       }
@@ -108,7 +108,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkActivationPrerequisites',
-        action: ServerAction.CHECK_BILLING_CONNECTION,
+        action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
@@ -512,7 +512,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
       });
     }
     // Let's do it!
@@ -555,7 +555,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
       });
     }
     // Let's do it!
