@@ -228,7 +228,7 @@ export default class TagService {
 
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
+    const filteredRequest = TagValidator.getInstance().validateTagUpdate({ ...req.params, ...req.body });
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
@@ -726,7 +726,7 @@ export default class TagService {
 
   private static async getTags(req: Request): Promise<DataResult<Tag>> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagsGet(req.query);
     // Get authorization filters
     const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
