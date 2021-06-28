@@ -46,7 +46,7 @@ export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
       { withUser: true }, true);
@@ -63,7 +63,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIDs = TagValidator.getInstance().validateTagsDeleteMany(req.body).tagIDs;
+    const tagsIDs = TagValidator.getInstance().validateTagsDelete(req.body).tagIDs;
     // Delete
     const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
     // Return

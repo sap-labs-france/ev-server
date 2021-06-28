@@ -1,6 +1,6 @@
+import { HttpTagRequest, HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import Tag, { ImportedTag } from '../../../../types/Tag';
 
-import { HttpTagsRequest } from '../../../../types/requests/HttpTagRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
@@ -12,7 +12,8 @@ export default class TagValidator extends SchemaValidator {
   private tagCreate: Schema;
   private tagUpdate: Schema;
   private tagsGet: Schema;
-  private tagsDeleteMany: Schema;
+  private tagGet: Schema;
+  private tagsDelete: Schema;
 
   private constructor() {
     super('TagValidator');
@@ -20,7 +21,8 @@ export default class TagValidator extends SchemaValidator {
     this.tagCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-create.json`, 'utf8'));
     this.tagUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-update.json`, 'utf8'));
     this.tagsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-get.json`, 'utf8'));
-    this.tagsDeleteMany = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-delete.json`, 'utf8'));
+    this.tagGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tag-get.json`, 'utf8'));
+    this.tagsDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/tag/tags-delete.json`, 'utf8'));
   }
 
   public static getInstance(): TagValidator {
@@ -49,8 +51,13 @@ export default class TagValidator extends SchemaValidator {
     return data;
   }
 
-  validateTagsDeleteMany(data: { tagIDs: string[] }): { tagIDs: string[] } {
-    this.validate(this.tagsDeleteMany, data);
+  validateTagGetByID(data: any): HttpTagRequest {
+    this.validate(this.tagGet, data);
+    return data;
+  }
+
+  validateTagsDelete(data: { tagIDs: string[] }): { tagIDs: string[] } {
+    this.validate(this.tagsDelete, data);
     return data;
   }
 }
