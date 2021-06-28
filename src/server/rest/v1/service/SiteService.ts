@@ -362,7 +362,7 @@ export default class SiteService {
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check static auth
-    if (!await Authorizations.canCreateSite(req.user)) {
+    if (!(await Authorizations.canCreateSite(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,

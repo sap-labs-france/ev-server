@@ -985,9 +985,9 @@ export default class TransactionStorage {
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
-  public static async getOICPTransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
+  public static async getOICPTransactionBySessionID(tenantID: string, oicpSessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
-      { oicpSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { oicpSessionID: oicpSessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
