@@ -533,6 +533,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      user,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_PAYMENT_METHODS,
+      module: MODULE_NAME, method: 'getPaymentMethods',
+      message: `Number of payment methods: ${paymentMethods?.length}`
+    });
     return paymentMethods;
   }
 
@@ -943,6 +951,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billTransaction',
+          message: `Billing process is about to start - transaction ID: ${transaction.id}`
+        });
         const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
       }
@@ -952,7 +968,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'stopTransaction',
+        module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

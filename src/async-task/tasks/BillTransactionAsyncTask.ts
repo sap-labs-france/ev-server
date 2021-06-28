@@ -1,5 +1,6 @@
+import { BillingDataTransactionStop, BillingStatus } from '../../types/Billing';
+
 import AbstractAsyncTask from '../AsyncTask';
-import { BillingDataTransactionStop } from '../../types/Billing';
 import BillingFactory from '../../integration/billing/BillingFactory';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
@@ -27,13 +28,19 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
               if (!transaction) {
                 throw new Error(`Unknown Transaction ID '${this.asyncTask.parameters.transactionID}'`);
               }
+              // Check consistency - async task should only bill transactions created while transaction billing was ON
+              if (!transaction.billingData?.withBillingActive) {
+                throw new Error(`Unexpected situation - billing should be active - transaction ID: '${this.asyncTask.parameters.transactionID}'`);
+              }
+              // Check status - async task should only bill transactions marked as PENDING
+              if (transaction.billingData?.stop?.status !== BillingStatus.PENDING) {
+                throw new Error(`Unexpected situation - billing status should be PENDING - transaction ID: '${this.asyncTask.parameters.transactionID}'`);
+              }
               // Attempt to finalize and pay invoices
               const billingDataStop: BillingDataTransactionStop = await billingImpl.billTransaction(transaction);
               // Update
-              if (transaction.billingData) {
-                transaction.billingData.stop = billingDataStop;
-                transaction.billingData.lastUpdate = new Date();
-              }
+              transaction.billingData.stop = billingDataStop;
+              transaction.billingData.lastUpdate = new Date();
               // Save
               await TransactionStorage.saveTransaction(tenant.id, transaction);
             } finally {
