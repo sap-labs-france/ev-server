@@ -507,7 +507,7 @@ export default class TransactionService {
       source: chargingStation.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleTransactionSoftStop',
-      message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
+      message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
       action: action,
       detailedMessages: { result }
     });
