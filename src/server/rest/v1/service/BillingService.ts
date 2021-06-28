@@ -642,6 +642,14 @@ export default class BillingService {
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
+    await Logging.logInfo({
+      tenantID: req.user.tenantID,
+      user,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_PAYMENT_METHODS,
+      module: MODULE_NAME, method: 'getPaymentMethods',
+      message: `Number of payment methods: ${paymentMethods?.length}`
+    });
     const dataResult: DataResult<BillingPaymentMethod> = {
       count: paymentMethods.length,
       result: paymentMethods
