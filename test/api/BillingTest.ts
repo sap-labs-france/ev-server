@@ -147,7 +147,7 @@ class TestData {
     if (expectedInvoiceStatus !== BillingInvoiceStatus.DRAFT) {
       assert(billingDataStop?.invoiceNumber, 'Invoice Number should be set');
     } else {
-      assert(billingDataStop?.invoiceNumber === null, 'Invoice Number should not yet been set');
+      assert(billingDataStop?.invoiceNumber === null, `Invoice Number should not yet been set - Invoice Number is: ${billingDataStop?.invoiceNumber}`);
     }
   }
 
