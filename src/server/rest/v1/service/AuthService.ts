@@ -258,7 +258,7 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email + '&isImported=false';
+        '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
@@ -671,7 +671,7 @@ export default class AuthService {
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-      user.email + '&isImported=false';
+      user.email;
     // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
