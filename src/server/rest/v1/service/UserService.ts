@@ -486,7 +486,7 @@ export default class UserService {
             // Set default value
             user.importedBy = importedBy;
             user.importedOn = importedOn;
-            user.autoActivateAtImport = UtilsSecurity.filterBoolean(req.headers.autoactivateatimport);
+            user.importedData = { 'autoActivateAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateatimport) };
             // Import
             const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
             if (!importSuccess) {
@@ -812,7 +812,7 @@ export default class UserService {
         name: importedUser.name.toUpperCase(),
         firstName: importedUser.firstName,
         email: importedUser.email,
-        autoActivateAtImport: importedUser.autoActivateAtImport,
+        importedData: importedUser.importedData,
         siteIDs: importedUser.siteIDs
       };
       // Validate User data

@@ -217,6 +217,7 @@ export default class UserStorage {
       locale: userToSave.locale,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
@@ -285,7 +286,7 @@ export default class UserStorage {
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
-      autoActivateAtImport: importedUserToSave.autoActivateAtImport,
+      importedData: importedUserToSave.importedData,
       siteIDs: importedUserToSave.siteIDs,
     };
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
@@ -309,7 +310,7 @@ export default class UserStorage {
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
       importedBy: Utils.convertToObjectID(importedUserToSave.importedBy),
-      autoActivateAtImport: importedUserToSave.autoActivateAtImport,
+      importedData: importedUserToSave.importedData,
       siteIDs: importedUserToSave.siteIDs,
     }));
     // Insert all at once

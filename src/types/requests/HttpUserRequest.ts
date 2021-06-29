@@ -90,7 +90,6 @@ export interface HttpVerifyEmailRequest {
   Email: string;
   Tenant: string;
   VerificationToken: string;
-  IsImported: boolean;
 }
 
 export interface HttpResendVerificationMailRequest {

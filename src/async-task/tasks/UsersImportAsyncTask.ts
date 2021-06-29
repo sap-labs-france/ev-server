@@ -75,13 +75,13 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               newUser.email = importedUser.email;
               newUser.createdBy = { id: importedUser.importedBy };
               newUser.createdOn = importedUser.importedOn;
-              newUser.status = importedUser.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.PENDING;
+              newUser.importedData = importedUser.importedData;
               // Save the new User
               newUser.id = await UserStorage.saveUser(tenant.id, newUser);
               // Role need to be set separately
               await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, newUser.id, newUser.status);
+              await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
               if (importedUser.siteIDs) {
                 // Check wheter site exists and save them to an array for assignement
                 const sitesToBeAssigned: string[] = [];
@@ -125,42 +125,25 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               // Init Password info
               const resetHash = Utils.generateUUID();
               await UserStorage.saveUserPassword(tenant.id, newUser.id, { passwordResetHash: resetHash });
-              if (newUser.status === UserStatus.ACTIVE) {
-                // Send create password link
-                const evseDashboardCreatePasswordURL = Utils.buildEvseURL(tenant.subdomain) +
-                  '/define-password?hash=' + resetHash;
-                // Send account created with create password notification (Async)
-                await NotificationHandler.sendUserCreatePassword(
-                  tenant.id,
-                  Utils.generateUUID(),
-                  newUser,
-                  {
-                    'user': newUser,
-                    'tenantName': tenant.name,
-                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-                    'evseDashboardCreatePasswordURL': evseDashboardCreatePasswordURL
-                  });
-              } else if (newUser.status === UserStatus.PENDING) {
-                // Generate new verificationToken
-                const verificationToken = Utils.generateToken(newUser.email);
-                // Save User Verification Account
-                await UserStorage.saveUserAccountVerification(tenant.id, newUser.id, { verificationToken });
-                // Build account verif email with reset password embeded
-                const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
-                '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-                newUser.email + '&ResetToken=' + resetHash + '&isImported=true';
-                // Send activate account link
-                await NotificationHandler.sendVerificationEmailUserImport(
-                  tenant.id,
-                  Utils.generateUUID(),
-                  newUser,
-                  {
-                    'tenantName': tenant.name,
-                    'user': newUser,
-                    'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
-                    'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-                  });
-              }
+              // Generate new verificationToken
+              const verificationToken = Utils.generateToken(newUser.email);
+              // Save User Verification Account
+              await UserStorage.saveUserAccountVerification(tenant.id, newUser.id, { verificationToken });
+              // Build account verif email with reset password embeded
+              const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
+              '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+              newUser.email + '&ResetToken=' + resetHash;
+              // Send activate account link
+              await NotificationHandler.sendVerificationEmailUserImport(
+                tenant.id,
+                Utils.generateUUID(),
+                newUser,
+                {
+                  'tenantName': tenant.name,
+                  'user': newUser,
+                  'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
+                  'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+                });
               result.inSuccess++;
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;

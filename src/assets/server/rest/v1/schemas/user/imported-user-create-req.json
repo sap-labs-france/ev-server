@@ -42,6 +42,15 @@
     "siteIDs": {
       "type": "string",
       "sanitize": "mongo"
+    },
+    "importedData": {
+      "type": "object",
+      "properties": {
+        "autoActivateAtImport": {
+          "type": "boolean",
+          "sanitize": "mongo"
+        }
+      }
     }
   },
   "required": [
