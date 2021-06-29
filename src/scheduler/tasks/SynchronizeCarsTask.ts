@@ -12,7 +12,7 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeCarsTask extends SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     // Get the lock
-    const syncCarCatalogLock = await LockingHelper.createSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
+    const syncCarCatalogLock = await LockingHelper.acquireSyncCarCatalogsLock(Constants.DEFAULT_TENANT);
     if (syncCarCatalogLock) {
       try {
         const carDatabaseImpl = await CarFactory.getCarImpl();

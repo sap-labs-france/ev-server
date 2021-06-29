@@ -16,22 +16,30 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs?: number): Lock {
+  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs = 600): Lock {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, lockValiditySecs);
   }
 
-  public static async acquire(lock: Lock, timeoutMs = 0, retry = true): Promise<boolean> {
+  public static async acquire(lock: Lock, timeoutSecs = 0, retry = true): Promise<boolean> {
     try {
+      await Logging.logDebug({
+        tenantID: lock.tenantID,
+        module: MODULE_NAME, method: 'acquire',
+        action: ServerAction.LOCKING,
+        message: `Try to acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+        detailedMessages: { lock, timeoutSecs, retry }
+      });
+      Utils.isDevelopmentEnv() && console.debug(chalk.green(`Try to acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
       switch (lock.type) {
         case LockType.EXCLUSIVE:
-          await LockingManager.acquireExclusiveLock(lock, timeoutMs);
+          await LockingManager.acquireExclusiveLock(lock, timeoutSecs);
           break;
         default:
           throw new BackendError({
             action: ServerAction.LOCKING,
             module: MODULE_NAME, method: 'acquire',
             message: `Cannot acquire a lock entity '${lock.entity}' ('${lock.key}') with an unknown type '${lock.type}'`,
-            detailedMessages: { lock }
+            detailedMessages: { lock, timeoutSecs, retry }
           });
       }
       await Logging.logDebug({
@@ -39,21 +47,21 @@ export default class LockingManager {
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
-        detailedMessages: { lock }
+        detailedMessages: { lock, timeoutSecs, retry }
       });
       Utils.isDevelopmentEnv() && console.debug(chalk.green(`Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
       return true;
     } catch (error) {
       // Check if specific lock for the asset has an expiration date
       if (retry && await LockingManager.checkAndReleaseExpiredLock(lock)) {
-        return LockingManager.acquire(lock, timeoutMs, false);
+        return LockingManager.acquire(lock, timeoutSecs, false);
       }
       await Logging.logWarning({
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
-        detailedMessages: { lock, error: error.message, stack: error.stack }
+        detailedMessages: { lock, timeoutSecs, retry, error: error.message, stack: error.stack }
       });
       Utils.isDevelopmentEnv() && console.error(chalk.red(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
       return false;
@@ -77,10 +85,10 @@ export default class LockingManager {
       tenantID: lock.tenantID,
       module: MODULE_NAME, method: 'release',
       action: ServerAction.LOCKING,
-      message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+      message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' after ${Math.round(Date.now() - lock.timestamp.getTime()) / 1000} secs`,
       detailedMessages: { lock }
     });
-    Utils.isDevelopmentEnv() && console.debug(chalk.green(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}' after ${Math.round(Date.now() - lock.timestamp.getTime()) / 1000} secs`));
     return true;
   }
 
@@ -134,9 +142,9 @@ export default class LockingManager {
     return lock;
   }
 
-  private static async acquireExclusiveLock(lock: Lock, timeoutMs: number): Promise<void> {
-    if (timeoutMs > 0) {
-      const timeoutDateMs = Date.now() + timeoutMs;
+  private static async acquireExclusiveLock(lock: Lock, timeoutSecs: number): Promise<void> {
+    if (timeoutSecs > 0) {
+      const timeoutDateMs = Date.now() + (timeoutSecs * 1000);
       do {
         try {
           await LockingStorage.insertLock(lock);
@@ -145,7 +153,7 @@ export default class LockingManager {
           await Utils.sleep(1000);
         }
       } while (Date.now() < timeoutDateMs);
-      throw Error(`Lock acquisition timeout ${timeoutMs}ms reached`);
+      throw Error(`Lock acquisition timeout ${timeoutSecs} secs reached`);
     } else {
       await LockingStorage.insertLock(lock);
     }
