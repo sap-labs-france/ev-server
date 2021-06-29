@@ -1,0 +1,16 @@
+{
+  "title": "Delete several Tags",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "tagsIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "tag.json#/definitions/id"
+      }
+    }
+  },
+  "required": [
+    "tagsIDs"
+  ]
+}

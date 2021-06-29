@@ -46,7 +46,7 @@ export default class TagService {
 
   public static async handleGetTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter request
-    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
       { withUser: true }, true);
@@ -63,7 +63,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIDs = TagSecurity.filterTagRequestByIDs(req.body);
+    const tagsIDs = TagValidator.getInstance().validateTagsDelete(req.body).tagsIDs;
     // Delete
     const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
     // Return
@@ -228,7 +228,7 @@ export default class TagService {
 
   public static async handleUpdateTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagUpdateRequest({ ...req.params, ...req.body }, req.user);
+    const filteredRequest = TagValidator.getInstance().validateTagUpdate({ ...req.params, ...req.body });
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
@@ -726,7 +726,7 @@ export default class TagService {
 
   private static async getTags(req: Request): Promise<DataResult<Tag>> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagsRequest(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagsGet(req.query);
     // Get authorization filters
     const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
       req.tenant, req.user, filteredRequest);
@@ -757,7 +757,7 @@ export default class TagService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationTagsFilters.projectFields,
