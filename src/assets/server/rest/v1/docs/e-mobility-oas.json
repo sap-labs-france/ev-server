@@ -5026,7 +5026,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Return tag",
+            "description": "Tag importation results",
             "content": {
               "application/json": {
                 "example": {
