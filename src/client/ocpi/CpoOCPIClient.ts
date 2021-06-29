@@ -706,7 +706,7 @@ export default class CpoOCPIClient extends OCPIClient {
                   // Send notification to admins
                   // eslint-disable-next-line @typescript-eslint/no-floating-promises
                   NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                    this.tenant.id,
+                    this.tenant,
                     {
                       location: location.name,
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain),

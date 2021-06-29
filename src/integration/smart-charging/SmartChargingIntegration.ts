@@ -54,7 +54,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         actionsResponse.inSuccess++;
       } catch (error) {
         // Retry setting the profile and check if succeeded
-        if (await this.handleRefusedChargingProfile(this.tenant.id, chargingProfile, siteArea.name)) {
+        if (await this.handleRefusedChargingProfile(this.tenant, chargingProfile, siteArea.name)) {
           actionsResponse.inSuccess++;
           continue;
         }
@@ -122,7 +122,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     }
   }
 
-  private async handleRefusedChargingProfile(tenantID: string, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
+  private async handleRefusedChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile, siteAreaName: string): Promise<boolean> {
     // Retry setting the cp 2 more times
     for (let i = 0; i < 2; i++) {
       try {
@@ -142,11 +142,11 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       }
     }
     // Remove Charging Station from Smart Charging
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingProfile.chargingStationID);
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins
-    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenantID, chargingStation,
+    await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       { chargeBoxID: chargingProfile.chargingStationID,
         siteAreaName: siteAreaName,
         evseDashboardURL: Utils.buildEvseURL()

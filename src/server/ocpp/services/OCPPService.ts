@@ -970,7 +970,7 @@ export default class OCPPService {
       });
       // Send Notification (Async)
       NotificationHandler.sendChargingStationStatusError(
-        tenant.id,
+        tenant,
         Utils.generateUUID(),
         chargingStation,
         {
@@ -1183,7 +1183,7 @@ export default class OCPPService {
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
-        tenant.id,
+        tenant,
         transaction.user,
         chargingStation,
         {
@@ -1207,7 +1207,7 @@ export default class OCPPService {
       const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
       // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
-        tenant.id,
+        tenant,
         transaction.id.toString() + '-OCR',
         transaction.user,
         chargingStation,
@@ -1455,7 +1455,7 @@ export default class OCPPService {
   private notifyStartTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     if (user) {
       NotificationHandler.sendSessionStarted(
-        tenant.id,
+        tenant,
         transaction.id.toString(),
         user,
         chargingStation,
@@ -1499,7 +1499,7 @@ export default class OCPPService {
       const i18nManager = I18nManager.getInstanceForLocale(user.locale);
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
-        tenant.id,
+        tenant,
         transaction.id.toString() + '-EOS',
         user,
         chargingStation,
@@ -1521,7 +1521,7 @@ export default class OCPPService {
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
         NotificationHandler.sendEndOfSignedSession(
-          tenant.id,
+          tenant,
           transaction.id.toString() + '-EOSS',
           user,
           chargingStation,
@@ -1843,7 +1843,7 @@ export default class OCPPService {
 
   private notifyBootNotification(tenant: Tenant, chargingStation: ChargingStation) {
     void NotificationHandler.sendChargingStationRegistered(
-      tenant.id,
+      tenant,
       Utils.generateUUID(),
       chargingStation,
       {

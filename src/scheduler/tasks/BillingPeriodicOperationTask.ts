@@ -20,7 +20,7 @@ export default class BillingPeriodicOperationTask extends SchedulerTask {
           const chargeActionResults = await billingImpl.chargeInvoices();
           if (chargeActionResults.inError > 0) {
             await NotificationHandler.sendBillingPeriodicOperationFailed(
-              tenant.id,
+              tenant,
               {
                 nbrInvoicesInError: chargeActionResults.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
