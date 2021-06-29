@@ -579,7 +579,7 @@ export default class AuthService {
     const filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
     // Get the tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant.id) {
+    if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -788,7 +788,7 @@ export default class AuthService {
   public static async getTenant(subdomain: string): Promise<Tenant> {
     // Check
     if (!subdomain) {
-      return await TenantStorage.getTenant(Constants.DEFAULT_TENANT);
+      return Constants.DEFAULT_TENANT_OBJECT;
     }
     // Get it
     const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
