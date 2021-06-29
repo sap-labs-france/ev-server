@@ -3,7 +3,7 @@
   "description": "",
   "type": "object",
   "properties": {
-    "tagIDs": {
+    "tagsIDs": {
       "type": "array",
       "items": {
         "$ref": "tag.json#/definitions/id"
@@ -11,6 +11,6 @@
     }
   },
   "required": [
-    "tagIDs"
+    "tagsIDs"
   ]
 }

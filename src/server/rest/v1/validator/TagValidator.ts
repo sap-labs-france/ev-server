@@ -56,7 +56,7 @@ export default class TagValidator extends SchemaValidator {
     return data;
   }
 
-  validateTagsDelete(data: { tagIDs: string[] }): { tagIDs: string[] } {
+  validateTagsDelete(data: { tagsIDs: string[] }): { tagsIDs: string[] } {
     this.validate(this.tagsDelete, data);
     return data;
   }

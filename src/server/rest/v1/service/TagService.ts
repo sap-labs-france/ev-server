@@ -63,7 +63,7 @@ export default class TagService {
 
   public static async handleDeleteTags(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const tagsIDs = TagValidator.getInstance().validateTagsDelete(req.body).tagIDs;
+    const tagsIDs = TagValidator.getInstance().validateTagsDelete(req.body).tagsIDs;
     // Delete
     const result = await TagService.deleteTags(req.tenant, action, req.user, tagsIDs);
     // Return
