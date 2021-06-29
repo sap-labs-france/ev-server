@@ -67,9 +67,7 @@ export default class StripeIntegrationTestData {
     // The tests requires some settings to be forced
     await this.setBillingSystemValidCredentials(immediateBilling);
     this.billingUser = await this.billingImpl.getUser(this.dynamicUser);
-    if (!this.billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-      this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
-    }
+    this.billingUser = await this.billingImpl.forceSynchronizeUser(this.dynamicUser);
     assert(this.billingUser, 'Billing user should not be null');
   }
 
