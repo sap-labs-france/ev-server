@@ -31,7 +31,7 @@ export default class NotificationService {
       chargingStationProject = [ 'chargeBoxID' ];
     }
     // Get the Notification
-    const notifications = await NotificationStorage.getNotifications(req.user.tenantID, {
+    const notifications = await NotificationStorage.getNotifications(req.tenant, {
       'userID': filteredRequest.UserID,
       'dateFrom': filteredRequest.DateFrom,
       'channel': filteredRequest.Channel
@@ -82,7 +82,7 @@ export default class NotificationService {
       evseDashboardURL: Utils.buildEvseURL(),
     };
     // Send Notification
-    await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, endUserErrorNotification);
+    await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

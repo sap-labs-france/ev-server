@@ -147,7 +147,7 @@ class TestData {
     if (expectedInvoiceStatus !== BillingInvoiceStatus.DRAFT) {
       assert(billingDataStop?.invoiceNumber, 'Invoice Number should be set');
     } else {
-      assert(billingDataStop?.invoiceNumber === null, 'Invoice Number should not yet been set');
+      assert(billingDataStop?.invoiceNumber === null, `Invoice Number should not yet been set - Invoice Number is: ${billingDataStop?.invoiceNumber}`);
     }
   }
 
@@ -417,6 +417,12 @@ describe('Billing Service', function() {
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       // Initialize the Billing module
       testData.billingImpl = await testData.setBillingSystemValidCredentials();
+      // Make sure the required users are in sync
+      const adminUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      const basicUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      // Synchronize at least these 2 users - this creates a customer on the STRIPE side
+      await testData.billingImpl.forceSynchronizeUser(adminUser);
+      await testData.billingImpl.forceSynchronizeUser(basicUser);
     });
 
     describe('Where admin user (essential)', () => {

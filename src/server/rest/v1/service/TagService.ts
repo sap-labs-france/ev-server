@@ -381,7 +381,7 @@ export default class TagService {
       });
     }
     // Acquire the lock
-    const importTagsLock = await LockingHelper.createImportTagsLock(req.tenant.id);
+    const importTagsLock = await LockingHelper.acquireImportTagsLock(req.tenant.id);
     if (!importTagsLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
