@@ -908,9 +908,9 @@ export default class Logging {
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
       action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
-    // Keep duration
-    Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
-    // Log
+    // Keep duration (only for one Action per Charging Station)
+    // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
+    Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -925,9 +925,10 @@ export default class Logging {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
-    if (Logging.traceCalls[`${chargingStationID}~action`]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~action`]);
-      delete Logging.traceCalls[`${chargingStationID}~action`];
+    // Get the response time
+    if (Logging.traceCalls[`${chargingStationID}~${action}`]) {
+      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~${action}`]);
+      delete Logging.traceCalls[`${chargingStationID}~${action}`];
       found = true;
     }
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;

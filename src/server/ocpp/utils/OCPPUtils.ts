@@ -19,6 +19,9 @@ import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../types/DataResult';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
+import Lock from '../../../types/Locking';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -71,11 +74,19 @@ export default class OCPPUtils {
           action: ServerAction.ROAMING,
           user: transaction.userID,
           module: MODULE_NAME, method: 'processTransactionRoaming',
-          message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Roaming exception occurred: ${error.message as string}`,
+          message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Roaming exception occurred: ${error.message as string}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
+  }
+
+  public static buildConnectorInfo(connectorID: number, transactionID: number): string {
+    let connectorInfo = `Connector ID '${connectorID}' >`;
+    if (transactionID > 0) {
+      connectorInfo += ` Transaction ID '${transactionID}' >`;
+    }
+    return connectorInfo;
   }
 
   public static async processOICPTransaction(tenant: Tenant, transaction: Transaction,
@@ -1467,7 +1478,8 @@ export default class OCPPUtils {
         meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
-  static async checkAndGetTenantAndChargingStation(ocppHeader: OCPPHeader): Promise<{ chargingStation: ChargingStation, tenant: Tenant }> {
+  static async checkAndGetTenantAndChargingStation(
+      ocppHeader: OCPPHeader):Promise<{ chargingStation: ChargingStation, tenant: Tenant, chargingStationLock: Lock}> {
     // Check
     if (!ocppHeader.chargeBoxIdentity) {
       throw new BackendError({
@@ -1495,29 +1507,48 @@ export default class OCPPUtils {
         message: `Tenant ID '${ocppHeader.tenantID}' does not exist!`
       });
     }
-    // Get Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(
-      ocppHeader.tenantID, ocppHeader.chargeBoxIdentity);
-    if (!chargingStation) {
+    // Get first the lock to get the most recent Charging Station from the DB
+    const chargingStationLock = await LockingHelper.acquireChargingStationLock(tenant.id, ocppHeader.chargeBoxIdentity);
+    if (!chargingStationLock) {
       throw new BackendError({
         source: ocppHeader.chargeBoxIdentity,
         module: MODULE_NAME,
         method: 'checkAndGetTenantAndChargingStation',
-        message: 'Charging Station does not exist'
+        message: 'Cannot aquire a lock on the Charging Station'
       });
     }
-    // Deleted?
-    if (chargingStation?.deleted) {
-      throw new BackendError({
-        source: ocppHeader.chargeBoxIdentity,
-        module: MODULE_NAME,
-        method: 'checkAndGetTenantAndChargingStation',
-        message: 'Charging Station is deleted'
-      });
+    // Get the Charging Station
+    let chargingStation: ChargingStation;
+    try {
+      chargingStation = await ChargingStationStorage.getChargingStation(
+        ocppHeader.tenantID, ocppHeader.chargeBoxIdentity);
+      if (!chargingStation) {
+        throw new BackendError({
+          source: ocppHeader.chargeBoxIdentity,
+          module: MODULE_NAME,
+          method: 'checkAndGetTenantAndChargingStation',
+          message: 'Charging Station does not exist'
+        });
+      }
+      // Deleted?
+      if (chargingStation?.deleted) {
+        throw new BackendError({
+          source: ocppHeader.chargeBoxIdentity,
+          module: MODULE_NAME,
+          method: 'checkAndGetTenantAndChargingStation',
+          message: 'Charging Station is deleted'
+        });
+      }
+    } catch (error) {
+      // Release the lock in case of issues with Charging Station
+      await LockingManager.release(chargingStationLock);
+      // Rethrow the error
+      throw error;
     }
     return {
       tenant,
       chargingStation,
+      chargingStationLock
     };
   }
 
