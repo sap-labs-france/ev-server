@@ -4589,10 +4589,10 @@
             "$ref": "#/components/responses/BackendError"
           },
           "583": {
-            "description": "Invalid file format"
+            "$ref": "#/components/responses/InvalidFileFormat"
           },
           "584": {
-            "description": "Invalid CSV header format"
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
           }
         }
       }
@@ -4701,12 +4701,10 @@
             "$ref": "#/components/parameters/UserID"
           },
           {
-            "in": "query",
-            "name": "Active",
-            "description": "Active attribute",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/TagActive"
+          },
+          {
+            "$ref": "#/components/parameters/TagWithUser"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -5003,6 +5001,123 @@
           }
         }
       }
+    },
+    "/api/tags/action/import": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Import a Tag file",
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return tag",
+            "content": {
+              "application/json": {
+                "example": {
+                  "inSuccess": 42,
+                  "inError": 0,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "$ref": "#/components/responses/InvalidFileFormat"
+          },
+          "584": {
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
+          }
+        }
+      }
+    },
+    "/api/tags/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/TagActive"
+          },
+          {
+            "$ref": "#/components/parameters/TagWithUser"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return exported tags",
+            "content": {
+              "text/csv": {
+                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "$ref": "#/components/responses/InvalidFileFormat"
+          },
+          "584": {
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5037,6 +5152,12 @@
       },
       "TagHasTransactionsError": {
         "description": "Cannot change user or delete a tag having transactions"
+      },
+      "InvalidFileFormat": {
+        "description": "Invalid file format"
+      },
+      "InvalidCSVHeaderFormat": {
+        "description": "Invalid CSV header format"
       }
     },
     "schemas": {
@@ -6391,6 +6512,22 @@
         "description": "Car ID",
         "schema": {
           "type": "string"
+        }
+      },
+      "TagActive": {
+        "in": "query",
+        "name": "Active",
+        "description": "Active attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "TagWithUser": {
+        "in": "query",
+        "name": "WithUser",
+        "description": "Retrieve also the user",
+        "schema": {
+          "type": "boolean"
         }
       }
     }
