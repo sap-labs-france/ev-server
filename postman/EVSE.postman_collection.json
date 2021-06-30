@@ -4001,7 +4001,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"id\": \"ABCDE1234679\",\n    \"visualID\": \"New visual ID\",\n    \"description\": \"Postman tag\",\n    \"active\": true,\n    \"issuer\": true,\n    \"default\": false,\n    \"userID\": \"{{userID}}\"\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -4018,6 +4018,55 @@
 						"api",
 						"tags",
 						"{{tag}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TagsDelete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tagsIDs\": [\n        \"{{tagId1}}\",\n        \"{{tagId2}}\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/api/tags",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"tags"
 					]
 				}
 			},
