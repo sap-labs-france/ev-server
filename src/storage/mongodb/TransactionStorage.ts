@@ -273,7 +273,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
+        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -480,6 +480,21 @@ export default class TransactionStorage {
           }
         };
         break;
+      case 'ongoing': // For ongoing case
+        statsQuery = {
+          $group: {
+            _id: null,
+            firstTimestamp: { $min: '$timestamp' },
+            lastTimestamp: { $max: '$timestamp' },
+            totalConsumptionWattHours: { $sum: '$currentTotalConsumptionWh' },
+            totalDurationSecs: { $sum: '$currentTotalDurationSecs' },
+            totalPrice: { $sum: '$currentCumulatedPrice' },
+            totalInactivitySecs: { $sum:  '$currentTotalInactivitySecs' },
+            currency: { $addToSet: '$priceUnit' },
+            count: { $sum: 1 }
+          }
+        };
+        break;
       case 'refund': // For refund case
         statsQuery = {
           $group: {
@@ -515,6 +530,7 @@ export default class TransactionStorage {
     if (!transactionCountMDB) {
       switch (params.statistics) {
         case 'history':
+        case 'ongoing':
           transactionCountMDB = {
             totalConsumptionWattHours: 0,
             totalDurationSecs: 0,
