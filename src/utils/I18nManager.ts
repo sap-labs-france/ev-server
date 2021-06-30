@@ -74,8 +74,11 @@ export default class I18nManager {
     return '0';
   }
 
-  public formatDateTime(value: Date, format = 'LLL'): string {
+  public formatDateTime(value: Date, format = 'LLL', timezone: string = null): string {
     moment.locale(this.language);
+    if (timezone) {
+      return moment(new Date(value)).tz(timezone).format(format);
+    }
     return moment(new Date(value)).format(format);
   }
 }
