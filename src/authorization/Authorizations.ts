@@ -970,7 +970,7 @@ export default class Authorizations {
     await TagStorage.saveTag(tenant.id, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
-      tenant.id,
+      tenant,
       Utils.generateUUID(),
       chargingStation,
       {

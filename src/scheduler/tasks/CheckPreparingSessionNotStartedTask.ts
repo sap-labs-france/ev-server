@@ -35,7 +35,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
               // Send notification
               moment.locale(siteOwners.result[0].user.locale);
               for (const connector of chargingStation.connectors) {
-                await NotificationHandler.sendPreparingSessionNotStarted(tenant.id, chargingStation, siteOwners.result[0].user, {
+                await NotificationHandler.sendPreparingSessionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
                   user: siteOwners.result[0].user,
                   chargeBoxID: chargingStation.id,
                   connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
