@@ -313,10 +313,6 @@ export default class SiteService {
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
       MODULE_NAME, 'handleGetSiteImage', req.user);
-    // Get
-    const site = await SiteStorage.getSite(tenant, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDeleteSite', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
     if (siteImage?.image) {
