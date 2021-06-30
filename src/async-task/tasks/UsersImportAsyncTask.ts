@@ -93,7 +93,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                       sitesToBeAssigned.push(siteID);
                     }
                     continue;
-                  } else if (!Utils.isNullOrUndefined(site = await SiteStorage.getSite(tenant.id, siteID))) {
+                  } else if (!Utils.isNullOrUndefined(site = await SiteStorage.getSite(tenant, siteID))) {
                     if (site.autoUserSiteAssignment) {
                       existingSitesToAutoAssign[siteID] = true;
                       sitesToBeAssigned.push(siteID);
