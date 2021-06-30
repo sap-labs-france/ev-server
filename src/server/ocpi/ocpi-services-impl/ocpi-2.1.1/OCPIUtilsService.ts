@@ -882,7 +882,18 @@ export default class OCPIUtilsService {
         return 'FR*ISE_Payant1';
       // Properphi
       case '603655d291930d0014017e0a':
-        return 'Tarif_EVSE_DC';
+        switch (chargingStation?.siteAreaID) {
+          // F3C Baume les dames
+          case '60990f1cc48de10014ea4fdc':
+            switch (chargingStation?.id) {
+              case 'F3CBaume-CAHORS24DC':
+                return 'Tarif_EVSE_DC';
+              case 'F3CBaume-LAFON22AC':
+                return 'Tarif_EVSE_AC';
+            }
+            return '';
+        }
+        return '';
     }
     return '';
   }

@@ -243,12 +243,12 @@ export default class UserService {
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
-        req.user.tenantID,
+        req.tenant,
         Utils.generateUUID(),
         user,
         {
           'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
+          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -357,7 +357,7 @@ export default class UserService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       authorizationUserSitesFilters.projectFields
@@ -419,7 +419,7 @@ export default class UserService {
       });
     }
     // Acquire the lock
-    const importUsersLock = await LockingHelper.createImportUsersLock(req.tenant.id);
+    const importUsersLock = await LockingHelper.acquireImportUsersLock(req.tenant.id);
     if (!importUsersLock) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

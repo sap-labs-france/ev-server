@@ -1,0 +1,16 @@
+{
+  "title": "Get a Tag",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "ID": {
+      "$ref": "tag.json#/definitions/id"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": [
+    "ID"
+  ]
+}
