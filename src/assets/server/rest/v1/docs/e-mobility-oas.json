@@ -4796,6 +4796,60 @@
             "description": "Tag already exists"
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete several Tags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tagsIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags deletion result",
+            "content": {
+              "application/json": {
+                "example": {
+                  "inSuccess": 42,
+                  "inError": 0,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
       }
     },
     "/api/tags/{id}": {
@@ -4975,9 +5029,6 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
-          },
-          "575": {
-            "$ref": "#/components/responses/TagHasTransactionsError"
           }
         }
       }
