@@ -211,7 +211,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       // Update Location
       const company = await ocpiClient.checkAndGetCompany();
       const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
-      const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
+      const sites = await SiteStorage.getSites(tenant, { companyIDs: [company.id], name: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
       await ocpiClient.processLocation(location, company, sites.result);
     }
     return OCPIUtils.success();

@@ -229,7 +229,7 @@ export default class CompanyStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
-    await SiteStorage.deleteCompanySites(tenant.id, id);
+    await SiteStorage.deleteCompanySites(tenant, id);
     // Delete the Company
     await global.database.getCollection<Company>(tenant.id, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });

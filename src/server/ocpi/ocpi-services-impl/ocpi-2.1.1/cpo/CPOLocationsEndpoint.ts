@@ -122,7 +122,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
 
   private async getLocation(tenant: Tenant, locationId: string, options: OCPILocationOptions): Promise<OCPILocation> {
     // Get site
-    const site = await SiteStorage.getSite(tenant.id, locationId);
+    const site = await SiteStorage.getSite(tenant, locationId);
     if (site) {
       return await OCPIUtilsService.convertSite2Location(tenant, site, options, true);
     }

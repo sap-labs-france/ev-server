@@ -287,8 +287,8 @@ export default class ContextBuilder {
         siteTemplate.id = siteContextDef.id;
         siteTemplate.issuer = true;
         site = siteTemplate;
-        site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
+        site.id = await SiteStorage.saveSite(buildTenant, siteTemplate, true);
+        await SiteStorage.addUsersToSite(buildTenant, site.id, userListToAssign.map((user) => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         // Create site areas of current site
         for (const siteAreaDef of ContextDefinition.TENANT_SITEAREA_LIST.filter((siteArea) => siteArea.siteName === site.name)) {

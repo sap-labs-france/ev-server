@@ -236,7 +236,7 @@ export default class AuthService {
         eulaAcceptedHash: endUserLicenseAgreement.hash
       });
     // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(tenant.id,
+    const sites = await SiteStorage.getSites(tenant,
       { withAutoUserAssignment: true },
       Constants.DB_PARAMS_MAX_LIMIT
     );
@@ -846,4 +846,3 @@ export default class AuthService {
     }
   }
 }
-
