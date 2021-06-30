@@ -1,10 +1,10 @@
-import AddVisualIDPropertyToTagsTask from './tasks/AddVisualIDPropertyToTagsTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
+import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
 import { ServerAction } from '../types/Server';
 import cluster from 'cluster';
 import moment from 'moment';
@@ -85,8 +85,7 @@ export default class MigrationHandler {
 
   private static createMigrationTasks(): MigrationTask[] {
     const currentMigrationTasks: MigrationTask[] = [];
-
-    currentMigrationTasks.push(new AddVisualIDPropertyToTagsTask());
+    currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
     return currentMigrationTasks;
   }
 

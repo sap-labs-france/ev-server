@@ -37,7 +37,7 @@ export default class OICPEndpointStorage {
     const oicpEndpointFilter: any = {};
     // Build Request
     if (oicpEndpointToSave.id) {
-      oicpEndpointFilter._id = Utils.convertToObjectID(oicpEndpointToSave.id);
+      oicpEndpointFilter._id = DatabaseUtils.convertToObjectID(oicpEndpointToSave.id);
     } else {
       oicpEndpointFilter._id = new ObjectID();
     }
@@ -95,7 +95,7 @@ export default class OICPEndpointStorage {
     }
     if (params.oicpEndpointIDs) {
       filters._id = {
-        $in: params.oicpEndpointIDs.map((oicpEndpointID) => Utils.convertToObjectID(oicpEndpointID))
+        $in: params.oicpEndpointIDs.map((oicpEndpointID) => DatabaseUtils.convertToObjectID(oicpEndpointID))
       };
     }
     if (params.localToken) {
@@ -171,7 +171,7 @@ export default class OICPEndpointStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Delete OicpEndpoint
     await global.database.getCollection<any>(tenantID, 'oicpendpoints')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
   }

@@ -90,7 +90,7 @@ export default class LockingStorage {
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
-      tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? Utils.convertToObjectID(lockToSave.tenantID) : null,
+      tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? DatabaseUtils.convertToObjectID(lockToSave.tenantID) : null,
       entity: lockToSave.entity,
       key: lockToSave.key,
       type: lockToSave.type,
