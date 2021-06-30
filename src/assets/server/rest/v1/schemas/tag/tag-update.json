@@ -1,0 +1,33 @@
+{
+  "title": "Update a Tag",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "tag.json#/definitions/id"
+    },
+    "visualID": {
+      "$ref": "tag.json#/definitions/visualID"
+    },
+    "description": {
+      "$ref": "tag.json#/definitions/description"
+    },
+    "active": {
+      "$ref": "tag.json#/definitions/active"
+    },
+    "issuer": {
+      "$ref": "tag.json#/definitions/issuer"
+    },
+    "default": {
+      "$ref": "tag.json#/definitions/default"
+    },
+    "userID": {
+      "$ref": "tag.json#/definitions/userID"
+    }
+  },
+  "required": [
+    "id",
+    "visualID",
+    "userID"
+  ]
+}

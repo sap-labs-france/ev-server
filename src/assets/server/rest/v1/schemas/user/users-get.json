@@ -14,7 +14,7 @@
       "$ref": "common.json#/definitions/ids"
     },
     "UserID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "user.json#/definitions/ids"
     },
     "Roles": {
       "type": "string",
@@ -33,7 +33,7 @@
       "$ref": "tag.json#/definitions/ids"
     },
     "ExcludeUserIDs": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "user.json#/definitions/ids"
     },
     "IncludeCarUserIDs": {
       "$ref": "common.json#/definitions/ids"

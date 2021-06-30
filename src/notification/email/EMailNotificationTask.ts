@@ -292,7 +292,7 @@ export default class EMailNotificationTask implements NotificationTask {
       if (sendSmtpError) {
         // TODO: Circular deps: src/notification/NotificationHandler.ts -> src/notification/email/EMailNotificationTask.ts -> src/notification/NotificationHandler.ts
         await NotificationHandler.sendSmtpError(
-          tenant.id,
+          tenant,
           {
             SMTPError: error,
             evseDashboardURL: data.evseDashboardURL

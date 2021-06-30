@@ -17,7 +17,10 @@ export default class TagRouter {
     this.buildRouteTag();
     this.buildRouteCreateTag();
     this.buildRouteDeleteTag();
+    this.buildRouteDeleteTags();
     this.buildRouteUpdateTag();
+    this.buildRouteImportTag();
+    this.buildRouteExportTag();
     return this.router;
   }
 
@@ -48,9 +51,27 @@ export default class TagRouter {
     });
   }
 
+  protected buildRouteDeleteTags(): void {
+    this.router.delete(`/${ServerRoute.REST_TAGS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TagService.handleDeleteTags.bind(this), ServerAction.TAGS_DELETE, req, res, next);
+    });
+  }
+
   protected buildRouteUpdateTag(): void {
     this.router.put(`/${ServerRoute.REST_TAG}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleUpdateTag.bind(this), ServerAction.TAG_UPDATE, req, res, next);
+    });
+  }
+
+  protected buildRouteImportTag(): void {
+    this.router.post(`/${ServerRoute.REST_TAG_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TagService.handleImportTags.bind(this), ServerAction.TAGS_IMPORT, req, res, next);
+    });
+  }
+
+  protected buildRouteExportTag(): void {
+    this.router.get(`/${ServerRoute.REST_TAG_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TagService.handleExportTags.bind(this), ServerAction.TAGS_EXPORT, req, res, next);
     });
   }
 }

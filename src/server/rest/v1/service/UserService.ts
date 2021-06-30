@@ -190,8 +190,6 @@ export default class UserService {
     // Update timestamp
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
-    // Clean up request
-    delete filteredRequest['passwords'];
     // Check User validity
     UtilsService.checkIfUserValid(filteredRequest, user, req);
     // Update user
@@ -248,12 +246,12 @@ export default class UserService {
     if (statusHasChanged && req.tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
-        req.user.tenantID,
+        req.tenant,
         Utils.generateUUID(),
         user,
         {
           'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
+          'evseDashboardURL': Utils.buildEvseURL(req.tenant.subdomain)
         }
       ).catch(() => { });
     }
@@ -636,8 +634,6 @@ export default class UserService {
         action: action
       });
     }
-    // Clean request
-    delete filteredRequest['passwords'];
     // Create
     const newUser: User = {
       ...filteredRequest,
@@ -687,7 +683,7 @@ export default class UserService {
       }
     }
     // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(req.user.tenantID,
+    const sites = await SiteStorage.getSites(req.tenant,
       { withAutoUserAssignment: true },
       Constants.DB_PARAMS_MAX_LIMIT
     );

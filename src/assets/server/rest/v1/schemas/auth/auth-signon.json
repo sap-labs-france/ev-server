@@ -11,16 +11,8 @@
     "firstName": {
       "$ref": "user.json#/definitions/firstName"
     },
-    "passwords": {
-      "type": "object",
-      "properties": {
-        "password": {
-          "$ref": "user.json#/definitions/password"
-        },
-        "repeatPassword": {
-          "$ref": "user.json#/definitions/password"
-        }
-      }
+    "password": {
+      "$ref": "user.json#/definitions/password"
     },
     "acceptEula": {
       "$ref": "common.json#/definitions/acceptEula"
@@ -41,7 +33,7 @@
     "email",
     "name",
     "firstName",
-    "passwords",
+    "password",
     "acceptEula",
     "captcha"
   ]

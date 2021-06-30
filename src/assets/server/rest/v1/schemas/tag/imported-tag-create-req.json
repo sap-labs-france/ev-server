@@ -1,19 +1,16 @@
 {
-  "title": "Tag creation",
+  "title": "Tag importation",
   "description": "",
   "type": "object",
   "properties": {
     "id": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 100,
-      "pattern": "^[a-zA-Z0-9]*$"
+      "$ref": "tag.json#/definitions/id"
     },
     "description": {
-      "type": "string"
+      "$ref": "tag.json#/definitions/description"
     },
     "visualID": {
-      "type": "string"
+      "$ref": "tag.json#/definitions/visualID"
     }
   },
   "required": [

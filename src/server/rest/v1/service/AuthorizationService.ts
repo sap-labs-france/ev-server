@@ -695,9 +695,9 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getAssignedSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+  private static async getAssignedSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites assigned to the User
-    const sites = await SiteStorage.getSites(tenantID,
+    const sites = await SiteStorage.getSites(tenant,
       {
         userID: userToken.id,
         issuer: true,
@@ -725,7 +725,7 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get assigned Site IDs assigned to user from DB
-        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant.id, userToken);
+        const siteIDs = await AuthorizationService.getAssignedSiteIDs(tenant, userToken);
         if (!Utils.isEmptyArray(siteIDs)) {
           // Force the filter
           authorizationFilters.filters.siteIDs = siteIDs;

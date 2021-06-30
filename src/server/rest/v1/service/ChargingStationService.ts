@@ -141,7 +141,7 @@ export default class ChargingStationService {
                 partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
               };
               // Get Site
-              const site = await SiteStorage.getSite(req.tenant.id, chargingStation.siteID);
+              const site = await SiteStorage.getSite(req.tenant, chargingStation.siteID);
               // Push EVSE to OICP platform
               await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
                 site, chargingStation.siteArea, chargingStation, options), actionType);
@@ -848,7 +848,7 @@ export default class ChargingStationService {
               partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
             };
             // Get Site
-            const site = await SiteStorage.getSite(req.tenant.id, chargingStation.siteID);
+            const site = await SiteStorage.getSite(req.tenant, chargingStation.siteID);
             // Push EVSE to OICP platform
             await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
               site, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);

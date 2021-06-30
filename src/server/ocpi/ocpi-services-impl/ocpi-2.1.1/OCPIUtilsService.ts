@@ -116,7 +116,7 @@ export default class OCPIUtilsService {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id,
+    const sites = await SiteStorage.getSites(tenant,
       { issuer: true, public: true },
       limit === 0 ? Constants.DB_PARAMS_MAX_LIMIT : { limit, skip },
       ['id', 'name', 'address', 'lastChangedOn', 'createdOn']);
@@ -127,7 +127,7 @@ export default class OCPIUtilsService {
     }
     let nbrOfSites = sites.count;
     if (nbrOfSites === -1) {
-      const sitesCount = await SiteStorage.getSites(tenant.id,
+      const sitesCount = await SiteStorage.getSites(tenant,
         { issuer: true, public: true }, Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfSites = sitesCount.count;
     }
@@ -882,7 +882,18 @@ export default class OCPIUtilsService {
         return 'FR*ISE_Payant1';
       // Properphi
       case '603655d291930d0014017e0a':
-        return 'Tarif_EVSE_DC';
+        switch (chargingStation?.siteAreaID) {
+          // F3C Baume les dames
+          case '60990f1cc48de10014ea4fdc':
+            switch (chargingStation?.id) {
+              case 'F3CBaume-CAHORS24DC':
+                return 'Tarif_EVSE_DC';
+              case 'F3CBaume-LAFON22AC':
+                return 'Tarif_EVSE_AC';
+            }
+            return '';
+        }
+        return '';
     }
     return '';
   }

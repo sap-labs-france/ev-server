@@ -274,7 +274,7 @@ export default class UtilsService {
       });
     }
     // Get Site
-    const site = await SiteStorage.getSite(tenant.id, siteID,
+    const site = await SiteStorage.getSite(tenant, siteID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters,
@@ -336,7 +336,7 @@ export default class UtilsService {
       });
     }
     // Get Sites
-    let sites = (await SiteStorage.getSites(tenant.id,
+    let sites = (await SiteStorage.getSites(tenant,
       {
         siteIDs,
         ...additionalFilters,

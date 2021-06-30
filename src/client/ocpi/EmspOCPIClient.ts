@@ -152,7 +152,7 @@ export default class EmspOCPIClient extends OCPIClient {
       locationsUrl = `${locationsUrl}?limit=5`;
     }
     const company = await this.checkAndGetCompany();
-    const sites = await SiteStorage.getSites(this.tenant.id,
+    const sites = await SiteStorage.getSites(this.tenant,
       { companyIDs: [ company.id ] }, Constants.DB_PARAMS_MAX_LIMIT);
     let nextResult = true;
     do {
@@ -339,7 +339,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
-      site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
+      site.id = await SiteStorage.saveSite(this.tenant, site, false);
       // Push the Site then it can be retrieve in the next round
       existingSites.push(site);
     }

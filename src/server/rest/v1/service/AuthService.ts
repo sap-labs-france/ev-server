@@ -22,6 +22,7 @@ import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
+import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
@@ -138,8 +139,8 @@ export default class AuthService {
       filteredRequest.locale = Constants.DEFAULT_LOCALE;
     }
     // Get the Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    if (!tenantID) {
+    const tenant = await AuthService.getTenant(filteredRequest.tenant);
+    if (!tenant.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -148,10 +149,10 @@ export default class AuthService {
         method: 'handleRegisterUser'
       });
     }
-    req.user = { tenantID };
+    req.user = { tenantID: tenant.id };
     // Check Captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -170,10 +171,9 @@ export default class AuthService {
       });
     }
     // Check Mandatory field
-    Object.assign(filteredRequest, { password: filteredRequest.passwords.password });
     UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenant.id, filteredRequest.email);
     if (user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -184,7 +184,7 @@ export default class AuthService {
       });
     }
     // Generate a password
-    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
@@ -193,17 +193,17 @@ export default class AuthService {
     newUser.locale = filteredRequest.locale;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, Utils.getLanguageFromLocale(newUser.locale));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenant.id, Utils.getLanguageFromLocale(newUser.locale));
     // Save User
-    newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    newUser.id = await UserStorage.saveUser(tenant.id, newUser);
     // Save User Status
-    if (tenantID === Constants.DEFAULT_TENANT) {
-      await UserStorage.saveUserRole(tenantID, newUser.id, UserRole.SUPER_ADMIN);
+    if (tenant.id === Constants.DEFAULT_TENANT) {
+      await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.SUPER_ADMIN);
     } else {
-      await UserStorage.saveUserRole(tenantID, newUser.id, UserRole.BASIC);
+      await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
     }
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
+    await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
     // Get the i18n translation class
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
@@ -219,7 +219,7 @@ export default class AuthService {
     };
     await TagStorage.saveTag(req.user.tenantID, tag);
     // Save User password
-    await UserStorage.saveUserPassword(tenantID, newUser.id,
+    await UserStorage.saveUserPassword(tenant.id, newUser.id,
       {
         password: newPasswordHashed,
         passwordWrongNbrTrials: 0,
@@ -227,41 +227,41 @@ export default class AuthService {
         passwordBlockedUntil: null
       });
     // Save User Account Verification
-    await UserStorage.saveUserAccountVerification(tenantID, newUser.id, { verificationToken });
+    await UserStorage.saveUserAccountVerification(tenant.id, newUser.id, { verificationToken });
     // Save User EULA
-    await UserStorage.saveUserEULA(tenantID, newUser.id,
+    await UserStorage.saveUserEULA(tenant.id, newUser.id,
       {
         eulaAcceptedOn: new Date(),
         eulaAcceptedVersion: endUserLicenseAgreement.version,
         eulaAcceptedHash: endUserLicenseAgreement.hash
       });
     // Assign user to all sites with auto-assign flag set
-    const sites = await SiteStorage.getSites(tenantID,
+    const sites = await SiteStorage.getSites(tenant,
       { withAutoUserAssignment: true },
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
       const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
+        await UserStorage.addSitesToUser(tenant.id, newUser.id, siteIDs);
       }
     }
     // Log
     await Logging.logSecurityInfo({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       user: newUser, action: action,
       module: MODULE_NAME,
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email as string}' has been created successfully`,
       detailedMessages: { params: req.body }
     });
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
         '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
-        tenantID,
+        tenant,
         Utils.generateUUID(),
         newUser,
         {
@@ -272,12 +272,11 @@ export default class AuthService {
         }
       ).catch(() => { });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request,
+  public static async checkAndSendResetPasswordConfirmationEmail(tenant: Tenant, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request,
       res: Response, next: NextFunction): Promise<void> {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
@@ -291,7 +290,7 @@ export default class AuthService {
     }
     // Check captcha
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
     // Check
     if (!response.data.success) {
       throw new AppError({
@@ -311,15 +310,15 @@ export default class AuthService {
       });
     }
     // Generate a new password
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenant.id, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'checkAndSendResetPasswordConfirmationEmail', req.user);
     const resetHash = Utils.generateUUID();
     // Init Password info
-    await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
+    await UserStorage.saveUserPassword(tenant.id, user.id, { passwordResetHash: resetHash });
     // Log
     await Logging.logSecurityInfo({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME,
       method: 'checkAndSendResetPasswordConfirmationEmail',
@@ -330,7 +329,7 @@ export default class AuthService {
       '/define-password?hash=' + resetHash;
     // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
-      tenantID,
+      tenant,
       Utils.generateUUID(),
       user,
       {
@@ -339,7 +338,6 @@ export default class AuthService {
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
     ).catch(() => { });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -349,19 +347,8 @@ export default class AuthService {
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
       MODULE_NAME, 'handleUserPasswordReset', req.user);
-    // Check password
-    if (!Utils.isPasswordValid(filteredRequest.passwords.password)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `Password with reset hash '${filteredRequest.hash}' is not strong enough`,
-        module: MODULE_NAME,
-        user: user,
-        method: 'handleUserPasswordReset'
-      });
-    }
     // Hash it
-    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Save new password
     await UserStorage.saveUserPassword(tenantID, user.id,
       {
@@ -384,7 +371,6 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: { params: req.body }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -392,8 +378,8 @@ export default class AuthService {
   public static async handleUserPasswordReset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
     // Get Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    if (!tenantID) {
+    const tenant = await AuthService.getTenant(filteredRequest.tenant);
+    if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -406,10 +392,10 @@ export default class AuthService {
     // Check hash
     if (filteredRequest.hash) {
       // Send the new password
-      await AuthService.resetUserPassword(tenantID, filteredRequest, action, req, res, next);
+      await AuthService.resetUserPassword(tenant.id, filteredRequest, action, req, res, next);
     } else {
       // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next);
+      await AuthService.checkAndSendResetPasswordConfirmationEmail(tenant, filteredRequest, action, req, res, next);
     }
   }
 
@@ -461,8 +447,8 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthValidator.getInstance().validateAuthVerifyEmail(req.query);
     // Get Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
-    if (!tenantID) {
+    const tenant = await AuthService.getTenant(filteredRequest.Tenant);
+    if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -473,7 +459,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenantID === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -482,8 +468,7 @@ export default class AuthService {
         message: 'Cannot verify email in the Super Tenant'
       });
     }
-    // Get Tenant
-    const tenant = await TenantStorage.getTenant(tenantID);
+
     if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -491,11 +476,11 @@ export default class AuthService {
         action: action,
         module: MODULE_NAME,
         method: 'handleVerifyEmail',
-        message: `Tenant ID '${tenantID}' does not exist!`
+        message: `Tenant ID '${tenant.id}' does not exist!`
       });
     }
     // Check email
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
+    const user = await UserStorage.getUserByEmail(tenant.id, filteredRequest.Email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
       MODULE_NAME, 'handleVerifyEmail', req.user);
     // Check if account is already active
@@ -524,21 +509,23 @@ export default class AuthService {
     let userStatus: UserStatus;
     // When it's user creation case we take the user settings
     if (!user.importedData) {
-      const userSettings = await SettingStorage.getUserSettings(tenantID);
+      const userSettings = await SettingStorage.getUserSettings(tenant.id);
       userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
-      await UserStorage.saveUserStatus(tenantID, user.id, userStatus);
+      await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     } else {
       // When it's user import case we take checkbox param saved to db
       userStatus = user.importedData.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
-      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
+      await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
     }
+    // Save User Status
+    await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
       try {
         await billingImpl.synchronizeUser(user);
         await Logging.logInfo({
-          tenantID: tenantID,
+          tenantID: tenant.id,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
@@ -546,7 +533,7 @@ export default class AuthService {
         });
       } catch (error) {
         await Logging.logError({
-          tenantID: tenantID,
+          tenantID: tenant.id,
           module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
@@ -556,11 +543,11 @@ export default class AuthService {
       }
     }
     // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(tenantID, user.id,
+    await UserStorage.saveUserAccountVerification(tenant.id, user.id,
       { verificationToken: null, verifiedAt: new Date() });
     // Log
     await Logging.logSecurityInfo({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       user: user, action: action,
       module: MODULE_NAME, method: 'handleVerifyEmail',
       message: userStatus === UserStatus.ACTIVE ?
@@ -569,7 +556,7 @@ export default class AuthService {
       detailedMessages: { params: req.query }
     });
     NotificationHandler.sendAccountVerification(
-      tenantID,
+      tenant,
       Utils.generateUUID(),
       user,
       {
@@ -578,7 +565,6 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
       }
     ).catch(() => { });
-    // Ok
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -586,8 +572,8 @@ export default class AuthService {
   public static async handleResendVerificationEmail(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = AuthValidator.getInstance().validateAuthResendVerificationEmail(req.body);
     // Get the tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    if (!tenantID) {
+    const tenant = await AuthService.getTenant(filteredRequest.tenant);
+    if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -598,7 +584,7 @@ export default class AuthService {
       });
     }
     // Check that this is not the super tenant
-    if (tenantID === Constants.DEFAULT_TENANT) {
+    if (tenant.id === Constants.DEFAULT_TENANT) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -611,7 +597,7 @@ export default class AuthService {
 
     // Is valid captcha?
     const recaptchaURL = `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`;
-    const response = await AxiosFactory.getAxiosInstance(tenantID).get(recaptchaURL);
+    const response = await AxiosFactory.getAxiosInstance(tenant.id).get(recaptchaURL);
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -632,7 +618,7 @@ export default class AuthService {
       });
     }
     // Is valid email?
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenant.id, filteredRequest.email);
     UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
       MODULE_NAME, 'handleResendVerificationEmail', req.user);
     // Check if account is already active
@@ -656,14 +642,14 @@ export default class AuthService {
       verificationToken = Utils.generateToken(filteredRequest.email);
       user.verificationToken = verificationToken;
       // Save User Verification Account
-      await UserStorage.saveUserAccountVerification(tenantID, user.id, { verificationToken });
+      await UserStorage.saveUserAccountVerification(tenant.id, user.id, { verificationToken });
     } else {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
     }
     // Log
     await Logging.logSecurityInfo({
-      tenantID: tenantID,
+      tenantID: tenant.id,
       user: user,
       action: action,
       module: MODULE_NAME,
@@ -677,7 +663,7 @@ export default class AuthService {
       user.email;
     // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
-      tenantID,
+      tenant,
       Utils.generateUUID(),
       user,
       {
@@ -686,7 +672,6 @@ export default class AuthService {
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
     ).catch(() => { });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -793,6 +778,17 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
+  public static async getTenant(subdomain: string): Promise<Tenant> {
+    // Check
+    if (!subdomain) {
+      return Constants.DEFAULT_TENANT_OBJECT;
+    }
+    // Get it
+    const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
+    // Return
+    return (tenant ? tenant : null);
+  }
+
   public static async checkUserLogin(action: ServerAction, tenantID: string, user: User,
       filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction): Promise<void> {
     // User Found?
@@ -860,4 +856,3 @@ export default class AuthService {
     }
   }
 }
-

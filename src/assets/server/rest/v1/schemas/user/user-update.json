@@ -32,8 +32,8 @@
     "address": {
       "$ref": "user.json#/definitions/address"
     },
-    "passwords": {
-      "$ref": "user.json#/definitions/passwords"
+    "password": {
+      "$ref": "user.json#/definitions/password"
     },
     "phone": {
       "$ref": "user.json#/definitions/phone"

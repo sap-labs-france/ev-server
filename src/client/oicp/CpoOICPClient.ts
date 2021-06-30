@@ -60,7 +60,7 @@ export default class CpoOICPClient extends OICPClient {
     // Get Site Area
     const siteArea = chargingStation.siteArea;
     // Get Site
-    const site = await SiteStorage.getSite(this.tenant.id, chargingStation.siteID);
+    const site = await SiteStorage.getSite(this.tenant, chargingStation.siteID);
     // Get Evse
     const oicpEvse = OICPUtils.getEvseByConnectorId(
       site, siteArea, chargingStation, transaction.connectorId, options);
@@ -201,7 +201,7 @@ export default class CpoOICPClient extends OICPClient {
     let currentSiteSkip = 0;
     do {
       // Get the public Sites
-      sites = (await SiteStorage.getSites(this.tenant.id,
+      sites = (await SiteStorage.getSites(this.tenant,
         { public: true }, { skip: currentSiteSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
       if (!Utils.isEmptyArray(sites)) {
         for (const site of sites) {
@@ -281,7 +281,7 @@ export default class CpoOICPClient extends OICPClient {
     if (result.failure > 0) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       NotificationHandler.sendOICPPatchChargingStationsError(
-        this.tenant.id,
+        this.tenant,
         {
           evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
         }
@@ -349,7 +349,7 @@ export default class CpoOICPClient extends OICPClient {
     let currentSiteSkip = 0;
     do {
       // Get the public Sites
-      sites = (await SiteStorage.getSites(this.tenant.id,
+      sites = (await SiteStorage.getSites(this.tenant,
         { public: true }, { skip: currentSiteSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
       if (!Utils.isEmptyArray(sites)) {
         for (const site of sites) {
@@ -408,7 +408,7 @@ export default class CpoOICPClient extends OICPClient {
                   // Send notification to admins
                   // eslint-disable-next-line @typescript-eslint/no-floating-promises
                   NotificationHandler.sendOICPPatchChargingStationsStatusesError(
-                    this.tenant.id,
+                    this.tenant,
                     {
                       evseDashboardURL: Utils.buildEvseURL(this.tenant.subdomain)
                     }

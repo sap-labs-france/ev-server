@@ -86,7 +86,7 @@ export class ServerUtils {
     } else if (!serverConfig.host && serverConfig.port) {
       httpServer.listen(serverConfig.port, cb);
     } else {
-    // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
   }

@@ -321,7 +321,7 @@
                   "email",
                   "name",
                   "firstName",
-                  "passwords",
+                  "password",
                   "acceptEula",
                   "tenant",
                   "captcha"
@@ -339,18 +339,9 @@
                     "type": "string",
                     "example": "User"
                   },
-                  "passwords": {
-                    "type": "object",
-                    "properties": {
-                      "password": {
-                        "type": "string",
-                        "example": "DeM*Us$r1"
-                      },
-                      "repeatPassword": {
-                        "type": "string",
-                        "example": "DeM*Us$r1"
-                      }
-                    }
+                  "password": {
+                    "type": "string",
+                    "example": "DeM*Us$r1"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -428,16 +419,8 @@
                     "type": "string",
                     "example": "demo.demo@sap.com"
                   },
-                  "passwords": {
-                    "type": "object",
-                    "properties": {
-                      "password": {
-                        "type": "string"
-                      },
-                      "repeatPassword": {
-                        "type": "string"
-                      }
-                    }
+                  "password": {
+                    "type": "string"
                   },
                   "captcha": {
                     "type": "string",
@@ -464,10 +447,7 @@
                     "email": "demo.demo@sap.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
-                    "passwords": {
-                      "password": "Azerty123?",
-                      "repeatPassword": "Azerty123?"
-                    },
+                    "password": "Azerty123?",
                     "tenant": "slf"
                   }
                 }
@@ -4589,10 +4569,10 @@
             "$ref": "#/components/responses/BackendError"
           },
           "583": {
-            "description": "Invalid file format"
+            "$ref": "#/components/responses/InvalidFileFormat"
           },
           "584": {
-            "description": "Invalid CSV header format"
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
           }
         }
       }
@@ -4701,12 +4681,10 @@
             "$ref": "#/components/parameters/UserID"
           },
           {
-            "in": "query",
-            "name": "Active",
-            "description": "Active attribute",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/TagActive"
+          },
+          {
+            "$ref": "#/components/parameters/TagWithUser"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -4816,6 +4794,60 @@
           },
           "576": {
             "description": "Tag already exists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete several Tags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tagsIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags deletion result",
+            "content": {
+              "application/json": {
+                "example": {
+                  "inSuccess": 42,
+                  "inError": 0,
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -4997,9 +5029,123 @@
           },
           "550": {
             "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/tags/action/import": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Import a Tag file",
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag importation results",
+            "content": {
+              "application/json": {
+                "example": {
+                  "inSuccess": 42,
+                  "inError": 0,
+                  "status": "Success"
+                }
+              }
+            }
           },
-          "575": {
-            "$ref": "#/components/responses/TagHasTransactionsError"
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "$ref": "#/components/responses/InvalidFileFormat"
+          },
+          "584": {
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
+          }
+        }
+      }
+    },
+    "/api/tags/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/TagActive"
+          },
+          {
+            "$ref": "#/components/parameters/TagWithUser"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Tags"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return exported tags",
+            "content": {
+              "text/csv": {
+                "example": "id,visualID,description,firstName,name,email\n\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "583": {
+            "$ref": "#/components/responses/InvalidFileFormat"
+          },
+          "584": {
+            "$ref": "#/components/responses/InvalidCSVHeaderFormat"
           }
         }
       }
@@ -5037,6 +5183,12 @@
       },
       "TagHasTransactionsError": {
         "description": "Cannot change user or delete a tag having transactions"
+      },
+      "InvalidFileFormat": {
+        "description": "Invalid file format"
+      },
+      "InvalidCSVHeaderFormat": {
+        "description": "Invalid CSV header format"
       }
     },
     "schemas": {
@@ -5710,6 +5862,10 @@
             "type": "string",
             "example": "T12345678"
           },
+          "visualID": {
+            "type": "string",
+            "example": "###"
+          },
           "userID": {
             "type": "string",
             "example": "###"
@@ -5769,14 +5925,9 @@
           "address": {
             "$ref": "#/components/schemas/Address"
           },
-          "passwords": {
-            "type": "object",
-            "properties": {
-              "password": {
-                "type": "string",
-                "example": "DeM*Us$r1"
-              }
-            }
+          "password": {
+            "type": "string",
+            "example": "DeM*Us$r1"
           },
           "phone": {
             "type": "string",
@@ -6391,6 +6542,22 @@
         "description": "Car ID",
         "schema": {
           "type": "string"
+        }
+      },
+      "TagActive": {
+        "in": "query",
+        "name": "Active",
+        "description": "Active attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "TagWithUser": {
+        "in": "query",
+        "name": "WithUser",
+        "description": "Retrieve also the user",
+        "schema": {
+          "type": "boolean"
         }
       }
     }
