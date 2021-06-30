@@ -1180,9 +1180,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
-    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
-    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
-    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL', transaction.timezone);
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT', transaction.timezone);
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT', transaction.timezone);
     const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
     // TODO: Determine the description pattern to use according to the billing settings
