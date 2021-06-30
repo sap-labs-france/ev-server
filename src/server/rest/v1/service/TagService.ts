@@ -26,7 +26,6 @@ import { OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import OCPIUtils from '../../../ocpi/OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
 import { StatusCodes } from 'http-status-codes';
-import TagSecurity from './security/TagSecurity';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import TagValidator from '../validator/TagValidator';
 import Tenant from '../../../../types/Tenant';
@@ -73,7 +72,7 @@ export default class TagService {
 
   public static async handleDeleteTag(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TagSecurity.filterTagRequestByID(req.query);
+    const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Delete
     await TagService.deleteTags(req.tenant, action, req.user, [filteredRequest.ID]);
     // Return
@@ -115,7 +114,7 @@ export default class TagService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TAG_VISUAL_ID_ALREADY_EXIST_ERROR,
-        message: `Tag with visual ID '${filteredRequest.id}' already exists`,
+        message: `Tag with visual ID '${filteredRequest.visualID}' already exists`,
         module: MODULE_NAME, method: 'handleCreateTag',
         user: req.user,
         action: action
