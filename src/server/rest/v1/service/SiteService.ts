@@ -17,7 +17,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'lodash';
 
 const MODULE_NAME = 'SiteService';
 
@@ -310,12 +309,10 @@ export default class SiteService {
         module: MODULE_NAME, method: 'handleGetSiteImage',
       });
     }
-    let tenant;
-    if (filteredRequest.TenantID === req.tenant.id) {
-      tenant = req.tenant;
-    } else {
-      tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
-    }
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get
     const site = await SiteStorage.getSite(tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.ID}' does not exist`,
