@@ -773,7 +773,7 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        issuer: filteredRequest.Issuer,
+        issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
