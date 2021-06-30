@@ -55,7 +55,7 @@
     "Statistics": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["refund", "history"]
+      "enum": ["refund", "history", "ongoing"]
     },
     "ReportIDs": {
       "$ref": "common.json#/definitions/ids"
