@@ -6,7 +6,8 @@
       "$ref": "user.json#/definitions/email"
     },
     "password": {
-      "$ref": "user.json#/definitions/password"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "acceptEula": {
       "$ref": "common.json#/definitions/acceptEula"

@@ -130,8 +130,7 @@ describe('User', function() {
             Factory.user.build()
           );
           testData.newUser.issuer = true;
-          // Remove Passwords
-          delete testData.newUser['passwords'];
+          delete testData.newUser['password'];
           testData.createdUsers.push(testData.newUser);
         });
 
@@ -166,7 +165,7 @@ describe('User', function() {
           // Update
           await testData.userService.updateEntity(
             testData.userService.userApi,
-            { ...testData.newUser, passwords: { password: testData.newUser.password } }
+            { ...testData.newUser, password: testData.newUser.password }
           );
         });
 

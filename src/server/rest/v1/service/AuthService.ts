@@ -171,7 +171,6 @@ export default class AuthService {
       });
     }
     // Check Mandatory field
-    Object.assign(filteredRequest, { password: filteredRequest.passwords.password });
     UtilsService.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenant.id, filteredRequest.email);
@@ -185,7 +184,7 @@ export default class AuthService {
       });
     }
     // Generate a password
-    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.createNewUser() as User;
     newUser.email = filteredRequest.email;
@@ -273,7 +272,6 @@ export default class AuthService {
         }
       ).catch(() => { });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -340,7 +338,6 @@ export default class AuthService {
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
     ).catch(() => { });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -350,19 +347,8 @@ export default class AuthService {
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
       MODULE_NAME, 'handleUserPasswordReset', req.user);
-    // Check password
-    if (!Utils.isPasswordValid(filteredRequest.passwords.password)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `Password with reset hash '${filteredRequest.hash}' is not strong enough`,
-        module: MODULE_NAME,
-        user: user,
-        method: 'handleUserPasswordReset'
-      });
-    }
     // Hash it
-    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.passwords.password);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Save new password
     await UserStorage.saveUserPassword(tenantID, user.id,
       {
@@ -385,7 +371,6 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: { params: req.body }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -394,7 +379,7 @@ export default class AuthService {
     const filteredRequest = AuthValidator.getInstance().validateAuthResetPassword(req.body);
     // Get Tenant
     const tenant = await AuthService.getTenant(filteredRequest.tenant);
-    if (!tenant.id) {
+    if (!tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
@@ -570,7 +555,6 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.Tenant),
       }
     ).catch(() => { });
-    // Ok
     res.json({ status: 'Success', userStatus });
     next();
   }
@@ -678,7 +662,6 @@ export default class AuthService {
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
     ).catch(() => { });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }

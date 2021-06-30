@@ -297,7 +297,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"demo.basic@sap.com\",\n    \"hash\": \"795fc992-d9bd-4695-8fa6-78cee1ef3464\",\n    \"captcha\": \"aaa\",\n    \"passwords\": {\n        \"password\": \"Azerty123?\",\n        \"repeatPassword\": \"Azerty123?\"\n    },\n    \"tenant\": \"{{tenant}}\"\n}"
+					"raw": "{\n    \"email\": \"demo.basic@sap.com\",\n    \"hash\": \"795fc992-d9bd-4695-8fa6-78cee1ef3464\",\n    \"captcha\": \"aaa\",\n    \"password\": \"Azerty123?\",\n    \"tenant\": \"{{tenant}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/auth/password/reset",
@@ -3554,7 +3554,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"name\": \"CreateName\",\n  \"firstName\": \"CreateFirstname\",\n  \"email\": \"firstname.lastname@sap.com\",\n  \"passwords\": {\n    \"password\": \"Azerty123!\",\n    \"repeatPassword\": \"Azerty123!\"\n  },\n  \"acceptEula\": true,\n  \"tenant\": \"slf\",\n  \"role\": \"B\",\n  \"status\": \"A\"\n}\n",
+					"raw": "{\n  \"name\": \"CreateName\",\n  \"firstName\": \"CreateFirstname\",\n  \"email\": \"firstname.lastname@sap.com\",\n  \"password\": \"Azerty123!\",\n  \"acceptEula\": true,\n  \"tenant\": \"slf\",\n  \"role\": \"B\",\n  \"status\": \"A\"\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -3598,7 +3598,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"passwords\": {\r\n    \"password\": \"\",\r\n    \"repeatPassword\": \"\"\r\n  }\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"FABIANO\",\r\n  \"firstName\": \"Sergio\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",
@@ -3955,7 +3955,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"DEMO\",\r\n  \"firstName\": \"Demo\",\r\n  \"email\": \"demo.basic@sap.com\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"passwords\": {\r\n    \"password\": \"\",\r\n    \"repeatPassword\": \"\"\r\n  }\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"DEMO\",\r\n  \"firstName\": \"Demo\",\r\n  \"email\": \"demo.basic@sap.com\",\r\n  \"phone\": \"+33 492286307\",\r\n  \"mobile\": \"\",\r\n  \"iNumber\": \"I030367\",\r\n  \"tagIDs\": [\r\n    \"66BDC46F\"\r\n  ],\r\n  \"costCenter\": \"175030602\",\r\n  \"status\": \"A\",\r\n  \"role\": \"A\",\r\n  \"password\": \"\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/users/{{userID}}",

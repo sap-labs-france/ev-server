@@ -321,7 +321,7 @@
                   "email",
                   "name",
                   "firstName",
-                  "passwords",
+                  "password",
                   "acceptEula",
                   "tenant",
                   "captcha"
@@ -339,18 +339,9 @@
                     "type": "string",
                     "example": "User"
                   },
-                  "passwords": {
-                    "type": "object",
-                    "properties": {
-                      "password": {
-                        "type": "string",
-                        "example": "DeM*Us$r1"
-                      },
-                      "repeatPassword": {
-                        "type": "string",
-                        "example": "DeM*Us$r1"
-                      }
-                    }
+                  "password": {
+                    "type": "string",
+                    "example": "DeM*Us$r1"
                   },
                   "acceptEula": {
                     "type": "boolean",
@@ -428,16 +419,8 @@
                     "type": "string",
                     "example": "demo.demo@sap.com"
                   },
-                  "passwords": {
-                    "type": "object",
-                    "properties": {
-                      "password": {
-                        "type": "string"
-                      },
-                      "repeatPassword": {
-                        "type": "string"
-                      }
-                    }
+                  "password": {
+                    "type": "string"
                   },
                   "captcha": {
                     "type": "string",
@@ -464,10 +447,7 @@
                     "email": "demo.demo@sap.com",
                     "captcha": "03AGdBq26Ca8rdqn0-odDV18kJCLnVytzGPXVPyW811IY4pqyQuak-o59MZlYfUIVS-ToLBiL4o7fBfPPvmkAhQLKoMXtqitKxRTG016wmGbFLvZWnOSkJKreB1Kx6n3dB7uYd302UVyVpJJ0BGFcmXWnWZmGnR3ZJC8IE1r7oVohcYVLttnKXtuhJwg5IdHe0HleYzOjxCBw9FnCJhVoSmaPn6FeVjWC9d8vSDwBq-18dA_cm6CQb7BhZm6LXWhMdW1_e_5DcSs1koj_vn3FGB7UQESsPp81WBfr6msCNiddNc1D4MRfF4wXeimJ1wplqoGOmMmI2Y_i-120grLrjkfzBNgDPQPWvfpUjeyW1f_T-5SaObYpUFEEZ4YW6Xt2revAWMmZ6i9_QOWWUcukaZU3jr_MzR1YIMscKrnBP3Zhl45zLXOY-0Bi28z6XxsMqqSHE8lY_C8B-7M-X3PNc_293qtrEnE2rhG9PU-RdFJG4dqBcwU6YfZJwwyXDWG7eyNG8iJoBDgCWrbib2jLKTmuwWCowApAoeA",
                     "hash": "dcff1ec7-cecb-4c2f-99da-47aeb1f83509",
-                    "passwords": {
-                      "password": "Azerty123?",
-                      "repeatPassword": "Azerty123?"
-                    },
+                    "password": "Azerty123?",
                     "tenant": "slf"
                   }
                 }
@@ -5894,14 +5874,9 @@
           "address": {
             "$ref": "#/components/schemas/Address"
           },
-          "passwords": {
-            "type": "object",
-            "properties": {
-              "password": {
-                "type": "string",
-                "example": "DeM*Us$r1"
-              }
-            }
+          "password": {
+            "type": "string",
+            "example": "DeM*Us$r1"
           },
           "phone": {
             "type": "string",

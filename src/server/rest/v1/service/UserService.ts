@@ -185,8 +185,6 @@ export default class UserService {
     // Update timestamp
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
-    // Clean up request
-    delete filteredRequest['passwords'];
     // Check User validity
     UtilsService.checkIfUserValid(filteredRequest, user, req);
     // Update user
@@ -632,8 +630,6 @@ export default class UserService {
         action: action
       });
     }
-    // Clean request
-    delete filteredRequest['passwords'];
     // Create
     const newUser: User = {
       ...filteredRequest,

@@ -68,9 +68,7 @@ export interface HttpResetPasswordRequest {
   email: string;
   tenant: string;
   captcha: string;
-  passwords: { password: string; repeatPassword: string }; // Frontend...
-  password?: string;
-  repeatPassword?: string;
+  password: string;
   hash: string;
 }
 export interface HttpCheckEulaRequest {
@@ -80,7 +78,7 @@ export interface HttpCheckEulaRequest {
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
   name: string;
   firstName: string;
-  passwords: { password: string }; // Frontend...
+  password: string;
   captcha: string;
   status: string;
   locale: string;

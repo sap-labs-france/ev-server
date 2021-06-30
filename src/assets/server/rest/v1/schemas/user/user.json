@@ -52,11 +52,6 @@
     "address": {
       "$ref": "common.json#/definitions/address"
     },
-    "passwords": {
-      "password": {
-        "$ref": "#/definitions/password"
-      }
-    },
     "phone": {
       "type": "string",
       "sanitize": "mongo"
