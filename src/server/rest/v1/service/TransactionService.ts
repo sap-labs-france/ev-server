@@ -864,6 +864,20 @@ export default class TransactionService {
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
+    // Check Users
+    let projectFields = [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
+      'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
+    ];
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
+      if (projectFields) {
+        projectFields = [
+          ...projectFields,
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
+        ];
+      }
+    }
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
@@ -886,10 +900,8 @@ export default class TransactionService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.SortFields
       },
-      [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-        'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
-      ]);
+      projectFields
+    );
     // Return
     res.json(transactions);
     next();
