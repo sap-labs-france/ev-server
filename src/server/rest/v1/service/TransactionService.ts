@@ -864,11 +864,12 @@ export default class TransactionService {
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
-    // Check Users
     let projectFields = [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-      'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
+      'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs'
     ];
+    // Check Users
     if ((await Authorizations.canListUsers(req.user)).authorized) {
       if (projectFields) {
         projectFields = [
