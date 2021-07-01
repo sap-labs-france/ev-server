@@ -103,10 +103,10 @@ export default class MongoDBStorage {
     ]);
     // Tags
     await this.handleIndexesInCollection(tenantID, 'tags', [
+      { fields: { visualID: 1 }, options: { unique: true } },
       { fields: { deleted: 1, createdOn: 1 } },
       { fields: { issuer: 1, createdOn: 1 } },
       { fields: { userID: 1, issuer: 1 } },
-      { fields: { visualID: 1 } }
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(tenantID, 'siteusers', [
@@ -342,17 +342,25 @@ export default class MongoDBStorage {
     // Indexes?
     if (indexes) {
       // Get current indexes
-      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+      let databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
       // Drop indexes
       for (const databaseIndex of databaseIndexes) {
         if (databaseIndex.key._id) {
           continue;
         }
-        const foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
+        let foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
+        // Check DB unique index
+        const databaseIndexISUnique = !!databaseIndex?.unique;
+        const indexIsUnique = !!foundIndex.options?.unique;
+        if (indexIsUnique !== databaseIndexISUnique) {
+          // Delete the index
+          foundIndex = null;
+        }
+        // Delete the index
         if (!foundIndex) {
           if (Utils.isDevelopmentEnv()) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            console.log(`Drop index ${databaseIndex.name} on collection ${tenantID}.${name}`);
+            console.log(`Drop index ${databaseIndex.name} in collection ${tenantID}.${name}`);
           }
           try {
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
@@ -362,10 +370,13 @@ export default class MongoDBStorage {
           }
         }
       }
+      // Get updated indexes
+      databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
       // Create indexes
       for (const index of indexes) {
-        const foundIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
-        if (!foundIndex) {
+        const foundDatabaseIndex = databaseIndexes.find((databaseIndex) => this.buildIndexName(index.fields) === databaseIndex.name);
+        // Create the index
+        if (!foundDatabaseIndex) {
           if (Utils.isDevelopmentEnv()) {
             console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
           }
