@@ -190,7 +190,7 @@ export default abstract class AbstractOCPIService {
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
-      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
       // Check if endpoint is found
       if (!ocpiEndpoint) {
         throw new AppError({
