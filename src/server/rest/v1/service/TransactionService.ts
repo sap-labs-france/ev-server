@@ -879,6 +879,15 @@ export default class TransactionService {
         ];
       }
     }
+    // Check Cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (await Authorizations.canListCars(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        ];
+      }
+    }
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);

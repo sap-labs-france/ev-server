@@ -895,7 +895,7 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charging Station?
+    // Charging Station
     if (params.withChargingStations ||
       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
@@ -905,10 +905,15 @@ export default class TransactionStorage {
       });
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
-    // Add respective users
+    // User
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
