@@ -270,6 +270,10 @@ export default class MongoDBStorage {
         await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'tenants', [
           { fields: { subdomain: 1 }, options: { unique: true } },
         ]);
+        // Performances
+        await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'performances', [
+          { fields: { timestamp: 1, group: 1, tenantID: 1 } },
+        ]);
         // Users
         await this.handleIndexesInCollection(Constants.DEFAULT_TENANT, 'users', [
           { fields: { email: 1 }, options: { unique: true } }
