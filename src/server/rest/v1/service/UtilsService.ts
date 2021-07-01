@@ -33,7 +33,6 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -274,7 +273,7 @@ export default class UtilsService {
       });
     }
     // Get Site
-    const site = await SiteStorage.getSite(tenant.id, siteID,
+    const site = await SiteStorage.getSite(tenant, siteID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters,
@@ -336,7 +335,7 @@ export default class UtilsService {
       });
     }
     // Get Sites
-    let sites = (await SiteStorage.getSites(tenant.id,
+    let sites = (await SiteStorage.getSites(tenant,
       {
         siteIDs,
         ...additionalFilters,

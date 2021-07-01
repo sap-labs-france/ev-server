@@ -131,7 +131,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const userImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'userimages')
-      .findOne({ _id: Utils.convertToObjectID(id) });
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
     return {
@@ -150,8 +150,8 @@ export default class UserStorage {
       if (!Utils.isEmptyArray(siteIDs)) {
         // Create the lis
         await global.database.getCollection<User>(tenantID, 'siteusers').deleteMany({
-          'userID': Utils.convertToObjectID(userID),
-          'siteID': { $in: siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+          'userID': DatabaseUtils.convertToObjectID(userID),
+          'siteID': { $in: siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)) }
         });
       }
     }
@@ -171,8 +171,8 @@ export default class UserStorage {
       for (const siteID of siteIDs) {
         siteUsersMDB.push({
           '_id': Cypher.hash(`${siteID}~${userID}`),
-          'userID': Utils.convertToObjectID(userID),
-          'siteID': Utils.convertToObjectID(siteID),
+          'userID': DatabaseUtils.convertToObjectID(userID),
+          'siteID': DatabaseUtils.convertToObjectID(siteID),
           'siteAdmin': false
         });
       }
@@ -200,14 +200,14 @@ export default class UserStorage {
     // Build Request
     const userFilter: any = {};
     if (userToSave.id) {
-      userFilter._id = Utils.convertToObjectID(userToSave.id);
+      userFilter._id = DatabaseUtils.convertToObjectID(userToSave.id);
     } else {
       userFilter.email = userToSave.email;
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
     const userMDB: any = {
-      _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
+      _id: userToSave.id ? DatabaseUtils.convertToObjectID(userToSave.id) : new ObjectID(),
       issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
       firstName: userToSave.firstName,
@@ -277,14 +277,14 @@ export default class UserStorage {
   public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
     const userMDB = {
-      _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy)
     };
     await global.database.getCollection<any>(tenantID, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
@@ -299,14 +299,14 @@ export default class UserStorage {
   public static async saveImportedUsers(tenantID: string, importedUsersToSave: ImportedUser[]): Promise<number> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUsers');
     const importedUsersToSaveMDB: any = importedUsersToSave.map((importedUserToSave) => ({
-      _id: importedUserToSave.id ? Utils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: Utils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy)
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenantID, 'importedusers').insertMany(
@@ -326,7 +326,7 @@ export default class UserStorage {
     // Delete
     await global.database.getCollection<any>(tenantID, 'importedusers').deleteOne(
       {
-        '_id': Utils.convertToObjectID(importedUserID),
+        '_id': DatabaseUtils.convertToObjectID(importedUserID),
       });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteImportedUser', uniqueTimerID, { id: importedUserID });
@@ -354,7 +354,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserPassword', uniqueTimerID);
@@ -367,7 +367,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { status } });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
@@ -380,7 +380,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { lastSelectedCarID } });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserStatus', uniqueTimerID);
@@ -394,7 +394,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserMobileToken', uniqueTimerID);
@@ -408,7 +408,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserMobilePhone', uniqueTimerID);
@@ -421,7 +421,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { role } });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserRole', uniqueTimerID);
@@ -435,7 +435,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserRole', uniqueTimerID, params);
@@ -449,7 +449,7 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: params });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserAccountVerification', uniqueTimerID, params);
@@ -475,7 +475,7 @@ export default class UserStorage {
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: updatedUserMDB });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUserAdminData', uniqueTimerID, params);
@@ -499,11 +499,11 @@ export default class UserStorage {
       };
       // Modify and return the modified document
       await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
-        { '_id': Utils.convertToObjectID(userID) },
+        { '_id': DatabaseUtils.convertToObjectID(userID) },
         { $set: updatedUserMDB });
     } else {
       await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
-        { '_id': Utils.convertToObjectID(userID) },
+        { '_id': DatabaseUtils.convertToObjectID(userID) },
         { $unset: { billingData: '' } }); // This removes the field from the document
     }
     // Debug
@@ -527,7 +527,7 @@ export default class UserStorage {
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userID) },
+      { '_id': DatabaseUtils.convertToObjectID(userID) },
       { $set: { image: userImageToSave } },
       { upsert: true, returnDocument: 'after' });
     // Debug
@@ -568,7 +568,7 @@ export default class UserStorage {
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters._id = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      filters._id = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
@@ -576,7 +576,7 @@ export default class UserStorage {
     }
     // Exclude Users
     if (!Utils.isEmptyArray(params.excludeUserIDs)) {
-      filters._id = { $nin: params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      filters._id = { $nin: params.excludeUserIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -641,14 +641,14 @@ export default class UserStorage {
       });
       // Add Car ID in OR
       const carIDFilter = {};
-      carIDFilter['carUsers.carID'] = { $ne: Utils.convertToObjectID(params.notAssignedToCarID) };
+      carIDFilter['carUsers.carID'] = { $ne: DatabaseUtils.convertToObjectID(params.notAssignedToCarID) };
       notAssignedToCarIDFilter.$or.push(carIDFilter);
       // Bypass Car ID if users has been removed in UI
       if (params.includeCarUserIDs) {
         const includeCarUserIDsFilter = {};
         includeCarUserIDsFilter['carUsers.userID'] = {
           $in: params.includeCarUserIDs.map((includeCarUserID) =>
-            Utils.convertToObjectID(includeCarUserID))
+            DatabaseUtils.convertToObjectID(includeCarUserID))
         };
         notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
       }
@@ -673,12 +673,12 @@ export default class UserStorage {
       });
       if (params.siteIDs) {
         aggregation.push({
-          $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => Utils.convertToObjectID(site)) } }
+          $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
         });
       }
       if (params.excludeSiteID) {
         aggregation.push({
-          $match: { 'siteusers.siteID': { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
+          $match: { 'siteusers.siteID': { $ne: DatabaseUtils.convertToObjectID(params.excludeSiteID) } }
         });
       }
     }
@@ -953,19 +953,19 @@ export default class UserStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Delete User Image
     await global.database.getCollection<any>(tenantID, 'userimages')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Delete Site Users
     await global.database.getCollection<any>(tenantID, 'siteusers')
-      .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+      .deleteMany({ 'userID': DatabaseUtils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection<any>(tenantID, 'tags')
-      .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+      .deleteMany({ 'userID': DatabaseUtils.convertToObjectID(id) });
     // Delete Connections
     await global.database.getCollection<any>(tenantID, 'connections')
-      .deleteMany({ 'userId': Utils.convertToObjectID(id) });
+      .deleteMany({ 'userId': DatabaseUtils.convertToObjectID(id) });
     // Delete User
     await global.database.getCollection<any>(tenantID, 'users')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
@@ -988,7 +988,7 @@ export default class UserStorage {
     // Filter
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = {
-        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
     if (params.siteAdmin) {

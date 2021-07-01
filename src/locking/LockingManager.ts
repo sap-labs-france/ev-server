@@ -16,7 +16,7 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs?: number): Lock {
+  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string, lockValiditySecs = 600): Lock {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE, lockValiditySecs);
   }
 

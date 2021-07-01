@@ -250,7 +250,7 @@ export default abstract class BillingIntegration {
         const invoiceAmount = new Intl.NumberFormat(Utils.convertLocaleForCurrency(billingInvoice.user.locale), { style: 'currency', currency: billingInvoice.currency.toUpperCase() }).format(decimInvoiceAmount.toNumber());
         // Send async notification
         await NotificationHandler.sendBillingNewInvoiceNotification(
-          this.tenant.id,
+          this.tenant,
           billingInvoice.id,
           billingInvoice.user,
           {

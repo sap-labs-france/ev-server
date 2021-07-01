@@ -35,13 +35,13 @@ export default class StatisticsStorage {
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = {
-        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
@@ -53,7 +53,7 @@ export default class StatisticsStorage {
     // Filter on User?
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = {
-        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
     // Create Aggregation
@@ -156,13 +156,13 @@ export default class StatisticsStorage {
     // Filter on Site?
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters.siteID = {
-        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       filters.siteAreaID = {
-        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
@@ -174,7 +174,7 @@ export default class StatisticsStorage {
     // Filter on User?
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = {
-        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
     // Create Aggregation

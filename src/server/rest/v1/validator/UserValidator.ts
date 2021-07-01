@@ -45,7 +45,6 @@ export default class UserValidator extends SchemaValidator {
 
   validateUserCreate(user: any): Partial<User> {
     this.validate(this.userCreate, user);
-    user.password = user.passwords.password;
     return user;
   }
 

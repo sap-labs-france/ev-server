@@ -14,6 +14,7 @@ import { SiteDataResult } from '../../../../types/DataResult';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -72,7 +73,7 @@ export default class SiteService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
-    await SiteStorage.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
+    await SiteStorage.updateSiteUserAdmin(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -126,7 +127,7 @@ export default class SiteService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.userID, Action.READ, action);
     // Update
-    await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
+    await SiteStorage.updateSiteOwner(req.tenant, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -153,9 +154,9 @@ export default class SiteService {
       req.tenant, req.user, site, filteredRequest.userIDs, action);
     // Save
     if (action === ServerAction.ADD_USERS_TO_SITE) {
-      await SiteStorage.addUsersToSite(req.user.tenantID, site.id, users.map((user) => user.id));
+      await SiteStorage.addUsersToSite(req.tenant, site.id, users.map((user) => user.id));
     } else {
-      await SiteStorage.removeUsersFromSite(req.user.tenantID, site.id, users.map((user) => user.id));
+      await SiteStorage.removeUsersFromSite(req.tenant, site.id, users.map((user) => user.id));
     }
     // Log
     await Logging.logSecurityInfo({
@@ -192,7 +193,7 @@ export default class SiteService {
       return;
     }
     // Get Users
-    const users = await SiteStorage.getSiteUsers(req.user.tenantID,
+    const users = await SiteStorage.getSiteUsers(req.tenant,
       {
         search: filteredRequest.Search,
         siteIDs: [ filteredRequest.SiteID ],
@@ -220,7 +221,7 @@ export default class SiteService {
     const site = await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, siteID, Action.DELETE, action);
     // Delete
-    await SiteStorage.deleteSite(req.user.tenantID, site.id);
+    await SiteStorage.deleteSite(req.tenant, site.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -264,7 +265,7 @@ export default class SiteService {
       return;
     }
     // Get the sites
-    const sites = await SiteStorage.getSites(req.user.tenantID,
+    const sites = await SiteStorage.getSites(req.tenant,
       {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID,
@@ -308,12 +309,12 @@ export default class SiteService {
         module: MODULE_NAME, method: 'handleGetSiteImage',
       });
     }
-    // Get
-    const site = await SiteStorage.getSite(filteredRequest.TenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.ID}' does not exist`,
-      MODULE_NAME, 'handleDeleteSite', req.user);
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteImage', req.user);
     // Get the image
-    const siteImage = await SiteStorage.getSiteImage(filteredRequest.TenantID, filteredRequest.ID);
+    const siteImage = await SiteStorage.getSiteImage(tenant, filteredRequest.ID);
     if (siteImage?.image) {
       let header = 'image';
       let encoding: BufferEncoding = 'base64';
@@ -370,7 +371,7 @@ export default class SiteService {
       createdOn: new Date()
     } as Site;
     // Save
-    site.id = await SiteStorage.saveSite(req.user.tenantID, site);
+    site.id = await SiteStorage.saveSite(req.tenant, site);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -415,7 +416,7 @@ export default class SiteService {
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
+    await SiteStorage.saveSite(req.tenant, site, Utils.objectHasProperty(filteredRequest, 'image') ? true : false);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

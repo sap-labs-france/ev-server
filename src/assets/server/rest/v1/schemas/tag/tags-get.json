@@ -1,0 +1,32 @@
+{
+  "title": "Get Tags",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "Active": {
+      "$ref": "tag.json#/definitions/active"
+    },
+    "Issuer": {
+      "$ref": "tag.json#/definitions/issuer"
+    },
+    "UserID": {
+      "$ref": "user.json#/definitions/ids"
+    },
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": []
+}

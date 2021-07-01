@@ -74,11 +74,19 @@ export default class OCPPUtils {
           action: ServerAction.ROAMING,
           user: transaction.userID,
           module: MODULE_NAME, method: 'processTransactionRoaming',
-          message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Roaming exception occurred: ${error.message as string}`,
+          message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Roaming exception occurred: ${error.message as string}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
+  }
+
+  public static buildConnectorInfo(connectorID: number, transactionID: number): string {
+    let connectorInfo = `Connector ID '${connectorID}' >`;
+    if (transactionID > 0) {
+      connectorInfo += ` Transaction ID '${transactionID}' >`;
+    }
+    return connectorInfo;
   }
 
   public static async processOICPTransaction(tenant: Tenant, transaction: Transaction,
@@ -1241,11 +1249,11 @@ export default class OCPPUtils {
     // Request and save the latest OCPP parameters
     let result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant, chargingStation),
-      `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()}ms) in requesting OCPP Parameters`);
+      `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS.toString()} ms) in requesting OCPP Parameters`);
     // Update the OCPP Parameters from the template
     result = await Utils.executePromiseWithTimeout<OCPPChangeConfigurationCommandResult>(
       Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS, OCPPUtils.updateChargingStationOcppParametersWithTemplate(tenant, chargingStation),
-      `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS}ms) in updating OCPP Parameters`);
+      `Time out error (${Constants.DELAY_CHANGE_CONFIGURATION_EXECUTION_MILLIS} ms) in updating OCPP Parameters`);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
       await Logging.logError({
         tenantID: tenant.id,

@@ -4,6 +4,9 @@
     "id": {
       "$ref": "common.json#/definitions/id"
     },
+    "ids": {
+      "$ref": "common.json#/definitions/ids"
+    },
     "name": {
       "type": "string",
       "minLength": 1,
@@ -48,11 +51,6 @@
     },
     "address": {
       "$ref": "common.json#/definitions/address"
-    },
-    "passwords": {
-      "password": {
-        "$ref": "#/definitions/password"
-      }
     },
     "phone": {
       "type": "string",

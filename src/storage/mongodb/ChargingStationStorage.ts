@@ -307,12 +307,12 @@ export default class ChargingStationStorage {
       filters.siteAreaID = null;
     } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       // Query by siteAreaID
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Check Site ID
     if (!Utils.isEmptyArray(params.siteIDs)) {
       // Query by siteID
-      filters.siteID = { $in: params.siteIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
@@ -443,7 +443,7 @@ export default class ChargingStationStorage {
     filters.issuer = true;
     // Site Areas
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Add in aggregation
     aggregation.push({
@@ -467,7 +467,7 @@ export default class ChargingStationStorage {
       aggregation.push({
         $match: {
           'sitearea.siteID': {
-            $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+            $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id))
           }
         }
       });
@@ -549,8 +549,8 @@ export default class ChargingStationStorage {
       templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       public: Utils.convertToBoolean(chargingStationToSave.public),
-      siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
-      siteID: Utils.convertToObjectID(chargingStationToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteAreaID),
+      siteID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
@@ -1131,7 +1131,7 @@ export default class ChargingStationStorage {
         currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
         currentTagID: connector.currentTagID,
         currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
-        currentUserID: Utils.convertToObjectID(connector.currentUserID),
+        currentUserID: DatabaseUtils.convertToObjectID(connector.currentUserID),
         status: connector.status,
         errorCode: connector.errorCode,
         info: connector.info,

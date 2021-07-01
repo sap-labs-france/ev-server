@@ -1,10 +1,10 @@
 import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
-import ChargingStation, { Connector } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
+import ChargingStation from '../types/ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -19,7 +19,6 @@ import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
 import { OICPRole } from '../types/oicp/OICPRole';
-import { ObjectID } from 'mongodb';
 import { PricingSettingsType } from '../types/Setting';
 import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/v1/service/SessionHashService';
@@ -959,7 +958,6 @@ export default class Authorizations {
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
-      visualID: new ObjectID().toString(),
       description: `Badged on '${chargingStation.id}'`,
       issuer: true,
       active: false,
@@ -970,7 +968,7 @@ export default class Authorizations {
     await TagStorage.saveTag(tenant.id, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
-      tenant.id,
+      tenant,
       Utils.generateUUID(),
       chargingStation,
       {
@@ -1071,7 +1069,7 @@ export default class Authorizations {
       }
       // Site -----------------------------------------------------
       chargingStation.siteArea.site = chargingStation.siteArea.site ??
-        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant.id, chargingStation.siteArea.siteID) : null);
+        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant, chargingStation.siteArea.siteID) : null);
       if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
         throw new BackendError({

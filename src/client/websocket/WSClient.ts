@@ -147,11 +147,11 @@ export default class WSClient {
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'reconnect',
             action: ServerAction.WS_CLIENT_INFO,
-            message: `Reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
+            message: `Reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout} ms`
           });
         } else {
           // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.log(`WSClient reconnection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout} ms`);
         }
         this.onreconnect(error);
         this.open();

@@ -32,7 +32,7 @@ export default class CompanyStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenant.id, 'companylogos')
-      .findOne({ _id: Utils.convertToObjectID(id) });
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
     return {
@@ -48,7 +48,7 @@ export default class CompanyStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const companyMDB: any = {
-      _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
+      _id: !companyToSave.id ? new ObjectID() : DatabaseUtils.convertToObjectID(companyToSave.id),
       name: companyToSave.name,
       issuer: Utils.convertToBoolean(companyToSave.issuer),
     };
@@ -125,7 +125,7 @@ export default class CompanyStorage {
     if (!Utils.isEmptyArray(params.companyIDs)) {
       // Build filter
       filters._id = {
-        $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID))
+        $in: params.companyIDs.map((companyID) => DatabaseUtils.convertToObjectID(companyID))
       };
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
@@ -229,13 +229,13 @@ export default class CompanyStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete sites associated with Company
-    await SiteStorage.deleteCompanySites(tenant.id, id);
+    await SiteStorage.deleteCompanySites(tenant, id);
     // Delete the Company
     await global.database.getCollection<Company>(tenant.id, 'companies')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Delete Logo
     await global.database.getCollection<any>(tenant.id, 'companylogos')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCompany', uniqueTimerID, { id });
   }
@@ -247,7 +247,7 @@ export default class CompanyStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection<any>(tenant.id, 'companylogos').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(companyID) },
+      { '_id': DatabaseUtils.convertToObjectID(companyID) },
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
     // Debug

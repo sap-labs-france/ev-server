@@ -318,6 +318,15 @@ describe('Smart Charging Service', function() {
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
     });
 
+    it('Should not connect to Smart Charging Provider with invalid URL', async () => {
+      const sapSmartChargingSettings = TestData.getSmartChargingSettings();
+      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+      sapSmartChargingSettings.optimizerUrl = '';
+      await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
+      const response = await testData.userService.smartChargingApi.testConnection({});
+      expect(response.data.message).include('SAP Smart Charging service configuration is incorrect');
+    });
+
     describe('Test for three phased site area', () => {
       before(() => {
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);

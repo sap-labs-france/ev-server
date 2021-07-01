@@ -58,8 +58,8 @@ export default class LoggingStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Set
     const logMDB: any = {
-      userID: logToSave.user ? Utils.convertUserToObjectID(logToSave.user) : null,
-      actionOnUserID: Utils.convertUserToObjectID(logToSave.actionOnUser),
+      userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,
+      actionOnUserID: DatabaseUtils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : Utils.getHostname(),
@@ -139,14 +139,14 @@ export default class LoggingStorage {
     // Filter on users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.$or = [
-        { userID: { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } },
-        { actionOnUserID: { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } }
+        { userID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } },
+        { actionOnUserID: { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
       ];
     }
     // Log ID
     if (!Utils.isEmptyArray(params.logIDs)) {
       filters._id = {
-        $in: params.logIDs.map((logID) => Utils.convertToObjectID(logID))
+        $in: params.logIDs.map((logID) => DatabaseUtils.convertToObjectID(logID))
       };
     }
     // Create Aggregation
