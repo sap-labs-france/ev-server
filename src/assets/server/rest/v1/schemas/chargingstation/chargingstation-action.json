@@ -52,6 +52,9 @@
           "type": "string",
           "sanitize": "mongo"
         },
+        "userID": {
+          "$ref": "common.json#/definitions/id"
+        },
         "location": {
           "type": "string",
           "sanitize": "mongo"

@@ -55,20 +55,16 @@ export default class UserService {
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, userID, Action.READ, action);
-    // Handle Tag
-    // Get the default Tag
+      // Handle Tag
+      // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
       issuer: true
-    }, ['id']);
+    }, ['visualID', 'description', 'active']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
         issuer: true
-      }, ['id']);
-    }
-    if (tag) {
-      tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, tag.id, Action.READ, action,
-        { withUser: false }, true);
+      }, ['visualID', 'description', 'active']);
     }
     // Handle Car
     let car: Car;
