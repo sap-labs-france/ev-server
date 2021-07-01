@@ -87,7 +87,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.TAGS, action: [Action.IMPORT, Action.EXPORT], attributes: ['*'] },
       {
         resource: Entity.TAG, action: Action.READ, attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ]
       },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -433,7 +433,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.TAG, action: Action.READ, attributes: [
-          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email'
+          'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
@@ -647,14 +647,16 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
         ]
       },
-      { resource: Entity.USERS_SITES, action: Action.UNASSIGN,
+      {
+        resource: Entity.USERS_SITES, action: Action.UNASSIGN,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }
         },
         attributes: ['*']
       },
-      { resource: Entity.SITE, action: [Action.UPDATE],
+      {
+        resource: Entity.SITE, action: [Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['SitesAdmin'] }

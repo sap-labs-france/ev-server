@@ -48,6 +48,10 @@
         "tagID": {
           "$ref": "tag.json#/definitions/id"
         },
+        "visualTagID": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
         "location": {
           "type": "string",
           "sanitize": "mongo"

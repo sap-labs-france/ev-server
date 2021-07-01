@@ -38,6 +38,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   Status: string;
   ErrorType?: string;
   TagID?: string;
+  VisualTagID?: string;
   ExcludeSiteID: string;
   ExcludeUserIDs: string;
   IncludeCarUserIDs: string;

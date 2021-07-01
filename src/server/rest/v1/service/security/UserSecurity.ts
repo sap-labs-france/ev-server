@@ -69,6 +69,9 @@ export default class UserSecurity {
     if (Utils.objectHasProperty(request, 'TagID')) {
       filteredRequest.TagID = sanitize(request.TagID);
     }
+    if (Utils.objectHasProperty(request, 'VisualTagID')) {
+      filteredRequest.VisualTagID = sanitize(request.VisualTagID);
+    }
     if (Utils.objectHasProperty(request, 'ExcludeUserIDs')) {
       filteredRequest.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
     }

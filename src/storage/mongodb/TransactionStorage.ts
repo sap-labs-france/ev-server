@@ -270,7 +270,7 @@ export default class TransactionStorage {
       params: {
         transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
         chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
-        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
+        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; visualTagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
         statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
@@ -445,6 +445,14 @@ export default class TransactionStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    if (!Utils.isEmptyArray(params.visualTagIDs)) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: 'tagID', foreignField: '_id', asField: 'tag'
+      });
+      aggregation.push({
+        $match: { 'tag.visualID': { $in: params.visualTagIDs } }
+      });
+    }
     // Filters
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({

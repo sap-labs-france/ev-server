@@ -541,7 +541,7 @@ export default class UserStorage {
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string;
         notSynchronizedBillingData?: boolean; withTestBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date; tagIDs?: string[];
+        notifications?: any; noLoginSince?: Date; tagIDs?: string[]; visualTagIDs?: string[]
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -658,13 +658,20 @@ export default class UserStorage {
       });
     }
     // Add Tags
-    if (params.tagIDs) {
+    if (!Utils.isEmptyArray(params.tagIDs) || !Utils.isEmptyArray(params.visualTagIDs)) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
       });
-      aggregation.push({
-        $match: { 'tag.id': { $in: params.tagIDs } }
-      });
+      if (!Utils.isEmptyArray(params.tagIDs)) {
+        aggregation.push({
+          $match: { 'tag.id': { $in: params.tagIDs } }
+        });
+      }
+      if (!Utils.isEmptyArray(params.visualTagIDs)) {
+        aggregation.push({
+          $match: { 'tag.visualID': { $in: params.visualTagIDs } }
+        });
+      }
     }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {

@@ -90,12 +90,16 @@ export default class UserService {
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, userID, {
       issuer: true
-    }, ['id', 'description', 'active']);
+    }, ['id']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, userID, {
         issuer: true
-      }, ['id', 'description', 'active']);
+      }, ['id']);
+    }
+    if (tag) {
+      tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, tag.id, Action.READ, action,
+        { withUser: false }, true);
     }
     // Handle Car
     let car: Car;
@@ -1198,6 +1202,7 @@ export default class UserService {
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
         tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
+        visualTagIDs: (filteredRequest.VisualTagID ? filteredRequest.VisualTagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
