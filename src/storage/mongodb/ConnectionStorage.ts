@@ -17,9 +17,9 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Create
     const connectionMDB: any = {
-      _id: !connectionToSave.id ? new ObjectID() : Utils.convertToObjectID(connectionToSave.id),
+      _id: !connectionToSave.id ? new ObjectID() : DatabaseUtils.convertToObjectID(connectionToSave.id),
       connectorId: connectionToSave.connectorId,
-      userId: Utils.convertToObjectID(connectionToSave.userId),
+      userId: DatabaseUtils.convertToObjectID(connectionToSave.userId),
       createdAt: Utils.convertToDate(connectionToSave.createdAt),
       updatedAt: Utils.convertToDate(connectionToSave.updatedAt),
       validUntil: Utils.convertToDate(connectionToSave.validUntil),
@@ -39,7 +39,7 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     aggregation.push({
-      $match: { connectorId: connectorId, userId: Utils.convertToObjectID(userId) }
+      $match: { connectorId: connectorId, userId: DatabaseUtils.convertToObjectID(userId) }
     });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
@@ -64,7 +64,7 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const aggregation = [];
     aggregation.push({
-      $match: { userId: Utils.convertToObjectID(userID) }
+      $match: { userId: DatabaseUtils.convertToObjectID(userID) }
     });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
@@ -91,7 +91,7 @@ export default class ConnectionStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) }
+      $match: { _id: DatabaseUtils.convertToObjectID(id) }
     });
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
@@ -118,7 +118,7 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<Connection>(tenant.id, 'connections')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteConnection', uniqueTimerID, { id });
   }
@@ -130,7 +130,7 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Delete
     await global.database.getCollection<any>(tenant.id, 'connections')
-      .deleteMany({ 'userId': Utils.convertToObjectID(userID) });
+      .deleteMany({ 'userId': DatabaseUtils.convertToObjectID(userID) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteConnectionByUser', uniqueTimerID, { userID });
   }

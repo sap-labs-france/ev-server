@@ -12,7 +12,7 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeBillingUsersTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Get the lock
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(tenant.id);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(tenant.id);
     if (billingLock) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant);
@@ -20,7 +20,7 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
           const synchronizeAction = await billingImpl.synchronizeUsers();
           if (synchronizeAction.inError > 0) {
             await NotificationHandler.sendBillingSynchronizationFailed(
-              tenant.id,
+              tenant,
               {
                 nbrUsersInError: synchronizeAction.inError,
                 evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),

@@ -77,6 +77,16 @@ export default class TenantValidator extends SchemaValidator {
 
   private validateComponentDependencies(tenant: Tenant): void {
     if (tenant.components) {
+      // Both OICP and OCPI cannot be active
+      if (tenant.components.oicp && tenant.components.ocpi &&
+          tenant.components.oicp.active && tenant.components.ocpi.active) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Both OICP and OCPI roaming components cannot be active',
+          module: this.moduleName, method: 'validateComponentDependencies'
+        });
+      }
       // Smart Charging active: Organization must be active
       if (tenant.components.smartCharging && tenant.components.organization &&
           tenant.components.smartCharging.active && !tenant.components.organization.active) {
@@ -84,7 +94,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Smart Charging component',
-          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+          module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
       // Asset active: Organization must be active
@@ -94,7 +104,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Asset component',
-          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+          module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
       // Car Connector active: Car must be active
@@ -104,7 +114,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Car must be active to use the Car Connector component',
-          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+          module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
       // Billing active: Pricing must be active
@@ -114,7 +124,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Billing component',
-          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+          module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
       // Refund active: Pricing must be active
@@ -124,7 +134,7 @@ export default class TenantValidator extends SchemaValidator {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Refund component',
-          module: this.moduleName, method: 'validateTenantUpdateRequestSuperAdmin'
+          module: this.moduleName, method: 'validateComponentDependencies'
         });
       }
     }

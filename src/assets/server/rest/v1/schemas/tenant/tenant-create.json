@@ -2,11 +2,14 @@
   "title": "Create one Tenant",
   "type": "object",
   "properties": {
+    "id": {
+      "$ref": "common.json#/definitions/id"
+    },
     "name": {
-      "$ref": "common.json#/definitions/name"
+      "$ref": "tenant.json#/definitions/name"
     },
     "email": {
-      "$ref": "common.json#/definitions/email"
+      "$ref": "user.json#/definitions/email"
     },
     "subdomain": {
       "$ref": "common.json#/definitions/subdomain"

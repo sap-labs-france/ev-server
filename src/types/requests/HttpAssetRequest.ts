@@ -2,6 +2,7 @@ import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssetRequest extends HttpByIDRequest {
+  ID: string;
   WithSiteArea?: boolean;
 }
 
@@ -23,5 +24,6 @@ export interface HttpAssetConsumptionRequest {
 }
 
 export interface HttpAssetImageRequest extends HttpByIDRequest {
+  ID: string;
   TenantID: string;
 }

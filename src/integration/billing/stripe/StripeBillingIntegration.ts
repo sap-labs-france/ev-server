@@ -99,16 +99,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
       if (!billingTax) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'checkActivationPrerequisites',
-          action: ServerAction.CHECK_BILLING_CONNECTION,
+          module: MODULE_NAME, method: 'checkTaxPrerequisites',
+          action: ServerAction.BILLING_TAXES,
           message: `Billing prerequisites are not consistent - taxID is not found or inactive - taxID: '${taxID}'`
         });
       }
     } else {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'checkActivationPrerequisites',
-        action: ServerAction.CHECK_BILLING_CONNECTION,
+        module: MODULE_NAME, method: 'checkTaxPrerequisites',
+        action: ServerAction.BILLING_TAXES,
         message: 'Billing prerequisites are not consistent - taxID is mandatory'
       });
     }
@@ -436,9 +436,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_UPDATE_TRANSACTION)) {
-      await this._updateTransactionsBillingData(billingInvoice);
-    }
+    await this._updateTransactionsBillingData(billingInvoice);
     return billingInvoice;
   }
 
@@ -514,7 +512,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'setupPaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
       });
     }
     // Let's do it!
@@ -535,6 +533,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check billing data consistency
     const customerID = user?.billingData?.customerID;
     const paymentMethods: BillingPaymentMethod[] = await this._getPaymentMethods(user, customerID);
+    await Logging.logInfo({
+      tenantID: this.tenant.id,
+      user,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_PAYMENT_METHODS,
+      module: MODULE_NAME, method: 'getPaymentMethods',
+      message: `Number of payment methods: ${paymentMethods?.length}`
+    });
     return paymentMethods;
   }
 
@@ -549,7 +555,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'deletePaymentMethod',
-        action: ServerAction.BILLING_TRANSACTION
+        action: ServerAction.BILLING_DELETE_PAYMENT_METHOD
       });
     }
     // Let's do it!
@@ -770,12 +776,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     this.checkStartTransaction(transaction);
     // Check Start Transaction Prerequisites
     const customerID: string = transaction.user?.billingData?.customerID;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
-      // Check whether the customer exists or not
-      const customer = await this.checkStripeCustomer(customerID);
-      // Check whether the customer has a default payment method
-      this.checkStripePaymentMethod(customer);
-    }
+    // Check whether the customer exists or not
+    const customer = await this.checkStripeCustomer(customerID);
+    // Check whether the customer has a default payment method
+    this.checkStripePaymentMethod(customer);
     // Well ... when in test mode we may allow to start the transaction
     if (!customerID) {
       // Not yet LIVE ... starting a transaction without a STRIPE CUSTOMER is allowed
@@ -807,16 +811,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private checkStripePaymentMethod(customer: Stripe.Customer): void {
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_DEFAULT_PAYMENT_METHOD)) {
-      if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
-        throw new BackendError({
-          message: `Customer has no default payment method - ${customer.id}`,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+    if (!customer.default_source && !customer.invoice_settings?.default_payment_method) {
+      throw new BackendError({
+        message: `Customer has no default payment method - ${customer.id}`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'startTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 
@@ -921,28 +923,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ASYNC_BILL_TRANSACTION)) {
-      // Create and Save async task
-      await AsyncTaskManager.createAndSaveAsyncTasks({
-        name: AsyncTasks.BILL_TRANSACTION,
-        action: ServerAction.BILLING_TRANSACTION,
-        type: AsyncTaskType.TASK,
-        tenantID: this.tenant.id,
-        parameters: {
-          transactionID: String(transaction.id),
-        },
-        module: MODULE_NAME,
-        method: 'stopTransaction',
-      });
-      // Inform the calling layer that the operation has been postponed
-      if (!transaction.billingData?.withBillingActive) {
-        return {
-          status: BillingStatus.PENDING
-        };
-      }
-    } else {
-      return await this.billTransaction(transaction);
-    }
+    // Create and Save async task
+    await AsyncTaskManager.createAndSaveAsyncTasks({
+      name: AsyncTasks.BILL_TRANSACTION,
+      action: ServerAction.BILLING_TRANSACTION,
+      type: AsyncTaskType.TASK,
+      tenantID: this.tenant.id,
+      parameters: {
+        transactionID: String(transaction.id),
+      },
+      module: MODULE_NAME,
+      method: 'stopTransaction',
+    });
+    // Inform the calling layer that the operation has been postponed
+    return {
+      status: BillingStatus.PENDING
+    };
   }
 
   public async billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
@@ -955,6 +951,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       const customerID: string = transaction.user?.billingData?.customerID;
       const customer = await this.getStripeCustomer(customerID);
       if (customer) {
+        await Logging.logInfo({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'billTransaction',
+          message: `Billing process is about to start - transaction ID: ${transaction.id}`
+        });
         const billingDataTransactionStop: BillingDataTransactionStop = await this._billTransaction(transaction);
         return billingDataTransactionStop;
       }
@@ -964,7 +968,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'stopTransaction',
+        module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
@@ -1176,18 +1180,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
-    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
-    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
-    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL', transaction.timezone);
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT', transaction.timezone);
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT', transaction.timezone);
     const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
-    // TODO: Determine the description pattern to use according to the billing settings
-    let descriptionPattern;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_START_DATE)) {
-      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
-    } else {
-      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingStopSiteArea' : 'billing.chargingStopChargeBox';
-    }
+    const descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
     // Get the translated line item description
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
@@ -1424,14 +1422,15 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async precheckStartTransactionPrerequisites(user: User): Promise<StartTransactionErrorCode[]> {
+    const errorCodes: StartTransactionErrorCode[] = [];
     // Check billing prerequisites
     if (!this.settings.billing.isTransactionBillingActivated) {
       // Nothing to check - billing of transactions is not yet ON
-      return null;
+      return errorCodes;
     }
     if (this.isUserInternal(user)) {
       // Nothing to check - we do not bill internal user's transactions
-      return null;
+      return errorCodes;
     }
     // Make sure the STRIPE connection is ok
     try {
@@ -1447,7 +1446,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
       return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
     }
     // Check all settings that are necessary to bill a transaction
-    const errorCodes: StartTransactionErrorCode[] = [];
     try {
       await this.checkTaxPrerequisites(); // Checks that the taxID is still valid
     } catch (error) {
@@ -1462,23 +1460,21 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
     // Check user prerequisites
     const customerID: string = user?.billingData?.customerID;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_CUSTOMER_ID)) {
-      try {
-        // Check whether the customer exists or not
-        const customer = await this.checkStripeCustomer(customerID);
-        // Check whether the customer has a default payment method
-        this.checkStripePaymentMethod(customer);
-      } catch (error) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
-          message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-        // TODO - return a more precise error code when payment method has expired
-        errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
-      }
+    try {
+      // Check whether the customer exists or not
+      const customer = await this.checkStripeCustomer(customerID);
+      // Check whether the customer has a default payment method
+      this.checkStripePaymentMethod(customer);
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_TRANSACTION,
+        module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
+        message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      // TODO - return a more precise error code when payment method has expired
+      errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
     }
     // Let's return the check results!
     return errorCodes;

@@ -43,7 +43,7 @@ export interface ConnectorMDB {
   voltage: Voltage;
   amperage: number;
   amperageLimit: number;
-  userID: ObjectID;
+  currentUserID: ObjectID;
   statusLastChangedOn: Date;
   numberOfConnectedPhase: number;
   currentType: CurrentType;
@@ -90,23 +90,23 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates');
     // Create Aggregation
     const aggregation = [];
-    // Add in aggregation
-    if (chargePointVendor) {
-      aggregation.push({
-        $match: {
-          chargePointVendor
-        }
-      });
-    }
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
     const chargingStationTemplatesMDB: ChargingStationTemplate[] =
       await global.database.getCollection<ChargingStationTemplate>(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
         .aggregate(aggregation).toArray();
+    const chargingStationTemplates: ChargingStationTemplate[] = [];
+    // Reverse match the regexp in JSON template records against the charging station vendor string
+    for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
+      const regExp = new RegExp(chargingStationTemplateMDB.chargePointVendor);
+      if (regExp.test(chargePointVendor)) {
+        chargingStationTemplates.push(chargingStationTemplateMDB);
+      }
+    }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'getChargingStationTemplates', uniqueTimerID, chargingStationTemplatesMDB);
-    return chargingStationTemplatesMDB;
+    return chargingStationTemplates;
   }
 
   public static async deleteChargingStationTemplates(): Promise<void> {
@@ -210,9 +210,9 @@ export default class ChargingStationStorage {
     // Filter
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
@@ -307,12 +307,12 @@ export default class ChargingStationStorage {
       filters.siteAreaID = null;
     } else if (!Utils.isEmptyArray(params.siteAreaIDs)) {
       // Query by siteAreaID
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Check Site ID
     if (!Utils.isEmptyArray(params.siteIDs)) {
       // Query by siteID
-      filters.siteID = { $in: params.siteIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
@@ -432,9 +432,9 @@ export default class ChargingStationStorage {
     // Search filters
     if (params.search) {
       filters.$or = [
-        { '_id': { $regex: params.search, $options: 'i' } },
-        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+        { _id: { $regex: params.search, $options: 'im' } },
+        { chargePointModel: { $regex: params.search, $options: 'im' } },
+        { chargePointVendor: { $regex: params.search, $options: 'im' } }
       ];
     }
     // Remove deleted
@@ -443,7 +443,7 @@ export default class ChargingStationStorage {
     filters.issuer = true;
     // Site Areas
     if (!Utils.isEmptyArray(params.siteAreaIDs)) {
-      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Add in aggregation
     aggregation.push({
@@ -467,7 +467,7 @@ export default class ChargingStationStorage {
       aggregation.push({
         $match: {
           'sitearea.siteID': {
-            $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+            $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id))
           }
         }
       });
@@ -549,8 +549,8 @@ export default class ChargingStationStorage {
       templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       public: Utils.convertToBoolean(chargingStationToSave.public),
-      siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
-      siteID: Utils.convertToObjectID(chargingStationToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteAreaID),
+      siteID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
@@ -577,6 +577,8 @@ export default class ChargingStationStorage {
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
         (connector) => ChargingStationStorage.filterConnectorMDB(connector)) : [],
+      backupConnectors: chargingStationToSave.backupConnectors ? chargingStationToSave.backupConnectors.map(
+        (backupConnector) => ChargingStationStorage.filterConnectorMDB(backupConnector)) : [],
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.filterChargePointMDB(chargePoint)) : [],
       coordinates: Utils.containsGPSCoordinates(chargingStationToSave.coordinates) ? chargingStationToSave.coordinates.map(
@@ -598,25 +600,50 @@ export default class ChargingStationStorage {
     return chargingStationMDB._id;
   }
 
-  public static async saveChargingStationConnectors(tenantID: string, id: string, connectors: Connector[]): Promise<void> {
+  public static async saveChargingStationConnectors(tenantID: string, id: string, connectors: Connector[], backupConnectors?: Connector[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationConnectors');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
+    const updatedProps: any = {};
+    // Set connectors
+    updatedProps.connectors = connectors.map((connector) =>
+      ChargingStationStorage.filterConnectorMDB(connector));
+    // Set backup connector
+    if (backupConnectors) {
+      updatedProps.backupConnectors = backupConnectors.map((backupConnector) =>
+        ChargingStationStorage.filterConnectorMDB(backupConnector));
+    }
+    // Modify document
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: updatedProps
+      },
+      { upsert: true });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
+  }
+
+  public static async saveChargingStationBackupConnectors(tenantID: string, id: string, backupConnectors: Connector[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
     // Ensure good typing
-    const connectorsMDB = connectors.map((connector) =>
+    const backupConnectorsMDB = backupConnectors.map((connector) =>
       ChargingStationStorage.filterConnectorMDB(connector));
     // Modify document
     await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
       {
         $set: {
-          connectors: connectorsMDB
+          backupConnectors: backupConnectorsMDB
         }
       },
       { upsert: true });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors', uniqueTimerID, backupConnectors);
   }
 
   public static async saveChargingStationCFApplicationIDAndInstanceIndex(tenantID: string, id: string,
@@ -1103,6 +1130,8 @@ export default class ChargingStationStorage {
         currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
         currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
         currentTagID: connector.currentTagID,
+        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
+        currentUserID: DatabaseUtils.convertToObjectID(connector.currentUserID),
         status: connector.status,
         errorCode: connector.errorCode,
         info: connector.info,
@@ -1112,8 +1141,6 @@ export default class ChargingStationStorage {
         voltage: Utils.convertToInt(connector.voltage),
         amperage: Utils.convertToInt(connector.amperage),
         amperageLimit: Utils.convertToInt(connector.amperageLimit),
-        currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
-        userID: Utils.convertToObjectID(connector.userID),
         statusLastChangedOn: Utils.convertToDate(connector.statusLastChangedOn),
         currentInactivityStatus: connector.currentInactivityStatus,
         numberOfConnectedPhase: connector.numberOfConnectedPhase,

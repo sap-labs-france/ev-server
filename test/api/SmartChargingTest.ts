@@ -318,6 +318,15 @@ describe('Smart Charging Service', function() {
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
     });
 
+    it('Should not connect to Smart Charging Provider with invalid URL', async () => {
+      const sapSmartChargingSettings = TestData.getSmartChargingSettings();
+      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+      sapSmartChargingSettings.optimizerUrl = '';
+      await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
+      const response = await testData.userService.smartChargingApi.testConnection({});
+      expect(response.data.message).include('SAP Smart Charging service configuration is incorrect');
+    });
+
     describe('Test for three phased site area', () => {
       before(() => {
         testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
@@ -487,7 +496,28 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[2]);
+        // Do not save the last profile to check if this is the only one build in the upcoming test
+      });
+
+      it('Test if charging profiles are not returned, when they are already applied', async () => {
+        const chargingProfiles = await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea());
+        // Charging Profiles should only contain the charging profile, which was not saved in the last run
+        TestData.validateChargingProfile(chargingProfiles[0], transaction2);
+        expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
+          {
+            'startPeriod': 0,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          },
+          {
+            'startPeriod': 900,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          },
+          {
+            'startPeriod': 1800,
+            'limit': Utils.roundTo(20 * aCBufferFactor, 3)
+          }
+        ]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
       });
 
 

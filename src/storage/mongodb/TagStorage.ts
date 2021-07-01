@@ -6,6 +6,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -20,11 +21,11 @@ export default class TagStorage {
     await DatabaseUtils.checkTenant(tenantID);
     const tagMDB = {
       _id: tag.id,
-      userID: Utils.convertToObjectID(tag.userID),
+      userID: DatabaseUtils.convertToObjectID(tag.userID),
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),
-      visualID: tag.visualID,
+      visualID: tag.visualID ?? new ObjectID().toHexString(),
       ocpiToken: tag.ocpiToken,
       description: tag.description
     };
@@ -219,7 +220,7 @@ export default class TagStorage {
     await DatabaseUtils.checkTenant(tenantID);
     await global.database.getCollection<any>(tenantID, 'tags').updateMany(
       {
-        userID: Utils.convertToObjectID(userID),
+        userID: DatabaseUtils.convertToObjectID(userID),
         default: true
       },
       {
@@ -251,7 +252,7 @@ export default class TagStorage {
     // Delete
     const result = await global.database.getCollection<any>(tenantID, 'tags').deleteMany(
       {
-        'userID': Utils.convertToObjectID(userID),
+        'userID': DatabaseUtils.convertToObjectID(userID),
       }
     );
     // Debug
@@ -271,23 +272,14 @@ export default class TagStorage {
   }
 
   public static async getTagByVisualID(tenantID: string, visualID: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean; userIDs?: string[] } = {}, projectFields?: string[]): Promise<Tag> {
-    const tagMDB = await TagStorage.getTagByVisualIDs(tenantID, [visualID], {
+      params: { withUser?: boolean; withNbrTransactions?: boolean, userIDs?: string[] } = {}, projectFields?: string[]): Promise<Tag> {
+    const tagMDB = await TagStorage.getTags(tenantID, {
+      visualIDs: [visualID],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
       userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
-  }
-
-  public static async getTagByVisualIDs(tenantID: string, visualIDs: string[],
-      params: { withUser?: boolean; withNbrTransactions?: boolean; userIDs?: string[] } = {}, dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
-    return await TagStorage.getTags(tenantID, {
-      visualIDs: visualIDs,
-      withUser: params.withUser,
-      withNbrTransactions: params.withNbrTransactions,
-      userIDs: params.userIDs
-    }, dbParams, projectFields);
   }
 
   public static async getFirstActiveUserTag(tenantID: string, userID: string,
@@ -349,7 +341,7 @@ export default class TagStorage {
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      filters.userID = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
       if (params.defaultTag) {
         filters.default = true;
       }

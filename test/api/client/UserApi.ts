@@ -1,9 +1,10 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
 import { ServerRoute } from '../../../src/types/Server';
 import TestConstants from './utils/TestConstants';
 
 export default class UserApi extends CrudApi {
-  public constructor(authenticatedApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
   }
 
@@ -40,27 +41,27 @@ export default class UserApi extends CrudApi {
   }
 
   public async readTags(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Tags');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
   public async readTag(id) {
-    return super.read({ ID: id }, '/client/api/Tag');
+    return super.read({ ID: id }, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
   }
 
   public async updateTag(data) {
-    return super.update(data, '/client/api/TagUpdate');
+    return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id: data.id }));
   }
 
   public async createTag(data) {
-    return super.create(data, '/client/api/TagCreate');
+    return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_TAGS));
   }
 
   public async deleteTag(id) {
-    return super.delete(id, '/client/api/TagDelete');
+    return super.delete(id, this.buildRestEndpointUrl(ServerRoute.REST_TAG, { id }));
   }
 
   public async exportTags(params) {
-    return await super.read(params, '/client/api/TagsExport');
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_EXPORT));
   }
 
   public async exportUsers(params) {
@@ -76,6 +77,11 @@ export default class UserApi extends CrudApi {
 
   public async getImage(userID: string) {
     const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_IMAGE, { id: userID });
+    return await super.read({}, url);
+  }
+
+  public async getDefaultTagCar(userID: string) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { id: userID });
     return await super.read({}, url);
   }
 }

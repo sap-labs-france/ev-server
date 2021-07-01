@@ -44,7 +44,7 @@ export default class OCPIEndpointStorage {
     const ocpiEndpointFilter: any = {};
     // Build Request
     if (ocpiEndpointToSave.id) {
-      ocpiEndpointFilter._id = Utils.convertToObjectID(ocpiEndpointToSave.id);
+      ocpiEndpointFilter._id = DatabaseUtils.convertToObjectID(ocpiEndpointToSave.id);
     } else {
       ocpiEndpointFilter._id = new ObjectID();
     }
@@ -105,7 +105,7 @@ export default class OCPIEndpointStorage {
     }
     if (params.ocpiEndpointIDs) {
       filters._id = {
-        $in: params.ocpiEndpointIDs.map((ocpiEndpointID) => Utils.convertToObjectID(ocpiEndpointID))
+        $in: params.ocpiEndpointIDs.map((ocpiEndpointID) => DatabaseUtils.convertToObjectID(ocpiEndpointID))
       };
     }
     if (params.localToken) {
@@ -181,7 +181,7 @@ export default class OCPIEndpointStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Delete OcpiEndpoint
     await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }

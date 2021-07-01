@@ -22,7 +22,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
       // Check if OCPI component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         // Get the lock
-        const ocpiLock = await LockingHelper.createOCPIPushCpoCdrsLock(tenant.id);
+        const ocpiLock = await LockingHelper.acquireOCPIPushCpoCdrsLock(tenant.id);
         if (ocpiLock) {
           try {
             // Get all finished Transaction with no CDR
@@ -48,7 +48,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
               });
               for (const transactionMDB of transactionsMDB) {
                 // Get the lock: Used to avoid collision with manual push or end of transaction push
-                const ocpiTransactionLock = await LockingHelper.createOCPIPushCdrLock(tenant.id, transactionMDB._id);
+                const ocpiTransactionLock = await LockingHelper.acquireOCPIPushCdrLock(tenant.id, transactionMDB._id);
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction

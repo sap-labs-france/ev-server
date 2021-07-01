@@ -128,7 +128,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!await Authorizations.canSynchronizeUsersBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUsersBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -155,7 +155,7 @@ export default class BillingService {
       inError: 0,
       inSuccess: 0,
     };
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync users
@@ -181,7 +181,7 @@ export default class BillingService {
 
   public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -208,7 +208,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the lock
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync user
@@ -234,7 +234,7 @@ export default class BillingService {
 
   public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!await Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!(await Authorizations.canSynchronizeUserBilling(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -261,7 +261,7 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
-    const billingLock = await LockingHelper.createBillingSyncUsersLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncUsersLock(req.user.tenantID);
     if (billingLock) {
       try {
         await billingImpl.forceSynchronizeUser(user);
@@ -328,7 +328,8 @@ export default class BillingService {
     }
     // Check Users
     let userProject: string[] = [];
-    if ((await Authorizations.canListUsers(req.user)).authorized) {
+    // Temporary fix before new auth migration
+    if (!Authorizations.isDemo(req.user)) {
       userProject = [ 'userID', 'user.id', 'user.name', 'user.firstName', 'user.email' ];
     }
     // Filter
@@ -427,7 +428,7 @@ export default class BillingService {
       inSuccess: 0,
     };
     // Get the Invoice lock
-    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices
@@ -484,7 +485,7 @@ export default class BillingService {
       inError: 0,
       inSuccess: 0,
     };
-    const billingLock = await LockingHelper.createBillingSyncInvoicesLock(req.user.tenantID);
+    const billingLock = await LockingHelper.acquireBillingSyncInvoicesLock(req.user.tenantID);
     if (billingLock) {
       try {
         // Sync invoices
@@ -641,6 +642,14 @@ export default class BillingService {
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
     const paymentMethods: BillingPaymentMethod[] = await billingImpl.getPaymentMethods(user);
+    await Logging.logInfo({
+      tenantID: req.user.tenantID,
+      user,
+      source: Constants.CENTRAL_SERVER,
+      action: ServerAction.BILLING_PAYMENT_METHODS,
+      module: MODULE_NAME, method: 'getPaymentMethods',
+      message: `Number of payment methods: ${paymentMethods?.length}`
+    });
     const dataResult: DataResult<BillingPaymentMethod> = {
       count: paymentMethods.length,
       result: paymentMethods

@@ -1,0 +1,62 @@
+{
+  "title": "Create one User",
+  "type": "object",
+  "definitions": {
+    "name": {
+      "$ref": "user.json#/definitions/name"
+    },
+    "firstName": {
+      "$ref": "user.json#/definitions/firstName"
+    },
+    "email": {
+      "$ref": "user.json#/definitions/email"
+    },
+    "costCenter": {
+      "$ref": "user.json#/definitions/costCenter"
+    },
+    "iNumber": {
+      "$ref": "user.json#/definitions/iNumber"
+    },
+    "image": {
+      "$ref": "user.json#/definitions/image"
+    },
+    "mobile": {
+      "$ref": "user.json#/definitions/mobile"
+    },
+    "locale": {
+      "$ref": "user.json#/definitions/locale"
+    },
+    "address": {
+      "$ref": "user.json#/definitions/address"
+    },
+    "password": {
+      "$ref": "user.json#/definitions/password"
+    },
+    "phone": {
+      "$ref": "user.json#/definitions/phone"
+    },
+    "issuer": {
+      "$ref": "user.json#/definitions/issuer"
+    },
+    "notificationsActive": {
+      "$ref": "user.json#/definitions/notificationsActive"
+    },
+    "notifications": {
+      "$ref": "user.json#/definitions/notifications"
+    },
+    "status": {
+      "$ref": "user.json#/definitions/status"
+    },
+    "plateID": {
+      "$ref": "user.json#/definitions/plateID"
+    },
+    "role": {
+      "$ref": "user.json#/definitions/role"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "password"
+  ]
+}

@@ -16,7 +16,6 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import { Decimal } from 'decimal.js';
 import Logging from './Logging';
-import { ObjectID } from 'mongodb';
 import QRCode from 'qrcode';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
@@ -453,16 +452,6 @@ export default class Utils {
     return userToken.activeComponents.includes(componentName);
   }
 
-  public static convertToObjectID(id: any): ObjectID {
-    let changedID: ObjectID = id;
-    // Check
-    if (typeof id === 'string') {
-      // Create Object
-      changedID = new ObjectID(id);
-    }
-    return changedID;
-  }
-
   public static convertToInt(value: any): number {
     let changedValue: number = value;
     if (!value) {
@@ -495,25 +484,6 @@ export default class Utils {
 
   public static computeSimplePrice(pricePerkWh: number, consumptionWh: number): number {
     return Utils.createDecimal(pricePerkWh).mul(Utils.convertToFloat(consumptionWh)).div(1000).toNumber();
-  }
-
-  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
-    let userID: ObjectID | null = null;
-    // Check Created By
-    if (user) {
-      // Check User Model
-      if (typeof user === 'object' &&
-        user.constructor.name !== 'ObjectID') {
-        // This is the User Model
-        userID = Utils.convertToObjectID(user.id);
-      }
-      // Check String
-      if (typeof user === 'string') {
-        // This is a String
-        userID = Utils.convertToObjectID(user);
-      }
-    }
-    return userID;
   }
 
   public static convertAmpToWatt(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, ampValue: number): number {
@@ -558,6 +528,13 @@ export default class Utils {
       return null;
     }
     return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
+  }
+
+  public static getBackupConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+    if (!chargingStation.backupConnectors) {
+      return null;
+    }
+    return chargingStation.backupConnectors.find((backupConnector) => backupConnector && (backupConnector.connectorId === connectorID));
   }
 
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {

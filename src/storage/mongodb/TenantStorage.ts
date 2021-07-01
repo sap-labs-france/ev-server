@@ -52,7 +52,7 @@ export default class TenantStorage {
     const tenantFilter: any = {};
     // Build Request
     if (tenantToSave.id) {
-      tenantFilter._id = Utils.convertToObjectID(tenantToSave.id);
+      tenantFilter._id = DatabaseUtils.convertToObjectID(tenantToSave.id);
     } else {
       tenantFilter._id = new ObjectID();
     }
@@ -127,7 +127,7 @@ export default class TenantStorage {
     // Tenant
     if (!Utils.isEmptyArray(params.tenantIDs)) {
       filters._id = {
-        $in: params.tenantIDs.map((tenantID) => Utils.convertToObjectID(tenantID))
+        $in: params.tenantIDs.map((tenantID) => DatabaseUtils.convertToObjectID(tenantID))
       };
     }
     // Name
@@ -223,7 +223,7 @@ export default class TenantStorage {
     // Delete
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
-        '_id': Utils.convertToObjectID(id)
+        '_id': DatabaseUtils.convertToObjectID(id)
       });
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
@@ -245,7 +245,7 @@ export default class TenantStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
     const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
-      .findOne({ _id: Utils.convertToObjectID(tenantID) });
+      .findOne({ _id: DatabaseUtils.convertToObjectID(tenantID) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);
     return {
@@ -261,7 +261,7 @@ export default class TenantStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(tenantID) },
+      { '_id': DatabaseUtils.convertToObjectID(tenantID) },
       { $set: { logo: tenantLogoToSave } },
       { upsert: true });
     // Debug

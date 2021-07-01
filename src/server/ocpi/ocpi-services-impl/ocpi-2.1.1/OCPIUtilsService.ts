@@ -30,7 +30,6 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
-import { ObjectID } from 'mongodb';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -116,8 +115,8 @@ export default class OCPIUtilsService {
     // Result
     const ocpiLocationsResult: DataResult<OCPILocation> = { count: 0, result: [] };
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id,
-      { issuer: true, onlyPublicSite: true },
+    const sites = await SiteStorage.getSites(tenant,
+      { issuer: true, public: true },
       limit === 0 ? Constants.DB_PARAMS_MAX_LIMIT : { limit, skip },
       ['id', 'name', 'address', 'lastChangedOn', 'createdOn']);
     // Convert Sites to Locations
@@ -127,8 +126,8 @@ export default class OCPIUtilsService {
     }
     let nbrOfSites = sites.count;
     if (nbrOfSites === -1) {
-      const sitesCount = await SiteStorage.getSites(tenant.id,
-        { issuer: true, onlyPublicSite: true }, Constants.DB_PARAMS_COUNT_ONLY);
+      const sitesCount = await SiteStorage.getSites(tenant,
+        { issuer: true, public: true }, Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfSites = sitesCount.count;
     }
     // Set count
@@ -628,7 +627,6 @@ export default class OCPIUtilsService {
       }
       const tagToSave = {
         id: token.uid,
-        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -669,7 +667,6 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenant.id, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
-        visualID: token.visual_number,
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -882,7 +879,18 @@ export default class OCPIUtilsService {
         return 'FR*ISE_Payant1';
       // Properphi
       case '603655d291930d0014017e0a':
-        return 'Tarif_EVSE_DC';
+        switch (chargingStation?.siteAreaID) {
+          // F3C Baume les dames
+          case '60990f1cc48de10014ea4fdc':
+            switch (chargingStation?.id) {
+              case 'F3CBaume-CAHORS24DC':
+                return 'Tarif_EVSE_DC';
+              case 'F3CBaume-LAFON22AC':
+                return 'Tarif_EVSE_AC';
+            }
+            return '';
+        }
+        return '';
     }
     return '';
   }

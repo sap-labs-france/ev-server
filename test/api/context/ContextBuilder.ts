@@ -2,7 +2,6 @@ import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
-import BillingContext from './BillingContext';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../../src/types/ChargingStation';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
@@ -288,8 +287,8 @@ export default class ContextBuilder {
         siteTemplate.id = siteContextDef.id;
         siteTemplate.issuer = true;
         site = siteTemplate;
-        site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
+        site.id = await SiteStorage.saveSite(buildTenant, siteTemplate, true);
+        await SiteStorage.addUsersToSite(buildTenant, site.id, userListToAssign.map((user) => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         // Create site areas of current site
         for (const siteAreaDef of ContextDefinition.TENANT_SITEAREA_LIST.filter((siteArea) => siteArea.siteName === site.name)) {
@@ -385,7 +384,6 @@ export default class ContextBuilder {
     newTenantContext.addSiteContext(siteContext);
     // Create transaction/session data for a specific tenants:
     const statisticContext = new StatisticsContext(newTenantContext);
-    const billingContext = new BillingContext(newTenantContext);
     switch (tenantContextDef.tenantName) {
       case ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
         console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Site Area '${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}'`);
@@ -395,9 +393,6 @@ export default class ContextBuilder {
         console.log(`${buildTenant.id} (${buildTenant.name}) - Transactions - Unassigned Charging Stations`);
         await statisticContext.createTestData(ContextDefinition.SITE_CONTEXTS.NO_SITE, ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);
         break;
-      case ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING:
-        console.log(`${buildTenant.id} (${buildTenant.name}) - Invoices`);
-        await billingContext.createTestData();
     }
     return newTenantContext;
   }

@@ -142,8 +142,11 @@ export default class ChargingStationService {
                 countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
                 partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
               };
+              // Get Site
+              const site = await SiteStorage.getSite(req.tenant, chargingStation.siteID);
+              // Push EVSE to OICP platform
               await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
-                chargingStation.siteArea, chargingStation, options), actionType);
+                site, chargingStation.siteArea, chargingStation, options), actionType);
             }
           } catch (error) {
             await Logging.logError({
@@ -567,7 +570,7 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30 * 1000);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(req.user.tenantID, siteArea, 30);
     if (siteAreaLock) {
       try {
         // Call
@@ -846,8 +849,11 @@ export default class ChargingStationService {
               countryID: oicpClient.getLocalCountryCode(ServerAction.OICP_PUSH_EVSE_DATA),
               partyID: oicpClient.getLocalPartyID(ServerAction.OICP_PUSH_EVSE_DATA)
             };
+            // Get Site
+            const site = await SiteStorage.getSite(req.tenant, chargingStation.siteID);
+            // Push EVSE to OICP platform
             await oicpClient.pushEvseData(OICPUtils.convertChargingStation2MultipleEvses(
-              chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
+              site, chargingStation.siteArea, chargingStation, options), OICPActionType.DELETE);
           }
         } catch (error) {
           await Logging.logError({

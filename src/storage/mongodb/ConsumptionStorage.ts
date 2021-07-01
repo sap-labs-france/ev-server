@@ -7,6 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ConsumptionStorage';
@@ -71,7 +72,7 @@ export default class ConsumptionStorage {
     const filters: FilterParams = {};
     // ID
     if (params.assetID) {
-      filters.assetID = Utils.convertToObjectID(params.assetID);
+      filters.assetID = DatabaseUtils.convertToObjectID(params.assetID);
     }
     // Date provided?
     if (params.startDate || params.endDate) {
@@ -142,6 +143,45 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
+  static async getLastAssetConsumption(tenant: Tenant, params: { assetID: string }): Promise<Consumption> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getLastAssetConsumption');
+    // Check
+    DatabaseUtils.checkTenantObject(tenant);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        assetID: DatabaseUtils.convertToObjectID(params.assetID)
+      }
+    });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Sort
+    aggregation.push({
+      $sort: { startedAt: -1 }
+    });
+    // Limit
+    aggregation.push({
+      $limit: 1
+    });
+    let consumption: Consumption = null;
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection<Consumption>(tenant.id, 'consumptions')
+      .aggregate(aggregation, { allowDiskUse: true })
+      .toArray();
+    if (consumptionsMDB && consumptionsMDB.length > 0) {
+      consumption = consumptionsMDB[0];
+    }
+    // Debug
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getLastAssetConsumption', uniqueTimerID, consumptionsMDB);
+    return consumption;
+  }
+
   static async getSiteAreaConsumptions(tenantID: string,
       params: { siteAreaID: string; startDate: Date; endDate: Date },
       projectFields?: string[]): Promise<Consumption[]> {
@@ -153,7 +193,7 @@ export default class ConsumptionStorage {
     const filters: FilterParams = {};
     // ID
     if (params.siteAreaID) {
-      filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+      filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
     }
     // Date provided?
     if (params.startDate || params.endDate) {
@@ -414,9 +454,9 @@ export default class ConsumptionStorage {
       transactionId: Utils.convertToInt(consumption.transactionId),
       chargeBoxID: consumption.chargeBoxID,
       connectorId: Utils.convertToInt(consumption.connectorId),
-      siteAreaID: Utils.convertToObjectID(consumption.siteAreaID),
-      siteID: Utils.convertToObjectID(consumption.siteID),
-      assetID: Utils.convertToObjectID(consumption.assetID),
+      siteAreaID: DatabaseUtils.convertToObjectID(consumption.siteAreaID),
+      siteID: DatabaseUtils.convertToObjectID(consumption.siteID),
+      assetID: DatabaseUtils.convertToObjectID(consumption.assetID),
       consumptionWh: Utils.convertToFloat(consumption.consumptionWh),
       consumptionAmps: Utils.convertToFloat(consumption.consumptionAmps),
       cumulatedAmount: Utils.convertToFloat(consumption.cumulatedAmount),
@@ -447,7 +487,7 @@ export default class ConsumptionStorage {
       limitAmps: Utils.convertToInt(consumption.limitAmps),
       limitWatts: Utils.convertToInt(consumption.limitWatts),
       limitSource: consumption.limitSource,
-      userID: Utils.convertToObjectID(consumption.userID),
+      userID: DatabaseUtils.convertToObjectID(consumption.userID),
       smartChargingActive: Utils.convertToBoolean(consumption.smartChargingActive),
       limitSiteAreaWatts: consumption.limitSiteAreaWatts ? Utils.convertToInt(consumption.limitSiteAreaWatts) : null,
       limitSiteAreaAmps: consumption.limitSiteAreaAmps ? Utils.convertToInt(consumption.limitSiteAreaAmps) : null,

@@ -38,7 +38,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   RefundStatus?: string;
   InactivityStatus?: InactivityStatus;
   MinimalPrice?: boolean;
-  Statistics?: 'refund' | 'history';
+  Statistics?: 'refund' | 'history' | 'ongoing';
   ReportIDs?: string;
   Status?: 'completed' | 'active';
 }

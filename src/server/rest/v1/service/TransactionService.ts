@@ -232,7 +232,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const ocpiLock = await LockingHelper.createOCPIPushCdrLock(req.user.tenantID, transaction.id);
+      const ocpiLock = await LockingHelper.acquireOCPIPushCdrLock(req.user.tenantID, transaction.id);
       if (ocpiLock) {
         try {
           // Roaming
@@ -268,7 +268,7 @@ export default class TransactionService {
         });
       }
       // Get the lock
-      const oicpLock = await LockingHelper.createOICPPushCdrLock(req.user.tenantID, transaction.id);
+      const oicpLock = await LockingHelper.acquireOICPPushCdrLock(req.user.tenantID, transaction.id);
       if (oicpLock) {
         try {
           // Post CDR
@@ -507,7 +507,7 @@ export default class TransactionService {
       source: chargingStation.id,
       user: req.user, actionOnUser: user,
       module: MODULE_NAME, method: 'handleTransactionSoftStop',
-      message: `Connector ID '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
+      message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
       action: action,
       detailedMessages: { result }
     });

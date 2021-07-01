@@ -2,7 +2,9 @@ import HttpDatabaseRequest, { HttpDatabaseProjectRequest } from './HttpDatabaseR
 
 import HttpByIDRequest from './HttpByIDRequest';
 
-export type HttpUserRequest = HttpByIDRequest;
+export interface HttpUserRequest extends HttpByIDRequest {
+  ID: string;
+}
 
 export interface HttpSynchronizeUserRequest {
   id?: string;
@@ -45,17 +47,15 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   NotAssignedToCarID: string;
 }
 
+export interface HttpUsersInErrorRequest extends HttpDatabaseRequest {
+  Search: string;
+  Role?: string;
+  ErrorType?: string;
+}
+
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {
   Search: string;
   UserID: string;
-}
-
-export interface HttpTagsRequest extends HttpDatabaseRequest {
-  Search: string;
-  UserID?: string;
-  Issuer?: boolean;
-  Active?: boolean;
-  WithUser: boolean;
 }
 
 export interface HttpLoginRequest {
@@ -69,9 +69,7 @@ export interface HttpResetPasswordRequest {
   email: string;
   tenant: string;
   captcha: string;
-  passwords: { password: string; repeatPassword: string }; // Frontend...
-  password?: string;
-  repeatPassword?: string;
+  password: string;
   hash: string;
 }
 export interface HttpCheckEulaRequest {
@@ -81,7 +79,7 @@ export interface HttpCheckEulaRequest {
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
   name: string;
   firstName: string;
-  passwords: { password: string }; // Frontend...
+  password: string;
   captcha: string;
   status: string;
   locale: string;

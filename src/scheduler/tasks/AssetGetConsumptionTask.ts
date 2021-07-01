@@ -39,7 +39,10 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
       );
       // Process them
       for (const asset of dynamicAssets.result) {
-        const assetLock = await LockingHelper.createAssetRetrieveConsumptionsLock(tenant.id, asset);
+        if (asset.usesPushAPI) {
+          continue;
+        }
+        const assetLock = await LockingHelper.acquireAssetRetrieveConsumptionsLock(tenant.id, asset);
         if (assetLock) {
           try {
             // Get asset factory
@@ -125,7 +128,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
   }
 
   private async triggerSmartCharging(tenant: Tenant, siteArea: SiteArea) {
-    const siteAreaLock = await LockingHelper.createSiteAreaSmartChargingLock(tenant.id, siteArea, 30 * 1000);
+    const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
     if (siteAreaLock) {
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant);

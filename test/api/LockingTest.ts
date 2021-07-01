@@ -101,8 +101,8 @@ describe('Locking', function() {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Acquire lock
-      testData.siteExclusiveLock = await LockingHelper.createSiteAreaSmartChargingLock(
-        testData.tenantContext.getTenant().id, siteArea, 30 * 1000);
+      testData.siteExclusiveLock = await LockingHelper.acquireSiteAreaSmartChargingLock(
+        testData.tenantContext.getTenant().id, siteArea, 30);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;
       expect(testData.siteExclusiveLock.hostname).not.null;
@@ -134,12 +134,11 @@ describe('Locking', function() {
   });
 
   describe('Test automatic release of locks', () => {
-    it('Should create a Site Area exclusive lock with expiration of 5 seconds', async () => {
+    it('Should create a Site Area exclusive lock with expiration of 10 seconds', async () => {
       // Get the Site Area
       const siteArea = testData.siteAreaContext.getSiteArea();
       // Create and Acquire lock
-      testData.siteExclusiveLock = LockingManager.createExclusiveLock(testData.tenantContext.getTenant().id, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 5);(
-        testData.tenantContext.getTenant().id, siteArea, 30 * 1000);
+      testData.siteExclusiveLock = LockingManager.createExclusiveLock(testData.tenantContext.getTenant().id, LockEntity.SITE_AREA, `${siteArea.id}-smart-charging`, 5);
       expect(testData.siteExclusiveLock).not.null;
       expect(testData.siteExclusiveLock.id).not.null;
       expect(testData.siteExclusiveLock.hostname).not.null;
@@ -158,8 +157,8 @@ describe('Locking', function() {
       expect(result).to.eql(false);
     });
 
-    it('Should acquire the lock with a timeout of 30 seconds. First lock should be released after timeout is reached ', async () => {
-      const result = await LockingManager.acquire(testData.siteExclusiveLock, 30 * 1000);
+    it('Should acquire the lock with a timeout of 10 seconds. First lock should be released after timeout is reached ', async () => {
+      const result = await LockingManager.acquire(testData.siteExclusiveLock, 10);
       expect(result).not.null;
       expect(result).to.eql(true);
     });

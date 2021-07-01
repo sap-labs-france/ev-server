@@ -57,7 +57,7 @@ export default class Logging {
     }
     const sizeOfDataKB = Utils.truncTo(sizeof(data) / 1024, 2);
     const numberOfRecords = Array.isArray(data) ? data.length : 0;
-    const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + 'rec' : ''}`;
+    const message = `${module}.${method} ${found ? '- ' + executionDurationMillis.toString() + 'ms' : ''} ${!Utils.isEmptyJSon(data) ? '- ' + sizeOfDataKB.toString() + 'kB' : ''} ${Array.isArray(data) ? '- ' + numberOfRecords.toString() + ' rec(s)' : ''}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${sizeOfDataKB}kB`);
@@ -78,7 +78,7 @@ export default class Logging {
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -315,10 +315,10 @@ export default class Logging {
         if (res.getHeader('content-length')) {
           sizeOfDataKB = Utils.truncTo(res.getHeader('content-length') as number / 1024, 2);
         }
-        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB >> ${req.method}/${res.statusCode} '${req.url}'`;
+        const message = `Express HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} kB >> ${req.method}/${res.statusCode} '${req.url}'`;
         Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
         if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
-          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB`);
+          const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB} kB, got ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} kB`);
           await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -336,7 +336,7 @@ export default class Logging {
           }
         }
         if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-          const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
+          const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
           await Logging.logWarning({
             tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -415,7 +415,7 @@ export default class Logging {
     if (response.config.headers['Content-Length']) {
       sizeOfDataKB = Utils.truncTo(response.config.headers['Content-Length'] / 1024, 2);
     }
-    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
+    const message = `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`;
     Utils.isDevelopmentEnv() && console.log(chalk.green(message));
     if (sizeOfDataKB > Constants.PERF_MAX_DATA_VOLUME_KB) {
       const error = new Error(`Data must be < ${Constants.PERF_MAX_DATA_VOLUME_KB}`);
@@ -436,7 +436,7 @@ export default class Logging {
       }
     }
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -487,7 +487,7 @@ export default class Logging {
       await Logging.logSecurityDebug({
         tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
-        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'}ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'}kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
+        message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} kB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
         module: MODULE_NAME, method: 'interceptor',
         detailedMessages: {
           status: response.status,
@@ -908,9 +908,9 @@ export default class Logging {
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
       action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
-    // Keep duration
-    Logging.traceCalls[`${chargeBoxID}~action`] = new Date().getTime();
-    // Log
+    // Keep duration (only for one Action per Charging Station)
+    // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
+    Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -925,15 +925,16 @@ export default class Logging {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
-    if (Logging.traceCalls[`${chargingStationID}~action`]) {
-      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~action`]);
-      delete Logging.traceCalls[`${chargingStationID}~action`];
+    // Get the response time
+    if (Logging.traceCalls[`${chargingStationID}~${action}`]) {
+      executionDurationMillis = (new Date().getTime() - Logging.traceCalls[`${chargingStationID}~${action}`]);
+      delete Logging.traceCalls[`${chargingStationID}~${action}`];
       found = true;
     }
     const message = `${direction} OCPP Request '${action}' on '${chargingStationID}' has been processed ${found ? 'in ' + executionDurationMillis.toString() + 'ms' : ''}`;
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     if (executionDurationMillis > Constants.PERF_MAX_RESPONSE_TIME_MILLIS) {
-      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS}ms, got ${executionDurationMillis}ms`);
+      const error = new Error(`Execution must be < ${Constants.PERF_MAX_RESPONSE_TIME_MILLIS} ms, got ${executionDurationMillis} ms`);
       await Logging.logWarning({
         tenantID,
         source: Constants.CENTRAL_SERVER,

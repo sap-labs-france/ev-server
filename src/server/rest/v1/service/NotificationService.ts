@@ -31,7 +31,7 @@ export default class NotificationService {
       chargingStationProject = [ 'chargeBoxID' ];
     }
     // Get the Notification
-    const notifications = await NotificationStorage.getNotifications(req.user.tenantID, {
+    const notifications = await NotificationStorage.getNotifications(req.tenant, {
       'userID': filteredRequest.UserID,
       'dateFrom': filteredRequest.DateFrom,
       'channel': filteredRequest.Channel
@@ -51,7 +51,7 @@ export default class NotificationService {
 
   static async handleEndUserReportError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!await Authorizations.canEndUserReportError(req.user)) {
+    if (!(await Authorizations.canEndUserReportError(req.user)).authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -63,12 +63,11 @@ export default class NotificationService {
     const filteredRequest = NotificationSecurity.filterEndUserReportErrorRequest(req.body);
     // Check if Notification is valid
     UtilsService.checkIfEndUserErrorNotificationValid(filteredRequest, req);
-    // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
-      MODULE_NAME, 'handleEndUserReportError', req.user);
+    // Check and Get User
+    const user = await UtilsService.checkAndGetUserAuthorization(
+      req.tenant, req.user, req.user.id, Action.READ, action);
     // Save mobile number
-    if (filteredRequest.mobile && (user.mobile !== filteredRequest.mobile)) {
+    if (filteredRequest.mobile && user.mobile !== filteredRequest.mobile) {
       user.mobile = filteredRequest.mobile;
       await UserStorage.saveUserMobilePhone(req.user.tenantID, user.id, { mobile: filteredRequest.mobile });
     }
@@ -83,7 +82,7 @@ export default class NotificationService {
       evseDashboardURL: Utils.buildEvseURL(),
     };
     // Send Notification
-    await NotificationHandler.sendEndUserErrorNotification(req.user.tenantID, endUserErrorNotification);
+    await NotificationHandler.sendEndUserErrorNotification(req.tenant, endUserErrorNotification);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

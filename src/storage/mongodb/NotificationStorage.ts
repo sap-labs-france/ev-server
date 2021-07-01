@@ -7,19 +7,20 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { Notification } from '../../types/UserNotifications';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'NotificationStorage';
 
 export default class NotificationStorage {
-  static async getNotifications(tenantID: string,
+  static async getNotifications(tenant: Tenant,
       params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string;
         sourceDescr?: string; additionalFilters?: any; chargeBoxID?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getNotifications');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getNotifications');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -49,7 +50,7 @@ export default class NotificationStorage {
     }
     // Set User ID?
     if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
+      filters.userID = DatabaseUtils.convertToObjectID(params.userID);
     }
     // Set Data
     if (params.additionalFilters) {
@@ -70,7 +71,7 @@ export default class NotificationStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection<any>(tenantID, 'notifications')
+    const notificationsCountMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -84,13 +85,13 @@ export default class NotificationStorage {
     aggregation.pop();
     // Charge Box
     DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      tenantID: tenant.id, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+      tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Sort
@@ -111,13 +112,13 @@ export default class NotificationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
+    const notificationsMDB = await global.database.getCollection<any>(tenant.id, 'notifications')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getNotifications', uniqueTimerID, notificationsMDB);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -125,14 +126,14 @@ export default class NotificationStorage {
     };
   }
 
-  static async saveNotification(tenantID: string, notificationToSave: Partial<Notification>): Promise<void> {
+  static async saveNotification(tenant: Tenant, notificationToSave: Partial<Notification>): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveNotification');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveNotification');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
-      userID: Utils.convertToObjectID(notificationToSave.userID),
+      userID: DatabaseUtils.convertToObjectID(notificationToSave.userID),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,
       sourceId: notificationToSave.sourceId,
@@ -141,9 +142,9 @@ export default class NotificationStorage {
       chargeBoxID: notificationToSave.chargeBoxID
     };
     // Create
-    await global.database.getCollection<Notification>(tenantID, 'notifications')
+    await global.database.getCollection<Notification>(tenant.id, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveNotification', uniqueTimerID, ocpiEndpointMDB);
   }
 }

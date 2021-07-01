@@ -3,24 +3,16 @@
   "type": "object",
   "properties": {
     "email": {
-      "$ref": "common.json#/definitions/email"
+      "$ref": "user.json#/definitions/email"
     },
     "name": {
-      "$ref": "common.json#/definitions/name"
+      "$ref": "user.json#/definitions/name"
     },
     "firstName": {
-      "$ref": "common.json#/definitions/firstName"
+      "$ref": "user.json#/definitions/firstName"
     },
-    "passwords": {
-      "type": "object",
-      "properties": {
-        "password": {
-          "$ref": "common.json#/definitions/password"
-        },
-        "repeatPassword": {
-          "$ref": "common.json#/definitions/password"
-        }
-      }
+    "password": {
+      "$ref": "user.json#/definitions/password"
     },
     "acceptEula": {
       "$ref": "common.json#/definitions/acceptEula"
@@ -41,7 +33,7 @@
     "email",
     "name",
     "firstName",
-    "passwords",
+    "password",
     "acceptEula",
     "captcha"
   ]
