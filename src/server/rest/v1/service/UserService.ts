@@ -33,7 +33,6 @@ import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
