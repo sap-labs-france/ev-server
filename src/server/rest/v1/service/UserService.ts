@@ -122,7 +122,7 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action, null, false);
+      req.tenant, req.user, userID, Action.DELETE, action, null, false, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -299,7 +299,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
         withImage: true
-      }, false);
+      }, true, false);
     res.json(user);
     next();
   }
