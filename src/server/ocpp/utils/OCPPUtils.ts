@@ -75,7 +75,7 @@ export default class OCPPUtils {
           user: transaction.userID,
           module: MODULE_NAME, method: 'processTransactionRoaming',
           message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Roaming exception occurred: ${error.message as string}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -284,7 +284,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.stack }
             });
             // Prevent from starting a transaction when Billing prerequisites are not met
             throw new BackendError({
@@ -292,7 +292,7 @@ export default class OCPPUtils {
               user: transaction.user,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.stack }
             });
           }
           break;
@@ -313,7 +313,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.stack }
             });
           }
           break;
@@ -335,7 +335,7 @@ export default class OCPPUtils {
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
               module: MODULE_NAME, method: 'processTransactionBilling',
-              message, detailedMessages: { error: error.message, stack: error.stack }
+              message, detailedMessages: { error: error.stack }
             });
           }
           break;
@@ -1290,7 +1290,7 @@ export default class OCPPUtils {
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
             message: `Error while clearing the charging profile for chargingStation ${chargingProfile.chargingStationID}`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
           actionsResponse.inError++;
         }
@@ -1335,7 +1335,7 @@ export default class OCPPUtils {
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       throw error;
     }
@@ -1695,7 +1695,7 @@ export default class OCPPUtils {
           action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
           message: `Error in changing ${!Utils.isUndefined(currentOcppParam) && 'non existent '}OCPP Parameter '${ocppParameter.key}' from '${currentOcppParam?.value}' to '${ocppParameter.value}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }

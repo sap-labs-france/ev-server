@@ -67,7 +67,7 @@ export default class Logging {
         action: ServerAction.PERFORMANCES,
         module, method,
         message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
@@ -85,7 +85,7 @@ export default class Logging {
         action: ServerAction.PERFORMANCES,
         module, method,
         message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
@@ -325,7 +325,7 @@ export default class Logging {
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
             message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
             console.warn(chalk.yellow('===================================='));
@@ -343,7 +343,7 @@ export default class Logging {
             action: ServerAction.PERFORMANCES,
             module: MODULE_NAME, method: 'logExpressResponse',
             message: `${message}: ${error.message}`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
           if (Utils.isDevelopmentEnv()) {
             console.warn(chalk.yellow('===================================='));
@@ -425,7 +425,7 @@ export default class Logging {
         action: ServerAction.PERFORMANCES,
         module: MODULE_NAME, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
@@ -443,7 +443,7 @@ export default class Logging {
         action: ServerAction.PERFORMANCES,
         module: MODULE_NAME, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));
@@ -551,18 +551,18 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error): Promise<void> {
+  public static async logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error, detailedMessages = {}): Promise<void> {
     // Log App Error
     if (exception instanceof AppError) {
-      await Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppExceptionMessage(tenantID, action, exception, detailedMessages);
     // Log Backend Error
     } else if (exception instanceof BackendError) {
-      await Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      await Logging._logActionBackendExceptionMessage(tenantID, action, exception, detailedMessages);
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      await Logging._logActionAppAuthExceptionMessage(tenantID, action, exception, detailedMessages);
     } else {
-      await Logging._logActionExceptionMessage(tenantID, action, exception);
+      await Logging._logActionExceptionMessage(tenantID, action, exception, detailedMessages);
     }
   }
 
@@ -599,8 +599,7 @@ export default class Logging {
     next();
   }
 
-  private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any): Promise<void> {
-    // Log
+  private static async _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any, detailedMessages = {}): Promise<void> {
     await Logging.logError({
       tenantID: tenantID,
       type: LogType.SECURITY,
@@ -610,11 +609,11 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: { stack: exception.stack }
+      detailedMessages: { stack: exception.stack, ...detailedMessages }
     });
   }
 
-  private static async _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError): Promise<void> {
+  private static async _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError, detailedMessages = {}): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -637,11 +636,11 @@ export default class Logging {
       method: exception.params.method,
       action: action,
       message: exception.message,
-      detailedMessages: exception.params.detailedMessages
+      detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
     });
   }
 
-  private static async _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError): Promise<void> {
+  private static async _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError, detailedMessages = {}): Promise<void> {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -664,24 +663,24 @@ export default class Logging {
       message: exception.message,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
-      detailedMessages: exception.params.detailedMessages
+      detailedMessages: { ...exception.params.detailedMessages, ...detailedMessages }
     });
   }
 
   // Used to check URL params (not in catch)
-  private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError): Promise<void> {
+  private static async _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError, detailedMessages = {}): Promise<void> {
     // Log
     await Logging.logSecurityError({
       tenantID: tenantID,
       type: LogType.SECURITY,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
-      module: exception.params.module,
-      method: exception.params.method,
+      module: exception.params.module, method: exception.params.method,
       action: action,
       message: exception.message,
       detailedMessages: [{
-        'stack': exception.stack
+        stack: exception.stack,
+        ...detailedMessages
       }]
     });
   }
@@ -695,13 +694,12 @@ export default class Logging {
         user: user,
         tenantID: tenant,
         actionOnUser: error.params.actionOnUser,
-        module: module,
-        method: method,
+        module: module, method: method,
         action: action,
         message: error.message,
         detailedMessages: [{
-          'details': error.params.detailedMessages,
-          'stack': error.stack
+          details: error.params.detailedMessages,
+          stack: error.stack
         }]
       };
     }
@@ -710,13 +708,12 @@ export default class Logging {
       user: user,
       tenantID: tenant,
       actionOnUser: error.actionOnUser,
-      module: module,
-      method: method,
+      module: module, method: method,
       action: action,
       message: error.message,
       detailedMessages: [{
-        'details': error.detailedMessages,
-        'stack': error.stack
+        details: error.detailedMessages,
+        stack: error.stack
       }]
     };
   }
@@ -941,7 +938,7 @@ export default class Logging {
         action: ServerAction.PERFORMANCES,
         module, method: 'traceChargingStationActionEnd',
         message: `${message}: ${error.message}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       if (Utils.isDevelopmentEnv()) {
         console.warn(chalk.yellow('===================================='));

@@ -111,12 +111,10 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-    await this.updateChargingStationLastSeen();
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
@@ -159,17 +157,6 @@ export default class JsonWSConnection extends WSConnection {
       message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
     });
     return null;
-  }
-
-  private async updateChargingStationLastSeen(): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), { issuer: true });
-    if (chargingStation) {
-    // if (chargingStation?.registrationStatus === RegistrationStatus.ACCEPTED) {
-      await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
-        {
-          lastSeen: new Date()
-        });
-    }
   }
 }
 

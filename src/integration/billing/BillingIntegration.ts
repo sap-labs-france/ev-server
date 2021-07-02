@@ -109,7 +109,7 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_SYNCHRONIZE_USER,
           module: MODULE_NAME, method: 'synchronizeUser',
           message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     } else {
@@ -153,7 +153,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
         message: `Failed to force the synchronization of user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return billingUser;
@@ -230,7 +230,7 @@ export default abstract class BillingIntegration {
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Failed to charge invoice '${invoice.id}'`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
@@ -275,7 +275,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       return false;
     }
@@ -436,7 +436,7 @@ export default abstract class BillingIntegration {
           actionOnUser: invoice.user,
           module: MODULE_NAME, method: '_clearAllInvoiceTestData',
           message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -481,7 +481,7 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           module: MODULE_NAME, method: '_clearTransactionsTestData',
           message: 'Failed to clear transaction billing data',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }));
@@ -509,7 +509,7 @@ export default abstract class BillingIntegration {
           actionOnUser: user,
           module: MODULE_NAME, method: '_clearAllUsersTestData',
           message: `Failed to clear user test data - User: '${user.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }

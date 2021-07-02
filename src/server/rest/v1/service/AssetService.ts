@@ -233,7 +233,7 @@ export default class AssetService {
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         message: 'Asset connection failed',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // Create fail response
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));

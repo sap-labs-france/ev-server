@@ -63,7 +63,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
         method: 'retrieveConsumption',
         action: ServerAction.RETRIEVE_ASSET_CONSUMPTION,
         message: 'Error while retrieving the asset consumption',
-        detailedMessages: { request, token, error: error.message, stack: error.stack, asset }
+        detailedMessages: { request, token, error: error.stack, asset }
       });
     }
   }

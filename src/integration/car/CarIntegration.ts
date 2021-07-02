@@ -92,7 +92,7 @@ export default abstract class CarIntegration {
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'synchronizeCarCatalogs',
           message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} got synchronization error`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
