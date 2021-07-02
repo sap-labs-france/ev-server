@@ -1,5 +1,5 @@
 import { OCPPErrorType, OCPPMessageType } from '../../../types/ocpp/OCPPCommon';
-import { OCPPProtocol, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 import WebSocket, { CloseEvent, ErrorEvent } from 'ws';
 
@@ -7,6 +7,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from './services/JsonChargingStationService';
@@ -24,6 +25,7 @@ export default class JsonWSConnection extends WSConnection {
   private chargingStationClient: ChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
+  private lastSeen: Date;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
@@ -111,10 +113,12 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
+    await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
+    await this.updateChargingStationLastSeen();
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
@@ -158,5 +162,18 @@ export default class JsonWSConnection extends WSConnection {
     });
     return null;
   }
-}
 
+  private async updateChargingStationLastSeen(): Promise<void> {
+    // Update once every 60s
+    if (!this.lastSeen || (Date.now() - this.lastSeen.getTime()) > Constants.LAST_SEEN_UPDATE_INTERVAL_MILLIS) {
+      // Update last seen
+      this.lastSeen = new Date();
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(),
+        this.getChargingStationID(), { issuer: true }, ['id']);
+      if (chargingStation) {
+        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
+          { lastSeen: this.lastSeen });
+      }
+    }
+  }
+}
