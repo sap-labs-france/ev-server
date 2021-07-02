@@ -206,6 +206,7 @@ export default class SiteAreaService {
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
         ...authorizationSiteAreasFilter.filters
       },
       {

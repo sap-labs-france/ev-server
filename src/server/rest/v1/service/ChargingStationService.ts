@@ -1391,6 +1391,7 @@ export default class ChargingStationService {
         issuer: filteredRequest.Issuer,
         siteIDs: siteIDs,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        companyIDs: filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null,
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,

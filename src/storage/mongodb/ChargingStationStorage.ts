@@ -175,7 +175,7 @@ export default class ChargingStationStorage {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
         connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
         ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
-        siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+        siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
@@ -313,6 +313,11 @@ export default class ChargingStationStorage {
     if (!Utils.isEmptyArray(params.siteIDs)) {
       // Query by siteID
       filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
+    }
+    // Check Company ID
+    if (!Utils.isEmptyArray(params.companyIDs)) {
+      // Query by siteID
+      filters.companyID = { $in: params.companyIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
