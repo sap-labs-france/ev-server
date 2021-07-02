@@ -25,11 +25,11 @@ export default class AsyncTaskStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
     // Set
     const asyncTaskMDB: any = {
-      _id: asyncTaskToSave.id ? Utils.convertToObjectID(asyncTaskToSave.id) : new ObjectID(),
+      _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectID(),
       name: asyncTaskToSave.name,
       action: asyncTaskToSave.action,
       type: asyncTaskToSave.type,
-      tenantID: Utils.convertToObjectID(asyncTaskToSave.tenantID),
+      tenantID: DatabaseUtils.convertToObjectID(asyncTaskToSave.tenantID),
       status: asyncTaskToSave.status,
       parent: asyncTaskToSave.parent,
       execHost: asyncTaskToSave.execHost,

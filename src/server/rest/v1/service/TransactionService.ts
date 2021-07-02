@@ -864,6 +864,30 @@ export default class TransactionService {
         module: MODULE_NAME, method: 'handleGetTransactionsInError'
       });
     }
+    let projectFields = [
+      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
+      'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
+      'stop.totalDurationSecs'
+    ];
+    // Check Users
+    if ((await Authorizations.canListUsers(req.user)).authorized) {
+      if (projectFields) {
+        projectFields = [
+          ...projectFields,
+          'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'tagID',
+          'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email', 'stop.tagID'
+        ];
+      }
+    }
+    // Check Cars
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (await Authorizations.canListCars(req.user)) {
+        projectFields = [
+          ...projectFields,
+          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+        ];
+      }
+    }
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
@@ -886,10 +910,8 @@ export default class TransactionService {
         skip: filteredRequest.Skip,
         sort: filteredRequest.SortFields
       },
-      [
-        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
-        'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId'
-      ]);
+      projectFields
+    );
     // Return
     res.json(transactions);
     next();

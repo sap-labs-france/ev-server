@@ -46,7 +46,7 @@ export default class SettingStorage {
     const settingFilter: any = {};
     // Build Request
     if (settingToSave.id) {
-      settingFilter._id = Utils.convertToObjectID(settingToSave.id);
+      settingFilter._id = DatabaseUtils.convertToObjectID(settingToSave.id);
     } else {
       settingFilter._id = new ObjectID();
     }
@@ -323,7 +323,7 @@ export default class SettingStorage {
     const filters: FilterParams = {};
     // Source?
     if (params.settingID) {
-      filters._id = Utils.convertToObjectID(params.settingID);
+      filters._id = DatabaseUtils.convertToObjectID(params.settingID);
     }
     // Identifier
     if (params.identifier) {
@@ -384,7 +384,7 @@ export default class SettingStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Delete Component
     await global.database.getCollection<any>(tenantID, 'settings')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
   }

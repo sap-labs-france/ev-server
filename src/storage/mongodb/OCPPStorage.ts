@@ -26,7 +26,7 @@ export default class OCPPStorage {
         tagID: authorize.idTag,
         authorizationId: authorize.authorizationId,
         chargeBoxID: authorize.chargeBoxID,
-        userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
+        userID: authorize.user ? DatabaseUtils.convertToObjectID(authorize.user.id) : null,
         timestamp: timestamp,
         timezone: authorize.timezone
       });

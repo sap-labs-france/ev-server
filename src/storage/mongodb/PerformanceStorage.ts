@@ -1,6 +1,7 @@
 import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
 import PerformanceRecord from '../../types/Performance';
 import Utils from '../../utils/Utils';
 
@@ -9,7 +10,7 @@ export default class PerformanceStorage {
     // Set
     const performanceRecordMDB: any = {
       tenantID: performanceRecord.tenantID && performanceRecord.tenantID !== Constants.DEFAULT_TENANT ?
-        Utils.convertToObjectID(performanceRecord.tenantID) : Constants.DEFAULT_TENANT,
+        DatabaseUtils.convertToObjectID(performanceRecord.tenantID) : Constants.DEFAULT_TENANT,
       timestamp: Utils.convertToDate(performanceRecord.timestamp),
       host: performanceRecord.host,
       numberOfCPU: performanceRecord.numberOfCPU,
@@ -28,11 +29,11 @@ export default class PerformanceStorage {
     };
     // Add user only if provided
     if (performanceRecord.userID) {
-      performanceRecordMDB.userID = Utils.convertToObjectID(performanceRecord.userID);
+      performanceRecordMDB.userID = DatabaseUtils.convertToObjectID(performanceRecord.userID);
     }
     // Add parent only if provided
     if (performanceRecord.parentID) {
-      performanceRecordMDB.parentID = Utils.convertToObjectID(performanceRecord.parentID);
+      performanceRecordMDB.parentID = DatabaseUtils.convertToObjectID(performanceRecord.parentID);
     }
     // Add nbr charging stations only if provided
     if (Utils.convertToInt(performanceRecord.numberOfChargingStations) > 0) {

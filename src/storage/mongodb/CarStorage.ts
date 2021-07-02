@@ -486,7 +486,7 @@ export default class CarStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const carMDB: any = {
-      _id: carToSave.id ? Utils.convertToObjectID(carToSave.id) : new ObjectID(),
+      _id: carToSave.id ? DatabaseUtils.convertToObjectID(carToSave.id) : new ObjectID(),
       vin: carToSave.vin,
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID),
@@ -519,8 +519,8 @@ export default class CarStorage {
     // Set
     const carUserMDB: any = {
       _id: Cypher.hash(`${carUserToSave.carID}~${carUserToSave.user.id}`),
-      userID: Utils.convertToObjectID(carUserToSave.user.id),
-      carID: Utils.convertToObjectID(carUserToSave.carID),
+      userID: DatabaseUtils.convertToObjectID(carUserToSave.user.id),
+      carID: DatabaseUtils.convertToObjectID(carUserToSave.carID),
       default: carUserToSave.default,
       owner: (carUserToSave.owner === true ? true : false)
     };
@@ -552,8 +552,8 @@ export default class CarStorage {
       for (const carUserToSave of carUsersToSave) {
         const carUserMDB = {
           _id: Cypher.hash(`${carUserToSave.carID}~${carUserToSave.user.id}`),
-          userID: Utils.convertToObjectID(carUserToSave.user.id),
-          carID: Utils.convertToObjectID(carUserToSave.carID),
+          userID: DatabaseUtils.convertToObjectID(carUserToSave.user.id),
+          carID: DatabaseUtils.convertToObjectID(carUserToSave.carID),
           default: carUserToSave.default,
           owner: carUserToSave.owner,
         };
@@ -648,7 +648,7 @@ export default class CarStorage {
     // Car
     if (!Utils.isEmptyArray(params.carIDs)) {
       filters._id = {
-        $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID))
+        $in: params.carIDs.map((carID) => DatabaseUtils.convertToObjectID(carID))
       };
     }
     // Filter on Users
@@ -658,7 +658,7 @@ export default class CarStorage {
         asField: 'carUsers', oneToOneCardinality: false
       });
       if (!Utils.isEmptyArray(params.userIDs)) {
-        filters['carUsers.userID'] = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+        filters['carUsers.userID'] = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
       }
       if (params.defaultCar) {
         filters['carUsers.default'] = true;
@@ -745,7 +745,7 @@ export default class CarStorage {
       const carUsersPipeline = [];
       if (!Utils.isEmptyArray(params.userIDs)) {
         carUsersPipeline.push({
-          $match: { 'carUsers.userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) } }
+          $match: { 'carUsers.userID': { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
         });
       }
       // User on Car Users
@@ -776,7 +776,7 @@ export default class CarStorage {
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'carusers').updateMany(
       {
-        userID: Utils.convertToObjectID(userID),
+        userID: DatabaseUtils.convertToObjectID(userID),
         default: true
       },
       {
@@ -790,7 +790,7 @@ export default class CarStorage {
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'carusers').updateMany(
       {
-        carID: Utils.convertToObjectID(carID),
+        carID: DatabaseUtils.convertToObjectID(carID),
         owner: true
       },
       {
@@ -832,7 +832,7 @@ export default class CarStorage {
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCarUserByCarID');
     // Delete singular site area
     const result = await global.database.getCollection(tenant.id, 'carusers')
-      .deleteMany({ 'carID': Utils.convertToObjectID(carID) });
+      .deleteMany({ 'carID': DatabaseUtils.convertToObjectID(carID) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
     return result.deletedCount;
@@ -843,7 +843,7 @@ export default class CarStorage {
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCar');
     // Delete singular site area
     await global.database.getCollection(tenant.id, 'cars')
-      .deleteOne({ '_id': Utils.convertToObjectID(carID) });
+      .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCar', uniqueTimerID, { carID });
   }
@@ -877,11 +877,11 @@ export default class CarStorage {
     }
     // Cars
     if (!Utils.isEmptyArray(params.carIDs)) {
-      filters.carID = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
+      filters.carID = { $in: params.carIDs.map((carID) => DatabaseUtils.convertToObjectID(carID)) };
     }
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      filters.userID = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
     // Create Aggregation
     const aggregation = [];

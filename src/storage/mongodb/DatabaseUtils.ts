@@ -5,6 +5,8 @@ import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -369,6 +371,35 @@ export default class DatabaseUtils {
     }
   }
 
+  public static convertToObjectID(id: any): ObjectID {
+    let changedID: ObjectID = id;
+    // Check
+    if (typeof id === 'string') {
+      // Create Object
+      changedID = new ObjectID(id);
+    }
+    return changedID;
+  }
+
+  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
+    let userID: ObjectID | null = null;
+    // Check Created By
+    if (user) {
+      // Check User Model
+      if (typeof user === 'object' &&
+        user.constructor.name !== 'ObjectID') {
+        // This is the User Model
+        userID = DatabaseUtils.convertToObjectID(user.id);
+      }
+      // Check String
+      if (typeof user === 'string') {
+        // This is a String
+        userID = DatabaseUtils.convertToObjectID(user);
+      }
+    }
+    return userID;
+  }
+
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -390,7 +421,7 @@ export default class DatabaseUtils {
       }
       // Get the Tenant
       const tenant = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOne({
-        '_id': Utils.convertToObjectID(tenantID)
+        '_id': DatabaseUtils.convertToObjectID(tenantID)
       });
       if (!tenant) {
         throw new BackendError({
@@ -444,7 +475,7 @@ export default class DatabaseUtils {
       return obj[prop] as ObjectID;
     }
     if (obj[prop].id) {
-      return Utils.convertToObjectID(obj[prop].id);
+      return DatabaseUtils.convertToObjectID(obj[prop].id);
     }
     return null;
   }

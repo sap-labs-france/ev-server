@@ -50,7 +50,7 @@ export default class NotificationStorage {
     }
     // Set User ID?
     if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
+      filters.userID = DatabaseUtils.convertToObjectID(params.userID);
     }
     // Set Data
     if (params.additionalFilters) {
@@ -133,7 +133,7 @@ export default class NotificationStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
-      userID: Utils.convertToObjectID(notificationToSave.userID),
+      userID: DatabaseUtils.convertToObjectID(notificationToSave.userID),
       timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,
       sourceId: notificationToSave.sourceId,

@@ -53,13 +53,13 @@ export default class TransactionStorage {
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
       issuer: Utils.convertToBoolean(transactionToSave.issuer),
-      siteID: Utils.convertToObjectID(transactionToSave.siteID),
-      siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
+      siteID: DatabaseUtils.convertToObjectID(transactionToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
-      carID: transactionToSave.carID ? Utils.convertToObjectID(transactionToSave.carID) : null,
+      carID: transactionToSave.carID ? DatabaseUtils.convertToObjectID(transactionToSave.carID) : null,
       carCatalogID: transactionToSave.carCatalogID ? Utils.convertToInt(transactionToSave.carCatalogID) : null,
-      userID: Utils.convertToObjectID(transactionToSave.userID),
+      userID: DatabaseUtils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: Utils.convertToInt(transactionToSave.meterStart),
       timestamp: Utils.convertToDate(transactionToSave.timestamp),
@@ -107,7 +107,7 @@ export default class TransactionStorage {
     if (transactionToSave.stop) {
       // Add stop
       transactionMDB.stop = {
-        userID: Utils.convertToObjectID(transactionToSave.stop.userID),
+        userID: DatabaseUtils.convertToObjectID(transactionToSave.stop.userID),
         timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
         tagID: transactionToSave.stop.tagID,
         meterStop: transactionToSave.stop.meterStop,
@@ -156,7 +156,7 @@ export default class TransactionStorage {
       transactionMDB.remotestop = {
         timestamp: Utils.convertToDate(transactionToSave.remotestop.timestamp),
         tagID: transactionToSave.remotestop.tagID,
-        userID: Utils.convertToObjectID(transactionToSave.remotestop.userID)
+        userID: DatabaseUtils.convertToObjectID(transactionToSave.remotestop.userID)
       };
     }
     if (transactionToSave.refundData) {
@@ -173,7 +173,7 @@ export default class TransactionStorage {
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
         stop: {
           status: transactionToSave.billingData.stop?.status,
-          invoiceID: Utils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
+          invoiceID: DatabaseUtils.convertToObjectID(transactionToSave.billingData.stop?.invoiceID),
           invoiceNumber: transactionToSave.billingData.stop?.invoiceNumber,
           invoiceStatus: transactionToSave.billingData.stop?.invoiceStatus,
           invoiceItem: transactionToSave.billingData.stop?.invoiceItem,
@@ -220,7 +220,7 @@ export default class TransactionStorage {
       ]
     }, {
       $set: {
-        userID: Utils.convertToObjectID(userID)
+        userID: DatabaseUtils.convertToObjectID(userID)
       }
     });
     // Debug
@@ -273,7 +273,7 @@ export default class TransactionStorage {
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
-        statistics?: 'refund' | 'history'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
+        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -299,13 +299,13 @@ export default class TransactionStorage {
     // User / Site Admin
     if (params.ownerID) {
       ownerMatch.$or.push({
-        userID: Utils.convertToObjectID(params.ownerID)
+        userID: DatabaseUtils.convertToObjectID(params.ownerID)
       });
     }
     if (params.siteAdminIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
         }
       });
     }
@@ -343,7 +343,7 @@ export default class TransactionStorage {
     }
     // User
     if (params.userIDs) {
-      filters.userID = { $in: params.userIDs.map((siteID) => Utils.convertToObjectID(siteID)) };
+      filters.userID = { $in: params.userIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID)) };
     }
     // Charge Box
     if (params.chargeBoxIDs) {
@@ -363,7 +363,7 @@ export default class TransactionStorage {
     // Connector
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       filters.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => Utils.convertToObjectID(connectorID))
+        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
       };
     }
     // Date provided?
@@ -419,13 +419,13 @@ export default class TransactionStorage {
     // Site's area ID
     if (params.siteAreaIDs) {
       filters.siteAreaID = {
-        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+        $in: params.siteAreaIDs.map((siteAreaID) => DatabaseUtils.convertToObjectID(siteAreaID))
       };
     }
     // Site ID
     if (params.siteIDs) {
       filters.siteID = {
-        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
     }
     // Refund status
@@ -480,6 +480,21 @@ export default class TransactionStorage {
           }
         };
         break;
+      case 'ongoing': // For ongoing case
+        statsQuery = {
+          $group: {
+            _id: null,
+            firstTimestamp: { $min: '$timestamp' },
+            lastTimestamp: { $max: '$timestamp' },
+            totalConsumptionWattHours: { $sum: '$currentTotalConsumptionWh' },
+            totalDurationSecs: { $sum: '$currentTotalDurationSecs' },
+            totalPrice: { $sum: '$currentCumulatedPrice' },
+            totalInactivitySecs: { $sum:  '$currentTotalInactivitySecs' },
+            currency: { $addToSet: '$priceUnit' },
+            count: { $sum: 1 }
+          }
+        };
+        break;
       case 'refund': // For refund case
         statsQuery = {
           $group: {
@@ -515,6 +530,7 @@ export default class TransactionStorage {
     if (!transactionCountMDB) {
       switch (params.statistics) {
         case 'history':
+        case 'ongoing':
           transactionCountMDB = {
             totalConsumptionWattHours: 0,
             totalDurationSecs: 0,
@@ -695,13 +711,13 @@ export default class TransactionStorage {
     filters['refundData.reportId'] = { '$ne': null };
     if (params.ownerID) {
       ownerMatch.$or.push({
-        userID: Utils.convertToObjectID(params.ownerID)
+        userID: DatabaseUtils.convertToObjectID(params.ownerID)
       });
     }
     if (params.siteAdminIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+          $in: params.siteAdminIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
         }
       });
     }
@@ -838,7 +854,7 @@ export default class TransactionStorage {
     }
     // User / Site Admin
     if (params.userIDs) {
-      match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
+      match.userID = { $in: params.userIDs.map((user) => DatabaseUtils.convertToObjectID(user)) };
     }
     // Charge Box
     if (params.chargingStationIDs) {
@@ -859,19 +875,19 @@ export default class TransactionStorage {
     // Site Areas
     if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
+        $in: params.siteAreaIDs.map((area) => DatabaseUtils.convertToObjectID(area))
       };
     }
     // Sites
     if (params.siteIDs) {
       match.siteID = {
-        $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site))
       };
     }
     // Connectors
     if (!Utils.isEmptyArray(params.connectorIDs)) {
       match.connectorId = {
-        $in: params.connectorIDs.map((connectorID) => Utils.convertToObjectID(connectorID))
+        $in: params.connectorIDs.map((connectorID) => DatabaseUtils.convertToObjectID(connectorID))
       };
     }
     // Create Aggregation
@@ -879,7 +895,7 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charging Station?
+    // Charging Station
     if (params.withChargingStations ||
       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
@@ -889,10 +905,15 @@ export default class TransactionStorage {
       });
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
-    // Add respective users
+    // User
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {

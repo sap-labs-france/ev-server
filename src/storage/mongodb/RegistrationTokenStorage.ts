@@ -19,9 +19,9 @@ export default class RegistrationTokenStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
-      _id: registrationToken.id ? Utils.convertToObjectID(registrationToken.id) : new ObjectID(),
+      _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectID(),
       description: registrationToken.description,
-      siteAreaID: Utils.convertToObjectID(registrationToken.siteAreaID),
+      siteAreaID: DatabaseUtils.convertToObjectID(registrationToken.siteAreaID),
       expirationDate: Utils.convertToDate(registrationToken.expirationDate),
       revocationDate: Utils.convertToDate(registrationToken.revocationDate)
     };
@@ -62,18 +62,18 @@ export default class RegistrationTokenStorage {
     const filters: FilterParams = {};
     // Build filter
     if (params.siteAreaID) {
-      filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+      filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
     }
     // Build filter
     if (!Utils.isEmptyArray(params.tokenIDs)) {
       filters._id = {
-        $in: params.tokenIDs.map((tokenID) => Utils.convertToObjectID(tokenID))
+        $in: params.tokenIDs.map((tokenID) => DatabaseUtils.convertToObjectID(tokenID))
       };
     }
     // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters['siteArea.siteID'] = {
-        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
     }
     // Filters
@@ -151,7 +151,7 @@ export default class RegistrationTokenStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteRegistrationToken');
     await global.database.getCollection<any>(tenantID, 'registrationtokens')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
   }
