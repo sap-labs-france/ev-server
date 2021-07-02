@@ -425,7 +425,7 @@ describe('Billing Service', function() {
       await testData.billingImpl.forceSynchronizeUser(basicUser);
     });
 
-    describe('Tune user profiles', () => {
+    xdescribe('Tune user profiles', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
         testData.userContext = testData.adminUserContext;
