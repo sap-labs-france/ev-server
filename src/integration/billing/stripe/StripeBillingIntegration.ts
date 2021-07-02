@@ -923,6 +923,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
+    // Do not bill suspicious StopTransaction events
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
+      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`
+        });
+        return {
+          status: BillingStatus.UNBILLED
+        };
+      }
+    }
     // Create and Save async task
     await AsyncTaskManager.createAndSaveAsyncTasks({
       name: AsyncTasks.BILL_TRANSACTION,
@@ -1209,13 +1228,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
-  private convertTimeSpentToString(transaction: Transaction): string {
+  private computeTimeSpentInSeconds(transaction: Transaction): number {
     let totalDuration: number;
     if (!transaction.stop) {
       totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     } else {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
+    return totalDuration;
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
     return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
