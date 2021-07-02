@@ -848,7 +848,7 @@ export default class AuthorizationsDefinition {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
         message: 'Unable to init authorization definition',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -874,7 +874,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return scopes;
@@ -890,7 +890,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -908,7 +908,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'canPerformAction',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

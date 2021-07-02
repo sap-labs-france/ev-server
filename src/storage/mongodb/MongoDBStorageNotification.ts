@@ -61,7 +61,7 @@ export default class MongoDBStorageNotification {
       action: ServerAction.DB_WATCH,
       module: MODULE_NAME, method: 'handleDBChangeStreamError',
       message: `Error occurred in watching database: ${error}`,
-      detailedMessages: { error: error.message, stack: error.stack }
+      detailedMessages: { error: error.stack }
     });
   }
 

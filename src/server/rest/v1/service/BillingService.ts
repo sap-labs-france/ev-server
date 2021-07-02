@@ -73,7 +73,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleClearBillingTestData',
         message: 'Failed to clear billing test data',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       const operationResult: BillingOperationResult = {
         succeeded: false,
@@ -120,7 +120,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }

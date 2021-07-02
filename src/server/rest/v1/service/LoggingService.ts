@@ -34,11 +34,6 @@ export default class LoggingService {
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
-    // Get logs
-    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
-      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
-    ]);
     // Check auth
     if (!await Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
@@ -48,7 +43,11 @@ export default class LoggingService {
         module: MODULE_NAME, method: 'handleGetLog'
       });
     }
-    // Return
+    // Get Log
+    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+    ]);
     res.json(logging);
     next();
   }

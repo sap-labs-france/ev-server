@@ -69,7 +69,7 @@ export default class MigrationHandler {
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
           message: error.message,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       } finally {
         // Release lock
@@ -134,7 +134,7 @@ export default class MigrationHandler {
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
         message: logMsg,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       console.error(logMsg);
     }

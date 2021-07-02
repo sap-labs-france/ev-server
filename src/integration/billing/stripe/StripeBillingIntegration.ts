@@ -68,7 +68,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe - Key is inconsistent',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
       // Try to connect
@@ -81,7 +81,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -235,7 +235,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
         message: 'Failed to retrieve tax rates',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return taxes;
@@ -257,7 +257,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxRate',
         message: 'Failed to retrieve tax rate',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return taxRate;
@@ -421,7 +421,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoice',
           message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
-          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+          detailedMessages: { error: operationResult.error.stack }
         });
       }
     }
@@ -459,7 +459,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_PERFORM_OPERATIONS,
           module: MODULE_NAME, method: '_updateTransactionsBillingData',
           message: 'Failed to update transaction billing data',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }));
@@ -688,7 +688,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         actionOnUser: user,
         module: MODULE_NAME, method: '_getPaymentMethods',
         message: 'Failed to retrieve payment methods',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return paymentMethods;
@@ -728,7 +728,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_detachPaymentMethod',
         message: `Failed to detach payment method - customer '${customerID}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // Send some feedback
       return {
@@ -970,7 +970,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return {
@@ -1137,7 +1137,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
           message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
-          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+          detailedMessages: { error: operationResult.error.stack }
         });
       }
       if (operationResult?.invoice) {
@@ -1410,7 +1410,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'getStripeCustomer',
           action: ServerAction.BILLING,
           message: `Customer ID is inconsistent - ${customerID}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -1441,7 +1441,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Stripe Prerequisites to start a transaction are not met',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
     }
@@ -1454,7 +1454,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Billing setting prerequisites to start a transaction are not met',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       errorCodes.push(StartTransactionErrorCode.BILLING_NO_TAX);
     }
@@ -1471,7 +1471,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // TODO - return a more precise error code when payment method has expired
       errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);
