@@ -226,7 +226,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
           action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'getCarCatalogThumb',
           message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${carCatalog.imageURLs[0]}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -246,7 +246,7 @@ export default class EVDatabaseCarIntegration extends CarIntegration {
         action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         module: MODULE_NAME, method: 'getCarCatalogImage',
         message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

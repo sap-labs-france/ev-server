@@ -97,7 +97,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANIES, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
+          'id', 'name', 'address.city', 'address.country', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
@@ -133,7 +133,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITES, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.city', 'address.country', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
@@ -154,7 +154,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         attributes: [
-          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address.city', 'address.country',
           'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
         ]
       },
@@ -393,7 +393,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['AssignedSitesCompanies'] }
         },
         attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'id', 'name', 'address.city', 'address.country', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -419,7 +419,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITES, action: Action.LIST,
         attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.city', 'address.country', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ],
         condition: {
@@ -441,7 +441,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREAS, action: Action.LIST,
         attributes: [
-          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address.city', 'address.country',
           'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ],
         condition: {
@@ -615,7 +615,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.COMPANIES, action: Action.LIST, attributes: [
-          'id', 'name', 'address', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'id', 'name', 'address.city', 'address.country', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -625,7 +625,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.SITES, action: Action.LIST, attributes: [
-          'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'id', 'name', 'address.city', 'address.country', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ]
       },
@@ -637,7 +637,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
-          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address',
+          'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging', 'address.city', 'address.country',
           'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
@@ -848,7 +848,7 @@ export default class AuthorizationsDefinition {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'constructor',
         message: 'Unable to init authorization definition',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -874,7 +874,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return scopes;
@@ -890,7 +890,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -908,7 +908,7 @@ export default class AuthorizationsDefinition {
         module: MODULE_NAME,
         method: 'canPerformAction',
         message: 'Unable to check authorization',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

@@ -209,7 +209,7 @@ export default class TagService {
           action: action,
           module: MODULE_NAME, method: 'handleCreateTag',
           message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -352,7 +352,7 @@ export default class TagService {
           module: MODULE_NAME, method: 'handleUpdateTag',
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${filteredRequest.userID} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -466,7 +466,7 @@ export default class TagService {
                 action: action,
                 user: req.user.id,
                 message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -539,7 +539,7 @@ export default class TagService {
                 action: action,
                 user: req.user.id,
                 message: `Invalid Json file '${filename}'`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -604,7 +604,7 @@ export default class TagService {
         action: action,
         user: user.id,
         message: `Cannot import ${error.writeErrors.length as number} tags!`,
-        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+        detailedMessages: { error: error.stack, tagsError: error.writeErrors }
       });
     }
     tagsToBeImported.length = 0;
@@ -668,7 +668,7 @@ export default class TagService {
             module: MODULE_NAME, method: 'handleDeleteTags',
             action: action,
             message: `Unable to synchronize tokens of user ${tag.userID} with IOP`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
@@ -800,7 +800,7 @@ export default class TagService {
           module: MODULE_NAME, method: 'processTag',
           action: action,
           message: `User cannot be imported tag ${newImportedTag.id}`,
-          detailedMessages: { tag: newImportedTag, error: error.message, stack: error.stack }
+          detailedMessages: { tag: newImportedTag, error: error.stack }
         });
       }
       // Save it later on
@@ -812,7 +812,7 @@ export default class TagService {
         module: MODULE_NAME, method: 'importTag',
         action: action,
         message: `Tag ID '${importedTag.id}' cannot be imported`,
-        detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
+        detailedMessages: { tag: importedTag, error: error.stack }
       });
       return false;
     }

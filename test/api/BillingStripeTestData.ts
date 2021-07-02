@@ -51,7 +51,8 @@ export default class StripeIntegrationTestData {
       ...Factory.user.build(),
       name: 'BILLING-TEST',
       firstName: 'Billing Integration Tests',
-      issuer: true
+      issuer: true,
+      locale: 'fr_FR'
     } as User;
     // Let's create a new user
     const userData = await this.adminUserService.createEntity(

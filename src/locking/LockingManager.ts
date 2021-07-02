@@ -61,7 +61,7 @@ export default class LockingManager {
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID}`,
-        detailedMessages: { lock, timeoutSecs, retry, error: error.message, stack: error.stack }
+        detailedMessages: { lock, timeoutSecs, retry, error: error.stack }
       });
       Utils.isDevelopmentEnv() && console.error(chalk.red(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID '${lock.tenantID}'`));
       return false;
@@ -182,7 +182,7 @@ export default class LockingManager {
           module: MODULE_NAME, method: 'acquire',
           action: ServerAction.LOCKING,
           message: `The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} has expired and cannot be released`,
-          detailedMessages: { lock, error: error.message, stack: error.stack }
+          detailedMessages: { lock, error: error.stack }
         });
         Utils.isDevelopmentEnv() && console.error(chalk.red(`The lock '${lock.entity}' ('${lock.key}') of type '${lock.type}' in Tenant ID ${lock.tenantID} has expired and cannot be released`));
       }
