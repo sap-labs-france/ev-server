@@ -645,6 +645,7 @@ export default class OCPPUtils {
       stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string): void {
     // Set final data
     transaction.stop = {
+      reason: stopTransaction.reason,
       meterStop: stopTransaction.meterStop,
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
       userID: (alternateUser ? alternateUser.id : (user ? user.id : null)),

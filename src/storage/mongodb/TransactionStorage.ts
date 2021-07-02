@@ -111,6 +111,7 @@ export default class TransactionStorage {
         timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
         tagID: transactionToSave.stop.tagID,
         meterStop: transactionToSave.stop.meterStop,
+        reason: transactionToSave.stop.reason,
         transactionData: transactionToSave.stop.transactionData,
         stateOfCharge: Utils.convertToInt(transactionToSave.stop.stateOfCharge),
         signedData: transactionToSave.stop.signedData,
