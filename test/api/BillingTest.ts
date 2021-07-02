@@ -11,7 +11,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
-import { DataResult } from '../types/DataResult';
+import { DataResult } from '../../src/types/DataResult';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
@@ -423,6 +423,29 @@ describe('Billing Service', function() {
       // Synchronize at least these 2 users - this creates a customer on the STRIPE side
       await testData.billingImpl.forceSynchronizeUser(adminUser);
       await testData.billingImpl.forceSynchronizeUser(basicUser);
+    });
+
+    describe('Tune user profiles', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('Should change admin user locale to fr_FR', async () => {
+        const user: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        const { id, email, name, firstName } = user;
+        await testData.userService.updateEntity(testData.userService.userApi, { id, email, name, firstName, locale: 'fr_FR' }, true);
+      });
+
+      it('Should change basic user locale to es_ES', async () => {
+        const user: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        const { id, email, name, firstName } = user;
+        await testData.userService.updateEntity(testData.userService.userApi, { id, email, name, firstName, locale: 'es_ES' }, true);
+      });
     });
 
     describe('Where admin user (essential)', () => {
