@@ -861,7 +861,7 @@ export default class TransactionService {
     let projectFields = [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId',
       'meterStart', 'siteAreaID', 'siteID', 'errorCode', 'uniqueId', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs'
+      'stop.totalDurationSecs', 'stop.stateOfCharge'
     ];
     // Check Users
     if ((await Authorizations.canListUsers(req.user)).authorized) {
