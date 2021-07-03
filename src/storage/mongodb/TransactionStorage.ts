@@ -1267,7 +1267,7 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.LOW_CONSUMPTION:
         return [
-          { $match: { 'stop.totalConsumptionWh': { $lt: 1000 } } },
+          { $match: { 'stop.totalConsumptionWh': { $gt: 0, $lt: 1000 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.LOW_CONSUMPTION } }
         ];
       case TransactionInErrorType.NEGATIVE_ACTIVITY:
@@ -1289,7 +1289,7 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.LOW_DURATION:
         return [
-          { $match: { 'stop.totalDurationSecs': { $lt: 60 } } },
+          { $match: { 'stop.totalDurationSecs': { $gte: 0, $lt: 60 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.LOW_DURATION } }
         ];
       case TransactionInErrorType.INVALID_START_DATE:
