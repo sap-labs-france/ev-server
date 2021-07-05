@@ -515,6 +515,7 @@ export enum ServerRoute {
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants',
+  REST_TENANT = 'tenants/:id',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
