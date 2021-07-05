@@ -33,7 +33,6 @@ import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { TransactionInErrorType } from '../../../../types/InError';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
@@ -732,9 +731,11 @@ export default class UtilsService {
       TransactionInErrorType.LONG_INACTIVITY,
       TransactionInErrorType.NEGATIVE_ACTIVITY,
       TransactionInErrorType.NEGATIVE_DURATION,
+      TransactionInErrorType.LOW_DURATION,
       // TransactionInErrorType.OVER_CONSUMPTION, // To much time consuming + to check if calculation is right
       TransactionInErrorType.INVALID_START_DATE,
       TransactionInErrorType.NO_CONSUMPTION,
+      TransactionInErrorType.LOW_CONSUMPTION,
       TransactionInErrorType.MISSING_USER
     ];
     if (Utils.isComponentActiveFromToken(user, TenantComponents.PRICING)) {

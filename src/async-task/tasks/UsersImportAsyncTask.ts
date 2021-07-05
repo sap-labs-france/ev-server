@@ -62,7 +62,7 @@ export default class UsersImportAsyncTask extends ImportAsyncTask {
                 action: ServerAction.USERS_IMPORT,
                 module: MODULE_NAME, method: 'executeAsyncTask',
                 message: `Error when importing User with email '${importedUser.email}': ${error.message}`,
-                detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
+                detailedMessages: { user: importedUser, error: error.stack }
               });
             }
           }

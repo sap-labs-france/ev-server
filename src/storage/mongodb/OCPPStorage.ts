@@ -26,7 +26,7 @@ export default class OCPPStorage {
         tagID: authorize.idTag,
         authorizationId: authorize.authorizationId,
         chargeBoxID: authorize.chargeBoxID,
-        userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
+        userID: authorize.user ? DatabaseUtils.convertToObjectID(authorize.user.id) : null,
         timestamp: timestamp,
         timezone: authorize.timezone
       });
@@ -449,7 +449,7 @@ export default class OCPPStorage {
           module: MODULE_NAME, method: 'saveMeterValues',
           action: ServerAction.METER_VALUES,
           message: 'An error occurred while trying to save the meter value',
-          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave, meterValues: meterValuesToSave }
+          detailedMessages: { error: error.stack, meterValue: meterValueToSave, meterValues: meterValuesToSave }
         });
       }
     }

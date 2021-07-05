@@ -56,12 +56,12 @@ export default class BillingStorage {
     }
     if (!Utils.isEmptyArray(params.invoiceIDs)) {
       filters._id = {
-        $in: params.invoiceIDs.map((invoiceID) => Utils.convertToObjectID(invoiceID))
+        $in: params.invoiceIDs.map((invoiceID) => DatabaseUtils.convertToObjectID(invoiceID))
       };
     }
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = {
-        $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID))
       };
     }
     if (params.billingInvoiceID) {
@@ -161,12 +161,12 @@ export default class BillingStorage {
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
-      _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
+      _id: invoiceToSave.id ? DatabaseUtils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       // eslint-disable-next-line id-blacklist
       number: invoiceToSave.number,
       liveMode: Utils.convertToBoolean(invoiceToSave.liveMode),
-      userID: invoiceToSave.userID ? Utils.convertToObjectID(invoiceToSave.userID) : null,
+      userID: invoiceToSave.userID ? DatabaseUtils.convertToObjectID(invoiceToSave.userID) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
       amountPaid: Utils.convertToFloat(invoiceToSave.amountPaid),
@@ -204,7 +204,7 @@ export default class BillingStorage {
       lastError: additionalData.lastError
     };
     await global.database.getCollection(tenant.id, 'invoices').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(invoiceToUpdate.id) },
+      { '_id': DatabaseUtils.convertToObjectID(invoiceToUpdate.id) },
       { $set: updatedInvoiceMDB });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveInvoiceAdditionalData', uniqueTimerID, updatedInvoiceMDB);
@@ -217,7 +217,7 @@ export default class BillingStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Delete the Invoice
     await global.database.getCollection<BillingInvoice>(tenant.id, 'invoices')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }

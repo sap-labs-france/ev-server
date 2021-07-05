@@ -68,6 +68,8 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Fetch Tenant Object by Tenant ID
     const tenant = await TenantStorage.getTenant(filteredRequest.TenantID);
+    UtilsService.assertObjectExists(action, tenant, `Tenant ID '${filteredRequest.TenantID}' does not exist`,
+      MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Get the Logo
     const companyLogo = await CompanyStorage.getCompanyLogo(tenant, filteredRequest.ID);
     // Return

@@ -124,6 +124,7 @@ export interface CSPhasesUsed {
 export interface TransactionStop {
   timestamp: Date;
   meterStop: number;
+  reason?: string;
   tagID: string;
   userID: string;
   user?: User;

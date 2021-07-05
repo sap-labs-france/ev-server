@@ -34,7 +34,7 @@ export default class SiteStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
     const siteImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenant.id, 'siteimages')
-      .findOne({ _id: Utils.convertToObjectID(id) });
+      .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSiteImage', uniqueTimerID, siteImageMDB);
     return {
@@ -54,8 +54,8 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         await global.database.getCollection<any>(tenant.id, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
-          'siteID': Utils.convertToObjectID(siteID)
+          'userID': { $in: userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) },
+          'siteID': DatabaseUtils.convertToObjectID(siteID)
         });
       }
     }
@@ -78,8 +78,8 @@ export default class SiteStorage {
           // Add
           siteUsers.push({
             '_id': Cypher.hash(`${siteID}~${userID}`),
-            'userID': Utils.convertToObjectID(userID),
-            'siteID': Utils.convertToObjectID(siteID),
+            'userID': DatabaseUtils.convertToObjectID(userID),
+            'siteID': DatabaseUtils.convertToObjectID(siteID),
             'siteAdmin': false
           });
         }
@@ -111,7 +111,7 @@ export default class SiteStorage {
       aggregation.push({
         $match: {
           siteID: {
-            $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+            $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
           }
         }
       });
@@ -207,7 +207,7 @@ export default class SiteStorage {
     DatabaseUtils.checkTenantObject(tenant);
     await global.database.getCollection<any>(tenant.id, 'siteusers').updateMany(
       {
-        siteID: Utils.convertToObjectID(siteID),
+        siteID: DatabaseUtils.convertToObjectID(siteID),
         siteOwner: true
       },
       {
@@ -215,8 +215,8 @@ export default class SiteStorage {
       });
     await global.database.getCollection<any>(tenant.id, 'siteusers').updateOne(
       {
-        siteID: Utils.convertToObjectID(siteID),
-        userID: Utils.convertToObjectID(userID)
+        siteID: DatabaseUtils.convertToObjectID(siteID),
+        userID: DatabaseUtils.convertToObjectID(userID)
       },
       {
         $set: { siteOwner: siteOwner }
@@ -230,8 +230,8 @@ export default class SiteStorage {
 
     await global.database.getCollection<any>(tenant.id, 'siteusers').updateOne(
       {
-        siteID: Utils.convertToObjectID(siteID),
-        userID: Utils.convertToObjectID(userID)
+        siteID: DatabaseUtils.convertToObjectID(siteID),
+        userID: DatabaseUtils.convertToObjectID(userID)
       },
       {
         $set: { siteAdmin }
@@ -247,7 +247,7 @@ export default class SiteStorage {
     const siteFilter: any = {};
     // Build Request
     if (siteToSave.id) {
-      siteFilter._id = Utils.convertToObjectID(siteToSave.id);
+      siteFilter._id = DatabaseUtils.convertToObjectID(siteToSave.id);
     } else {
       siteFilter._id = new ObjectID();
     }
@@ -256,7 +256,7 @@ export default class SiteStorage {
       _id: siteFilter._id,
       issuer: Utils.convertToBoolean(siteToSave.issuer),
       public: Utils.convertToBoolean(siteToSave.public),
-      companyID: Utils.convertToObjectID(siteToSave.companyID),
+      companyID: DatabaseUtils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
@@ -296,7 +296,7 @@ export default class SiteStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Modify
     await global.database.getCollection(tenant.id, 'siteimages').findOneAndUpdate(
-      { _id: Utils.convertToObjectID(siteID) },
+      { _id: DatabaseUtils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
       { upsert: true, returnDocument: 'after' }
     );
@@ -352,13 +352,13 @@ export default class SiteStorage {
     // Site
     if (!Utils.isEmptyArray(params.siteIDs)) {
       filters._id = {
-        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
     }
     // Company
     if (!Utils.isEmptyArray(params.companyIDs)) {
       filters.companyID = {
-        $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
+        $in: params.companyIDs.map((company) => DatabaseUtils.convertToObjectID(company))
       };
     }
     // Issuer
@@ -379,10 +379,10 @@ export default class SiteStorage {
         { tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'siteID', asField: 'siteusers' }
       );
       if (params.userID) {
-        filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
+        filters['siteusers.userID'] = DatabaseUtils.convertToObjectID(params.userID);
       }
       if (params.excludeSitesOfUserID) {
-        filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
+        filters['siteusers.userID'] = { $ne: DatabaseUtils.convertToObjectID(params.excludeSitesOfUserID) };
       }
     }
     // Set filters
@@ -510,7 +510,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => Utils.convertToObjectID(id));
+    const cids: ObjectID[] = ids.map((id) => DatabaseUtils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenant.id, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -531,7 +531,7 @@ export default class SiteStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Get Sites of Company
     const siteIDs: string[] = (await global.database.getCollection<{ _id: ObjectID }>(tenant.id, 'sites')
-      .find({ companyID: Utils.convertToObjectID(companyID) })
+      .find({ companyID: DatabaseUtils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
       .map((site): string => site._id.toHexString());
@@ -550,7 +550,7 @@ export default class SiteStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Exec
     const result = await global.database.getCollection<any>(tenant.id, 'siteusers').findOne(
-      { siteID: Utils.convertToObjectID(siteID), userID: Utils.convertToObjectID(userID) });
+      { siteID: DatabaseUtils.convertToObjectID(siteID), userID: DatabaseUtils.convertToObjectID(userID) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCompanySites', uniqueTimerID, { siteID });
     // Check

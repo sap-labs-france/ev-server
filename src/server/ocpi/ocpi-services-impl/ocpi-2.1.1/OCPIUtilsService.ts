@@ -30,7 +30,6 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import OCPIUtils from '../../OCPIUtils';
-import { ObjectID } from 'mongodb';
 import { PricingSource } from '../../../../types/Pricing';
 import RoamingUtils from '../../../../utils/RoamingUtils';
 import { ServerAction } from '../../../../types/Server';
@@ -628,7 +627,6 @@ export default class OCPIUtilsService {
       }
       const tagToSave = {
         id: token.uid,
-        visualID: new ObjectID().toString(),
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,
@@ -669,7 +667,6 @@ export default class OCPIUtilsService {
       await UserStorage.saveUserStatus(tenant.id, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
-        visualID: token.visual_number,
         issuer: false,
         userID: emspUser.id,
         active: token.valid === true ? true : false,

@@ -68,7 +68,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe - Key is inconsistent',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
       // Try to connect
@@ -81,7 +81,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'checkConnection',
           action: ServerAction.CHECK_BILLING_CONNECTION,
           message: 'Failed to connect to Stripe',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -235,7 +235,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxes',
         message: 'Failed to retrieve tax rates',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return taxes;
@@ -257,7 +257,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TAXES,
         module: MODULE_NAME, method: 'getTaxRate',
         message: 'Failed to retrieve tax rate',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return taxRate;
@@ -301,7 +301,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency: invoiceCurrency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
     const currency = invoiceCurrency?.toUpperCase();
-    const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
+    // The invoice date may change when finalizing a DRAFT invoice
+    const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
+    const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
     const userID = metadata?.userID;
     if (!userID) {
@@ -421,7 +423,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoice',
           message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
-          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+          detailedMessages: { error: operationResult.error.stack }
         });
       }
     }
@@ -459,7 +461,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_PERFORM_OPERATIONS,
           module: MODULE_NAME, method: '_updateTransactionsBillingData',
           message: 'Failed to update transaction billing data',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }));
@@ -688,7 +690,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         actionOnUser: user,
         module: MODULE_NAME, method: '_getPaymentMethods',
         message: 'Failed to retrieve payment methods',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return paymentMethods;
@@ -728,7 +730,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_DELETE_PAYMENT_METHOD,
         module: MODULE_NAME, method: '_detachPaymentMethod',
         message: `Failed to detach payment method - customer '${customerID}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // Send some feedback
       return {
@@ -923,6 +925,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
+    // Do not bill suspicious StopTransaction events
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
+      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`
+        });
+        return {
+          status: BillingStatus.UNBILLED
+        };
+      }
+    }
     // Create and Save async task
     await AsyncTaskManager.createAndSaveAsyncTasks({
       name: AsyncTasks.BILL_TRANSACTION,
@@ -970,7 +991,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'billTransaction',
         message: `Failed to bill the transaction - Transaction ID '${transaction.id}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return {
@@ -1137,7 +1158,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           action: ServerAction.BILLING_TRANSACTION,
           module: MODULE_NAME, method: 'billInvoiceItem',
           message: `Payment attempt failed - stripe invoice: '${stripeInvoice?.id}'`,
-          detailedMessages: { error: operationResult.error.message, stack: operationResult.error.stack }
+          detailedMessages: { error: operationResult.error.stack }
         });
       }
       if (operationResult?.invoice) {
@@ -1180,18 +1201,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
     const sessionID = String(transaction?.id);
-    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL');
-    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT');
-    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT');
+    const startDate = i18nManager.formatDateTime(transaction.timestamp, 'LL', transaction.timezone);
+    const startTime = i18nManager.formatDateTime(transaction.timestamp, 'LT', transaction.timezone);
+    const stopTime = i18nManager.formatDateTime(transaction.stop.timestamp, 'LT', transaction.timezone);
     const formattedConsumptionkWh = this.formatConsumptionToKWh(transaction);
     const timeSpent = this.convertTimeSpentToString(transaction);
-    // TODO: Determine the description pattern to use according to the billing settings
-    let descriptionPattern;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_START_DATE)) {
-      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
-    } else {
-      descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingStopSiteArea' : 'billing.chargingStopChargeBox';
-    }
+    const descriptionPattern = (chargeBox?.siteArea?.name) ? 'billing.chargingAtSiteArea' : 'billing.chargingAtChargeBox';
     // Get the translated line item description
     const description = i18nManager.translate(descriptionPattern, {
       sessionID,
@@ -1215,13 +1230,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
-  private convertTimeSpentToString(transaction: Transaction): string {
+  private computeTimeSpentInSeconds(transaction: Transaction): number {
     let totalDuration: number;
     if (!transaction.stop) {
       totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     } else {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
+    return totalDuration;
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
     return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
@@ -1416,7 +1436,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           module: MODULE_NAME, method: 'getStripeCustomer',
           action: ServerAction.BILLING,
           message: `Customer ID is inconsistent - ${customerID}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -1447,7 +1467,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Stripe Prerequisites to start a transaction are not met',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       return [StartTransactionErrorCode.BILLING_NO_SETTINGS];
     }
@@ -1460,7 +1480,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Billing setting prerequisites to start a transaction are not met',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       errorCodes.push(StartTransactionErrorCode.BILLING_NO_TAX);
     }
@@ -1477,7 +1497,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // TODO - return a more precise error code when payment method has expired
       errorCodes.push(StartTransactionErrorCode.BILLING_NO_PAYMENT_METHOD);

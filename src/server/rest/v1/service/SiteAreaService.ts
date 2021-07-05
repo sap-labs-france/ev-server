@@ -385,7 +385,7 @@ export default class SiteAreaService {
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
               action: action,
               message: 'An error occurred while trying to call smart charging',
-              detailedMessages: { error: error.message, stack: error.stack }
+              detailedMessages: { error: error.stack }
             });
           } finally {
             // Release lock

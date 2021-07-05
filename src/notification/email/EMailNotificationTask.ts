@@ -436,7 +436,7 @@ export default class EMailNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',
         actionOnUser: user,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

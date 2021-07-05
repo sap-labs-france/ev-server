@@ -126,11 +126,14 @@ export default abstract class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
-        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID());
+        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID(), {}, ['id']);
         if (chargingStation) {
           // Update CF Instance
           await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
             this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
+          // Update Last Seen
+          await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
+            chargingStation.id, { lastSeen: new Date() });
         }
       }
     } catch (error) {
@@ -141,7 +144,7 @@ export default abstract class WSConnection {
         action: ServerAction.WS_CONNECTION,
         module: MODULE_NAME, method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

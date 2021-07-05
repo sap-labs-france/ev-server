@@ -67,7 +67,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
           message: `Template update error in Tenant ${Utils.buildTenantName(tenant)}): ${error.message}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }

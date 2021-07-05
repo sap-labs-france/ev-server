@@ -14,7 +14,6 @@ import { HTTPError } from '../../../../types/HTTPError';
 import I18nManager from '../../../../utils/I18nManager';
 import Logging from '../../../../utils/Logging';
 import NotificationHandler from '../../../../notification/NotificationHandler';
-import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../../../types/Server';
 import SessionHashService from './SessionHashService';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
@@ -208,7 +207,6 @@ export default class AuthService {
     const i18nManager = I18nManager.getInstanceForLocale(newUser.locale);
     const tag: Tag = {
       id: Utils.generateTagID(newUser.name, newUser.firstName),
-      visualID: new ObjectID().toString(),
       active: true,
       issuer: true,
       userID: newUser.id,
@@ -537,7 +535,7 @@ export default class AuthService {
           action: action,
           user: user,
           message: 'User cannot be created in the billing system',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
