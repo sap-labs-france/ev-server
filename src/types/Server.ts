@@ -1,7 +1,7 @@
 export enum ServerAction {
-  LOGIN = 'Login',
-  LOGOUT = 'Logout',
-  PASSWORD_RESET = 'Reset',
+  LOGIN = 'RestLogin',
+  LOGOUT = 'RestLogout',
+  PASSWORD_RESET = 'RestReset',
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
 
@@ -72,17 +72,17 @@ export enum ServerAction {
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
-  REGISTER_USER = 'RegisterUser',
+  REGISTER_USER = 'RestRegisterUser',
   CHARGING_PROFILES = 'RestChargingProfiles',
   CHARGING_PROFILE_DELETE = 'RestChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'RestChargingProfileUpdate',
   CHARGING_PROFILE_CREATE = 'RestChargingProfileCreate',
   GENERATE_QR_CODE_FOR_CONNECTOR = 'RestGenerateQrCodeForConnector',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
-  RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
-  END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
-  CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
-  VERIFY_EMAIL = 'VerifyEmail',
+  RESEND_VERIFICATION_MAIL = 'RestResendVerificationEmail',
+  END_USER_LICENSE_AGREEMENT = 'RestEndUserLicenseAgreement',
+  CHECK_END_USER_LICENSE_AGREEMENT = 'RestCheckEndUserLicenseAgreement',
+  VERIFY_EMAIL = 'RestVerifyEmail',
   FIRMWARE_DOWNLOAD = 'RestFirmwareDownload',
 
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
