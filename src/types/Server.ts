@@ -508,8 +508,8 @@ export enum ServerRoute {
 
   REST_TAGS = 'tags',
   REST_TAG = 'tags/:id',
-  REST_TAG_IMPORT = 'tags/action/import',
-  REST_TAG_EXPORT = 'tags/action/export',
+  REST_TAGS_IMPORT = 'tags/action/import',
+  REST_TAGS_EXPORT = 'tags/action/export',
 
   REST_ASSET_CONSUMPTION = 'assets/:assetID/consumption',
 
