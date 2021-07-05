@@ -121,7 +121,7 @@ export default class ChargingStationService {
               action: action,
               user: req.user,
               message: `Unable to remove charging station ${chargingStation.id} from IOP`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              detailedMessages: { error: error.stack }
             });
           }
         }
@@ -153,7 +153,7 @@ export default class ChargingStationService {
               action: action,
               user: req.user,
               message: `Unable to insert or remove charging station ${chargingStation.id} from HBS`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              detailedMessages: { error: error.stack }
             });
           }
         }
@@ -310,7 +310,7 @@ export default class ChargingStationService {
           message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user, actionOnUser: req.user,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -702,7 +702,7 @@ export default class ChargingStationService {
         message: 'Error occurred while clearing Charging Profile',
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
         user: req.user, actionOnUser: req.user,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     // Ok
@@ -860,7 +860,7 @@ export default class ChargingStationService {
             action: action,
             user: req.user,
             message: `Unable to remove charging station ${chargingStation.id} from HBS`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
@@ -1114,7 +1114,7 @@ export default class ChargingStationService {
         action: action,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
-        detailedMessages: { error: error.message, stack: error.stack },
+        detailedMessages: { error: error.stack },
       });
       // Remove file related headers
       res.setHeader('Content-Type', 'text/plain');
@@ -1359,7 +1359,7 @@ export default class ChargingStationService {
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
         'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
+        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
         ...userProject
       ];
@@ -1745,7 +1745,7 @@ export default class ChargingStationService {
         message: `OCPP Command '${command}' has failed`,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         user: user,
-        detailedMessages: { error: error.message, stack: error.stack, params }
+        detailedMessages: { error: error.stack, params }
       });
     }
   }

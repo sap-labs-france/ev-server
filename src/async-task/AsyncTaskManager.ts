@@ -173,7 +173,7 @@ export default class AsyncTaskManager {
                     module: MODULE_NAME, method: 'handleAsyncTasks',
                     action: ServerAction.ASYNC_TASK,
                     message: `Error while running the asynchronous task '${asyncTask.name}': ${error.message}`,
-                    detailedMessages: { error: error.message, stack: error.stack, asyncTask }
+                    detailedMessages: { error: error.stack, asyncTask }
                   });
                 } finally {
                   // Release lock
