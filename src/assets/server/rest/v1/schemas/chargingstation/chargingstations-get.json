@@ -20,6 +20,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "SiteAreaID": {
       "$ref": "common.json#/definitions/ids"
     },
