@@ -513,7 +513,6 @@ export default class AuthService {
       // When it's user import case we take checkbox param saved to db
       userStatus = user.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     }
-    await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     // Save User Status
     await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     // For integration with billing
