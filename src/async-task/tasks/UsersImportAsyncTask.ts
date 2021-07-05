@@ -44,9 +44,7 @@ export default class UsersImportAsyncTask extends ImportAsyncTask {
           for (const importedUser of importedUsers.result) {
             try {
               // if user not found we create one
-              if (Utils.isNullOrUndefined(await this.checkUserExists(tenant, importedUser))) {
-                await this.createUser(tenant, importedUser, result);
-              }
+              await this.processImportedUser(tenant, importedUser);
               // Remove the imported User either it's found or not
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               result.inSuccess++;

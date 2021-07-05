@@ -1,7 +1,6 @@
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
-import { ActionsResponse } from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import { ImportedTag } from '../../types/Tag';
 import Logging from '../../utils/Logging';
@@ -23,29 +22,31 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
   // usersSite: Map<string, string[]> = new Map();
   usersSite: Record<string, string[]> = {};
 
-  protected async checkUserExists(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
+  protected async processImportedUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
     // Existing Users
-    const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
-    if (foundUser) {
+    let user = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
+    if (user) {
       // Check tag is already in use
-      if (!foundUser.issuer) {
+      if (!user.issuer) {
         throw new Error('User is not local to the organization');
       }
-      if (foundUser.status !== UserStatus.PENDING) {
+      if (user.status !== UserStatus.PENDING) {
         throw new Error('User account is already in use');
       }
       // Update it
-      foundUser.name = importedUser.name;
-      foundUser.firstName = importedUser.firstName;
-      await UserStorage.saveUser(tenant.id, foundUser);
-      if (importedUser.siteIDs && Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-        await this.checkSitesAndAssign(tenant, foundUser, importedUser);
-      }
+      user.name = importedUser.name;
+      user.firstName = importedUser.firstName;
+      await UserStorage.saveUser(tenant.id, user);
+    } else {
+      user = await this.createUser(tenant, importedUser);
     }
-    return foundUser;
+    if (importedUser.siteIDs && Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+      await this.checkSitesAndAssign(tenant, user, importedUser);
+    }
+    return user;
   }
 
-  protected async createUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag, result?: ActionsResponse): Promise<User> {
+  protected async createUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
     // New User
     const newUser = UserStorage.createNewUser() as User;
     // Set
@@ -61,9 +62,6 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
     await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
     // Status need to be set separately
     await UserStorage.saveUserStatus(tenant.id, newUser.id, importedUser.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE);
-    if (importedUser.siteIDs && Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      await this.checkSitesAndAssign(tenant, newUser, importedUser);
-    }
     await this.sendNotifications(tenant, newUser);
     return newUser;
   }

@@ -12,7 +12,6 @@ import { ServerAction } from '../../types/Server';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TagsImportAsyncTask';
@@ -82,7 +81,7 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
               }
               // Save user if any and get the ID to assign tag
               if (importedTag.email && importedTag.name && importedTag.firstName) {
-                await this.createUserAndAssignTag(tenant, importedTag, tagToSave);
+                await this.processImportedTag(tenant, importedTag, tagToSave);
               }
               // Save the new Tag
               await TagStorage.saveTag(tenant.id, tagToSave);
@@ -135,12 +134,9 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
     }
   }
 
-  private async createUserAndAssignTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
-    let user: User = null;
+  private async processImportedTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
     // if user not found we create one
-    if (Utils.isNullOrUndefined(user = await this.checkUserExists(tenant, importedTag))) {
-      user = await this.createUser(tenant, importedTag);
-    }
+    const user = await this.processImportedUser(tenant, importedTag);
     tag.userID = user.id;
     await TagStorage.clearDefaultUserTag(tenant.id, user.id);
     tag.default = true;
