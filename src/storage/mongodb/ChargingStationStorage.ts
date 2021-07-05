@@ -377,10 +377,10 @@ export default class ChargingStationStorage {
       });
     }
     // Site
-    if (params.withSite && !params.withNoSiteArea) {
+    if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-        asField: 'siteArea.site', oneToOneCardinality: true
+        tenantID, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
       });
     }
     // Change ID
