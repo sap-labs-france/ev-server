@@ -883,7 +883,7 @@ export default class OCPIUtilsService {
           // F3C Baume les dames
           case '60990f1cc48de10014ea4fdc':
             switch (chargingStation?.id) {
-              case 'F3CBaume-CAHORS24DC':
+              case 'F3CBaume-CAHORS25DC':
                 return 'Tarif_EVSE_DC';
               case 'F3CBaume-LAFON22AC':
                 return 'Tarif_EVSE_AC';
