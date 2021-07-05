@@ -484,7 +484,10 @@ export default class UserService {
             // Set default value
             user.importedBy = importedBy;
             user.importedOn = importedOn;
-            user.importedData = { 'autoActivateAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateatimport) };
+            user.importedData = {
+              'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
+              'autoActivateTagAtImport' :  UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
+            };
             // Import
             const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
             if (!importSuccess) {

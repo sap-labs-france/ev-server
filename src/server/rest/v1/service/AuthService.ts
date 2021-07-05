@@ -511,12 +511,11 @@ export default class AuthService {
     if (!user.importedData) {
       const userSettings = await SettingStorage.getUserSettings(tenant.id);
       userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
-      await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     } else {
       // When it's user import case we take checkbox param saved to db
-      userStatus = user.importedData.autoActivateAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
-      await UserStorage.saveUserStatus(tenant.id, user.id, UserStatus.ACTIVE);
+      userStatus = user.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     }
+    await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     // Save User Status
     await UserStorage.saveUserStatus(tenant.id, user.id, userStatus);
     // For integration with billing

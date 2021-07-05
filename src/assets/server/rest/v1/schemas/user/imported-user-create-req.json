@@ -46,7 +46,7 @@
     "importedData": {
       "type": "object",
       "properties": {
-        "autoActivateAtImport": {
+        "autoActivateUserAtImport": {
           "type": "boolean",
           "sanitize": "mongo"
         }

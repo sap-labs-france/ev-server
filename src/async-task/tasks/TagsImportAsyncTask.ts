@@ -1,11 +1,10 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 import Tag, { ImportedTag } from '../../types/Tag';
-import User, { UserRole, UserStatus } from '../../types/User';
 
-import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
+import ImportAsyncTask from './ImportAsyncTask';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
@@ -13,12 +12,12 @@ import { ServerAction } from '../../types/Server';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
+import User from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TagsImportAsyncTask';
 
-export default class TagsImportAsyncTask extends AbstractAsyncTask {
+export default class TagsImportAsyncTask extends ImportAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const importTagsLock = await LockingHelper.acquireImportTagsLock(this.asyncTask.tenantID);
     if (importTagsLock) {
@@ -56,7 +55,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                   throw new Error('Tag is not local to the organization');
                 }
                 if (foundTag.userID) {
-                  throw new Error('Tag is already assigned to an user');
+                  throw new Error('Tag is already assigned to a user');
                 }
                 if (foundTag.active) {
                   throw new Error('Tag is already active');
@@ -75,14 +74,15 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                   visualID: importedTag.visualID,
                   description: importedTag.description,
                   issuer: true,
-                  active: false,
+                  active: importedTag.importedData.autoActivateTagAtImport,
                   createdBy: { id: importedTag.importedBy },
                   createdOn: importedTag.importedOn,
+                  importedData: importedTag.importedData
                 };
               }
               // Save user if any and get the ID to assign tag
               if (importedTag.email && importedTag.name && importedTag.firstName) {
-                await this.assignTag(tenant, importedTag, tagToSave);
+                await this.createUserAndAssignTag(tenant, importedTag, tagToSave);
               }
               // Save the new Tag
               await TagStorage.saveTag(tenant.id, tagToSave);
@@ -135,26 +135,14 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
     }
   }
 
-  private async assignTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
-    // Save user if any and get the ID to assign tag
-    const foundUser = await UserStorage.getUserByEmail(tenant.id, importedTag.email);
-    if (!foundUser) {
-      const user = {
-        name: importedTag.name,
-        firstName: importedTag.firstName,
-        email: importedTag.email,
-        createdBy: { id: importedTag.importedBy },
-        createdOn: Utils.convertToDate(importedTag.importedOn),
-        issuer: true,
-        status: UserStatus.PENDING,
-        role: UserRole.BASIC,
-      } as User;
-      const userID = await UserStorage.saveUser(tenant.id, user);
-      await UserStorage.saveUserStatus(tenant.id, userID, user.status);
-      await UserStorage.saveUserRole(tenant.id, userID, user.role);
-      tag.userID = userID;
-    } else {
-      tag.userID = foundUser.id;
+  private async createUserAndAssignTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
+    let user: User = null;
+    // if user not found we create one
+    if (Utils.isNullOrUndefined(user = await this.checkUserExists(tenant, importedTag))) {
+      user = await this.createUser(tenant, importedTag);
     }
+    tag.userID = user.id;
+    await TagStorage.clearDefaultUserTag(tenant.id, user.id);
+    tag.default = true;
   }
 }

@@ -38,7 +38,10 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   mobileLastChangedOn: Date;
   lastSelectedCarID?: string;
   authorizationID?: string;
-  importedData?: { autoActivateAtImport: boolean; };
+  importedData?: {
+    autoActivateUserAtImport: boolean;
+    autoActivateTagAtImport: boolean;
+  };
 }
 
 export interface UserSite {
@@ -66,7 +69,10 @@ export interface ImportedUser {
   importedOn?: Date;
   status?: ImportStatus
   errorDescription?: string;
-  importedData?: { autoActivateAtImport: boolean; };
+  importedData?: {
+    autoActivateUserAtImport: boolean;
+    autoActivateTagAtImport: boolean;
+  };
   siteIDs?: string;
 }
 
