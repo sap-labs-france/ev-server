@@ -364,7 +364,7 @@ export default class OCPIUtilsService {
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
-      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true },
+      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
       [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
     for (const chargingStation of chargingStations.result) {

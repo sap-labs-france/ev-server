@@ -698,9 +698,10 @@ export default class OCPPService {
 
   private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
-    const connector = await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
+    const { connector, newConnector } = await this.checkAndGetConnectorFromStatusNotification(
+      tenant, chargingStation, statusNotification);
     // Status must be different
-    if (!await this.hasStatusNotificationChanged(tenant, chargingStation, connector, statusNotification)) {
+    if (!newConnector && !await this.hasStatusNotificationChanged(tenant, chargingStation, connector, statusNotification)) {
       return;
     }
     // Check last Transaction
@@ -806,9 +807,12 @@ export default class OCPPService {
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
-      statusNotification: OCPPStatusNotificationRequestExtended): Promise<Connector> {
+      statusNotification: OCPPStatusNotificationRequestExtended): Promise<{ connector: Connector, newConnector: boolean }> {
+    let newConnector = false;
     let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
+      // To be saved
+      newConnector = true;
       // Check backup first
       foundConnector = Utils.getBackupConnectorFromID(chargingStation, statusNotification.connectorId);
       if (foundConnector) {
@@ -838,7 +842,7 @@ export default class OCPPService {
         }
       }
     }
-    return foundConnector;
+    return { connector: foundConnector, newConnector };
   }
 
   private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
@@ -1683,9 +1687,8 @@ export default class OCPPService {
       // Set the Site Area ID
       startTransaction.siteAreaID = chargingStation.siteAreaID;
       // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
-      const site = chargingStation.siteArea ? chargingStation.siteArea.site : null;
-      if (site) {
-        startTransaction.siteID = site.id;
+      if (chargingStation.site) {
+        startTransaction.siteID = chargingStation.site.id;
       }
     }
   }
