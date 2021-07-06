@@ -452,14 +452,7 @@ export default class DatabaseUtils {
         inactive: {
           $or: [
             { $eq: ['$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING] },
-            {
-              $gte: [
-                {
-                  $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000]
-                },
-                Configuration.getChargingStationConfig().maxLastSeenIntervalSecs
-              ]
-            }
+            { $gte: [ { $divide: [{ $subtract: [new Date(), '$lastSeen'] }, 1000] }, 120 ] }
           ]
         }
       }
