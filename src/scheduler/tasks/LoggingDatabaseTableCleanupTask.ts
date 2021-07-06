@@ -34,7 +34,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
         // Delete Standard Logs
-        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate();
+        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
         // Delete
         let result = await LoggingStorage.deleteLogs(tenantID, deleteUpToDate);
         // Ok?
