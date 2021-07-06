@@ -47,7 +47,8 @@ export default class SiteAreaSecurity {
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
       WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
-      SiteID: sanitize(request.SiteID)
+      SiteID: sanitize(request.SiteID),
+      CompanyID: sanitize(request.CompanyID)
     } as HttpSiteAreasRequest;
     if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);

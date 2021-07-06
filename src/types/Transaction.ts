@@ -4,6 +4,7 @@ import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
 import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
+import Company from './Company';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
@@ -54,6 +55,8 @@ export default interface Transaction extends AbstractCurrentConsumption {
   carCatalogID?: number;
   carCatalog?: CarCatalog;
   phasesUsed?: CSPhasesUsed;
+  companyID?: string;
+  company?: Company;
   siteID?: string;
   site?: Site;
   siteAreaID?: string;

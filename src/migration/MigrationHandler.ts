@@ -1,3 +1,5 @@
+import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
+import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -86,6 +88,8 @@ export default class MigrationHandler {
   private static createMigrationTasks(): MigrationTask[] {
     const currentMigrationTasks: MigrationTask[] = [];
     currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
+    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
+    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     return currentMigrationTasks;
   }
 
