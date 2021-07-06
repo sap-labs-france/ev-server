@@ -196,7 +196,7 @@ export default class ContextBuilder {
             localToken: ContextBuilder.generateLocalToken(OCPIRole.CPO, tenantContextDef.subdomain),
             token: 'TOIOP-OCPI-TOKEN-cpo-xxxx-xxxx-yyyy'
           } as OCPIEndpoint;
-          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, cpoEndpoint);
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant, cpoEndpoint);
           const emspEndpoint = {
             name: 'EMSP Endpoint',
             role: OCPIRole.EMSP,
@@ -209,7 +209,7 @@ export default class ContextBuilder {
             localToken: ContextBuilder.generateLocalToken(OCPIRole.EMSP, tenantContextDef.subdomain),
             token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy'
           } as OCPIEndpoint;
-          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, emspEndpoint);
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant, emspEndpoint);
         }
       }
     }
