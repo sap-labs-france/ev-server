@@ -6,7 +6,6 @@ import { ImportedTag } from '../../types/Tag';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
-import Site from '../../types/Site';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -18,9 +17,8 @@ const MODULE_NAME = 'ImportAsyncTask';
 export default class ImportAsyncTask extends AbstractAsyncTask {
   // To store existing sites to avoid getting the site erverytime
   existingSitesToAutoAssign: Record<string, boolean> = {};
-  // To store users by site
-  // usersSite: Map<string, string[]> = new Map();
-  usersSite: Record<string, string[]> = {};
+  // This map is to store usersSites to optimize db call when we loop over the users to know if they are already assigned
+  usersSite: Map<string, string[]> = new Map();
 
   protected async processImportedUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
     // Existing Users
@@ -65,13 +63,13 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
 
   protected async checkSitesAndAssign(tenant: Tenant, newUser: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
     // Saved sites for assignement
-    const sitesToBeAssigned: string[] = [];
+    const sites: string[] = [];
     const importedSites = importedUser.siteIDs.split('|');
     for (const siteID of importedSites) {
       if (siteID in this.existingSitesToAutoAssign) {
-        // if siteID has already been checked and it's not already in the sitesToBeAssigned array
-        if (this.existingSitesToAutoAssign[siteID] && !(Object.values(sitesToBeAssigned).includes(siteID))) {
-          sitesToBeAssigned.push(siteID);
+        // if siteID has already been checked and it's not already in the sites array
+        if (this.existingSitesToAutoAssign[siteID] && !(Object.values(sites).includes(siteID))) {
+          sites.push(siteID);
         }
         continue;
       }
@@ -80,7 +78,7 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
       if (site) {
         if (site.autoUserSiteAssignment) {
           this.existingSitesToAutoAssign[siteID] = true;
-          sitesToBeAssigned.push(siteID);
+          sites.push(siteID);
         } else {
           // if site exists but does not allow auto assignment
           this.existingSitesToAutoAssign[siteID] = false;
@@ -103,13 +101,13 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
       }
     }
 
-    if (!Utils.isEmptyArray(sitesToBeAssigned)) {
-      // To avoid useless call to storage
+    if (!Utils.isEmptyArray(sites)) {
+      // To avoid useless call to storage we push everything to sitesToGet list
       const sitesToGet: string[] = [];
-      for (const siteToBeAssigned of sitesToBeAssigned) {
-        if (!Object.keys(this.usersSite).includes(siteToBeAssigned)) {
-          sitesToGet.push(siteToBeAssigned);
-          this.usersSite[siteToBeAssigned] = [];
+      for (const site of sites) {
+        if (!this.usersSite[site]) {
+          sitesToGet.push(site);
+          this.usersSite[site] = [];
         }
       }
       // Get list of userSites from sites we don't already have in this.userSites
@@ -127,13 +125,14 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
         }
       }
     }
-    for (const siteID of sitesToBeAssigned) {
-      const index = this.usersSite[siteID].indexOf(newUser.id) || -1;
-      if (index > -1) {
-        sitesToBeAssigned.splice(index, 1);
+    const sitesToBeAssigned = [];
+    for (const siteID of sites) {
+      // if user not already assigned to this site -> we assign it
+      if (!this.usersSite[siteID].includes(newUser.id)) {
+        sitesToBeAssigned.push(siteID);
       }
     }
-    if (sitesToBeAssigned) {
+    if (sitesToBeAssigned.length > 0) {
       await UserStorage.addSitesToUser(tenant.id, newUser.id, sitesToBeAssigned);
     }
   }
