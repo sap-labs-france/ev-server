@@ -945,7 +945,7 @@ describe('Smart Charging Service', function() {
         await smartChargingIntegration.buildChargingProfiles(testData.siteAreaContext.getSiteArea(), [testData.chargingStationContext.getChargingStation().id]);
         const log = await LoggingStorage.getLogs(testData.tenantContext.getTenant().id, { actions: [ServerAction.SMART_CHARGING], search: 'currently being used' }, Constants.DB_PARAMS_SINGLE_RECORD, null);
         const chargingStation = testData.chargingStationContext.getChargingStation();
-        const chargePoint = chargingStation.chargePoints.find((cp) => cp.connectorIDs.includes(transaction.connectorId));
+        const chargePoint = chargingStation.chargePoints.find((cp) => cp.connectorIDs.includes(transaction1.connectorId));
         const siteArea = testData.siteAreaContext.getSiteArea();
         const siteAreaLimitPerPhase = Utils.createDecimal(siteArea.maximumPower).div(siteArea.voltage).div(3).toNumber();
         let connectorLimitPerPhase = Utils.createDecimal(Utils.getChargingStationAmperage(chargingStation)).div(3).toNumber();
