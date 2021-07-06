@@ -26,12 +26,9 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
     // Existing Users
     let user = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
     if (user) {
-      // Check tag is already in use
+      // Check user is already in use
       if (!user.issuer) {
         throw new Error('User is not local to the organization');
-      }
-      if (user.status !== UserStatus.PENDING) {
-        throw new Error('User account is already in use');
       }
       // Update it
       user.name = importedUser.name;
