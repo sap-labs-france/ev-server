@@ -9,6 +9,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithCompany": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "WithSite": {
       "type": "boolean",
       "sanitize": "mongo"

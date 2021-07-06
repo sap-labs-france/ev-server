@@ -1689,6 +1689,7 @@ export default class OCPPService {
       // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
       if (chargingStation.site) {
         startTransaction.siteID = chargingStation.site.id;
+        startTransaction.companyID = chargingStation.site.companyID;
       }
     }
   }
@@ -1701,8 +1702,9 @@ export default class OCPPService {
       tagID: startTransaction.idTag,
       timezone: startTransaction.timezone,
       userID: startTransaction.userID,
-      siteAreaID: startTransaction.siteAreaID,
+      companyID: startTransaction.companyID,
       siteID: startTransaction.siteID,
+      siteAreaID: startTransaction.siteAreaID,
       connectorId: startTransaction.connectorId,
       meterStart: startTransaction.meterStart,
       timestamp: Utils.convertToDate(startTransaction.timestamp),
@@ -1790,10 +1792,11 @@ export default class OCPPService {
     newChargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
     // Assign to Site Area
     if (token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID, { withSite: true });
       if (siteArea) {
-        newChargingStation.siteAreaID = token.siteAreaID;
+        newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;
+        newChargingStation.siteAreaID = token.siteAreaID;
         // Set the same coordinates
         if (siteArea?.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.address.coordinates;
