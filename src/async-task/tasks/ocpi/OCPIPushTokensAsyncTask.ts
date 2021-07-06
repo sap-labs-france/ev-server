@@ -16,7 +16,7 @@ export default class OCPIPushTokensAsyncTask extends AbstractAsyncTask {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         // Get the OCPI Endpoint
-        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant.id, this.asyncTask.parameters.endpointID);
+        const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(tenant, this.asyncTask.parameters.endpointID);
         if (!ocpiEndpoint) {
           throw new Error(`Unknown OCPI Endpoint ID '${this.asyncTask.parameters.endpointID}'`);
         }

@@ -195,7 +195,7 @@ export default abstract class BillingIntegration {
       for (const invoice of invoices.result) {
         try {
           // Skip invoices that are already PAID or not relevant for the current billing process
-          if (this.invoiceMustBeSkipped(invoice)) {
+          if (this.isInvoiceOutOfPeriodicOperationScope(invoice)) {
             continue;
           }
           // Make sure to avoid trying to charge it again too soon
@@ -211,7 +211,11 @@ export default abstract class BillingIntegration {
             });
             continue;
           }
-          await this.chargeInvoice(invoice);
+          const newInvoice = await this.chargeInvoice(invoice);
+          if (this.isInvoiceOutOfPeriodicOperationScope(newInvoice)) {
+            // The new invoice may now have a different status - and this impacts the pagination
+            skip--; // This is very important!
+          }
           await Logging.logInfo({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
@@ -542,7 +546,7 @@ export default abstract class BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenant.id, user.id, null);
   }
 
-  private invoiceMustBeSkipped(invoice: BillingInvoice): boolean {
+  private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {
     if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
       return false;
     }
@@ -566,15 +570,25 @@ export default abstract class BillingIntegration {
       startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
+    // Filter the invoice status based on the billing settings
+    let invoiceStatus;
+    if (this.settings.billing?.periodicBillingAllowed) {
+      // Let's finalize DRAFT invoices and trigger a payment attemnpt for unpaid invoices as well
+      invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
+    } else {
+      // Let's trigger a new payment attemnpt for unpaid invoices
+      invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+    }
     // Now return the query parameters
     return {
-      // ------------------------------------------------------------------------------
-      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
-      // Filtering on the invoice status is not possible here
-      // ------------------------------------------------------------------------------
+      // --------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure to adapt the paging logic when the data used for filtering
+      // is also updated by the periodic operation
+      // --------------------------------------------------------------------------------
       filter: {
         startDateTime,
-        endDateTime
+        endDateTime,
+        invoiceStatus
       },
       limit,
       sort: { createdOn: 1 } // Sort by creation date - process the eldest first!

@@ -10,6 +10,8 @@ import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
 import { PricingModel } from './Pricing';
 import { RefundTransactionData } from './Refund';
+import Site from './Site';
+import SiteArea from './SiteArea';
 import Tag from './Tag';
 import User from './User';
 
@@ -53,7 +55,9 @@ export default interface Transaction extends AbstractCurrentConsumption {
   carCatalog?: CarCatalog;
   phasesUsed?: CSPhasesUsed;
   siteID?: string;
+  site?: Site;
   siteAreaID?: string;
+  siteArea?: SiteArea;
   issuer: boolean;
   connectorId: number;
   tagID: string;

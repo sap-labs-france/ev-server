@@ -17,6 +17,8 @@ export default class Constants {
 
   public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
 
+  public static readonly LAST_SEEN_UPDATE_INTERVAL_MILLIS = 60000;
+
   public static readonly DC_CHARGING_STATION_DEFAULT_EFFICIENCY_PERCENT = 80;
   public static readonly AMPERAGE_DETECTION_THRESHOLD = 0.5;
 

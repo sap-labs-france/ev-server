@@ -1029,7 +1029,7 @@ export default class OCPPUtils {
       } else {
         // Compute it for Charging Stations
         const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenant.id,
-          { siteAreaIDs: [siteArea.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+          { siteAreaIDs: [siteArea.id], withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
           if (Utils.objectHasProperty(chargingStationOfSiteArea, 'connectors')) {
             for (const connector of chargingStationOfSiteArea.connectors) {

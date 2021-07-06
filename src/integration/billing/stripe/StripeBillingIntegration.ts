@@ -301,7 +301,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const { id: invoiceID, customer, number, livemode: liveMode, amount_due: amount, amount_paid: amountPaid, status, currency: invoiceCurrency, invoice_pdf: downloadUrl, metadata, hosted_invoice_url: payInvoiceUrl } = stripeInvoice;
     const customerID = customer as string;
     const currency = invoiceCurrency?.toUpperCase();
-    const createdOn = moment.unix(stripeInvoice.created).toDate(); // epoch to Date!
+    // The invoice date may change when finalizing a DRAFT invoice
+    const epoch = stripeInvoice.status_transitions?.finalized_at || stripeInvoice.created;
+    const createdOn = moment.unix(epoch).toDate(); // epoch to Date!
     // Check metadata consistency - userID is mandatory!
     const userID = metadata?.userID;
     if (!userID) {
@@ -923,6 +925,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
         status: BillingStatus.UNBILLED
       };
     }
+    // Do not bill suspicious StopTransaction events
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_THRESHOLD_ON_STOP) && !Utils.isDevelopmentEnv()) {
+      // Suspicious StopTransaction may occur after a 'Housing temperature approaching limit' error on some charging stations
+      const timeSpent = this.computeTimeSpentInSeconds(transaction);
+      // TODO - make it part of the pricing or billing settings!
+      if (timeSpent < 60 /* seconds */ || transaction.stop.totalConsumptionWh < 1000 /* 1kWh */) {
+        await Logging.logWarning({
+          tenantID: this.tenant.id,
+          user: transaction.userID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_TRANSACTION,
+          module: MODULE_NAME, method: 'stopTransaction',
+          message: `Transaction data is suspicious - billing operation has been aborted - transaction ID: ${transaction.id}`
+        });
+        return {
+          status: BillingStatus.UNBILLED
+        };
+      }
+    }
     // Create and Save async task
     await AsyncTaskManager.createAndSaveAsyncTasks({
       name: AsyncTasks.BILL_TRANSACTION,
@@ -1209,13 +1230,18 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-');
   }
 
-  private convertTimeSpentToString(transaction: Transaction): string {
+  private computeTimeSpentInSeconds(transaction: Transaction): number {
     let totalDuration: number;
     if (!transaction.stop) {
       totalDuration = moment.duration(moment(transaction.lastConsumption.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     } else {
       totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
     }
+    return totalDuration;
+  }
+
+  private convertTimeSpentToString(transaction: Transaction): string {
+    const totalDuration = this.computeTimeSpentInSeconds(transaction);
     return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 

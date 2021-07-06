@@ -40,6 +40,7 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   SiteID?: string;
   CompanyID?: string;
   WithSite?: boolean;
+  WithSiteArea?: boolean;
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;

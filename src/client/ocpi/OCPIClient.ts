@@ -90,7 +90,7 @@ export default abstract class OCPIClient {
       await this.deleteCredentials();
       // Save endpoint
       this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
-      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
       // Send success
       unregisterResult.statusCode = StatusCodes.OK;
       unregisterResult.statusText = ReasonPhrases.OK;
@@ -140,7 +140,7 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.businessDetails = credential.business_details;
       // Save endpoint
       this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
-      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant, this.ocpiEndpoint);
       // Send success
       registerResult.statusCode = StatusCodes.OK;
       registerResult.statusText = ReasonPhrases.OK;
