@@ -64,7 +64,6 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
   }
 
   protected async checkSitesAndAssign(tenant: Tenant, newUser: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
-    let site: Site = null;
     // Saved sites for assignement
     const sitesToBeAssigned: string[] = [];
     const importedSites = importedUser.siteIDs.split('|');
@@ -75,13 +74,15 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
           sitesToBeAssigned.push(siteID);
         }
         continue;
-        // check if site exists
-      } else if (!Utils.isNullOrUndefined(site = await SiteStorage.getSite(tenant, siteID))) {
+      }
+      // check if site exists
+      const site = await SiteStorage.getSite(tenant, siteID);
+      if (site) {
         if (site.autoUserSiteAssignment) {
           this.existingSitesToAutoAssign[siteID] = true;
           sitesToBeAssigned.push(siteID);
-        // if site exists but does not allow auto assignment
         } else {
+          // if site exists but does not allow auto assignment
           this.existingSitesToAutoAssign[siteID] = false;
           await Logging.logWarning({
             tenantID: tenant.id,
@@ -90,8 +91,8 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
             message: `Site ${siteID} does not accept auto assignment`
           });
         }
-      // if site does not exist
       } else {
+        // if site does not exist
         this.existingSitesToAutoAssign[siteID] = false;
         await Logging.logWarning({
           tenantID: tenant.id,
