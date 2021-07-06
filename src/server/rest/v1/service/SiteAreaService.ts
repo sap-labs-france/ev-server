@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import SiteArea, { SiteAreaValueTypes } from '../../../../types/SiteArea';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -14,7 +15,6 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../../types/Server';
-import SiteArea from '../../../../types/SiteArea';
 import { SiteAreaDataResult } from '../../../../types/DataResult';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
@@ -255,14 +255,27 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.SiteAreaID, Action.READ, action);
-    // Get the ConsumptionValues
-    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
+    // Get the Asset Consumption Values
+    siteArea.values.assetConsumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
-      endDate: filteredRequest.EndDate
+      endDate: filteredRequest.EndDate,
+      type: SiteAreaValueTypes.ASSET_CONSUMPTIONS
     }, [ 'startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts' ]);
-    // Assign
-    siteArea.values = consumptions;
+    // Get the Charging Station Consumption Values
+    siteArea.values.chargingStationConsumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
+      siteAreaID: filteredRequest.SiteAreaID,
+      startDate: filteredRequest.StartDate,
+      endDate: filteredRequest.EndDate,
+      type: SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS
+    }, [ 'startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts' ]);
+    // Get the Asset production values
+    siteArea.values.assetProductions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
+      siteAreaID: filteredRequest.SiteAreaID,
+      startDate: filteredRequest.StartDate,
+      endDate: filteredRequest.EndDate,
+      type: SiteAreaValueTypes.ASSET_PRODUCTIONS
+    }, [ 'startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts' ]);
     // Return
     res.json(siteArea);
     next();

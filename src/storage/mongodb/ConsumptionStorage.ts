@@ -7,6 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { SiteAreaValueTypes } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -183,7 +184,7 @@ export default class ConsumptionStorage {
   }
 
   static async getSiteAreaConsumptions(tenantID: string,
-      params: { siteAreaID: string; startDate: Date; endDate: Date },
+      params: { siteAreaID: string; startDate: Date; endDate: Date, type: SiteAreaValueTypes },
       projectFields?: string[]): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
@@ -206,6 +207,17 @@ export default class ConsumptionStorage {
     // End date
     if (params.endDate) {
       filters.startedAt.$lte = Utils.convertToDate(params.endDate);
+    }
+    // Type of query
+    if (params.type && params.type === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
+      filters.instantWatts.$gte = 0;
+      filters.assetID.$ne = null;
+    } else if (params.type && params.type === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
+      filters.instantWatts.$lt = 0;
+      filters.assetID.$ne = null;
+    } else if (params.type && params.type === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
+      // filters.instantWatts.$gte = 0;
+      filters.chargeBoxID.$ne = null;
     }
     // Create Aggregation
     const aggregation = [];
