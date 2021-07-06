@@ -348,8 +348,9 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: {
+              companyID: DatabaseUtils.convertToObjectID(siteArea.site?.companyID),
+              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID),
               siteAreaID: DatabaseUtils.convertToObjectID(siteArea.id),
-              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID)
             }
           });
       }
@@ -372,8 +373,9 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: {
+              companyID: null,
+              siteID: null,
               siteAreaID: null,
-              siteID: null
             }
           });
       }
