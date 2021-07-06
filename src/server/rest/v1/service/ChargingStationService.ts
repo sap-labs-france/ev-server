@@ -261,8 +261,9 @@ export default class ChargingStationService {
           action: action
         });
       }
-      chargingStation.siteAreaID = siteArea.id;
+      chargingStation.companyID = siteArea.site?.companyID;
       chargingStation.siteID = siteArea.siteID;
+      chargingStation.siteAreaID = siteArea.id;
       // Check if number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -283,8 +284,9 @@ export default class ChargingStationService {
       }
     } else {
       delete chargingStation.excludeFromSmartCharging;
-      chargingStation.siteAreaID = null;
+      chargingStation.companyID = null;
       chargingStation.siteID = null;
+      chargingStation.siteAreaID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
@@ -325,7 +327,6 @@ export default class ChargingStationService {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -475,7 +476,6 @@ export default class ChargingStationService {
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: { result }
     });
-    // Ok
     res.json({ status: result.status });
     next();
   }
@@ -588,7 +588,6 @@ export default class ChargingStationService {
         await LockingManager.release(siteAreaLock);
       }
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -705,7 +704,6 @@ export default class ChargingStationService {
         detailedMessages: { error: error.stack }
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -763,7 +761,6 @@ export default class ChargingStationService {
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
       result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.tenant, chargingStation);
     }
-    // Ok
     res.json(result);
     next();
   }
@@ -865,11 +862,10 @@ export default class ChargingStationService {
         }
       }
     }
-    // Remove Site Area
-    chargingStation.siteArea = null;
-    chargingStation.siteAreaID = null;
-    // Remove Site
+    // Remove Org
+    chargingStation.companyID = null;
     chargingStation.siteID = null;
+    chargingStation.siteAreaID = null;
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
@@ -882,7 +878,6 @@ export default class ChargingStationService {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
-    // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
@@ -890,7 +885,6 @@ export default class ChargingStationService {
       action: action,
       detailedMessages: { chargingStation }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -950,7 +944,7 @@ export default class ChargingStationService {
       // Get OCPP Params
       const dataToExport = ChargingStationService.convertOCPPParamsToCSV({
         params: ocppParameters.result,
-        siteName: chargingStation.siteArea.site.name,
+        siteName: chargingStation.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
       }, writeHeader);
@@ -1323,7 +1317,6 @@ export default class ChargingStationService {
     }
     // Check
     await smartCharging.checkConnection();
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -1357,7 +1350,7 @@ export default class ChargingStationService {
       projectFields = [
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
         'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
         'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
@@ -1385,12 +1378,14 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
+        withSiteArea: filteredRequest.WithSiteArea,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
         siteIDs: siteIDs,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        companyIDs: filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null,
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
@@ -1700,7 +1695,6 @@ export default class ChargingStationService {
           });
           break;
       }
-      // Ok?
       if (result) {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
@@ -1799,8 +1793,6 @@ export default class ChargingStationService {
       });
     }
     // Apply & Save charging plan
-    const chargingProfileID = await OCPPUtils.setAndSaveChargingProfile(req.tenant, filteredRequest);
-    // Ok
-    return chargingProfileID;
+    return OCPPUtils.setAndSaveChargingProfile(req.tenant, filteredRequest);
   }
 }

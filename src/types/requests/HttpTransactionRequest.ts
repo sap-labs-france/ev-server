@@ -25,6 +25,9 @@ export interface HttpPushTransactionCdrRequest {
 export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   Issuer: boolean;
+  WithCompany: boolean;
+  WithSite: boolean;
+  WithSiteArea: boolean;
   ConnectorID: string;
   SiteAreaID?: string;
   SiteID?: string;

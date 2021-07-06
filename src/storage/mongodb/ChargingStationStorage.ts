@@ -137,6 +137,7 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       chargingStationIDs: [id],
       withSite: true,
+      withSiteArea: true,
       includeDeleted: params.includeDeleted,
       issuer: params.issuer,
       siteIDs: params.siteIDs,
@@ -148,6 +149,7 @@ export default class ChargingStationStorage {
       projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       ocpiEvseID,
+      withSiteArea: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -158,6 +160,7 @@ export default class ChargingStationStorage {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       ocpiLocationID,
       ocpiEvseUid,
+      withSiteArea: true
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -166,6 +169,7 @@ export default class ChargingStationStorage {
       projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
       oicpEvseID: oicpEvseID,
+      withSiteArea: true
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return chargingStationsMDB.count === 1 ? chargingStationsMDB.result[0] : null;
   }
@@ -173,9 +177,9 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenantID: string,
       params: {
         search?: string; chargingStationIDs?: string[]; chargingStationSerialNumbers?: string[]; siteAreaIDs?: string[]; withNoSiteArea?: boolean;
-        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date;
+        connectorStatuses?: string[]; connectorTypes?: string[]; statusChangedBefore?: Date; withSiteArea?: boolean;
         ocpiEvseUid?: string; ocpiEvseID?: string; ocpiLocationID?: string; oicpEvseID?: string;
-        siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+        siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; public?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
@@ -314,6 +318,11 @@ export default class ChargingStationStorage {
       // Query by siteID
       filters.siteID = { $in: params.siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
     }
+    // Check Company ID
+    if (!Utils.isEmptyArray(params.companyIDs)) {
+      // Query by siteID
+      filters.companyID = { $in: params.companyIDs.map((id) => DatabaseUtils.convertToObjectID(id)) };
+    }
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
       aggregation.push({
@@ -366,15 +375,17 @@ export default class ChargingStationStorage {
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
     // Site Area
-    DatabaseUtils.pushSiteAreaLookupInAggregation({
-      tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-      asField: 'siteArea', oneToOneCardinality: true
-    });
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
     // Site
-    if (params.withSite && !params.withNoSiteArea) {
+    if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation({
-        tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-        asField: 'siteArea.site', oneToOneCardinality: true
+        tenantID, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
       });
     }
     // Change ID
@@ -389,7 +400,6 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Reorder connector ID
-    // TODO: To remove when SiteID optimization will be implemented
     if (!Utils.containsGPSCoordinates(params.locCoordinates)) {
       aggregation.push({
         $sort: dbParams.sort
@@ -549,8 +559,9 @@ export default class ChargingStationStorage {
       templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       public: Utils.convertToBoolean(chargingStationToSave.public),
-      siteAreaID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteAreaID),
+      companyID: DatabaseUtils.convertToObjectID(chargingStationToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteID),
+      siteAreaID: DatabaseUtils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,

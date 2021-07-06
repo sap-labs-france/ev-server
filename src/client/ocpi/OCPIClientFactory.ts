@@ -75,7 +75,7 @@ export default class OCPIClientFactory {
   }
 
   static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: OCPIRole): Promise<CpoOCPIClient|EmspOCPIClient> {
-    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
         const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
@@ -85,7 +85,7 @@ export default class OCPIClientFactory {
   }
 
   static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPIChargingStationClient> {
-    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
         const client = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);

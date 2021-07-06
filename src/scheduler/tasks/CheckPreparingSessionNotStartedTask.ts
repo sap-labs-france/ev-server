@@ -23,7 +23,8 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
         // Get Charging Stations
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
           'statusChangedBefore': moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate(),
-          'connectorStatuses': [ChargePointStatus.PREPARING]
+          'connectorStatuses': [ChargePointStatus.PREPARING],
+          withSiteArea: true
         }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStation of chargingStations.result) {
           // Get site owner and then send notification

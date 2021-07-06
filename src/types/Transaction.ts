@@ -4,12 +4,15 @@ import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
 import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
+import Company from './Company';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
 import { PricingModel } from './Pricing';
 import { RefundTransactionData } from './Refund';
+import Site from './Site';
+import SiteArea from './SiteArea';
 import Tag from './Tag';
 import User from './User';
 
@@ -52,8 +55,12 @@ export default interface Transaction extends AbstractCurrentConsumption {
   carCatalogID?: number;
   carCatalog?: CarCatalog;
   phasesUsed?: CSPhasesUsed;
+  companyID?: string;
+  company?: Company;
   siteID?: string;
+  site?: Site;
   siteAreaID?: string;
+  siteArea?: SiteArea;
   issuer: boolean;
   connectorId: number;
   tagID: string;

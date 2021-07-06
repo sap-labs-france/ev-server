@@ -698,9 +698,10 @@ export default class OCPPService {
 
   private async processConnectorStatusNotification(tenant: Tenant, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Get Connector
-    const connector = await this.checkAndGetConnectorFromStatusNotification(tenant, chargingStation, statusNotification);
+    const { connector, newConnector } = await this.checkAndGetConnectorFromStatusNotification(
+      tenant, chargingStation, statusNotification);
     // Status must be different
-    if (!await this.hasStatusNotificationChanged(tenant, chargingStation, connector, statusNotification)) {
+    if (!newConnector && !await this.hasStatusNotificationChanged(tenant, chargingStation, connector, statusNotification)) {
       return;
     }
     // Check last Transaction
@@ -806,9 +807,12 @@ export default class OCPPService {
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
-      statusNotification: OCPPStatusNotificationRequestExtended): Promise<Connector> {
+      statusNotification: OCPPStatusNotificationRequestExtended): Promise<{ connector: Connector, newConnector: boolean }> {
+    let newConnector = false;
     let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
+      // To be saved
+      newConnector = true;
       // Check backup first
       foundConnector = Utils.getBackupConnectorFromID(chargingStation, statusNotification.connectorId);
       if (foundConnector) {
@@ -838,7 +842,7 @@ export default class OCPPService {
         }
       }
     }
-    return foundConnector;
+    return { connector: foundConnector, newConnector };
   }
 
   private async checkAndUpdateLastCompletedTransaction(tenant: Tenant, chargingStation: ChargingStation,
@@ -1683,9 +1687,9 @@ export default class OCPPService {
       // Set the Site Area ID
       startTransaction.siteAreaID = chargingStation.siteAreaID;
       // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
-      const site = chargingStation.siteArea ? chargingStation.siteArea.site : null;
-      if (site) {
-        startTransaction.siteID = site.id;
+      if (chargingStation.site) {
+        startTransaction.siteID = chargingStation.site.id;
+        startTransaction.companyID = chargingStation.site.companyID;
       }
     }
   }
@@ -1698,8 +1702,9 @@ export default class OCPPService {
       tagID: startTransaction.idTag,
       timezone: startTransaction.timezone,
       userID: startTransaction.userID,
-      siteAreaID: startTransaction.siteAreaID,
+      companyID: startTransaction.companyID,
       siteID: startTransaction.siteID,
+      siteAreaID: startTransaction.siteAreaID,
       connectorId: startTransaction.connectorId,
       meterStart: startTransaction.meterStart,
       timestamp: Utils.convertToDate(startTransaction.timestamp),
@@ -1787,10 +1792,11 @@ export default class OCPPService {
     newChargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
     // Assign to Site Area
     if (token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID, { withSite: true });
       if (siteArea) {
-        newChargingStation.siteAreaID = token.siteAreaID;
+        newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;
+        newChargingStation.siteAreaID = token.siteAreaID;
         // Set the same coordinates
         if (siteArea?.address?.coordinates?.length === 2) {
           newChargingStation.coordinates = siteArea.address.coordinates;

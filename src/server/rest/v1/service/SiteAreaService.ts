@@ -69,7 +69,7 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action);
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, { withSite: true });
     // Check and Get Charging Stations
     const chargingStations = await UtilsService.checkSiteAreaChargingStationsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.chargingStationIDs, action);
@@ -206,6 +206,7 @@ export default class SiteAreaService {
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
         ...authorizationSiteAreasFilter.filters
       },
       {

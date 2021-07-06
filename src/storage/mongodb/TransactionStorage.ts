@@ -53,6 +53,7 @@ export default class TransactionStorage {
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
       issuer: Utils.convertToBoolean(transactionToSave.issuer),
+      companyID: DatabaseUtils.convertToObjectID(transactionToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(transactionToSave.siteID),
       siteAreaID: DatabaseUtils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
@@ -273,7 +274,7 @@ export default class TransactionStorage {
         chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
-        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
+        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
@@ -615,18 +616,39 @@ export default class TransactionStorage {
         }
       });
     }
-    // Transaction tag
+    // Tag
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
-    // Charge Box
+    // Charging Station
     DatabaseUtils.pushChargingStationLookupInAggregation({
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    // Company
+    if (params.withCompany) {
+      DatabaseUtils.pushCompanyLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'companyID', foreignField: '_id',
+        asField: 'company', oneToOneCardinality: true
+      });
+    }
+    // Site
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+    }
+    // Site Area
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Add Connector and Status
     if (projectFields && projectFields.includes('status')) {
@@ -1317,15 +1339,7 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $and: [
-                {
-                  $or: [
-                    { 'userID': null },
-                    { 'user': null },
-                  ]
-                },
-                { 'siteArea.accessControl': { '$eq': true } }
-              ]
+              'userID': null,
             }
           },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
@@ -1341,8 +1355,6 @@ export default class TransactionStorage {
                     { 'billingData': { $exists: false } },
                     { 'billingData.stop': { $exists: false } },
                     { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
-                    // { 'billingData.stop.invoiceID': { $exists: false } },
-                    // { 'billingData.stop.invoiceID': { $eq: null } }
                   ]
                 }
               ]
