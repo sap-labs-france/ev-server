@@ -1331,15 +1331,7 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $and: [
-                {
-                  $or: [
-                    { 'userID': null },
-                    { 'user': null },
-                  ]
-                },
-                { 'siteArea.accessControl': { '$eq': true } }
-              ]
+              'userID': null,
             }
           },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
@@ -1355,8 +1347,6 @@ export default class TransactionStorage {
                     { 'billingData': { $exists: false } },
                     { 'billingData.stop': { $exists: false } },
                     { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
-                    // { 'billingData.stop.invoiceID': { $exists: false } },
-                    // { 'billingData.stop.invoiceID': { $eq: null } }
                   ]
                 }
               ]
