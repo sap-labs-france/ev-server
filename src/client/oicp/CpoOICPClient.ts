@@ -309,7 +309,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Save
     const executionDurationSecs = Utils.createDecimal(new Date().getTime()).minus(startTime).div(1000).toNumber();
-    await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+    await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
     await Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_DATA,
       MODULE_NAME, 'sendEVSEs', result,
       `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
@@ -444,7 +444,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+    await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
     await Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_STATUSES,
       MODULE_NAME, 'sendEVSEStatuses', result,
       `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,

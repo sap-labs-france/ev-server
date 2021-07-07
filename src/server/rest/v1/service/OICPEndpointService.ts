@@ -39,11 +39,11 @@ export default class OICPEndpointService {
       });
     }
     // Get
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.ID);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteOicpEndpoint', req.user);
     // Delete
-    await OICPEndpointStorage.deleteOicpEndpoint(req.tenant.id, oicpEndpoint.id);
+    await OICPEndpointStorage.deleteOicpEndpoint(req.tenant, oicpEndpoint.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
@@ -93,7 +93,7 @@ export default class OICPEndpointService {
         notifications: OICPEndpointPaths.NOTIFICATIONS
       }
     } as OICPEndpoint;
-    const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.tenant.id, oicpEndpoint);
+    const endpointID = await OICPEndpointStorage.saveOicpEndpoint(req.tenant, oicpEndpoint);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
@@ -126,14 +126,14 @@ export default class OICPEndpointService {
       });
     }
     // Get OicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateOicpEndpoint', req.user);
     // Update timestamp
     oicpEndpoint.lastChangedBy = { 'id': req.user.id };
     oicpEndpoint.lastChangedOn = new Date();
     // Update OicpEndpoint
-    await OICPEndpointStorage.saveOicpEndpoint(req.tenant.id, { ...oicpEndpoint, ...filteredRequest });
+    await OICPEndpointStorage.saveOicpEndpoint(req.tenant, { ...oicpEndpoint, ...filteredRequest });
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.tenant.id,
@@ -165,7 +165,7 @@ export default class OICPEndpointService {
       });
     }
     // Get it
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, endpointID,
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, endpointID,
       [
         'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
         'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
@@ -197,7 +197,7 @@ export default class OICPEndpointService {
     // Filter
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointsRequest(req.query);
     // Get all oicpendpoints
-    const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(req.tenant.id,
+    const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(req.tenant,
       {
         'search': filteredRequest.Search
       }, {
@@ -235,7 +235,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointSendEVSEStatusesRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
     // Get oicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendEVSEStatusesOicpEndpoint', req.user);
     // Build OICP Client
@@ -266,7 +266,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointSendEVSEsRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
     // Get oicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSendEVSEsOicpEndpoint', req.user);
     // Build OICP Client
@@ -298,7 +298,7 @@ export default class OICPEndpointService {
     // Check Mandatory fields
     UtilsService.checkIfOICPEndpointValid(filteredRequest, req);
     // Get oicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     // Build OICP Client
     const oicpClient = await OICPClientFactory.getOicpClient(req.tenant, oicpEndpoint);
     // Try to ping
@@ -345,7 +345,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRegisterRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
     // Get OicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUnregisterOicpEndpoint', req.user);
     // Build OICP Client
@@ -394,7 +394,7 @@ export default class OICPEndpointService {
     const filteredRequest = OICPEndpointSecurity.filterOicpEndpointRegisterRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
     // Get OicpEndpoint
-    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant.id, filteredRequest.id);
+    const oicpEndpoint = await OICPEndpointStorage.getOicpEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, oicpEndpoint, `OICP Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleRegisterOicpEndpoint', req.user);
     // Build OICP Client
