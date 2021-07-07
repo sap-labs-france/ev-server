@@ -38,7 +38,7 @@ export default abstract class WSConnection {
     this.wsConnection = wsConnection;
     this.initialized = false;
     this.wsServer = wsServer;
-    Logging.logDebug({
+    void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'constructor',
@@ -86,7 +86,7 @@ export default abstract class WSConnection {
       logMsg = `Charging Station connection attempts with URL: '${req.url}'`;
       action = ServerAction.WS_JSON_CONNECTION_OPENED;
     }
-    Logging.logDebug({
+    void Logging.logDebug({
       tenantID: this.tenantID,
       source: this.chargingStationID,
       action: action,
@@ -101,7 +101,7 @@ export default abstract class WSConnection {
         message: `The Charging Station ID is invalid: '${this.chargingStationID}'`
       });
       // Log in the right Tenants
-      Logging.logException(
+      void Logging.logException(
         backendError,
         ServerAction.WS_CONNECTION,
         Constants.CENTRAL_SERVER,
