@@ -183,6 +183,28 @@ export default class UserStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
+  public static async addSiteToUser(tenantID: string, userID: string, siteID: string): Promise<string> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'addSitesToUser');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    const siteUserMDB = {
+      '_id': Cypher.hash(`${siteID}~${userID}`),
+      'userID': DatabaseUtils.convertToObjectID(userID),
+      'siteID': DatabaseUtils.convertToObjectID(siteID),
+      'siteAdmin': false
+    };
+    // Execute
+    await global.database.getCollection<User>(tenantID, 'siteusers').findOneAndUpdate(
+      { _id: siteUserMDB._id },
+      { $set: siteUserMDB },
+      { upsert: true, returnDocument: 'after' }
+    );
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUser', uniqueTimerID, siteID);
+    return siteUserMDB._id;
+  }
+
   public static async saveUser(tenantID: string, userToSave: User, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveUser');
