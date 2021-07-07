@@ -1,3 +1,5 @@
+import { ServerAction, ServerRoute } from '../../../src/types/Server';
+
 import CrudApi from './utils/CrudApi';
 import TestConstants from './utils/TestConstants';
 
@@ -10,11 +12,11 @@ export default class TenantApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.readById(id, '/client/api/Tenant');
+    return super.readById(id, this.buildRestEndpointUrl(ServerRoute.REST_TENANT, { id }));
   }
 
   public async readAll(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/Tenants');
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TENANTS));
   }
 
   public async create(data) {

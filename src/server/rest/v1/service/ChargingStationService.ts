@@ -1134,7 +1134,7 @@ export default class ChargingStationService {
     // Backward compatibility for the mobile application
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const command = action.slice(15) as Command;
+    const command = action.slice('RestChargingStation'.length) as Command;
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station

@@ -64,13 +64,13 @@ export default class TagRouter {
   }
 
   protected buildRouteImportTag(): void {
-    this.router.post(`/${ServerRoute.REST_TAG_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_TAGS_IMPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleImportTags.bind(this), ServerAction.TAGS_IMPORT, req, res, next);
     });
   }
 
   protected buildRouteExportTag(): void {
-    this.router.get(`/${ServerRoute.REST_TAG_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_TAGS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TagService.handleExportTags.bind(this), ServerAction.TAGS_EXPORT, req, res, next);
     });
   }
