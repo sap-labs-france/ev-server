@@ -9,28 +9,29 @@ import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { ObjectID } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIEndpointStorage';
 
 export default class OCPIEndpointStorage {
-  static async getOcpiEndpoint(tenantID: string, id: string, projectFields?: string[]): Promise<OCPIEndpoint> {
+  static async getOcpiEndpoint(tenant: Tenant, id: string, projectFields?: string[]): Promise<OCPIEndpoint> {
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(
-      tenantID, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      tenant, { ocpiEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpointByLocalToken(tenantID: string, token: string, projectFields?: string[]): Promise<OCPIEndpoint> {
+  static async getOcpiEndpointByLocalToken(tenant: Tenant, token: string, projectFields?: string[]): Promise<OCPIEndpoint> {
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(
-      tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      tenant, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
-  static async saveOcpiEndpoint(tenantID: string, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
+  static async saveOcpiEndpoint(tenant: Tenant, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOcpiEndpoint');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveOcpiEndpoint');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
     if (!ocpiEndpointToSave.name) {
       // Name must be provided!
@@ -69,24 +70,24 @@ export default class OCPIEndpointStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(ocpiEndpointMDB, ocpiEndpointToSave);
     // Modify
-    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints').findOneAndUpdate(
+    await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
       { $set: ocpiEndpointMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create
     return ocpiEndpointFilter._id.toHexString();
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID: string,
+  static async getOcpiEndpoints(tenant: Tenant,
       params: { search?: string; role?: OCPIRole; ocpiEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OCPIEndpoint>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOcpiEndpoints');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getOcpiEndpoints');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -125,12 +126,12 @@ export default class OCPIEndpointStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenant.id, 'ocpiendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsCountMDB);
+      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsCountMDB);
       return {
         count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
         result: []
@@ -139,7 +140,7 @@ export default class OCPIEndpointStorage {
     // Remove the limit
     aggregation.pop();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
@@ -160,13 +161,13 @@ export default class OCPIEndpointStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsMDB = await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getOcpiEndpoints', uniqueTimerID, ocpiEndpointsMDB);
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
@@ -174,26 +175,26 @@ export default class OCPIEndpointStorage {
     };
   }
 
-  static async deleteOcpiEndpoint(tenantID: string, id: string): Promise<void> {
+  static async deleteOcpiEndpoint(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoint');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteOcpiEndpoint');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Delete OcpiEndpoint
-    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints')
+    await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
 
-  static async deleteOcpiEndpoints(tenantID: string): Promise<void> {
+  static async deleteOcpiEndpoints(tenant: Tenant): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOcpiEndpoints');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteOcpiEndpoints');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Delete OcpiEndpoint
-    await global.database.getCollection<OCPIEndpoint>(tenantID, 'ocpiendpoints').deleteMany({});
+    await global.database.getCollection<OCPIEndpoint>(tenant.id, 'ocpiendpoints').deleteMany({});
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOcpiEndpoints', uniqueTimerID);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteOcpiEndpoints', uniqueTimerID);
   }
 }

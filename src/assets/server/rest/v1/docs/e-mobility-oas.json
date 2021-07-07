@@ -733,6 +733,9 @@
             "$ref": "#/components/parameters/WithSiteArea"
           },
           {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
             "$ref": "#/components/parameters/InactivityStatuses"
           },
           {
@@ -6464,6 +6467,14 @@
         "in": "query",
         "name": "WithNoSiteArea",
         "description": "With no Site Area",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithCompany": {
+        "in": "query",
+        "name": "WithCompany",
+        "description": "With company attribute",
         "schema": {
           "type": "boolean"
         }

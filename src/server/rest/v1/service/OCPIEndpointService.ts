@@ -44,11 +44,11 @@ export default class OCPIEndpointService {
       });
     }
     // Get
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.ID);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteOcpiEndpoint', req.user);
     // Delete
-    await OCPIEndpointStorage.deleteOcpiEndpoint(req.user.tenantID, ocpiEndpoint.id);
+    await OCPIEndpointStorage.deleteOcpiEndpoint(req.tenant, ocpiEndpoint.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -80,7 +80,7 @@ export default class OCPIEndpointService {
       });
     }
     // Get it
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, endpointID,
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, endpointID,
       [
         'id', 'name', 'role', 'baseUrl', 'countryCode', 'partyId', 'version', 'status', 'patchJobStatus', 'localToken', 'token',
         'patchJobResult.successNbr', 'patchJobResult.failureNbr', 'patchJobResult.totalNbr'
@@ -112,7 +112,7 @@ export default class OCPIEndpointService {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
     // Get all ocpiendpoints
-    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.user.tenantID,
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(req.tenant,
       {
         'search': filteredRequest.Search
       }, {
@@ -154,7 +154,7 @@ export default class OCPIEndpointService {
       createdOn: new Date(),
       status: OCPIRegistrationStatus.NEW
     } as OCPIEndpoint;
-    const endpointID = await OCPIEndpointStorage.saveOcpiEndpoint(req.user.tenantID, ocpiEndpoint);
+    const endpointID = await OCPIEndpointStorage.saveOcpiEndpoint(req.tenant, ocpiEndpoint);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -187,14 +187,14 @@ export default class OCPIEndpointService {
       });
     }
     // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateOcpiEndpoint', req.user);
     // Update timestamp
     ocpiEndpoint.lastChangedBy = { 'id': req.user.id };
     ocpiEndpoint.lastChangedOn = new Date();
     // Update OcpiEndpoint
-    await OCPIEndpointStorage.saveOcpiEndpoint(req.user.tenantID, { ...ocpiEndpoint, ...filteredRequest });
+    await OCPIEndpointStorage.saveOcpiEndpoint(req.tenant, { ...ocpiEndpoint, ...filteredRequest });
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -225,9 +225,8 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
     // Check Mandatory fields
     UtilsService.checkIfOCPIEndpointValid(filteredRequest, req);
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, filteredRequest);
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, filteredRequest);
     // Try to ping
     const pingResult = await ocpiClient.ping();
     // Check ping result
@@ -272,7 +271,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
     // Get the lock
@@ -326,7 +325,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -380,7 +379,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullTokensEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -434,7 +433,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -488,7 +487,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckCdrsRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -542,7 +541,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckSessionsRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -596,7 +595,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckLocationsRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsOcpiEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -650,7 +649,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePushEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -704,7 +703,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendTokensRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get ocpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handlePushTokensOcpiEndpoint', req.user);
     // Get the lock
@@ -758,7 +757,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
     // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -808,7 +807,7 @@ export default class OCPIEndpointService {
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
     // Get OcpiEndpoint
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPI Endpoint ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleRegisterOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
