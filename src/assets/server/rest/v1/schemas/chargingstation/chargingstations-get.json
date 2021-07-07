@@ -16,6 +16,9 @@
     "SiteID": {
       "$ref": "common.json#/definitions/ids"
     },
+    "CompanyID": {
+      "$ref": "common.json#/definitions/ids"
+    },
     "WithSite": {
       "type": "boolean",
       "sanitize": "mongo"

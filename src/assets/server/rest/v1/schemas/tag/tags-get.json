@@ -12,6 +12,10 @@
     "UserID": {
       "$ref": "user.json#/definitions/ids"
     },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "Search": {
       "$ref": "common.json#/definitions/search"
     },
