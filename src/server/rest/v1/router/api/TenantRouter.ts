@@ -26,7 +26,7 @@ export default class TenantRouter {
   }
 
   protected buildRouteTenant(): void {
-    this.router.get(`/${ServerRoute.REST_TENANTS}/:id`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_TENANT}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = sanitize(req.params.id);
       await RouterUtils.handleServerAction(TenantService.handleGetTenant.bind(this), ServerAction.TENANT, req, res, next);
     });
