@@ -33,8 +33,8 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
             // Check if charging station is still connected
             try {
-              const ocppParamHeartbeatKeys = ['HeartBeatInterval', 'HeartbeatInterval'];
-              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, { key: ocppParamHeartbeatKeys });
+              ocppHeartbeatConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
+                tenant, chargingStation, { key: Constants.OCPP_HEARTBEAT_KEYS as string[] });
             } catch (error) {
               // Charging Station is offline!
               continue;
@@ -47,6 +47,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
                 message: 'Offline charging station responded successfully to an OCPP command and will be ignored',
+                detailedMessages: { ocppHeartbeatConfiguration }
               });
               // Update lastSeen
               await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id,

@@ -1910,26 +1910,20 @@ export default class OCPPService {
     setTimeout(async () => {
       let result: OCPPChangeConfigurationCommandResult;
       // Synchronize heartbeat interval OCPP parameter for charging stations that do not take into account its value in the boot notification response
-      // Set OCPP 'HeartBeatInterval'
-      let heartBeatIntervalSettingFailure = false;
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
-        key: 'HeartBeatInterval',
-        value: heartbeatIntervalSecs.toString()
-      }, false);
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        heartBeatIntervalSettingFailure = true;
+      let heartbeatIntervalOcppParamSet = false;
+      // Change one of the key
+      for (const heartbeatOcppKey of Constants.OCPP_HEARTBEAT_KEYS) {
+        result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
+          key: heartbeatOcppKey,
+          value: heartbeatIntervalSecs.toString()
+        }, false);
+        if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+          heartbeatIntervalOcppParamSet = true;
+          break;
+        }
       }
-      // Set OCPP 'HeartbeatInterval'
-      result = await OCPPUtils.requestChangeChargingStationOcppParameter(tenant, chargingStation, {
-        key: 'HeartbeatInterval',
-        value: heartbeatIntervalSecs.toString()
-      }, false);
-      let heartbeatIntervalSettingFailure = false;
-      if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
-        heartbeatIntervalSettingFailure = true;
-      }
-      // Check
-      if (heartBeatIntervalSettingFailure && heartbeatIntervalSettingFailure) {
+      if (!heartbeatIntervalOcppParamSet) {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.BOOT_NOTIFICATION,
