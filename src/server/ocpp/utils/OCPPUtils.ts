@@ -1971,7 +1971,7 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
-                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                  if (Constants.OCPP_HEARTBEAT_KEYS.includes(parameter)) {
                     await Logging.logWarning({
                       tenantID: tenant.id,
                       source: chargingStation.id,
@@ -2032,7 +2032,7 @@ export default class OCPPUtils {
                     });
                     continue;
                   }
-                  if (parameter === 'HeartBeatInterval' || parameter === 'HeartbeatInterval') {
+                  if (Constants.OCPP_HEARTBEAT_KEYS.includes(parameter)) {
                     await Logging.logWarning({
                       tenantID: tenant.id,
                       source: chargingStation.id,
