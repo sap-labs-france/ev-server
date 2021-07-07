@@ -196,9 +196,9 @@ export default class UserStorage {
     };
     // Execute
     await global.database.getCollection<User>(tenantID, 'siteusers').findOneAndUpdate(
-      { _id: siteUserMDB._id },
+      { userID: siteUserMDB.userID, siteID: siteUserMDB.siteID },
       { $set: siteUserMDB },
-      { upsert: true, returnDocument: 'after' }
+      { upsert: true }
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUser', uniqueTimerID, siteID);
