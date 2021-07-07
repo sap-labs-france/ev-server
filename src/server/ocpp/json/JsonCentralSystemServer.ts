@@ -23,8 +23,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private wsServer: WSServer;
   private jsonChargingStationClients: Map<string, JsonWSConnection>;
   private jsonRestClients: Map<string, JsonRestWSConnection>;
-  private keepAliveIntervalValue: number;
-  private keepAliveInterval: NodeJS.Timeout;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
@@ -32,7 +30,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Keep local
     this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
     this.jsonRestClients = new Map<string, JsonRestWSConnection>();
-    this.keepAliveIntervalValue = (this.centralSystemConfig.keepaliveinterval ? this.centralSystemConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Milliseconds
   }
 
   public start(): void {
@@ -43,17 +40,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
-    // Build ID
-    const id = `${tenantID}~${chargingStationID}`;
     // Get the Json Web Socket
-    let jsonWebSocket: JsonWSConnection;
-    const jsonChargingStationClientsReversedMap = new Map<string, JsonWSConnection>(Array.from(this.jsonChargingStationClients).reverse());
-    for (const [wsClientID, wsClient] of jsonChargingStationClientsReversedMap) {
-      if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
-        jsonWebSocket = wsClient;
-        break;
-      }
-    }
+    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
@@ -164,29 +152,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       } catch (error) {
         await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
-        // Respond
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
-    // Keep alive WebSocket connection
-    if (this.keepAliveIntervalValue > 0 && !this.keepAliveInterval) {
-      this.keepAliveInterval = setInterval((): void => {
-        for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
-          if (!jsonWSConnection.isConnectionAlive) {
-            void Logging.logError({
-              tenantID: jsonWSConnection.getTenantID(),
-              source: jsonWSConnection.getChargingStationID(),
-              action: ServerAction.WS_JSON_CONNECTION_CLOSED,
-              module: MODULE_NAME, method: 'createWSServer',
-              message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}), terminating`
-            });
-            jsonWSConnection.getWSConnection().terminate();
-          }
-          jsonWSConnection.isConnectionAlive = false;
-          jsonWSConnection.getWSConnection().ping((): void => { });
-        }
-      }, this.keepAliveIntervalValue);
-    }
   }
 }
 
