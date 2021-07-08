@@ -113,7 +113,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.TAG, action: Action.READ,
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
-          'user.name', 'user.firstName', 'user.email', 'user.issuer'
+          'user.name', 'user.firstName', 'user.email'
         ]
       },
       { resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },

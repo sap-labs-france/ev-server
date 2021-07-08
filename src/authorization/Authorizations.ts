@@ -808,6 +808,48 @@ export default class Authorizations {
     return result;
   }
 
+  public static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
+    // Org component enabled?
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+      let foundSiteArea = true;
+      // Site Area -----------------------------------------------
+      if (!chargingStation.siteAreaID) {
+        foundSiteArea = false;
+      } else if (!chargingStation.siteArea) {
+        chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
+          tenant.id, chargingStation.siteAreaID, { withSite: true });
+        if (!chargingStation.siteArea) {
+          foundSiteArea = false;
+        }
+      }
+      // Site is mandatory
+      if (!foundSiteArea) {
+        // Reject Site Not Found
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+          message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+          detailedMessages: { chargingStation }
+        });
+      }
+      // Site -----------------------------------------------------
+      chargingStation.siteArea.site = chargingStation.siteArea.site ??
+        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant, chargingStation.siteArea.siteID) : null);
+      if (!chargingStation.siteArea.site) {
+        // Reject Site Not Found
+        throw new BackendError({
+          source: chargingStation.id,
+          action: action,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
+          message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+          detailedMessages: { chargingStation }
+        });
+      }
+      return true;
+    }
+  }
+
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
     // Check Organization
@@ -1040,48 +1082,6 @@ export default class Authorizations {
       }
     }
     return tag;
-  }
-
-  private static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
-    // Org component enabled?
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      let foundSiteArea = true;
-      // Site Area -----------------------------------------------
-      if (!chargingStation.siteAreaID) {
-        foundSiteArea = false;
-      } else if (!chargingStation.siteArea) {
-        chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-          tenant.id, chargingStation.siteAreaID, { withSite: true });
-        if (!chargingStation.siteArea) {
-          foundSiteArea = false;
-        }
-      }
-      // Site is mandatory
-      if (!foundSiteArea) {
-        // Reject Site Not Found
-        throw new BackendError({
-          source: chargingStation.id,
-          action: action,
-          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-          detailedMessages: { chargingStation }
-        });
-      }
-      // Site -----------------------------------------------------
-      chargingStation.siteArea.site = chargingStation.siteArea.site ??
-        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant, chargingStation.siteArea.siteID) : null);
-      if (!chargingStation.siteArea.site) {
-        // Reject Site Not Found
-        throw new BackendError({
-          source: chargingStation.id,
-          action: action,
-          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
-          message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-          detailedMessages: { chargingStation }
-        });
-      }
-      return true;
-    }
   }
 
   private static getConfiguration() {

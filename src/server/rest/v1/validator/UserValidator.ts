@@ -1,4 +1,4 @@
-import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserDefaultTagCar, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -8,7 +8,7 @@ import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
 export default class UserValidator extends SchemaValidator {
-  private static instance: UserValidator|null = null;
+  private static instance: UserValidator | null = null;
   private importedUserCreation: Schema;
   private userCreate: Schema;
   private userAssignSites: Schema;
@@ -18,6 +18,7 @@ export default class UserValidator extends SchemaValidator {
   private userGetSites: Schema;
   private userUpdate: Schema;
   private userUpdateMobileToken: Schema;
+  private userGetDefaultTagCar: Schema;
 
   private constructor() {
     super('UserValidator');
@@ -30,6 +31,7 @@ export default class UserValidator extends SchemaValidator {
     this.userGetSites = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-sites.json`, 'utf8'));
     this.userUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update.json`, 'utf8'));
     this.userUpdateMobileToken = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-update-mobile-token.json`, 'utf8'));
+    this.userGetDefaultTagCar = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/user/user-get-default-tag-car.json`, 'utf8'));
   }
 
   public static getInstance(): UserValidator {
@@ -80,6 +82,11 @@ export default class UserValidator extends SchemaValidator {
 
   validateUserUpdateMobileToken(data: any): HttpUserMobileTokenRequest {
     this.validate(this.userUpdateMobileToken, data);
+    return data;
+  }
+
+  validateUserDefaultTagCar(data: any): HttpUserDefaultTagCar {
+    this.validate(this.userGetDefaultTagCar, data);
     return data;
   }
 }

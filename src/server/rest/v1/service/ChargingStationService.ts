@@ -1231,7 +1231,8 @@ export default class ChargingStationService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
-          message: 'The user does not have any badge',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message: `The user does not own a badge with visual ID '${filteredRequest.args.visualTagID}'`,
           module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
@@ -1249,44 +1250,7 @@ export default class ChargingStationService {
           detailedMessages: { tag }
         });
       }
-      // Org component enabled?
-      if (Utils.isTenantComponentActive(req.tenant, TenantComponents.ORGANIZATION)) {
-        let foundSiteArea = true;
-        // Site Area -----------------------------------------------
-        if (!chargingStation.siteAreaID) {
-          foundSiteArea = false;
-        } else if (!chargingStation.siteArea) {
-          chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-            req.tenant.id, chargingStation.siteAreaID, { withSite: true });
-          if (!chargingStation.siteArea) {
-            foundSiteArea = false;
-          }
-        }
-        // Site is mandatory
-        if (!foundSiteArea) {
-          // Reject Site Not Found
-          throw new BackendError({
-            source: chargingStation.id,
-            action: action,
-            module: MODULE_NAME, method: 'handleAction',
-            message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-            detailedMessages: { chargingStation }
-          });
-        }
-        // Site -----------------------------------------------------
-        chargingStation.siteArea.site = chargingStation.siteArea.site ??
-          (chargingStation.siteArea.siteID ? await SiteStorage.getSite(req.tenant, chargingStation.siteArea.siteID) : null);
-        if (!chargingStation.siteArea.site) {
-          // Reject Site Not Found
-          throw new BackendError({
-            source: chargingStation.id,
-            action: action,
-            module: MODULE_NAME, method: 'handleAction',
-            message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-            detailedMessages: { chargingStation }
-          });
-        }
-      }
+      await Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
       // Ok: Execute it
       result = await ChargingStationService.handleChargingStationCommand(
         req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
