@@ -154,7 +154,7 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalOCPPSSecs": 180,
+    "heartbeatIntervalOCPPSSecs": 60,
     "heartbeatIntervalOCPPJSecs": 3600,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,

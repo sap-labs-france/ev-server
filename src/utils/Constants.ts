@@ -289,6 +289,7 @@ export default class Constants {
   public static readonly WS_DEFAULT_RECONNECT_TIMEOUT = 30; // Seconds
 
   public static readonly OCPP_SOCKET_TIMEOUT = 30000; // 30 sec
+  public static readonly OCPP_HEARTBEAT_KEYS = Object.freeze(['HeartbeatInterval', 'HeartBeatInterval']);
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
@@ -350,7 +351,6 @@ export default class Constants {
     { 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
     { 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
     { 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
-    { 'key': 'HeartBeatInterval', 'readonly': false, 'value': null },
     { 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
     { 'key': 'LightIntensity', 'readonly': false, 'value': null },
     { 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },

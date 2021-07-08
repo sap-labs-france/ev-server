@@ -61,7 +61,7 @@ export default class AddCompanyIDToTransactionsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
         action: ServerAction.MIGRATION,
-        message: `${updated} Charging Station(s) have been updated with Company ID in Tenant ${Utils.buildTenantName(tenant)}`
+        message: `${updated} Transaction(s) have been updated with Company ID in Tenant ${Utils.buildTenantName(tenant)}`
       });
     }
   }

@@ -445,9 +445,9 @@ export default class TenantService {
           await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
         }
         // Delete Endpoints if component is inactive
-        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
         oicpEndpoints.result.forEach(async (oicpEndpoint) => {
-          await OICPEndpointStorage.deleteOicpEndpoint(tenant.id, oicpEndpoint.id);
+          await OICPEndpointStorage.deleteOicpEndpoint(tenant, oicpEndpoint.id);
         });
       }
     }

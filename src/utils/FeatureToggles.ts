@@ -7,6 +7,7 @@ export enum Feature {
   BILLING_ITEM_WITH_PARKING_TIME,
   BILLING_ITEM_WITH_START_DATE,
   BILLING_CHECK_THRESHOLD_ON_STOP,
+  BILLING_PREVENT_CUSTOMER_DELETION,
 }
 
 export default class FeatureToggles {
@@ -18,6 +19,7 @@ export default class FeatureToggles {
     // Feature.BILLING_ITEM_WITH_PARKING_TIME,
     Feature.BILLING_ITEM_WITH_START_DATE,
     Feature.BILLING_CHECK_THRESHOLD_ON_STOP,
+    Feature.BILLING_PREVENT_CUSTOMER_DELETION,
   ];
 
   // Check whether the feature is active or not!
