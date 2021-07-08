@@ -17,6 +17,7 @@ export interface SiteAreaValues {
   assetConsumptions: Consumption[];
   assetProductions: Consumption[];
   chargingStationConsumptions: Consumption[];
+  netConsumptions: Consumption[];
 }
 
 export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthorizationActions {
