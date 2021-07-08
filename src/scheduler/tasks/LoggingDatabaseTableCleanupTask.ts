@@ -34,7 +34,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     if (await LockingManager.acquire(logsCleanUpLock)) {
       try {
         // Delete Standard Logs
-        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate();
+        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').toDate();
         // Delete
         let result = await LoggingStorage.deleteLogs(tenantID, deleteUpToDate);
         // Ok?
@@ -88,8 +88,8 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
     const performanceCleanUpLock = LockingManager.createExclusiveLock(tenantID, LockEntity.PERFORMANCE, 'cleanup');
     if (await LockingManager.acquire(performanceCleanUpLock)) {
       try {
-        // Delete Performance Records
-        const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate();
+        // Delete Performance Records (keep only 2 weeks)
+        const deleteUpToDate = moment().subtract(2, 'w').toDate();
         // Delete
         const result = await PerformanceStorage.deletePerformanceRecords({ deleteUpToDate });
         // Ok?

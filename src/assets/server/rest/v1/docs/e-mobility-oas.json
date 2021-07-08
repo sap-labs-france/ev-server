@@ -724,7 +724,16 @@
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
             "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
           },
           {
             "$ref": "#/components/parameters/InactivityStatuses"
@@ -1065,6 +1074,9 @@
           },
           {
             "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
           },
           {
             "$ref": "#/components/parameters/ConnectorStatuses"
@@ -6459,10 +6471,26 @@
           "type": "boolean"
         }
       },
+      "WithCompany": {
+        "in": "query",
+        "name": "WithCompany",
+        "description": "With company attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
       "WithSite": {
         "in": "query",
         "name": "WithSite",
         "description": "With site attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithSiteArea": {
+        "in": "query",
+        "name": "WithSiteArea",
+        "description": "With site area attribute",
         "schema": {
           "type": "boolean"
         }

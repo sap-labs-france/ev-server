@@ -34,11 +34,6 @@ export default class LoggingService {
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
-    // Get logs
-    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
-      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
-      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
-    ]);
     // Check auth
     if (!await Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
@@ -48,7 +43,11 @@ export default class LoggingService {
         module: MODULE_NAME, method: 'handleGetLog'
       });
     }
-    // Return
+    // Get Log
+    const logging = await LoggingStorage.getLog(req.user.tenantID, filteredRequest.ID, [
+      'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
+      'user.name', 'user.firstName', 'actionOnUser.name', 'actionOnUser.firstName', 'hasDetailedMessages', 'detailedMessages'
+    ]);
     res.json(logging);
     next();
   }
@@ -107,7 +106,7 @@ export default class LoggingService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
       // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
       const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
-        { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
+        { siteIDs: req.user.sitesAdmin, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
       // Check if Charging Station is already filtered
       if (chargingStations.count === 0) {
         filteredRequest.Source = '';

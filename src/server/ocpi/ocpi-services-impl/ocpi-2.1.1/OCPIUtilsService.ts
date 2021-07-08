@@ -364,7 +364,7 @@ export default class OCPIUtilsService {
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
-      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true },
+      { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
       [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
     for (const chargingStation of chargingStations.result) {
@@ -883,7 +883,7 @@ export default class OCPIUtilsService {
           // F3C Baume les dames
           case '60990f1cc48de10014ea4fdc':
             switch (chargingStation?.id) {
-              case 'F3CBaume-CAHORS24DC':
+              case 'F3CBaume-CAHORS25DC':
                 return 'Tarif_EVSE_DC';
               case 'F3CBaume-LAFON22AC':
                 return 'Tarif_EVSE_AC';

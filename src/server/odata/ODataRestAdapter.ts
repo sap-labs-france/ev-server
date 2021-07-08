@@ -102,7 +102,7 @@ export default class ODataRestAdapter {
         module: MODULE_NAME, method: 'query',
         action: ServerAction.ODATA_SERVER,
         message: error.message,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       cb(error);
     }

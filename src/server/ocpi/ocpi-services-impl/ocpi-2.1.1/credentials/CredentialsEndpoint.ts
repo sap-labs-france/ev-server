@@ -54,7 +54,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       detailedMessages: { token }
     });
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
       throw new AppError({
@@ -69,7 +69,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Save ocpi endpoint
     ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
     ocpiEndpoint.backgroundPatchJob = false;
-    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant, ocpiEndpoint);
     return OCPIUtils.success();
   }
 
@@ -111,7 +111,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       detailedMessages: { token }
     });
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
       throw new AppError({
@@ -227,14 +227,14 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     // Generate new token
     ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
     ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
     // Save ocpi endpoint
-    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant, ocpiEndpoint);
     // Get base url
     const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
     // Build credential object

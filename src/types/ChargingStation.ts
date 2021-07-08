@@ -7,6 +7,7 @@ import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
 import { OICPEvseDataRecord } from './oicp/OICPEvse';
 import { OICPIdentification } from './oicp/OICPIdentification';
+import Site from './Site';
 import SiteArea from './SiteArea';
 import User from './User';
 
@@ -21,6 +22,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   public: boolean;
   siteAreaID?: string;
   siteID?: string;
+  companyID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
   chargeBoxSerialNumber: string;
@@ -54,6 +56,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string|string[];
   siteArea?: SiteArea;
+  site?: Site;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];

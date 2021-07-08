@@ -162,7 +162,7 @@ export default abstract class AbstractOCPIService {
           errorCode: StatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
       // Get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
@@ -190,7 +190,7 @@ export default abstract class AbstractOCPIService {
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
-      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant, token);
       // Check if endpoint is found
       if (!ocpiEndpoint) {
         throw new AppError({
@@ -253,7 +253,7 @@ export default abstract class AbstractOCPIService {
         module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OCPI_ENDPOINT,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OCPI_ENDPOINT, error);
       let errorCode: any = {};

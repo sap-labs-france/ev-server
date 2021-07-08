@@ -54,11 +54,11 @@ export default class Authorizations {
   public static async canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): Promise<boolean> {
     let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
+      if (!chargingStation || !chargingStation.siteArea || !chargingStation.site) {
         return false;
       }
       context = {
-        site: chargingStation.siteArea.site.id,
+        site: chargingStation.site.id,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -269,7 +269,7 @@ export default class Authorizations {
       context = {
         tagIDs: loggedUser.tagIDs,
         owner: loggedUser.id,
-        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
+        site: isOrgCompActive ? chargingStation.siteID : null,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -834,9 +834,8 @@ export default class Authorizations {
         });
       }
       // Site -----------------------------------------------------
-      chargingStation.siteArea.site = chargingStation.siteArea.site ??
-        (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenant, chargingStation.siteArea.siteID) : null);
-      if (!chargingStation.siteArea.site) {
+      chargingStation.site = await SiteStorage.getSite(tenant, chargingStation.siteID);
+      if (!chargingStation.site) {
         // Reject Site Not Found
         throw new BackendError({
           source: chargingStation.id,

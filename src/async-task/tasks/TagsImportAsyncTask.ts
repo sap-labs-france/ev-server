@@ -102,7 +102,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
                 action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
                 message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
-                detailedMessages: { tag: importedTag, error: error.message, stack: error.stack }
+                detailedMessages: { tag: importedTag, error: error.stack }
               });
             }
           }

@@ -526,7 +526,7 @@ export default class AuthService {
           action: action,
           user: user,
           message: 'User cannot be created in the billing system',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }

@@ -8,22 +8,23 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
 import { ObjectID } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OICPEndpointStorage';
 
 export default class OICPEndpointStorage {
-  static async getOicpEndpoint(tenantID: string, id: string, projectFields?: string[]): Promise<OICPEndpoint> {
+  static async getOicpEndpoint(tenant: Tenant, id: string, projectFields?: string[]): Promise<OICPEndpoint> {
     const endpointsMDB = await OICPEndpointStorage.getOicpEndpoints(
-      tenantID, { oicpEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+      tenant, { oicpEndpointIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return endpointsMDB.count === 1 ? endpointsMDB.result[0] : null;
   }
 
-  static async saveOicpEndpoint(tenantID: string, oicpEndpointToSave: OICPEndpoint): Promise<string> {
+  static async saveOicpEndpoint(tenant: Tenant, oicpEndpointToSave: OICPEndpoint): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveOicpEndpoint');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveOicpEndpoint');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Check if name is provided
     if (!oicpEndpointToSave.name) {
       // Name must be provided!
@@ -59,24 +60,24 @@ export default class OICPEndpointStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(oicpEndpointMDB, oicpEndpointToSave);
     // Modify
-    await global.database.getCollection<any>(tenantID, 'oicpendpoints').findOneAndUpdate(
+    await global.database.getCollection<any>(tenant.id, 'oicpendpoints').findOneAndUpdate(
       oicpEndpointFilter,
       { $set: oicpEndpointMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
     // Create
     return oicpEndpointFilter._id.toHexString();
   }
 
   // Delegate
-  static async getOicpEndpoints(tenantID: string,
+  static async getOicpEndpoints(tenant: Tenant,
       params: { search?: string; role?: string; oicpEndpointIDs?: string[]; localToken?: string },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<OICPEndpoint>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getOicpEndpoints');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getOicpEndpoints');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -115,12 +116,12 @@ export default class OICPEndpointStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const oicpEndpointsCountMDB = await global.database.getCollection<any>(tenantID, 'oicpendpoints')
+    const oicpEndpointsCountMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
-      await Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
+      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsCountMDB);
       return {
         count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
         result: []
@@ -129,7 +130,7 @@ export default class OICPEndpointStorage {
     // Remove the limit
     aggregation.pop();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
@@ -150,13 +151,13 @@ export default class OICPEndpointStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const oicpEndpointsMDB = await global.database.getCollection<any>(tenantID, 'oicpendpoints')
+    const oicpEndpointsMDB = await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getOicpEndpoints', uniqueTimerID, oicpEndpointsMDB);
     // Ok
     return {
       count: (oicpEndpointsCountMDB.length > 0 ? oicpEndpointsCountMDB[0].count : 0),
@@ -164,26 +165,26 @@ export default class OICPEndpointStorage {
     };
   }
 
-  static async deleteOicpEndpoint(tenantID: string, id: string): Promise<void> {
+  static async deleteOicpEndpoint(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoint');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteOicpEndpoint');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
-    await global.database.getCollection<any>(tenantID, 'oicpendpoints')
+    await global.database.getCollection<any>(tenant.id, 'oicpendpoints')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteOicpEndpoint', uniqueTimerID, { id });
   }
 
-  static async deleteOicpEndpoints(tenantID: string): Promise<void> {
+  static async deleteOicpEndpoints(tenant: Tenant): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteOicpEndpoints');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteOicpEndpoints');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Delete OicpEndpoint
-    await global.database.getCollection<any>(tenantID, 'oicpendpoints').deleteMany({});
+    await global.database.getCollection<any>(tenant.id, 'oicpendpoints').deleteMany({});
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteOicpEndpoints', uniqueTimerID);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteOicpEndpoints', uniqueTimerID);
   }
 }

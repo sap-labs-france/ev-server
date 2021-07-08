@@ -38,7 +38,7 @@ export default abstract class WSConnection {
     this.wsConnection = wsConnection;
     this.initialized = false;
     this.wsServer = wsServer;
-    Logging.logDebug({
+    void Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.WS_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'constructor',
@@ -86,7 +86,7 @@ export default abstract class WSConnection {
       logMsg = `Charging Station connection attempts with URL: '${req.url}'`;
       action = ServerAction.WS_JSON_CONNECTION_OPENED;
     }
-    Logging.logDebug({
+    void Logging.logDebug({
       tenantID: this.tenantID,
       source: this.chargingStationID,
       action: action,
@@ -101,7 +101,7 @@ export default abstract class WSConnection {
         message: `The Charging Station ID is invalid: '${this.chargingStationID}'`
       });
       // Log in the right Tenants
-      Logging.logException(
+      void Logging.logException(
         backendError,
         ServerAction.WS_CONNECTION,
         Constants.CENTRAL_SERVER,
@@ -126,11 +126,14 @@ export default abstract class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
-        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID());
+        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID(), {}, ['id']);
         if (chargingStation) {
           // Update CF Instance
           await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
             this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
+          // Update Last Seen
+          await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
+            chargingStation.id, { lastSeen: new Date() });
         }
       }
     } catch (error) {
@@ -141,7 +144,7 @@ export default abstract class WSConnection {
         action: ServerAction.WS_CONNECTION,
         module: MODULE_NAME, method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

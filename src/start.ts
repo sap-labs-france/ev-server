@@ -157,7 +157,7 @@ export default class Bootstrap {
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
         message: 'Unexpected exception',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -234,7 +234,7 @@ export default class Bootstrap {
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startMasters',
         message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }
@@ -329,7 +329,7 @@ export default class Bootstrap {
         action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
         message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}: ${error.toString()}`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
   }

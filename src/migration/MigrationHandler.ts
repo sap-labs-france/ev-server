@@ -1,3 +1,5 @@
+import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
+import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -68,7 +70,7 @@ export default class MigrationHandler {
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
           message: error.message,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       } finally {
         // Release lock
@@ -86,6 +88,8 @@ export default class MigrationHandler {
   private static createMigrationTasks(): MigrationTask[] {
     const currentMigrationTasks: MigrationTask[] = [];
     currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
+    currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
+    currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     return currentMigrationTasks;
   }
 
@@ -132,7 +136,7 @@ export default class MigrationHandler {
         action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'executeTask',
         message: logMsg,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       console.error(logMsg);
     }

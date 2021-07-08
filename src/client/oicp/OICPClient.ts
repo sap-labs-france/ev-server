@@ -82,7 +82,7 @@ export default abstract class OICPClient {
     try {
       // Save endpoint
       this.oicpEndpoint.status = OICPRegistrationStatus.UNREGISTERED;
-      await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+      await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
       // Send success
       unregisterResult.statusCode = StatusCodes.OK;
       unregisterResult.statusText = ReasonPhrases.OK;
@@ -99,7 +99,7 @@ export default abstract class OICPClient {
     try {
       // Save endpoint
       this.oicpEndpoint.status = OICPRegistrationStatus.REGISTERED;
-      await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+      await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
       // Send success
       registerResult.statusCode = StatusCodes.OK;
       registerResult.statusText = ReasonPhrases.OK;

@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import User, { UserStatus } from '../../../../types/User';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
@@ -9,6 +8,7 @@ import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
+import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 

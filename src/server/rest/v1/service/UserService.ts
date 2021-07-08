@@ -125,7 +125,7 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action);
+      req.tenant, req.user, userID, Action.DELETE, action, null, false, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -302,7 +302,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
         withImage: true
-      }, true);
+      }, true, false);
     res.json(user);
     next();
   }
@@ -505,7 +505,7 @@ export default class UserService {
                 action: action,
                 user: req.user.id,
                 message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -578,7 +578,7 @@ export default class UserService {
                 action: action,
                 user: req.user.id,
                 message: `Invalid Json file '${filename}'`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -723,7 +723,7 @@ export default class UserService {
         action: action,
         user: user.id,
         message: `Cannot import ${error.writeErrors.length as number} users!`,
-        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+        detailedMessages: { error: error.stack, tagsError: error.writeErrors }
       });
     }
     usersToBeImported.length = 0;
@@ -829,7 +829,7 @@ export default class UserService {
         module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',
-        detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
+        detailedMessages: { user: importedUser, error: error.stack }
       });
       return false;
     }
@@ -851,7 +851,7 @@ export default class UserService {
           method: 'checkBillingErrorCodes',
           action: action,
           message: `Start Transaction checks failed for ${user.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
         // Billing module is ON but the settings are not set or inconsistent
         errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
@@ -895,7 +895,7 @@ export default class UserService {
           message: 'Error occurred in billing system',
           module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
           user: loggedUser, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -930,7 +930,7 @@ export default class UserService {
           method: 'checkAndDeleteUserOCPI',
           action: ServerAction.USER_DELETE,
           message: `Unable to disable tokens of user ${user.id} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -976,7 +976,7 @@ export default class UserService {
             module: MODULE_NAME, method: 'updateUserBilling',
             user: loggedUser, actionOnUser: user,
             message: 'User cannot be updated in billing system',
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
