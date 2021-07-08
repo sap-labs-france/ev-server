@@ -54,7 +54,7 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
     // Role need to be set separately
     await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
     // Status need to be set separately
-    await UserStorage.saveUserStatus(tenant.id, newUser.id, importedUser.importedData.autoActivateUserAtImport ? UserStatus.ACTIVE : UserStatus.INACTIVE);
+    await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
     await this.sendNotifications(tenant, newUser);
     return newUser;
   }
