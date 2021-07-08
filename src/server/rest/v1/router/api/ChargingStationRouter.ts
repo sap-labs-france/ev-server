@@ -262,7 +262,7 @@ export default class ChargingStationRouter {
 
   protected buildRouteChargingStationGetBootNotifications(): void {
     this.router.get(`/${ServerRoute.REST_CHARGING_STATIONS_BOOT_NOTIFICATIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(ChargingStationService.handleGetBootNotifications.bind(this), ServerAction.BOOT_NOTIFICATION, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleGetBootNotifications.bind(this), ServerAction.BOOT_NOTIFICATIONS, req, res, next);
     });
   }
 
