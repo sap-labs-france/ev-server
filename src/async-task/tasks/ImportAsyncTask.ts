@@ -62,7 +62,7 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
   protected async processSiteAssignment(tenant: Tenant, newUser: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
     // if we never got the sites from db -> construct array of existing sites that are autoassignable
     if (this.existingSitesAutoAssignable.length === 0) {
-      const sites = await SiteStorage.getSites(tenant, { withAutoUserAssignment: true }, { limit: Constants.ONE_BILLION, skip: 0 });
+      const sites = await SiteStorage.getSites(tenant, { withAutoUserAssignment: true }, Constants.DB_PARAMS_MAX_LIMIT);
       sites.result.map((site) => {
         this.existingSitesAutoAssignable.push(site.id);
       });
