@@ -1396,13 +1396,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async deleteUser(user: User): Promise<void> {
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_PREVENT_CUSTOMER_DELETION)) {
+      // To be on the SAFE side - we preserve the customer on the STRIPE side
+      return Promise.resolve();
+    }
     // Check Stripe
     await this.checkConnection();
     // const customer = await this.getCustomerByEmail(user.email);
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
-      // TODO - ro be clarified - is this allowed when the user has some invoices
       await this.stripe.customers.del(
         customer.id
       );
