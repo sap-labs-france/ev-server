@@ -6,6 +6,7 @@ import AssignedSitesDynamicAuthorizationDataSource from './dynamic-data-source/A
 import AssignedSitesDynamicAuthorizationFilter from './dynamic-filters/AssignedSitesDynamicAuthorizationFilter';
 import DynamicAuthorizationDataSource from './DynamicAuthorizationDataSource';
 import DynamicAuthorizationFilter from './DynamicAuthorizationFilter';
+import LocalIssuerDynamicAuthorizationFilter from './dynamic-filters/LocalIssuerDynamicAuthorizationFilter';
 import OwnUserDynamicAuthorizationDataSource from './dynamic-data-source/OwnUserDynamicAuthorizationDataSource';
 import OwnUserDynamicAuthorizationFilter from './dynamic-filters/OwnUserDynamicAuthorizationFilter';
 import SitesAdminDynamicAuthorizationDataSource from './dynamic-data-source/SitesAdminDynamicAuthorizationDataSource';
@@ -43,6 +44,9 @@ export default class DynamicAuthorizationFactory {
         break;
       case DynamicAuthorizationFilterName.OWN_USER:
         dynamicFilter = new OwnUserDynamicAuthorizationFilter(tenant, userToken, negateFilter);
+        break;
+      case DynamicAuthorizationFilterName.LOCAL_ISSUER:
+        dynamicFilter = new LocalIssuerDynamicAuthorizationFilter(tenant, userToken, negateFilter);
         break;
     }
     // Init Data Source
