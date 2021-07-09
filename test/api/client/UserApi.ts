@@ -80,8 +80,8 @@ export default class UserApi extends CrudApi {
     return await super.read({}, url);
   }
 
-  public async getDefaultTagCar(userID: string) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { id: userID });
-    return await super.read({}, url);
+  public async getDefaultTagCar(userID: string, siteID: string) {
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { });
+    return await super.read({ UserID: userID, SiteID: siteID }, url);
   }
 }
