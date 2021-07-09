@@ -333,13 +333,6 @@ export default class SiteService {
   }
 
   public static async handleCreateSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
-    // Filter request
-    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
-    // Check data is valid
-    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
       req.tenant, req.user, {}, Action.CREATE);
@@ -351,18 +344,16 @@ export default class SiteService {
         module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
+    // Filter request
+    const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
+    // Check data is valid
+    UtilsService.checkIfSiteValid(filteredRequest, req);
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
-    // Check static auth
-    if (!(await Authorizations.canCreateSite(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Create site
     const site: Site = {
       ...filteredRequest,

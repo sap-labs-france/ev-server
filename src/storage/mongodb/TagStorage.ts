@@ -305,7 +305,7 @@ export default class TagStorage {
 
   public static async getTags(tenantID: string,
       params: {
-        issuer?: boolean; tagIDs?: string[]; visualIDs?: string[]; userIDs?: string[]; dateFrom?: Date; dateTo?: Date;
+        issuer?: boolean; tagIDs?: string[]; visualIDs?: string[]; userIDs?: string[]; siteIDs?: string[]; dateFrom?: Date; dateTo?: Date;
         withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
@@ -345,6 +345,15 @@ export default class TagStorage {
       if (params.defaultTag) {
         filters.default = true;
       }
+    }
+    // Sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteusers'
+      });
+      aggregation.push({
+        $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
+      });
     }
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {

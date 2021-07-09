@@ -7,6 +7,7 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
+import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
 import cluster from 'cluster';
 import moment from 'moment';
@@ -90,6 +91,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new RemoveDuplicateTagVisualIDsTask());
     currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
     currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
+    currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
     return currentMigrationTasks;
   }
 
