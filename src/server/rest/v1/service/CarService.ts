@@ -73,10 +73,9 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
-    // Check and get Car cATALOG
-    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action,
-      { withImage: true }, true);
-    // Return
+    // Check and get Car Catalog
+    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, { withImage: true }, true);
     res.json(carCatalog);
     next();
   }
@@ -208,13 +207,6 @@ export default class CarService {
   }
 
   public static async handleCreateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
-    // Filter
-    const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
-    // Check
-    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
     const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizationFilters(
       req.tenant,req.user, {}, Action.CREATE);
@@ -226,9 +218,16 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleCreateCar'
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+      Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
+    // Filter
+    const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
+    // Check
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and get CarCatalog
-    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action,
-      { withImage: true }, true);
+    const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(
+      req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, { withImage: true }, true);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
     // Keep the current user to add for Basic role
@@ -321,13 +320,12 @@ export default class CarService {
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
     // Check and Get Car
-    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
-      {
-        withUsers: Authorizations.isBasic(req.user) ? true : false
-      }, true);
+    const car = await UtilsService.checkAndGetCarAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {
@@ -434,9 +432,9 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     // Check and get Car
-    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
-      withUsers: true ,
-    }, true);
+    const car = await UtilsService.checkAndGetCarAuthorization(
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action,
+      { withUsers: true }, true);
     // Return
     res.json(car);
     next();
@@ -490,10 +488,8 @@ export default class CarService {
     // Filter
     const carId = CarSecurity.filterCarRequest(req.query).ID;
     // Check and Get Car
-    const car = await UtilsService.checkAndGetCarAuthorization(req.tenant, req.user, carId, Action.DELETE, action,
-      {
-        withUsers: Authorizations.isBasic(req.user) ? true : false
-      }, true);
+    const car = await UtilsService.checkAndGetCarAuthorization(
+      req.tenant, req.user, carId, Action.DELETE, action);
     // Check Owner if Basic
     let carUser: UserCar;
     if (Authorizations.isBasic(req.user)) {

@@ -206,6 +206,7 @@ export enum DynamicAuthorizationFilterName {
   SITES_OWNER = 'SitesOwner',
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
+  LOCAL_ISSUER = 'LocalIssuer',
 }
 
 export enum DynamicAuthorizationDataSourceName {

@@ -375,7 +375,7 @@ export default class UserService {
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Return
-    res.json(await UserService.getUsers(req, res, next));
+    res.json(await UserService.getUsers(req));
     next();
   }
 
@@ -617,13 +617,15 @@ export default class UserService {
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!(await Authorizations.canCreateUser(req.user)).authorized) {
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
+      req.tenant, req.user, {}, Action.CREATE);
+    if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.CREATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleCreateUser'
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
     // Filter
@@ -771,7 +773,7 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
+  private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
