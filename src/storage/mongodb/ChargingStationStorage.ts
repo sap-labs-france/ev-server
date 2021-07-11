@@ -371,7 +371,7 @@ export default class ChargingStationStorage {
     });
     // Users on connectors
     DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-      tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
+      tenantID, aggregation: aggregation, localField: 'connectors.currentUserID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
     // Site Area
