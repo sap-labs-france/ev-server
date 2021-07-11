@@ -68,7 +68,6 @@ export enum ServerAction {
   CAR_DELETE = 'CarDelete',
   CARS = 'Cars',
   CAR = 'Car',
-  CAR_USERS = 'CarUsers',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',

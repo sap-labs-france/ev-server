@@ -3819,15 +3819,6 @@
             "$ref": "#/components/parameters/UserExcludeSiteID"
           },
           {
-            "$ref": "#/components/parameters/UserExcludeUserIDs"
-          },
-          {
-            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
-          },
-          {
-            "$ref": "#/components/parameters/UserNotAssignedToCarID"
-          },
-          {
             "$ref": "#/components/parameters/Skip"
           },
           {
@@ -4618,15 +4609,6 @@
           },
           {
             "$ref": "#/components/parameters/UserExcludeSiteID"
-          },
-          {
-            "$ref": "#/components/parameters/UserExcludeUserIDs"
-          },
-          {
-            "$ref": "#/components/parameters/UserIncludeCarUserIDs"
-          },
-          {
-            "$ref": "#/components/parameters/UserNotAssignedToCarID"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -6544,30 +6526,6 @@
         "name": "ExcludeSiteID",
         "required": false,
         "description": "Site ID to exclude",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "UserExcludeUserIDs": {
-        "in": "query",
-        "name": "ExcludeUserIDs",
-        "description": "Pipe separated user IDs to exclude",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "UserIncludeCarUserIDs": {
-        "in": "query",
-        "name": "IncludeCarUserIDs",
-        "description": "Pipe separated car IDs",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "UserNotAssignedToCarID": {
-        "in": "query",
-        "name": "NotAssignedToCarID",
-        "description": "Car ID",
         "schema": {
           "type": "string"
         }

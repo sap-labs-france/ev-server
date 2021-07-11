@@ -2,7 +2,6 @@ import { CarConverter, CarType } from '../Car';
 
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import { UserCar } from '../User';
 
 export interface HttpCarCatalogsRequest extends HttpDatabaseRequest {
   Search?: string;
@@ -26,32 +25,33 @@ export interface HttpCarRequest extends HttpByIDRequest {
 }
 
 export interface HttpCarCreateRequest {
+  id?: string;
   vin: string;
   licensePlate: string;
   carCatalogID: number;
   forced?: boolean;
   type: CarType;
-  id?: string;
   converter?: CarConverter;
-  usersAdded?: UserCar[];
+  userID: string;
+  default: boolean;
 }
 
 export interface HttpCarUpdateRequest {
+  id?: string;
   vin: string;
   licensePlate: string;
   carCatalogID: number;
   forced?: boolean;
   type: CarType;
-  id?: string;
   converter?: CarConverter;
-  usersRemoved?: UserCar[];
-  usersUpserted?: UserCar[];
+  userID: string;
+  default: boolean;
 }
 
 export interface HttpCarsRequest extends HttpDatabaseRequest {
   Search: string;
   CarMaker: string;
-  WithUsers: boolean;
+  WithUser: boolean;
   UserID: string;
 }
 

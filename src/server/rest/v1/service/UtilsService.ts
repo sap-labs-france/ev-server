@@ -105,30 +105,6 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  public static async checkAndGetAssetsAuthorization(tenant: Tenant, userToken: UserToken, action: ServerAction,
-      additionalFilters: Record<string, any>, applyProjectFields = false):Promise<Asset[]> {
-    // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken);
-    if (!authorizationFilter.authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: userToken,
-        action: Action.LIST,
-        entity: Entity.ASSETS,
-        module: MODULE_NAME, method: 'checkAndGetAssetsAuthorization',
-      });
-    }
-    // Get Assets
-    const assets = await AssetStorage.getAssets(tenant.id,
-      {
-        ...additionalFilters,
-        ...authorizationFilter.filters,
-      }, Constants.DB_PARAMS_MAX_LIMIT,
-      applyProjectFields ? authorizationFilter.projectFields : null
-    );
-    return assets.result;
-  }
-
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Company> {
     // Check mandatory fields
@@ -428,8 +404,26 @@ export default class UtilsService {
         user: userToken
       });
     }
-    const assets = await this.checkAndGetAssetsAuthorization(tenant, userToken, action,
-      { assetIDs, ...additionalFilters }, applyProjectFields);
+    // Check dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(tenant, userToken);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: Action.LIST,
+        entity: Entity.ASSETS,
+        module: MODULE_NAME, method: 'checkAndGetAssetsAuthorization',
+      });
+    }
+    // Get Assets
+    const assets = (await AssetStorage.getAssets(tenant.id,
+      {
+        assetIDs,
+        ...additionalFilters,
+        ...authorizationFilter.filters,
+      }, Constants.DB_PARAMS_MAX_LIMIT,
+      applyProjectFields ? authorizationFilter.projectFields : null
+    )).result;
     // Must have the same result
     if (assetIDs.length !== assets.length) {
       throw new AppAuthError({
@@ -485,6 +479,7 @@ export default class UtilsService {
     // Get Charging Stations
     const chargingStations = (await ChargingStationStorage.getChargingStations(tenant.id,
       {
+        chargingStationIDs,
         ...additionalFilters,
         ...authorizationFilter.filters,
       }, Constants.DB_PARAMS_MAX_LIMIT,
@@ -572,7 +567,7 @@ export default class UtilsService {
 
   public static async checkAndGetCarAuthorization(tenant: Tenant, userToken: UserToken, carID: string, authAction: Action,
       action: ServerAction, additionalFilters: Record<string, any> = {}, applyProjectFields = false): Promise<Car> {
-  // Check mandatory fields
+    // Check mandatory fields
     UtilsService.assertIdIsProvided(action, carID, MODULE_NAME, 'checkAndGetCarAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetCarAuthorizationFilters(
@@ -609,7 +604,6 @@ export default class UtilsService {
         value: carID
       });
     }
-    // Return
     return car;
   }
 
@@ -640,6 +634,19 @@ export default class UtilsService {
     // Check it exists
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${carCatalogID}' does not exist`,
       MODULE_NAME, 'checkAndGetCarCatalogAuthorization', userToken);
+    // Add actions
+    await AuthorizationService.addCarCatalogAuthorizations(tenant, userToken, carCatalog, authorizationFilter);
+    // Check
+    const authorized = AuthorizationService.canPerformAction(carCatalog, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.USER,
+        module: MODULE_NAME, method: 'checkAndGetUserAuthorization',
+        value: carCatalogID.toString()
+      });
+    }
     return carCatalog;
   }
 
@@ -1665,16 +1672,14 @@ export default class UtilsService {
         user: req.user.id
       });
     }
-    if (!Authorizations.isAdmin(req.user)) {
-      if (car.type === CarType.POOL_CAR) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Pool cars can only be created by admin',
-          module: MODULE_NAME, method: 'checkIfCarValid',
-          user: req.user.id
-        });
-      }
+    if (!Authorizations.isAdmin(req.user) && car.type === CarType.POOL_CAR) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pool cars can only be created by admin',
+        module: MODULE_NAME, method: 'checkIfCarValid',
+        user: req.user.id
+      });
     }
     if (!car.converter) {
       throw new AppError({

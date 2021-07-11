@@ -97,7 +97,6 @@ class RequestMapper {
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
           [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
-          [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.REGISTRATION_TOKEN]: RegistrationTokenService.handleGetRegistrationToken.bind(this),

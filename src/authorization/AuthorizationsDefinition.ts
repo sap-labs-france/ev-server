@@ -272,34 +272,29 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'miscSegment', 'miscIsofixSeats', 'chargeStandardPower', 'chargeStandardPhase', 'chargeAlternativePower', 'hash',
           'chargeAlternativePhase', 'chargeOptionPower', 'chargeOptionPhase', 'image', 'chargeOptionPhaseAmp', 'chargeAlternativePhaseAmp'
         ]
-      }, { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
+      },
+      { resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE] },
       {
         resource: Entity.CAR, action: Action.READ,
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
+          'user.id', 'user.name', 'user.firstName', 'userID',
         ]
       },
       {
         resource: Entity.CARS, action: Action.LIST,
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-          'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'
+          'user.id', 'user.name', 'user.firstName', 'userID'
         ]
       },
-      {
-        resource: Entity.USERS_CARS, action: Action.LIST,
-        attributes: [
-          'id', 'carID', 'default', 'owner', 'user.id', 'user.name', 'user.firstName', 'user.email'
-        ]
-      },
-      { resource: Entity.USERS_CARS, action: Action.ASSIGN },
       { resource: Entity.NOTIFICATION, action: Action.CREATE },
       {
         resource: Entity.USERS_SITES, action: Action.LIST,
@@ -361,11 +356,11 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
-          'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'
+          'user.id', 'user.name', 'user.firstName', 'userID'
         ],
       },
       { resource: Entity.CAR, action: Action.CREATE },
@@ -376,11 +371,12 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           args: { filters: ['OwnUser'] }
         },
         attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
-          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase',
+          'user.id', 'user.name', 'user.firstName', 'userID',
         ],
       },
       {
@@ -608,7 +604,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         ]
       }, {
         resource: Entity.CAR, action: Action.READ, attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
           'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
@@ -617,7 +613,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CARS, action: Action.LIST, attributes: [
-          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
           'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull'
         ]
@@ -724,9 +720,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITE_AREA,
         action: [
-          Action.UPDATE, Action.DELETE, Action.ASSIGN_ASSETS_TO_SITE_AREA,
-          Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
-          Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA
+          Action.UPDATE, Action.DELETE, Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
@@ -754,6 +748,42 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
           'dynamicAsset', 'connectionID', 'meterID', 'currentInstantWatts', 'currentStateOfCharge'
         ],
+      },
+      {
+        resource: Entity.CARS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        },
+        attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn',
+          'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carCatalog.image', 'carCatalog.fastChargePowerMax', 'carCatalog.batteryCapacityFull',
+          'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
+          'user.id', 'user.name', 'user.firstName', 'userID'
+        ],
+      },
+      { resource: Entity.CAR, action: Action.CREATE },
+      {
+        resource: Entity.CAR, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        },
+        attributes: [
+          'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'createdOn', 'lastChangedOn', 'user.id', 'user.name', 'user.firstName',
+          'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
+          'carCatalog.chargeStandardPower', 'carCatalog.chargeStandardPhaseAmp', 'carCatalog.chargeStandardPhase',
+          'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
+          'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
+        ],
+      },
+      {
+        resource: Entity.CAR, action: [Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin'] }
+        }
       },
       {
         resource: Entity.CHARGING_STATION,

@@ -594,14 +594,6 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
-  public static async canListUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.LIST, authContext);
-  }
-
-  public static async canAssignUsersCars(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.USERS_CARS, Action.ASSIGN, authContext);
-  }
-
   public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.CAR_CATALOG, Action.SYNCHRONIZE, authContext);
   }

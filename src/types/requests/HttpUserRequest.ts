@@ -41,8 +41,6 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   ErrorType?: string;
   TagID?: string;
   ExcludeSiteID: string;
-  ExcludeUserIDs: string;
-  IncludeCarUserIDs: string;
   NotAssignedToCarID: string;
 }
 

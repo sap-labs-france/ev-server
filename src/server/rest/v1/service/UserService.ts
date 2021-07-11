@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
+import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
@@ -16,7 +17,6 @@ import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -143,7 +143,7 @@ export default class UserService {
     // Delete OCPI
     await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
     // Delete Car
-    await UserService.checkAndDeleteUserCar(req.tenant, req.user, user);
+    await UserService.checkAndDeleteCar(req.tenant, req.user, user);
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
@@ -399,7 +399,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
     res.json(users);
     next();
   }
@@ -787,9 +787,6 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
-        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
         ...authorizationUsersFilters.filters
       },
       {
@@ -801,7 +798,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUsersFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
     // Return
     return users;
   }
@@ -935,28 +932,21 @@ export default class UserService {
     }
   }
 
-  private static async checkAndDeleteUserCar(tenant: Tenant, loggedUser: UserToken, user: User) {
+  private static async checkAndDeleteCar(tenant: Tenant, loggedUser: UserToken, user: User) {
     // Delete cars
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (carUsers.count > 0) {
-        for (const carUser of carUsers.result) {
-          // Owner ?
-          if (carUser.owner) {
-            // Private ?
-            const car = await CarStorage.getCar(tenant, carUser.carID, { type: CarType.PRIVATE });
-            if (car) {
-              // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(tenant, car.id);
-              // Delete Car
-              await CarStorage.deleteCar(tenant, car.id);
-            } else {
-              // Delete User Car
-              await CarStorage.deleteCarUser(tenant, carUser.id);
-            }
+      const cars = await CarStorage.getCars(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (!Utils.isEmptyArray(cars.result)) {
+        for (const car of cars.result) {
+          // Delete private Car
+          if (car.type === CarType.PRIVATE) {
+            // Delete Car
+            await CarStorage.deleteCar(tenant, car.id);
           } else {
-            // Delete User Car
-            await CarStorage.deleteCarUser(tenant, carUser.id);
+            // Clear User
+            car.userID = null;
+            car.default = false;
+            await CarStorage.saveCar(tenant, car);
           }
         }
       }

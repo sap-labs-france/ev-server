@@ -5,7 +5,6 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';

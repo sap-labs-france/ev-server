@@ -88,7 +88,6 @@ export enum Entity {
   CAR_CATALOGS = 'CarCatalogs',
   CAR = 'Car',
   CARS = 'Cars',
-  USERS_CARS = 'UsersCars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes',

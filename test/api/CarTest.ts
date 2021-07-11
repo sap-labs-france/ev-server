@@ -118,11 +118,8 @@ describe('Car', function() {
         it('Should be able to create a new car', async () => {
           // Create
           const newCar = Factory.car.build();
-          newCar['usersUpserted'] = [{
-            user: { id: testData.userContext.id },
-            default: false,
-            owner: false
-          }];
+          newCar.userID = testData.userContext.id;
+          newCar.default = false;
           testData.newCar = await testData.centralService.createEntity(
             testData.centralService.carApi,
             newCar
@@ -193,10 +190,7 @@ describe('Car', function() {
         it('Should be able to update a car', async () => {
           // Update
           const carToUpdate = (await testData.centralService.carApi.readCar(testData.createdCars[0].id)).data;
-          const carUsers = (await testData.centralService.carApi.readCarUsers({ CarID: testData.createdCars[0].id })).data.result;
           carToUpdate.carCatalogID = 1010;
-          carToUpdate['usersRemoved'] = [carUsers.find((carUser) => carUser.user.id === testData.userContext.id)];
-          carToUpdate['usersUpserted'] = [];
           testData.newCar = await testData.centralService.updateEntity(
             testData.centralService.carApi,
             carToUpdate
@@ -236,36 +230,14 @@ describe('Car', function() {
 
         it('Should be able to create a new car', async () => {
           // Create
-          const userCar = [{
-            user: { id: testData.userContext.id },
-            default: false
-          }];
           const carToCreate = Factory.car.build();
-          carToCreate.usersUpserted = userCar;
+          carToCreate.userID = testData.userContext.id;
+          carToCreate.default = false;
           testData.newCar = await testData.centralService.createEntity(
             testData.centralService.carApi,
             carToCreate
           );
           testData.createdCars.push(testData.newCar);
-        });
-
-        it('Should be able to assign himself to an existing car', async () => {
-          // Create
-          const userCar = [{
-            user: { id: testData.userContext.id },
-            default: false
-          }];
-          testData.createdCars[0]['usersUpserted'] = userCar;
-          const response = await testData.centralService.createEntity(
-            testData.centralService.carApi,
-            testData.createdCars[0], false
-          );
-          expect(response.status).to.equal(HTTPError.CAR_ALREADY_EXIST_ERROR_DIFFERENT_USER);
-          testData.createdCars[0]['forced'] = true;
-          await testData.centralService.createEntity(
-            testData.centralService.carApi,
-            testData.createdCars[0]
-          );
         });
 
         it('Should not be able to create a pool car', async () => {
@@ -279,11 +251,13 @@ describe('Car', function() {
           expect(response.data.message).to.equal('Pool cars can only be created by admin');
         });
 
-        it('Should be able to update a car that he own', async () => {
+        it('Should be able to update a car that he owns', async () => {
           // Update
-          const carToUpdate = (await testData.centralService.carApi.readCar(testData.newCar.id)).data;
+          const response = (await testData.centralService.carApi.readCar(testData.newCar.id));
+          expect(response.status).to.equal(StatusCodes.OK);
+          const carToUpdate = response.data;
           carToUpdate.carCatalogID = 1004;
-          const response = await testData.centralService.updateEntity(
+          await testData.centralService.updateEntity(
             testData.centralService.carApi,
             carToUpdate
           );
@@ -308,7 +282,6 @@ describe('Car', function() {
             false
           );
           expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-          expect(response.data.message).to.equal('Pool cars can only be created by admin');
         });
 
         it('Should not be able to update not owned car', async () => {
