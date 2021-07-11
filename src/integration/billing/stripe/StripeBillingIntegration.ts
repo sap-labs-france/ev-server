@@ -75,6 +75,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       try {
         // Let's make sure the connection works as expected
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
+        if (this.productionMode && !Utils.isProductionEnv()) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'checkConnection',
+            action: ServerAction.CHECK_BILLING_CONNECTION,
+            message: 'Failed to connect to Stripe - connecting to a productive account is forbidden in DEV Mode'
+          });
+        }
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
