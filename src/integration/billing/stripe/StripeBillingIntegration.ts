@@ -427,7 +427,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoice',
           message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
