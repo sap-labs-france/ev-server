@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Olá <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Você não iniciou a sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<% -connectorId %>' </b>.",
+      "Você não iniciou a sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<%-connectorId %>' </b>.",
       ""
     ],
     "actions": [{

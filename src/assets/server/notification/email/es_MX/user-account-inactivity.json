@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "No ha iniciado sesión en la aplicación e-Mobility desde <% - lastLogin%>.",
+      "No ha iniciado sesión en la aplicación e-Mobility desde <%- lastLogin%>.",
       "",
       "Para cumplir con las leyes europeas sobre protección general de datos, un administrador puede desactivar su cuenta y posiblemente eliminarla.",
       "",

@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Hola <% - (user.firstName? User.firstName: user.name)%>,",
+      "Hola <%- (user.firstName? User.firstName: user.name)%>,",
       "",
       "Ha iniciado una solicitud para activar su cuenta",
       "",

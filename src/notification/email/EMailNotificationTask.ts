@@ -299,10 +299,6 @@ export default class EMailNotificationTask implements NotificationTask {
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, useSmtpClientBackup = false): Promise<void> {
     try {
-      // Check locale
-      if (!user.locale || !Constants.SUPPORTED_LOCALES.includes(user.locale)) {
-        user.locale = Constants.DEFAULT_LOCALE;
-      }
       // Check users
       if (!user) {
         // Error
@@ -323,6 +319,13 @@ export default class EMailNotificationTask implements NotificationTask {
           module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No email is provided for User for '${templateName}'`
         });
+      }
+      // Check folder exists for given locale or get first 2 letters locale or get default
+      if (!fs.existsSync(`${global.appRoot}/assets/server/notification/email/${user.locale}`)) {
+        user.locale = Utils.getLocaleFromLanguage(user.locale.substring(0,2));
+        if (!fs.existsSync(`${global.appRoot}/assets/server/notification/email/${user.locale}`)) {
+          user.locale = Constants.DEFAULT_LOCALE;
+        }
       }
       // Create email
       const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${user.locale}/${templateName}.json`, 'utf8'));

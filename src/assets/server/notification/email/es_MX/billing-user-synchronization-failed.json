@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "No se pueden sincronizar <% - nbrUsersInError%> usuarios con el sistema de facturación."
+      "No se pueden sincronizar <%- nbrUsersInError%> usuarios con el sistema de facturación."
     ],
     "actions": [{
       "title": "Ver configuración",

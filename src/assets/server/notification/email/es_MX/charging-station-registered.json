@@ -1,5 +1,5 @@
 {
-  "subject": "'<% - chargeBoxID%> 'se acaba de conectar",
+  "subject": "'<%- chargeBoxID %>' se acaba de conectar",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "La terminal <strong> <% - chargeBoxID%> </strong> acaba de conectarse al servidor central."
+      "La terminal <strong>'<%- chargeBoxID %>'</strong> acaba de conectarse al servidor central."
     ],
     "actions": [{
       "title": "Ver <%- chargeBoxID %>",
