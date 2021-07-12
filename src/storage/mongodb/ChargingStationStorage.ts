@@ -765,7 +765,6 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    // Set data
     // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
