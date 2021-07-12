@@ -8,7 +8,7 @@ import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -204,7 +204,7 @@ export default abstract class BillingIntegration {
             await Logging.logWarning({
               tenantID: this.tenant.id,
               source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_CHARGE_INVOICE,
+              action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
               module: MODULE_NAME, method: 'chargeInvoices',
               message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
@@ -219,7 +219,7 @@ export default abstract class BillingIntegration {
           await Logging.logInfo({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Successfully charged invoice '${invoice.id}'`
@@ -230,7 +230,7 @@ export default abstract class BillingIntegration {
           await Logging.logError({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Failed to charge invoice '${invoice.id}'`,
