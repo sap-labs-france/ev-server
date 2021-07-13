@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
 import { ServerAction } from '../../types/Server';
+import TemplateManager from '../../utils/TemplateManager';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
@@ -320,15 +321,8 @@ export default class EMailNotificationTask implements NotificationTask {
           message: `No email is provided for User for '${templateName}'`
         });
       }
-      // Check folder exists for given locale or get first 2 letters locale or get default
-      if (!fs.existsSync(`${global.appRoot}/assets/server/notification/email/${user.locale}`)) {
-        user.locale = Utils.getLocaleFromLanguage(user.locale.substring(0,2));
-        if (!fs.existsSync(`${global.appRoot}/assets/server/notification/email/${user.locale}`)) {
-          user.locale = Constants.DEFAULT_LOCALE;
-        }
-      }
-      // Create email
-      const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${user.locale}/${templateName}.json`, 'utf8'));
+      // Fetch the template
+      const emailTemplate = await TemplateManager.getInstanceForLocale(user.locale).getTemplate(templateName);
       if (!emailTemplate) {
         // Error
         throw new BackendError({
