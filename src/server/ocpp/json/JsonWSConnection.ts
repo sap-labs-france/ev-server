@@ -73,9 +73,7 @@ export default class JsonWSConnection extends WSConnection {
           Address: this.getClientIP()
         }
       };
-      // Ok
       this.initialized = true;
-      // Log
       await Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
