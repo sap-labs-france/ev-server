@@ -371,7 +371,7 @@ export default class ChargingStationStorage {
     });
     // Users on connectors
     DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-      tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
+      tenantID, aggregation: aggregation, localField: 'connectors.currentUserID', foreignField: '_id',
       asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
     }, { sort: dbParams.sort });
     // Site Area
@@ -765,7 +765,6 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationFirmwareStatus');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    // Set data
     // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
