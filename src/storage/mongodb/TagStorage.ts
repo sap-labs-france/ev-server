@@ -348,10 +348,10 @@ export default class TagStorage {
     // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
-        tenantID, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteusers'
+        tenantID, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
       });
       aggregation.push({
-        $match: { 'siteusers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
+        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
       });
     }
     // Issuer

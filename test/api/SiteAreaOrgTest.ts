@@ -423,27 +423,12 @@ describe('Site Area', function() {
         expect(response.status).to.equal(StatusCodes.FORBIDDEN);
       });
 
-      it('Should be able to assign ChargingStations to SiteArea if he is SiteAdmin', async () => {
-        const chargingStations = await testData.userService.chargingStationApi.readAll({});
-        expect(chargingStations.status).to.equal(StatusCodes.OK);
-        // Assign ChargingStation to SiteArea
-        const response = await testData.userService.siteAreaApi.assignChargingStations(
-          testData.siteAreaWithSiteAdmin.id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(StatusCodes.OK);
-      });
-
       it('Should be able to remove ChargingStations from SiteArea if he is SiteAdmin', async () => {
         const chargingStations = await testData.userService.chargingStationApi.readAll({});
         expect(chargingStations.status).to.equal(StatusCodes.OK);
         // Remove ChargingStation from SiteArea
         const response = await testData.userService.siteAreaApi.removeChargingStations(
           testData.siteAreaWithSiteAdmin.id, [chargingStations.data.result[0].id]);
-        expect(response.status).to.equal(StatusCodes.OK);
-      });
-
-      it('Should be able to assign Assets to SiteArea if he is SiteAdmin', async () => {
-        const response = await testData.userService.siteAreaApi.assignAssets(
-          testData.siteAreaWithSiteAdmin.id, [testData.testAsset.id]);
         expect(response.status).to.equal(StatusCodes.OK);
       });
 

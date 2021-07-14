@@ -32,15 +32,6 @@
     "TagID": {
       "$ref": "tag.json#/definitions/ids"
     },
-    "ExcludeUserIDs": {
-      "$ref": "user.json#/definitions/ids"
-    },
-    "IncludeCarUserIDs": {
-      "$ref": "common.json#/definitions/ids"
-    },
-    "NotAssignedToCarID": {
-      "$ref": "common.json#/definitions/id"
-    },
     "Search": {
       "$ref": "common.json#/definitions/search"
     },
