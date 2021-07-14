@@ -247,8 +247,7 @@ describe('Car', function() {
             testData.centralService.carApi,
             newCar, false
           );
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-          expect(response.data.message).to.equal('Pool cars can only be created by admin');
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should be able to update a car that he owns', async () => {
@@ -281,7 +280,7 @@ describe('Car', function() {
             carToUpdate,
             false
           );
-          expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
 
         it('Should not be able to update not owned car', async () => {
@@ -291,7 +290,7 @@ describe('Car', function() {
             testData.createdCars[1],
             false
           );
-          expect(response.status).to.equal(HTTPError.OBJECT_DOES_NOT_EXIST_ERROR);
+          expect(response.status).to.equal(StatusCodes.FORBIDDEN);
         });
       });
 

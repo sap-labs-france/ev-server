@@ -122,7 +122,7 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action, null, false, false);
+      req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -164,7 +164,7 @@ export default class UserService {
     const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (userWithEmail && user.id !== userWithEmail.id) {
@@ -297,7 +297,7 @@ export default class UserService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
         withImage: true
       }, true, false);
     res.json(user);
@@ -338,7 +338,7 @@ export default class UserService {
       return;
     }
     // Check dynamic auth for reading Sites
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(req.tenant,
+    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
     if (!authorizationUserSitesFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -380,7 +380,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
     // Get authorization filters
-    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
+    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -610,9 +610,13 @@ export default class UserService {
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
+    // Check Mandatory fields
+    UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizationFilters(
-      req.tenant, req.user, {}, Action.CREATE);
+    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -621,10 +625,6 @@ export default class UserService {
         module: MODULE_NAME, method: 'handleCreateSite'
       });
     }
-    // Filter
-    const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
-    // Check Mandatory fields
-    UtilsService.checkIfUserValid(filteredRequest, null, req);
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {
@@ -771,7 +771,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;

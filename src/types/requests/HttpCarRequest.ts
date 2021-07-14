@@ -54,8 +54,3 @@ export interface HttpCarsRequest extends HttpDatabaseRequest {
   WithUser: boolean;
   UserID: string;
 }
-
-export interface HttpUsersCarsRequest extends HttpDatabaseRequest {
-  Search: string;
-  CarID: string;
-}

@@ -19,7 +19,7 @@ const MODULE_NAME = 'TransactionStorage';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transactionID: number): Promise<void> {
-    await this.deleteTransactions(tenantID, [transactionID]);
+    await TransactionStorage.deleteTransactions(tenantID, [transactionID]);
   }
 
   public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
@@ -952,7 +952,7 @@ export default class TransactionStorage {
       const array = [];
       for (const type of params.errorType) {
         array.push(`$${type}`);
-        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
+        facets.$facet[type] = TransactionStorage.getTransactionsInErrorFacet(type);
       }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level

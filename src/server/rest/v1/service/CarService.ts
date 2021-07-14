@@ -1,6 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
-import { Car, CarType } from '../../../../types/Car';
 import { CarCatalogDataResult, CarDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
@@ -10,6 +9,7 @@ import AppError from '../../../../exception/AppError';
 import AsyncTaskManager from '../../../../async-task/AsyncTaskManager';
 import AuthorizationService from './AuthorizationService';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Car } from '../../../../types/Car';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
@@ -34,7 +34,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
     // Check auth
-    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizationFilters(req.tenant, req.user, filteredRequest);
+    const authorizationCarCatalogsFilter = await AuthorizationService.checkAndGetCarCatalogsAuthorizations(req.tenant, req.user, filteredRequest);
     if (!authorizationCarCatalogsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
       return;
@@ -72,7 +72,7 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     // Check and get Car Catalog
     const carCatalog = await UtilsService.checkAndGetCarCatalogAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, { withImage: true }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withImage: true }, true);
     res.json(carCatalog);
     next();
   }
@@ -113,7 +113,7 @@ export default class CarService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Check dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizationFilters(
+    const authorizationFilter = await AuthorizationService.checkAndGetCarCatalogAuthorizations(
       req.tenant, req.user, { ID: filteredRequest.ID }, Action.READ);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
@@ -188,7 +188,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
     // Check auth
-    if (!await Authorizations.canReadCarCatalog(req.user)) {
+    if (!await Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
@@ -206,9 +206,13 @@ export default class CarService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
+    // Filter
+    const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
+    // Check
+    UtilsService.checkIfCarValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizationFilters(
-      req.tenant,req.user, {}, Action.CREATE);
+    const authorizationFilters = await AuthorizationService.checkAndGetCarAuthorizations(
+      req.tenant,req.user, {}, Action.CREATE, filteredRequest as Car);
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -217,24 +221,9 @@ export default class CarService {
         module: MODULE_NAME, method: 'handleCreateCar'
       });
     }
-    // Filter
-    const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
-    // Check
-    UtilsService.checkIfCarValid(filteredRequest, req);
-    // Only Admin can create Pool Car
-    if (filteredRequest.type === CarType.POOL_CAR && !Authorizations.isAdmin(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Only Admin can create Pool Cars',
-        user: req.user,
-        module: MODULE_NAME, method: 'handleCreateCar',
-        detailedMessages: { newCar: filteredRequest }
-      });
-    }
     // Check and get Car Catalog
     await UtilsService.checkAndGetCarCatalogAuthorization(
-      req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, {});
+      req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, filteredRequest as Car);
     // Car already exits
     const car = await CarStorage.getCarByVinLicensePlate(req.tenant,
       filteredRequest.licensePlate, filteredRequest.vin);
@@ -299,23 +288,12 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
     // Check
     UtilsService.checkIfCarValid(filteredRequest, req);
-    // Only Admin can create Pool Car
-    if (filteredRequest.type === CarType.POOL_CAR && !Authorizations.isAdmin(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Only Admin can create Pool Cars',
-        user: req.user,
-        module: MODULE_NAME, method: 'handleCreateCar',
-        detailedMessages: { newCar: filteredRequest }
-      });
-    }
-    // Check and get Car Catalog
-    await UtilsService.checkAndGetCarCatalogAuthorization(
-      req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action, {});
     // Check and Get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Car);
+    // Check and get Car Catalog
+    await UtilsService.checkAndGetCarCatalogAuthorization(
+      req.tenant, req.user, filteredRequest.carCatalogID, Action.READ, action);
     // Check Car with same VIN and License Plate
     if (car.licensePlate !== filteredRequest.licensePlate || car.vin !== filteredRequest.vin) {
       const sameCar = await CarStorage.getCarByVinLicensePlate(
@@ -341,7 +319,7 @@ export default class CarService {
       } else {
         const defaultCar = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.userID, {}, ['id']);
         // Force default
-        if (!defaultCar) {
+        if (!defaultCar || defaultCar.id === car.id) {
           filteredRequest.default = true;
         }
       }
@@ -391,7 +369,7 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
     // Check auth
-    const authorizationCarsFilter = await AuthorizationService.checkAndGetCarsAuthorizationFilters(
+    const authorizationCarsFilter = await AuthorizationService.checkAndGetCarsAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationCarsFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -429,8 +407,7 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     // Check and get Car
     const car = await UtilsService.checkAndGetCarAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action,
-      { withUser: true }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
     // Return
     res.json(car);
     next();

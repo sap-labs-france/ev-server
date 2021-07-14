@@ -522,92 +522,24 @@ export default class Authorizations {
     });
   }
 
-  public static async canListSiteAreas(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREAS, Action.LIST, authContext);
-  }
-
-  public static async canReadSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.READ, authContext);
-  }
-
-  public static async canCreateSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.CREATE, authContext);
-  }
-
   public static async canUpdateSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UPDATE, authContext);
-  }
-
-  public static async canDeleteSiteArea(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.DELETE, authContext);
-  }
-
-  public static async canAssignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_ASSETS_TO_SITE_AREA, authContext);
-  }
-
-  public static async canUnassignSiteAreaAssets(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_ASSETS_TO_SITE_AREA, authContext);
-  }
-
-  public static async canAssignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
-  }
-
-  public static async canUnassignSiteAreaChargingStations(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.SITE_AREA, Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA, authContext);
-  }
-
-  public static async canListCompanies(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.COMPANIES, Action.LIST, authContext);
-  }
-
-  public static async canReadCompany(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.COMPANY, Action.READ, authContext);
-  }
-
-  public static async canCreateCompany(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.CREATE);
-  }
-
-  public static async canUpdateCompany(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.UPDATE);
-  }
-
-  public static async canDeleteCompany(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
   public static async canListCarCatalogs(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.LIST);
   }
 
-  public static async canReadCarCatalog(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
-    return Authorizations.can(loggedUser, Entity.CAR_CATALOG, Action.READ, authContext);
-  }
-
   public static async canListCars(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
-  }
-
-  public static async canReadCar(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
   public static async canSynchronizeCarCatalogs(loggedUser: UserToken, authContext?: AuthorizationContext): Promise<AuthorizationResult> {
     return Authorizations.can(loggedUser, Entity.CAR_CATALOG, Action.SYNCHRONIZE, authContext);
   }
 
-  public static async canCreateCar(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.CREATE);
-  }
-
   public static async canUpdateCar(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.UPDATE);
-  }
-
-  public static async canDeleteCar(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.DELETE);
   }
 
   public static async canListAssets(loggedUser: UserToken): Promise<boolean> {

@@ -783,7 +783,7 @@ export default class ChargingStationStorage {
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
     // Delete Charging Profiles
-    await this.deleteChargingProfiles(tenantID, id);
+    await ChargingStationStorage.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });

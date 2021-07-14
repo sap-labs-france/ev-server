@@ -54,7 +54,7 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withLogo: true
       }, true);
     res.json(company);
@@ -96,7 +96,7 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
     // Check dynamic auth
-    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizationFilters(
+    const authorizationCompaniesFilter = await AuthorizationService.checkAndGetCompaniesAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationCompaniesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -132,9 +132,13 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
+    // Filter
+    const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
+    // Check
+    UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizationFilters(
-      req.tenant, req.user, {}, Action.CREATE);
+    const authorizationFilter = await AuthorizationService.checkAndGetCompanyAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Company);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -143,10 +147,6 @@ export default class CompanyService {
         module: MODULE_NAME, method: 'handleCreateCompany'
       });
     }
-    // Filter
-    const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
-    // Check
-    UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
@@ -175,12 +175,11 @@ export default class CompanyService {
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     UtilsService.checkIfCompanyValid(filteredRequest, req);
     // Check and Get Company
     const company = await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Company);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
