@@ -5,7 +5,6 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
-import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -186,7 +185,7 @@ export default class SiteService {
       return;
     }
     // Check dynamic auth for reading Users
-    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizationFilters(req.tenant,
+    const authorizationSiteUsersFilter = await AuthorizationService.checkAndGetSiteUsersAuthorizations(req.tenant,
       req.user, filteredRequest);
     if (!authorizationSiteUsersFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -242,7 +241,7 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withCompany: filteredRequest.WithCompany,
         withImage: true,
       }, true);
@@ -258,7 +257,7 @@ export default class SiteService {
     // Filter request
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Check dynamic auth
-    const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizationFilters(
+    const authorizationSitesFilter = await AuthorizationService.checkAndGetSitesAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationSitesFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -341,8 +340,8 @@ export default class SiteService {
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizationFilters(
-      req.tenant, req.user, {}, Action.CREATE);
+    const authorizationFilter = await AuthorizationService.checkAndGetSiteAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest as Site);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -354,15 +353,6 @@ export default class SiteService {
     // Check Company
     await UtilsService.checkAndGetCompanyAuthorization(
       req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
-    // Check static auth
-    if (!(await Authorizations.canCreateSite(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.SITE,
-        module: MODULE_NAME, method: 'handleCreateSite'
-      });
-    }
     // Create site
     const site: Site = {
       ...filteredRequest,
@@ -392,12 +382,12 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
     // Check data is valid
     UtilsService.checkIfSiteValid(filteredRequest, req);
-    // Check and Get Company
-    await UtilsService.checkAndGetCompanyAuthorization(
-      req.tenant, req.user, filteredRequest.companyID, Action.READ, action);
     // Check and Get Site
     const site = await UtilsService.checkAndGetSiteAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as Site);
+    // Check and Get Company
+    await UtilsService.checkAndGetCompanyAuthorization(
+      req.tenant, req.user, filteredRequest.companyID, Action.READ, action, filteredRequest as Site);
     // Update
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;

@@ -482,7 +482,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
     // Get authorization filters
-    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(
+    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationAssetsFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);

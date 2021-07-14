@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su sesión en la terminal <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong> ha finalizado."
+      "Su sesión en la terminal <strong> '<%- chargeBoxID%>' </strong>, conector <strong> '<%- connectorId%>' </strong> ha finalizado."
     ],
     "stats": [
       { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },

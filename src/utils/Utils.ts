@@ -341,7 +341,7 @@ export default class Utils {
     if (language === 'fr') {
       return 'fr_FR';
     } else if (language === 'es') {
-      return 'es_MX';
+      return 'es_ES';
     } else if (language === 'de') {
       return 'de_DE';
     } else if (language === 'pt') {

@@ -16,6 +16,10 @@ export default abstract class DynamicAuthorizationFilter {
     this.negateFilter = negateFilter;
   }
 
+  public isNegateFilter(): boolean {
+    return this.negateFilter;
+  }
+
   public getDataSources(): DynamicAuthorizationDataSource<DynamicAuthorizationDataSourceData>[] {
     return Array.from(this.dataSources.values());
   }
@@ -29,8 +33,8 @@ export default abstract class DynamicAuthorizationFilter {
     this.dataSources.set(dataSourceName, dataSource);
   }
 
-  public abstract processFilter(
-    authorizationFilters: AuthorizationFilter, extraFilters: Record<string, any>): void;
+  public abstract processFilter(authorizationFilters: AuthorizationFilter,
+    extraFilters: Record<string, any>): void;
 
   public abstract getApplicableEntities(): Entity[];
 

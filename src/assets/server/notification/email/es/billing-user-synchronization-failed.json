@@ -1,10 +1,10 @@
 {
-  "subject": "OCPI - Error al actualizar el estatus de la terminal",
-  "tenant": "",
+  "subject": "Facturación: La sincronización del usuario falló",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Error al actualizar el estatus de la terminal",
+      "title": "Facturación: La sincronización del usuario falló",
       "image": {
         "left": {
           "height": 60,
@@ -19,14 +19,11 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "La actualización del estatus de la terminal falló en el sitio <strong> '<% - location%>' </strong> ",
-      "",
-      "Por favor revise el registro",
-      ""
+      "No se pueden sincronizar <%- nbrUsersInError%> usuarios con el sistema de facturación."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Ver configuración",
+      "url": "<%- evseDashboardBillingURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",
@@ -36,4 +33,3 @@
     }
   }
 }
-

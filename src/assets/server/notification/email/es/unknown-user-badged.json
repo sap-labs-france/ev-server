@@ -1,10 +1,10 @@
 {
-  "subject": "Activación de cuenta",
+  "subject": "'<%- chargeBoxID %>' - Un usuario desconocido tiene una insignia",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Activación de cuenta",
+      "title": "Un usuario desconocido tiene una insignia",
       "image": {
         "left": {
           "height": 60,
@@ -17,15 +17,13 @@
       }
     },
     "beforeActionLines": [
-      "Hola <% - (user.firstName? User.firstName: user.name)%>,",
+      "Estimado administrador,",
       "",
-      "Ha iniciado una solicitud para activar su cuenta",
-      "",
-      "Haga click en el enlace a continuación para completar la activación de su cuenta."
+      "Un usuario desconocido acaba de conectarse a <strong> '<%- chargeBoxID%>' </strong> con el ID de la insignia <strong> '<%- badgeID%>' </strong>."
     ],
     "actions": [{
-      "title": "Activación de su cuenta",
-      "url": "<%- evseDashboardVerifyEmailURL %>"
+      "title": "Editar Insignia",
+      "url": "<%- evseDashboardTagURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",

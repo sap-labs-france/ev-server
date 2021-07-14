@@ -6,8 +6,6 @@ export default Factory.define('car')
   .attr('licensePlate', faker.random.alphaNumeric(12).toUpperCase())
   .attr('carCatalogID', 1004)
   .attr('type', 'P')
-  .attr('usersUpserted', [])
-  .attr('usersRemoved', [])
   .attr('converter', {
     'amperagePerPhase': faker.datatype.number(64),
     'numberOfPhases': faker.datatype.number({ min: 1, max: 4 }),
