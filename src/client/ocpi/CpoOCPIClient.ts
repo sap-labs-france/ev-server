@@ -489,7 +489,8 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID,
+      OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {

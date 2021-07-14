@@ -43,7 +43,7 @@ export default class OICPUtils {
       options: { countryID: string; partyID: string; addChargeBoxID?: boolean}): OICPEvseStatusRecord {
     return {
       EvseID: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, connector.connectorId),
-      EvseStatus: OICPUtils.convertStatus2OICPEvseStatus(connector.status),
+      EvseStatus: chargingStation.inactive ? OICPEvseStatus.OutOfService : OICPUtils.convertStatus2OICPEvseStatus(connector.status),
       ChargingStationID: chargingStation.id,
     };
   }
