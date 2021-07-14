@@ -75,6 +75,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
       try {
         // Let's make sure the connection works as expected
         this.productionMode = await StripeHelpers.isConnectedToALiveAccount(this.stripe);
+        if (this.productionMode && !Utils.isProductionEnv()) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'checkConnection',
+            action: ServerAction.CHECK_BILLING_CONNECTION,
+            message: 'Failed to connect to Stripe - connecting to a productive account is forbidden in DEV Mode'
+          });
+        }
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -419,7 +427,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         await Logging.logError({
           tenantID: this.tenant.id,
           source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_PERFORM_OPERATIONS,
+          action: ServerAction.BILLING_CHARGE_INVOICE,
           actionOnUser: billingInvoice.user,
           module: MODULE_NAME, method: 'chargeInvoice',
           message: `Payment attempt failed - stripe invoice: '${billingInvoice.invoiceID}'`,
@@ -1396,13 +1404,16 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   public async deleteUser(user: User): Promise<void> {
+    if (FeatureToggles.isFeatureActive(Feature.BILLING_PREVENT_CUSTOMER_DELETION)) {
+      // To be on the SAFE side - we preserve the customer on the STRIPE side
+      return Promise.resolve();
+    }
     // Check Stripe
     await this.checkConnection();
     // const customer = await this.getCustomerByEmail(user.email);
     const customerID = user.billingData?.customerID;
     const customer = await this.getStripeCustomer(customerID);
     if (customer && customer.id) {
-      // TODO - ro be clarified - is this allowed when the user has some invoices
       await this.stripe.customers.del(
         customer.id
       );

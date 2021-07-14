@@ -98,7 +98,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANIES, action: Action.LIST,
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
       },
@@ -135,7 +135,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITES, action: Action.LIST,
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName'
         ]
@@ -158,7 +158,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
+          'address.coordinates', 'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'createdBy', 'lastChangedOn', 'lastChangedBy'
         ]
       },
       {
@@ -356,6 +356,10 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       },
       {
         resource: Entity.CARS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
           'carCatalog.id', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
@@ -363,20 +367,14 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName',
           'carUsers.user.id', 'carUsers.user.name', 'carUsers.user.firstName', 'carUsers.owner', 'carUsers.default'
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser'] }
-        }
       },
-      {
-        resource: Entity.CAR, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser'] }
-        }
-      },
+      { resource: Entity.CAR, action: Action.CREATE },
       {
         resource: Entity.CAR, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        },
         attributes: [
           'id', 'type', 'vin', 'licensePlate', 'converter', 'default', 'owner', 'createdOn', 'lastChangedOn',
           'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion', 'carCatalog.image',
@@ -384,6 +382,9 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           'carCatalog.chargeAlternativePower', 'carCatalog.chargeAlternativePhaseAmp', 'carCatalog.chargeAlternativePhase',
           'carCatalog.chargeOptionPower', 'carCatalog.chargeOptionPhaseAmp', 'carCatalog.chargeOptionPhase'
         ],
+      },
+      {
+        resource: Entity.CAR, action: [Action.UPDATE, Action.DELETE],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['OwnUser'] }
@@ -393,18 +394,18 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANIES, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSitesCompanies'] }
+          args: { filters: ['AssignedSitesCompanies', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
         resource: Entity.COMPANY, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSitesCompanies'] }
+          args: { filters: ['AssignedSitesCompanies', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'issuer', 'logo', 'address'
@@ -422,49 +423,49 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.PAYMENT_METHOD, action: [Action.READ, Action.CREATE, Action.DELETE] },
       {
         resource: Entity.SITES, action: Action.LIST,
-        attributes: [
-          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
-          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
-        ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
         },
+        attributes: [
+          'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
+        ],
       },
       {
         resource: Entity.SITE, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
+        },
         attributes: [
           'id', 'name', 'address', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
-        },
       },
       {
         resource: Entity.SITE_AREAS, action: Action.LIST,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
+        },
         attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
-        },
       },
       {
         resource: Entity.SITE_AREA, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
+        },
         attributes: [
           'id', 'name', 'issuer', 'image', 'address', 'maximumPower', 'numberOfPhases',
           'voltage', 'smartCharging', 'accessControl', 'connectorStats', 'siteID', 'site.name'
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
-        },
       },
       {
         resource: Entity.CHARGING_STATIONS, action: Action.LIST,
@@ -498,25 +499,26 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         }
       },
       {
-        resource: Entity.TAGS, action: Action.LIST, attributes: [
-          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
-          'createdOn', 'lastChangedOn'
-        ],
+        resource: Entity.TAGS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['OwnUser'] }
-        }
+        },
+        attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'createdOn', 'lastChangedOn'
+        ],
       },
       {
         resource: Entity.TAG, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['OwnUser'] }
+        },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default',
           'user.id', 'user.name', 'user.firstName', 'user.email'
         ],
-        condition: {
-          Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['OwnUser'] }
-        }
       },
       {
         resource: Entity.TAG, action: [Action.DELETE, Action.UPDATE],
@@ -530,7 +532,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
         },
       },
       { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT] },
@@ -567,14 +569,15 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   demo: {
     grants: [
       {
-        resource: Entity.USER, action: Action.READ, attributes: [
-          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
-          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
-        ],
+        resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
           args: { filters: ['OwnUser'] }
-        }
+        },
+        attributes: [
+          'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
+          'notificationsActive', 'notifications', 'phone', 'mobile', 'iNumber', 'costCenter', 'address'
+        ],
       },
       {
         resource: Entity.ASSETS, action: Action.LIST,
@@ -622,7 +625,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.COMPANIES, action: Action.LIST, attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'logo', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -633,7 +636,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       {
         resource: Entity.SITES, action: Action.LIST, attributes: [
           'id', 'name', 'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
+          'address.coordinates', 'companyID', 'company.name', 'autoUserSiteAssignment', 'issuer',
           'autoUserSiteAssignment', 'distanceMeters', 'public', 'createdOn', 'lastChangedOn',
         ]
       },
@@ -647,7 +650,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE_AREAS, action: Action.LIST, attributes: [
           'id', 'name', 'siteID', 'maximumPower', 'voltage', 'numberOfPhases', 'accessControl', 'smartCharging',
           'address.address1', 'address.address2', 'address.postalCode', 'address.city', 'address.country',
-          'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
+          'address.coordinates', 'site.id', 'site.name', 'issuer', 'distanceMeters', 'createdOn', 'lastChangedOn'
         ]
       },
       {
@@ -681,7 +684,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
@@ -693,7 +696,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',
@@ -704,7 +707,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS_SITES, action: [Action.LIST, Action.UNASSIGN],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         },
         attributes: [
           'user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID'
@@ -714,26 +717,27 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.SITE, action: [Action.UPDATE],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         },
       },
+      { resource: Entity.SITE_AREA, action: Action.CREATE },
       {
         resource: Entity.SITE_AREA,
         action: [
-          Action.CREATE, Action.UPDATE, Action.DELETE, Action.ASSIGN_ASSETS_TO_SITE_AREA,
+          Action.UPDATE, Action.DELETE, Action.ASSIGN_ASSETS_TO_SITE_AREA,
           Action.UNASSIGN_ASSETS_TO_SITE_AREA, Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA,
           Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA
         ],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         },
       },
       {
         resource: Entity.ASSETS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
@@ -744,7 +748,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.ASSET, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['AssignedSites'] }
+          args: { filters: ['AssignedSites', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteID', 'assetType', 'coordinates',
@@ -777,12 +781,34 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE],
         args: { 'sites': '$.site' }
       },
-      { resource: Entity.TAGS, action: Action.EXPORT },
       {
-        resource: Entity.TAG, action: [Action.CREATE, Action.UPDATE, Action.DELETE],
+        resource: Entity.TAGS, action: [Action.LIST, Action.EXPORT],
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesAdmin'] }
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+        },
+        attributes: [
+          'id', 'userID', 'active', 'ocpiToken', 'description', 'visualID', 'issuer', 'default',
+          'user.name', 'user.firstName', 'user.email', 'createdOn', 'lastChangedOn'
+        ],
+      },
+      { resource: Entity.TAG, action: Action.CREATE },
+      {
+        resource: Entity.TAG, action: Action.READ,
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
+        },
+        attributes: [
+          'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default', 'user.id',
+          'user.name', 'user.firstName', 'user.email'
+        ],
+      },
+      {
+        resource: Entity.TAG, action: [Action.UPDATE, Action.DELETE],
+        condition: {
+          Fn: 'custom:dynamicAuthorizationFilters',
+          args: { filters: ['SitesAdmin', 'LocalIssuer'] }
         }
       },
     ]
@@ -796,7 +822,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USERS, action: Action.LIST,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesOwner'] }
+          args: { filters: ['SitesOwner', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'createdOn',
@@ -808,7 +834,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.USER, action: Action.READ,
         condition: {
           Fn: 'custom:dynamicAuthorizationFilters',
-          args: { filters: ['SitesOwner'] }
+          args: { filters: ['SitesOwner', 'LocalIssuer'] }
         },
         attributes: [
           'id', 'name', 'firstName', 'email', 'role', 'status', 'issuer', 'locale', 'plateID',

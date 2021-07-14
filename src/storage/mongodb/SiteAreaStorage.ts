@@ -136,7 +136,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[];companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
       } = {},
