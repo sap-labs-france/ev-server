@@ -1,10 +1,10 @@
 {
-  "subject": "Terminales sin conexión",
+  "subject": "'<%- chargeBoxID %>' se acaba de conectar",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Terminales sin conexión",
+      "title": "Terminal conectada",
       "image": {
         "left": {
           "height": 60,
@@ -19,12 +19,11 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "Las siguientes terminales en su organización están fuera de línea:  <strong> <% - chargeBoxIDs%> </strong> ",
-      ""
+      "La terminal <strong>'<%- chargeBoxID %>'</strong> acaba de conectarse al servidor central."
     ],
     "actions": [{
-      "title": "e-Mobility",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Ver <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",
@@ -34,4 +33,3 @@
     }
   }
 }
-

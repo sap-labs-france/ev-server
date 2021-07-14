@@ -93,17 +93,6 @@
     "notifStopTransactionAndUnlockConnector": false,
     "maxLastSeenIntervalSecs": 540
   },
-  "Locales": {
-    "default": "en_US",
-    "supported": [
-      "en_US",
-      "fr_FR",
-      "es_MX",
-      "de_DE",
-      "pt_PT",
-      "it_IT"
-    ]
-  },
   "Migration": {
     "active": true
   },
