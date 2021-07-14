@@ -1,10 +1,10 @@
 {
-  "subject": "Carga óptima alcanzada",
+  "subject": "'<%- chargeBoxID %>' - Sesión no iniciada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Carga óptima alcanzada",
+      "title": "Sesión no iniciada",
       "image": {
         "left": {
           "height": 60,
@@ -19,13 +19,11 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su vehículo eléctrico, que está conectado a <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>, ha alcanzado su carga óptima."
-    ],
-    "stats": [
-      { "label": "Nivel de batería", "value": "<%- stateOfCharge %> %" }
+      "No ha comenzado la sesión en la estación de carga <strong> '<%- chargeBoxID%>' </strong>, conector <strong> '<%- connectorId%>' </strong>.",
+      ""
     ],
     "actions": [{
-      "title": "Ver sesión",
+      "title": "Ver <%- chargeBoxID %>",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
@@ -36,3 +34,4 @@
     }
   }
 }
+

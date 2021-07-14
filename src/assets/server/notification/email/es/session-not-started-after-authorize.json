@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Conector '<%- connectorId %>' - '<%- error %>'",
+  "subject": "'<%- chargeBoxID %>' - Sesión no iniciada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Error en la terminal",
+      "title": "Sesión no iniciada",
       "image": {
         "left": {
           "height": 60,
@@ -17,18 +17,21 @@
       }
     },
     "beforeActionLines": [
-      "Estimado administrador,",
+      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Se produjo un error en <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>: <strong> <% - error%> </ b>. "
+      "Insignó en la estación de carga <strong> '<%- chargeBoxID%>' </strong> pero no inició ninguna sesión.",
+      ""
     ],
     "actions": [{
-        "title": "Ver Error",
-        "url": "<%- evseDashboardChargingStationURL %>"
-      }],
+      "title": "Ver <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."
     ],
-    "footer": {}
+    "footer": {
+    }
   }
 }
+

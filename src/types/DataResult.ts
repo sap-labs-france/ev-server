@@ -5,6 +5,7 @@ import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
 import { Transaction } from '@google-cloud/firestore';
+import User from './User';
 
 export interface DataResult<T> {
   count: number;
@@ -28,6 +29,9 @@ export interface CarDataResult extends DataResult<Car> {
   canCreate: boolean;
 }
 
+export interface UserDataResult extends DataResult<User> {
+  canCreate: boolean;
+}
 export interface CarCatalogDataResult extends DataResult<CarCatalog>{
   canSync: boolean;
 }

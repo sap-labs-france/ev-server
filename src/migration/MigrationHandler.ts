@@ -1,5 +1,6 @@
 import AddCompanyIDToChargingStationsTask from './tasks/AddCompanyIDToChargingStationsTask';
 import AddCompanyIDToTransactionsTask from './tasks/AddCompanyIDToTransactionsTask';
+import AddUserIDToCarsTask from './tasks/AddUserIDToCarsTask';
 import Constants from '../utils/Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
@@ -92,6 +93,7 @@ export default class MigrationHandler {
     currentMigrationTasks.push(new AddCompanyIDToTransactionsTask());
     currentMigrationTasks.push(new AddCompanyIDToChargingStationsTask());
     currentMigrationTasks.push(new RestoreDataIntegrityInSiteUsersTask());
+    currentMigrationTasks.push(new AddUserIDToCarsTask());
     return currentMigrationTasks;
   }
 

@@ -46,7 +46,7 @@ export default class TagService {
     const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, { withUser: true }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
     res.json(tag);
     next();
   }
@@ -81,8 +81,8 @@ export default class TagService {
     // Check
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizationFilters(
-      req.tenant, req.user, {}, Action.CREATE);
+    const authorizationFilter = await AuthorizationService.checkAndGetTagAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -180,7 +180,7 @@ export default class TagService {
     UtilsService.checkIfUserTagIsValid(filteredRequest, req);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(req.tenant, req.user, filteredRequest.id, Action.UPDATE, action,
-      { withNbrTransactions: true, withUser: true }, true);
+      filteredRequest, { withNbrTransactions: true, withUser: true }, true);
     // Get User
     const user = await UtilsService.checkAndGetUserAuthorization(req.tenant, req.user, filteredRequest.userID,
       Action.READ, ServerAction.TAG_UPDATE);
@@ -510,7 +510,7 @@ export default class TagService {
       try {
         // Check and Get Tag
         const tag = await UtilsService.checkAndGetTagAuthorization(
-          tenant, loggedUser, tagID, Action.DELETE, action, { }, true);
+          tenant, loggedUser, tagID, Action.DELETE, action, null, { }, true);
         // Delete OCPI
         await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
         // Delete the Tag
@@ -588,7 +588,7 @@ export default class TagService {
     // Filter
     const filteredRequest = TagValidator.getInstance().validateTagsGet(req.query);
     // Get authorization filters
-    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizationFilters(
+    const authorizationTagsFilters = await AuthorizationService.checkAndGetTagsAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationTagsFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;

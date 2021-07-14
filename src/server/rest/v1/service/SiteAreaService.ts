@@ -69,7 +69,7 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const authAction = action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA ? Action.ASSIGN_CHARGING_STATIONS_TO_SITE_AREA : Action.UNASSIGN_CHARGING_STATIONS_TO_SITE_AREA;
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, { withSite: true });
+      req.tenant, req.user, filteredRequest.siteAreaID, authAction, action, null, { withSite: true });
     // Check and Get Charging Stations
     const chargingStations = await UtilsService.checkSiteAreaChargingStationsAuthorization(
       req.tenant, req.user, siteArea, filteredRequest.chargingStationIDs, action);
@@ -147,7 +147,7 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, {
         withSite: filteredRequest.WithSite,
         withChargingStations: filteredRequest.WithChargingStations,
         withImage: true,
@@ -189,7 +189,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
     // Check dynamic auth
-    const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizationFilters(
+    const authorizationSiteAreasFilter = await AuthorizationService.checkAndGetSiteAreasAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationSiteAreasFilter.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -270,9 +270,16 @@ export default class SiteAreaService {
   }
 
   public static async handleCreateSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
+    // Filter request
+    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
+    // Check request data is valid
+    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
-    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizationFilters(req.tenant, req.user,
-      {}, Action.CREATE);
+    const authorizationFilters = await AuthorizationService.checkAndGetSiteAreaAuthorizations(req.tenant, req.user,
+      {}, Action.CREATE, filteredRequest as SiteArea);
     if (!authorizationFilters.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
@@ -281,13 +288,6 @@ export default class SiteAreaService {
         module: MODULE_NAME, method: 'handleCreateSiteArea'
       });
     }
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
-    // Filter request
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
-    // Check request data is valid
-    UtilsService.checkIfSiteAreaValid(filteredRequest, req);
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ,
@@ -321,14 +321,14 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Check Mandatory fields
     UtilsService.checkIfSiteAreaValid(filteredRequest, req);
+    // Check and Get SiteArea
+    const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as SiteArea, {
+        withChargingStations: true,
+      }, false, true);
     // Check Site auth
     await UtilsService.checkAndGetSiteAuthorization(
       req.tenant, req.user, filteredRequest.siteID, Action.READ, action);
-    // Check and Get SiteArea
-    const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, {
-        withChargingStations: true,
-      });
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;

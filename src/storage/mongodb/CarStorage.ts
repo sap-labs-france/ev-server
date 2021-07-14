@@ -9,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
-import { UserCar } from '../../types/User';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarStorage';
@@ -490,7 +489,9 @@ export default class CarStorage {
       vin: carToSave.vin,
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID),
+      userID: carToSave.userID ? DatabaseUtils.convertToObjectID(carToSave.userID) : null,
       type: carToSave.type,
+      default: carToSave.default,
       converter: {
         powerWatts: Utils.convertToFloat(carToSave.converter.powerWatts),
         amperagePerPhase: Utils.convertToInt(carToSave.converter.amperagePerPhase),
@@ -511,71 +512,11 @@ export default class CarStorage {
     return carMDB._id.toHexString();
   }
 
-  public static async saveCarUser(tenant: Tenant, carUserToSave: UserCar): Promise<string> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveCarUser');
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // Set
-    const carUserMDB: any = {
-      _id: Cypher.hash(`${carUserToSave.carID}~${carUserToSave.user.id}`),
-      userID: DatabaseUtils.convertToObjectID(carUserToSave.user.id),
-      carID: DatabaseUtils.convertToObjectID(carUserToSave.carID),
-      default: carUserToSave.default,
-      owner: (carUserToSave.owner === true ? true : false)
-    };
-    // Add Last Changed/Created props
-    DatabaseUtils.addLastChangedCreatedProps(carUserMDB, carUserToSave);
-    // Modify
-    await global.database.getCollection(tenant.id, 'carusers').findOneAndUpdate(
-      {
-        _id: carUserMDB._id
-      },
-
-      { $set: carUserMDB },
-      { upsert: true, returnDocument: 'after' }
-    );
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveCarUser', uniqueTimerID, carUserMDB);
-    return carUserMDB._id;
-  }
-
-  public static async insertCarUsers(tenant: Tenant, carUsersToSave: UserCar[]): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'insertCarUsers');
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // At least one user
-    const carUsersMDB = [];
-    if (carUsersToSave && carUsersToSave.length > 0) {
-      // Set
-      for (const carUserToSave of carUsersToSave) {
-        const carUserMDB = {
-          _id: Cypher.hash(`${carUserToSave.carID}~${carUserToSave.user.id}`),
-          userID: DatabaseUtils.convertToObjectID(carUserToSave.user.id),
-          carID: DatabaseUtils.convertToObjectID(carUserToSave.carID),
-          default: carUserToSave.default,
-          owner: carUserToSave.owner,
-        };
-        // Add Last Changed/Created props
-        DatabaseUtils.addLastChangedCreatedProps(carUserMDB, carUserToSave);
-        carUsersMDB.push(carUserMDB);
-      }
-      // Execute
-      await global.database.getCollection<any>(tenant.id, 'carusers').insertMany(
-        carUsersMDB,
-        { ordered: false }
-      );
-    }
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'insertCarUsers', uniqueTimerID, carUsersMDB);
-  }
-
   public static async getCar(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
-      params: { withUsers?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
+      params: { withUser?: boolean, userIDs?: string[]; type?: CarType } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       carIDs: [id],
-      withUsers: params.withUsers,
+      withUser: params.withUser,
       userIDs: params.userIDs,
       type: params.type
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
@@ -588,7 +529,7 @@ export default class CarStorage {
       userIDs: [userID],
       defaultCar: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return carMDB.count === 1 ? carMDB.result[0] : null;
+    return carMDB.count > 0 ? carMDB.result[0] : null;
   }
 
   public static async getFirstAvailableUserCar(tenant: Tenant, userID: string,
@@ -601,11 +542,11 @@ export default class CarStorage {
 
   public static async getCarByVinLicensePlate(tenant: Tenant,
       licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
-      params: { withUsers?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
+      params: { withUser?: boolean, userIDs?: string[]; } = {}, projectFields?: string[]): Promise<Car> {
     const carsMDB = await CarStorage.getCars(tenant, {
       licensePlate: licensePlate,
       vin: vin,
-      withUsers: params.withUsers,
+      withUser: params.withUser,
       userIDs: params.userIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return carsMDB.count === 1 ? carsMDB.result[0] : null;
@@ -614,9 +555,10 @@ export default class CarStorage {
   public static async getCars(tenant: Tenant,
       params: {
         search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string;
-        withUsers?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType;
+        withUser?: boolean; defaultCar?: boolean; carMakers?: string[], type?: CarType; siteIDs?: string[];
       } = {},
       dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
+    let withCarCatalog = true;
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getCars');
     // Clone before updating the values
@@ -636,12 +578,15 @@ export default class CarStorage {
         { 'licensePlate': { $regex: params.search, $options: 'i' } },
       ];
     }
+    // Plate
     if (params.licensePlate) {
       filters.licensePlate = params.licensePlate;
     }
+    // VIN
     if (params.vin) {
       filters.vin = params.vin;
     }
+    // Type
     if (params.type) {
       filters.type = params.type;
     }
@@ -651,27 +596,32 @@ export default class CarStorage {
         $in: params.carIDs.map((carID) => DatabaseUtils.convertToObjectID(carID))
       };
     }
-    // Filter on Users
-    if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
-      DatabaseUtils.pushUserCarLookupInAggregation({
-        tenantID: tenant.id, aggregation, localField: '_id', foreignField: 'carID',
-        asField: 'carUsers', oneToOneCardinality: false
-      });
-      if (!Utils.isEmptyArray(params.userIDs)) {
-        filters['carUsers.userID'] = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
-      }
-      if (params.defaultCar) {
-        filters['carUsers.default'] = true;
-      }
+    // User
+    if (!Utils.isEmptyArray(params.userIDs)) {
+      filters.userID = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
-    // Add Car Catalog
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
-      asField: 'carCatalog', oneToOneCardinality: true
-    });
-    // Filter on car maker
+    // Default Car
+    if (params.defaultCar) {
+      filters.default = true;
+    }
+    // Sites
+    if (!Utils.isEmptyArray(params.siteIDs)) {
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID: tenant.id, aggregation, localField: 'userID', foreignField: 'userID', asField: 'siteUsers'
+      });
+      aggregation.push({
+        $match: { 'siteUsers.siteID': { $in: params.siteIDs.map((site) => DatabaseUtils.convertToObjectID(site)) } }
+      });
+    }
+    // Car Maker
     if (!Utils.isEmptyArray(params.carMakers)) {
+      // Car Catalog
+      DatabaseUtils.pushCarCatalogLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
+        asField: 'carCatalog', oneToOneCardinality: true
+      });
       filters['carCatalog.vehicleMake'] = { $in: params.carMakers };
+      withCarCatalog = false;
     }
     // Filters
     aggregation.push({
@@ -735,25 +685,26 @@ export default class CarStorage {
         }
       }
     });
+    // Users
+    if (params.withUser) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID: tenant.id, aggregation: aggregation, asField: 'user', localField: 'userID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
+    // Car Catalog
+    if (withCarCatalog) {
+      DatabaseUtils.pushCarCatalogLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
+        asField: 'carCatalog', oneToOneCardinality: true
+      });
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Add Users
-    if (params.withUsers) {
-      // Check
-      const carUsersPipeline = [];
-      if (!Utils.isEmptyArray(params.userIDs)) {
-        carUsersPipeline.push({
-          $match: { 'carUsers.userID': { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) } }
-        });
-      }
-      // User on Car Users
-      DatabaseUtils.pushArrayLookupInAggregation('carUsers', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
-        tenantID: tenant.id, aggregation: aggregation, localField: 'carUsers.userID', foreignField: '_id',
-        asField: 'carUsers.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-      }, { pipeline: carUsersPipeline, sort: dbParams.sort });
-    }
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -771,10 +722,10 @@ export default class CarStorage {
     };
   }
 
-  public static async clearCarUserDefault(tenant: Tenant, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'clearCarUserDefault');
+  public static async clearDefaultUserCar(tenant: Tenant, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'clearDefaultUserCar');
     DatabaseUtils.checkTenantObject(tenant);
-    await global.database.getCollection<any>(tenant.id, 'carusers').updateMany(
+    await global.database.getCollection<any>(tenant.id, 'cars').updateMany(
       {
         userID: DatabaseUtils.convertToObjectID(userID),
         default: true
@@ -782,60 +733,7 @@ export default class CarStorage {
       {
         $set: { default: false }
       });
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'clearCarUserDefault', uniqueTimerID, { userID });
-  }
-
-  public static async clearCarUserOwner(tenant: Tenant, carID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'clearCarUserOwner');
-    DatabaseUtils.checkTenantObject(tenant);
-    await global.database.getCollection<any>(tenant.id, 'carusers').updateMany(
-      {
-        carID: DatabaseUtils.convertToObjectID(carID),
-        owner: true
-      },
-      {
-        $set: { owner: false }
-      });
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'clearCarUserOwner', uniqueTimerID, { carID });
-  }
-
-  public static async getCarUserByCarUser(tenant: Tenant,
-      carID: string = Constants.UNKNOWN_STRING_ID, userID: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<UserCar> {
-    const carUsersMDB = await CarStorage.getCarUsers(tenant, {
-      carIDs: [carID],
-      userIDs: [userID]
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
-  }
-
-  public static async getCarUser(tenant: Tenant, carUserID: string = Constants.UNKNOWN_STRING_ID,
-      projectFields?: string[]): Promise<UserCar> {
-    const carUsersMDB = await CarStorage.getCarUsers(tenant, {
-      carUsersIDs: [carUserID]
-    }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    return carUsersMDB.count === 1 ? carUsersMDB.result[0] : null;
-  }
-
-  public static async deleteCarUser(tenant: Tenant, id: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCarUser');
-    // Delete singular site area
-    await global.database.getCollection(tenant.id, 'carusers')
-      .findOneAndDelete({ '_id': id });
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCarUser', uniqueTimerID, { id });
-  }
-
-  public static async deleteCarUsersByCarID(tenant: Tenant, carID: string): Promise<number> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCarUserByCarID');
-    // Delete singular site area
-    const result = await global.database.getCollection(tenant.id, 'carusers')
-      .deleteMany({ 'carID': DatabaseUtils.convertToObjectID(carID) });
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { carID });
-    return result.deletedCount;
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'clearDefaultUserCar', uniqueTimerID, { userID });
   }
 
   public static async deleteCar(tenant: Tenant, carID: string): Promise<void> {
@@ -846,111 +744,5 @@ export default class CarStorage {
       .deleteOne({ '_id': DatabaseUtils.convertToObjectID(carID) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCar', uniqueTimerID, { carID });
-  }
-
-  public static async deleteCarUsers(tenant: Tenant, ids: string[]): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteCarUserByCarID');
-    // Delete singular site area
-    await global.database.getCollection(tenant.id, 'carusers')
-      .deleteMany({ '_id': { $in: ids } });
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteCarUserByCarID', uniqueTimerID, { ids });
-  }
-
-  public static async getCarUsers(tenant: Tenant,
-      params: { search?: string; carUsersIDs?: string[]; userIDs?: string[]; carIDs?: string[]; } = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getCarUsers');
-    // Clone before updating the values
-    dbParams = Utils.cloneObject(dbParams);
-    // Check Limit
-    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
-    // Check Skip
-    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    // Set the filters
-    const filters: FilterParams = {};
-    // Limit on Car for Basic Users
-    if (!Utils.isEmptyArray(params.carUsersIDs)) {
-      filters._id = { $in: params.carUsersIDs };
-    }
-    // Cars
-    if (!Utils.isEmptyArray(params.carIDs)) {
-      filters.carID = { $in: params.carIDs.map((carID) => DatabaseUtils.convertToObjectID(carID)) };
-    }
-    // Users
-    if (!Utils.isEmptyArray(params.userIDs)) {
-      filters.userID = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
-    }
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
-    // Limit records?
-    if (!dbParams.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const carUsersCountMDB = await global.database.getCollection<DataResult<UserCar>>(tenant.id, 'carusers')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCarUsers', uniqueTimerID, carUsersCountMDB);
-      return {
-        count: (carUsersCountMDB.length > 0 ? carUsersCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
-    // Sort
-    if (!dbParams.sort) {
-      dbParams.sort = { 'user.name': 1, 'user.firstName': 1 };
-    }
-    aggregation.push({
-      $sort: dbParams.sort
-    });
-    // Skip
-    aggregation.push({
-      $skip: dbParams.skip
-    });
-    // Limit
-    aggregation.push({
-      $limit: dbParams.limit
-    });
-    // Add User
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID: tenant.id, aggregation, localField: 'userID', foreignField: '_id',
-      asField: 'user', oneToOneCardinality: true
-    });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
-    // Read DB
-    const carUsers = await global.database.getCollection<UserCar>(tenant.id, 'carusers')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
-      .toArray();
-    // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCarUsers', uniqueTimerID, carUsers);
-    return {
-      count: (carUsersCountMDB.length > 0 ?
-        (carUsersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carUsersCountMDB[0].count) : 0),
-      result: carUsers
-    };
   }
 }
