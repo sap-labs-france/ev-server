@@ -1,3 +1,4 @@
+import { SiteAreaValueTypes, SiteAreaValues } from '../../types/SiteArea';
 import global, { FilterParams, GroupParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -7,7 +8,6 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { SiteAreaValues } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -218,7 +218,10 @@ export default class ConsumptionStorage {
     }
     const facets = {};
     // Specific filters for each type of data
-    const detailedGroups = ['assetConsumptions', 'assetProductions', 'chargingStationConsumptions', 'netConsumptions'];
+    const detailedGroups = [SiteAreaValueTypes.ASSET_CONSUMPTIONS,
+      SiteAreaValueTypes.ASSET_PRODUCTIONS,
+      SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
+      SiteAreaValueTypes.NET_CONSUMPTIONS];
     // Subset project fields
     const projectFieldsNonNet = [...projectFields];
     projectFieldsNonNet.splice(projectFieldsNonNet.indexOf('limitWatts'), 1);
@@ -227,13 +230,13 @@ export default class ConsumptionStorage {
       // Create filters
       const facetFilters: FilterParams = {};
       // Type of query
-      if (detailedType === 'assetConsumptions') {
+      if (detailedType === SiteAreaValueTypes.ASSET_CONSUMPTIONS) {
         facetFilters.instantWatts = { '$gte': 0 };
         facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === 'assetProductions') {
+      } else if (detailedType === SiteAreaValueTypes.ASSET_PRODUCTIONS) {
         facetFilters.instantWatts = { '$lt': 0 };
         facetFilters.assetID = { '$ne': null };
-      } else if (detailedType === 'chargingStationConsumptions') {
+      } else if (detailedType === SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS) {
         facetFilters.chargeBoxID = { '$ne': null };
       }
       // Create Aggregation
@@ -256,10 +259,10 @@ export default class ConsumptionStorage {
       };
       groupFields.instantWatts = { $sum: { '$abs': '$instantWatts' } };
       groupFields.instantAmps = { $sum: { '$abs': '$instantAmps' } };
-      if (detailedType === 'netConsumptions') {
+      if (detailedType === SiteAreaValueTypes.NET_CONSUMPTIONS) {
         groupFields.limitWatts = { $last: '$limitSiteAreaWatts' };
       }
-      if (detailedType === 'netConsumptions') {
+      if (detailedType === SiteAreaValueTypes.NET_CONSUMPTIONS) {
         groupFields.limitAmps = { $last: '$limitSiteAreaAmps' };
       }
       // Group consumption values per minute
@@ -290,7 +293,7 @@ export default class ConsumptionStorage {
         }
       });
       // Project
-      if (detailedType === 'netConsumptions') {
+      if (detailedType === SiteAreaValueTypes.NET_CONSUMPTIONS) {
         DatabaseUtils.projectFields(facetAggregation, projectFields, ['_id']);
       } else {
         DatabaseUtils.projectFields(facetAggregation, projectFieldsNonNet, ['_id']);

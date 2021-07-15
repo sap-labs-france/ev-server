@@ -11,8 +11,10 @@ import { SiteAreaAuthorizationActions } from './Authorization';
 export enum SiteAreaValueTypes {
   ASSET_CONSUMPTIONS = 'AssetConsumptions',
   ASSET_PRODUCTIONS = 'AssetProductions',
-  CHARGING_STATION_CONSUMPTIONS = 'ChargingStationConsumptions'
+  CHARGING_STATION_CONSUMPTIONS = 'ChargingStationConsumptions',
+  NET_CONSUMPTIONS = 'NetConsumptions'
 }
+
 export interface SiteAreaValues {
   assetConsumptions: Consumption[];
   assetProductions: Consumption[];

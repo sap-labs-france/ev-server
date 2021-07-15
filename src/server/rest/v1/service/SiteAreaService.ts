@@ -257,13 +257,14 @@ export default class SiteAreaService {
     // Check and Get Site Area
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.SiteAreaID, Action.READ, action);
-    // Store result in temporary object
-    const siteAreaDetailedData = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
+    // Get the ConsumptionValues
+    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate,
     }, ['startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts']);
-    siteArea.values = siteAreaDetailedData;
+    // Assign
+    siteArea.values = consumptions;
     // Return
     res.json(siteArea);
     next();
