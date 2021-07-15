@@ -1,4 +1,4 @@
-import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantLogoRequest, HttpTenantRequest, HttpTenantsRequest } from '../../../../types/requests/v1/HttpTenantRequest';
 
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';

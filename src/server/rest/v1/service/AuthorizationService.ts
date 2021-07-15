@@ -18,7 +18,7 @@ import Constants from '../../../../utils/Constants';
 import DynamicAuthorizationFactory from '../../../../authorization/DynamicAuthorizationFactory';
 import { EntityDataType } from '../../../../types/GlobalType';
 import { HTTPAuthError } from '../../../../types/HTTPError';
-import { HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetsRequest } from '../../../../types/requests/v1/HttpAssetRequest';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';

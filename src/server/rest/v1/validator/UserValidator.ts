@@ -1,7 +1,7 @@
-import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpUserAssignSitesRequest, HttpUserMobileTokenRequest, HttpUserSitesRequest, HttpUsersInErrorRequest, HttpUsersRequest } from '../../../../types/requests/v1/HttpUserRequest';
 import User, { ImportedUser } from '../../../../types/User';
 
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import HttpByIDRequest from '../../../../types/requests/v1/HttpByIDRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../SchemaValidator';
 import fs from 'fs';

@@ -1,4 +1,4 @@
-import { HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpTransactionsRequest } from '../../../../types/requests/v1/HttpTransactionRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../SchemaValidator';
 import fs from 'fs';
