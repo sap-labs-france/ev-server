@@ -762,7 +762,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       }
     } else if (this.tenant.id === '5e2701b248aaa90007904cca') {
       // Special mode for a particular user on that particular tenant
-      if (user.id !== '5e74e254a25a3e0006fa79d3') {
+      if (user?.id !== '5e74e254a25a3e0006fa79d3') {
         // Do not bill other users than that one!
         return true;
       }
