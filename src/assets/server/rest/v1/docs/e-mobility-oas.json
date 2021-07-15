@@ -721,6 +721,9 @@
             "$ref": "#/components/parameters/TagIDs"
           },
           {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
             "$ref": "#/components/parameters/SiteIDs"
           },
           {
@@ -6201,6 +6204,15 @@
         "in": "query",
         "name": "TagID",
         "description": "Tag ID",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "VisualTagIDs": {
+        "in": "query",
+        "name": "VisualTagID",
+        "description": "Pipe separated Visual Tag IDs",
         "required": false,
         "schema": {
           "type": "string"

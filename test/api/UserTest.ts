@@ -273,7 +273,7 @@ describe('User', function() {
           expect(response.status).to.equal(StatusCodes.CREATED);
           testData.createdTags.push(testData.newTag);
           // Retrieve it
-          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id,testData.siteContext.getSite().id);
+          response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
           expect(response.status).to.be.eq(StatusCodes.OK);
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;

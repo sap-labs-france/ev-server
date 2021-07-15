@@ -33,6 +33,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   SiteID?: string;
   UserID?: string;
   VisualTagID?: string;
+  TagID?: string;
   StartDateTime?: Date;
   EndDateTime?: Date;
   Search?: string;

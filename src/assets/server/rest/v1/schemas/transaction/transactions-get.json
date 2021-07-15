@@ -33,6 +33,10 @@
     "UserID": {
       "$ref": "common.json#/definitions/ids"
     },
+    "TagID": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
     "VisualTagID": {
       "type": "string",
       "sanitize": "mongo"

@@ -1111,6 +1111,7 @@ export default class TransactionService {
         issuer: Utils.objectHasProperty(filteredRequest, 'Issuer') ? filteredRequest.Issuer : null,
         userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         visualTagIDs: filteredRequest.VisualTagID ? filteredRequest.VisualTagID.split('|') : null,
+        tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
         ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
         withSite: filteredRequest.WithSite,
         withCompany: filteredRequest.WithCompany,

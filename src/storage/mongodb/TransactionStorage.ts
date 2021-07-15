@@ -311,6 +311,8 @@ export default class TransactionStorage {
         }
       });
     }
+    // Create Aggregation
+    const aggregation = [];
     // Filter?
     if (params.search) {
       // Build filter
@@ -354,6 +356,14 @@ export default class TransactionStorage {
     // Tag
     if (params.tagIDs) {
       filters.tagID = { $in: params.tagIDs };
+    }
+    if (!Utils.isEmptyArray(params.visualTagIDs)) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation, localField: 'tagID', foreignField: '_id', asField: 'tag'
+      });
+      aggregation.push({
+        $match: { 'tag.visualID': { $in: params.visualTagIDs } }
+      });
     }
     // Has user ID?
     if (params.hasUserID) {
@@ -444,16 +454,6 @@ export default class TransactionStorage {
     // Report ID
     if (params.reportIDs) {
       filters['refundData.reportId'] = { $in: params.reportIDs };
-    }
-    // Create Aggregation
-    const aggregation = [];
-    if (!Utils.isEmptyArray(params.visualTagIDs)) {
-      DatabaseUtils.pushTagLookupInAggregation({
-        tenantID, aggregation, localField: 'tagID', foreignField: '_id', asField: 'tag'
-      });
-      aggregation.push({
-        $match: { 'tag.visualID': { $in: params.visualTagIDs } }
-      });
     }
     // Filters
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
