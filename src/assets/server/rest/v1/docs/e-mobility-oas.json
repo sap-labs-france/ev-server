@@ -1100,6 +1100,20 @@
             "$ref": "#/components/parameters/LocMaxDistanceMeters"
           },
           {
+            "in": "query",
+            "name": "Status",
+            "description": "Charging Station status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "in-error"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationErrorTypes"
+          },
+          {
             "$ref": "#/components/parameters/Limit"
           },
           {
@@ -3055,7 +3069,7 @@
             "$ref": "#/components/parameters/SiteAreaIDs"
           },
           {
-            "$ref": "#/components/parameters/ErrorTypes"
+            "$ref": "#/components/parameters/ChargingStationErrorTypes"
           },
           {
             "$ref": "#/components/parameters/Skip"
@@ -6171,7 +6185,7 @@
           "type": "string"
         }
       },
-      "ErrorTypes": {
+      "ChargingStationErrorTypes": {
         "in": "query",
         "name": "ErrorType",
         "description": "Pipe separated error types (missing_settings, connection_broken, missing_site_area, connection_error)",
