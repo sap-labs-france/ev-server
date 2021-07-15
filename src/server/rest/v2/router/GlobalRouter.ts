@@ -4,6 +4,7 @@ import AuthService from '../../v1/service/AuthService';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
+import UserRouter from './api/UserRouter';
 
 export default class GlobalRouter {
   private router: express.Router;
@@ -25,6 +26,7 @@ export default class GlobalRouter {
       AuthService.checkSessionHash.bind(this),
       [
         new ChargingStationRouter().buildRoutes(),
+        new UserRouter().buildRoutes(),
       ]);
   }
 

@@ -1,4 +1,4 @@
-import { HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationsRequest } from '../../../../types/requests/v1/HttpChargingStationRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from '../../SchemaValidator';
 import fs from 'fs';
