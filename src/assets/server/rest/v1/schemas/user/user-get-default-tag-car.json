@@ -5,14 +5,11 @@
     "UserID": {
       "$ref": "common.json#/definitions/id"
     },
-    "SiteID": {
-      "$ref": "common.json#/definitions/id"
-    },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
     }
   },
   "required": [
-    "UserID", "SiteID"
+    "UserID"
   ]
 }

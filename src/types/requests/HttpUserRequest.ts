@@ -100,5 +100,4 @@ export interface HttpEulaRequest {
 
 export interface HttpUserDefaultTagCar {
   UserID: string;
-  SiteID: string;
 }

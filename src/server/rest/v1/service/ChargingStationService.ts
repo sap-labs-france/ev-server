@@ -36,7 +36,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
-import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
@@ -1208,7 +1207,7 @@ export default class ChargingStationService {
       }
       // Check and Get User
       const user = await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, filteredRequest.args.userID, Action.READ, action, {});
+        req.tenant, req.user, filteredRequest.args.userID, Action.READ, action);
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.args.userID}' does not exist`,
         MODULE_NAME, 'handleAction', req.user);

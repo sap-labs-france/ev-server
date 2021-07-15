@@ -82,11 +82,8 @@ export default class UserService {
     const errorCodes: Array<StartTransactionErrorCode> = [];
     // Check Billing errors
     await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
-    // Get authorization filters for users
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
-      req.tenant, req.user, { SiteID: filteredRequest.SiteID });
     res.json({
-      tag, car, errorCodes, canListUsers: authorizationUsersFilters.authorized
+      tag, car, errorCodes
     });
     next();
   }
