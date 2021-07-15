@@ -21,6 +21,10 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "ConnectorID": {
       "$ref": "chargingstation.json#/definitions/connectorIDs"
     },

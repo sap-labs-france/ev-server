@@ -26,6 +26,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   Issuer: boolean;
   WithCompany: boolean;
+  WithTag: boolean;
   WithSite: boolean;
   WithSiteArea: boolean;
   ConnectorID: string;
@@ -48,6 +49,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
 
 export interface HttpConsumptionFromTransactionRequest {
   TransactionId: number;
+  WithTag: boolean;
   LoadAllConsumptions?: boolean;
   StartDateTime: Date;
   EndDateTime: Date;

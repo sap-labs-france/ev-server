@@ -272,7 +272,7 @@ export default class TransactionStorage {
       params: {
         transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
         chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
-        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; visualTagIDs?: string[]; inactivityStatus?: string[];
+        endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
@@ -356,14 +356,6 @@ export default class TransactionStorage {
     // Tag
     if (params.tagIDs) {
       filters.tagID = { $in: params.tagIDs };
-    }
-    if (!Utils.isEmptyArray(params.visualTagIDs)) {
-      DatabaseUtils.pushTagLookupInAggregation({
-        tenantID, aggregation, localField: 'tagID', foreignField: '_id', asField: 'tag'
-      });
-      aggregation.push({
-        $match: { 'tag.visualID': { $in: params.visualTagIDs } }
-      });
     }
     // Has user ID?
     if (params.hasUserID) {
@@ -628,6 +620,10 @@ export default class TransactionStorage {
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
+        foreignField: '_id', oneToOneCardinality: true
+      });
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'stop.tag', localField: 'stop.tagID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
@@ -1018,10 +1014,10 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
-      projectFields?: string[]): Promise<Transaction> {
+      params?: { withTag?: boolean; }, projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
       transactionIDs: [id],
-      withTag: true
+      withTag: params.withTag,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }

@@ -108,6 +108,9 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'TransactionId')) {
       filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
     }
+    if (Utils.objectHasProperty(request, 'WithTag')) {
+      filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
+    }
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }

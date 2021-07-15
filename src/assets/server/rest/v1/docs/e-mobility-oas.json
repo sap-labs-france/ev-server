@@ -718,6 +718,9 @@
             "$ref": "#/components/parameters/UserIDs"
           },
           {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
             "$ref": "#/components/parameters/TagIDs"
           },
           {
@@ -2871,13 +2874,10 @@
             }
           },
           {
-            "in": "query",
-            "name": "TagID",
-            "description": "Pipe separated Tag IDs",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
           },
           {
             "in": "query",
@@ -6491,6 +6491,14 @@
         "in": "query",
         "name": "WithSiteArea",
         "description": "With site area attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithTag": {
+        "in": "query",
+        "name": "WithTag",
+        "description": "With tag attribute",
         "schema": {
           "type": "boolean"
         }
