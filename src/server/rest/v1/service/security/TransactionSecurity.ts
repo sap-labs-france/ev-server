@@ -59,6 +59,7 @@ export default class TransactionSecurity {
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.VisualTagID = sanitize(request.VisualTagID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.InactivityStatus = sanitize(request.InactivityStatus);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
