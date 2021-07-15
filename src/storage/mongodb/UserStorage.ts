@@ -537,11 +537,9 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
       params: {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-        includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-        statuses?: string[]; withImage?: boolean; billingUserID?: string;
-        notSynchronizedBillingData?: boolean; withTestBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date; tagIDs?: string[];
+        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; tagIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -573,10 +571,6 @@ export default class UserStorage {
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
-    }
-    // Exclude Users
-    if (!Utils.isEmptyArray(params.excludeUserIDs)) {
-      filters._id = { $nin: params.excludeUserIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -633,30 +627,6 @@ export default class UserStorage {
     aggregation.push({
       $match: filters
     });
-    // Add additional filters
-    if (params.notAssignedToCarID) {
-      const notAssignedToCarIDFilter = { '$or': [] };
-      DatabaseUtils.pushUserCarLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
-      });
-      // Add Car ID in OR
-      const carIDFilter = {};
-      carIDFilter['carUsers.carID'] = { $ne: DatabaseUtils.convertToObjectID(params.notAssignedToCarID) };
-      notAssignedToCarIDFilter.$or.push(carIDFilter);
-      // Bypass Car ID if users has been removed in UI
-      if (params.includeCarUserIDs) {
-        const includeCarUserIDsFilter = {};
-        includeCarUserIDsFilter['carUsers.userID'] = {
-          $in: params.includeCarUserIDs.map((includeCarUserID) =>
-            DatabaseUtils.convertToObjectID(includeCarUserID))
-        };
-        notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
-      }
-      // Add
-      aggregation.push({
-        $match: notAssignedToCarIDFilter
-      });
-    }
     // Add Tags
     if (params.tagIDs) {
       DatabaseUtils.pushTagLookupInAggregation({

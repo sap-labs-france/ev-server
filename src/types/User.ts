@@ -48,14 +48,6 @@ export interface UserSite {
   siteOwner: boolean;
 }
 
-export interface UserCar extends CreatedUpdatedProps {
-  id?: string;
-  user: User;
-  carID: string;
-  default?: boolean;
-  owner?: boolean;
-}
-
 export interface ImportedUser {
   id?: string;
   name: string;

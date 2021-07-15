@@ -57,7 +57,6 @@ class RequestMapper {
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER]: BillingService.handleForceSynchronizeUser.bind(this),
           [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
-          [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
           [ServerAction.BILLING_SETUP_PAYMENT_METHOD]: BillingService.handleBillingSetupPaymentMethod.bind(this),
           [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
@@ -97,7 +96,6 @@ class RequestMapper {
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
           [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
-          [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.REGISTRATION_TOKEN]: RegistrationTokenService.handleGetRegistrationToken.bind(this),
@@ -191,7 +189,6 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
-          [ServerAction.BILLING_CHARGE_INVOICE]: BillingService.handleBillingChargeInvoice.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;

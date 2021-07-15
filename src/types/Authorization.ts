@@ -88,7 +88,6 @@ export enum Entity {
   CAR_CATALOGS = 'CarCatalogs',
   CAR = 'Car',
   CARS = 'Cars',
-  USERS_CARS = 'UsersCars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes',
@@ -176,6 +175,7 @@ export interface AuthorizationContext {
   asset?: string;
   assets?: string[];
   filters?: DynamicAuthorizationFilterName[] | [DynamicAuthorizationFilterName[]];
+  asserts?: DynamicAuthorizationAssertName[] | [DynamicAuthorizationAssertName[]];
 }
 
 export interface AuthorizationActions {
@@ -207,6 +207,11 @@ export enum DynamicAuthorizationFilterName {
   ASSIGNED_SITES = 'AssignedSites',
   OWN_USER = 'OwnUser',
   LOCAL_ISSUER = 'LocalIssuer',
+}
+
+export enum DynamicAuthorizationAssertName {
+  POOL_CAR = 'PoolCar',
+  OWN_USER = 'OwnUser',
 }
 
 export enum DynamicAuthorizationDataSourceName {

@@ -123,19 +123,6 @@ export default abstract class WSConnection {
       // Check Tenant?
       await DatabaseUtils.checkTenant(this.tenantID);
       this.validTenant = true;
-      // Cloud Foundry?
-      if (Configuration.isCloudFoundry()) {
-        // Yes: Save the CF App and Instance ID to call the Charging Station from the Rest server
-        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID(), {}, ['id']);
-        if (chargingStation) {
-          // Update CF Instance
-          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
-            this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
-          // Update Last Seen
-          await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
-            chargingStation.id, { lastSeen: new Date() });
-        }
-      }
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);

@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Sesión no iniciada",
-  "tenant": "",
+  "subject": "La sincronización del vehículo falló",
+  "tenant": "<%- tenantID %>",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Sesión no iniciada",
+      "title": "La sincronización del vehículo falló",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,14 @@
       }
     },
     "beforeActionLines": [
-      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
+      "Estimado administrador,",
       "",
-      "Insignó en la estación de carga <strong> '<% - chargeBoxID%>' </strong> pero no inició ninguna sesión.",
+      "No se pueden sincronizar <%- nbrCarsInError%> vehículos con el proveedor de datos del vehículo eléctrico.",
       ""
     ],
     "actions": [{
-      "title": "Ver <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",
@@ -34,4 +34,3 @@
     }
   }
 }
-
