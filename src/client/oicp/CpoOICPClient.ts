@@ -210,7 +210,7 @@ export default class CpoOICPClient extends OICPClient {
           do {
             // Get all charging stations from tenant
             chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
-              { siteIDs: [site.id], public: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+              { siteIDs: [site.id], public: true, withSiteArea: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
             if (!Utils.isEmptyArray(chargingStations)) {
               // Convert (public) charging stations to OICP EVSEs
               const evses = await OICPUtils.convertChargingStationsToEVSEs(this.tenant, site, chargingStations, options);
@@ -309,7 +309,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Save
     const executionDurationSecs = Utils.createDecimal(new Date().getTime()).minus(startTime).div(1000).toNumber();
-    await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+    await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
     await Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_DATA,
       MODULE_NAME, 'sendEVSEs', result,
       `{{inSuccess}} EVSE(s) were successfully patched in ${executionDurationSecs}s`,
@@ -358,7 +358,7 @@ export default class CpoOICPClient extends OICPClient {
           do {
             // Get all charging stations from tenant
             chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
-              { siteIDs: [site.id], public: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
+              { siteIDs: [site.id], public: true, withSiteArea: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
             if (!Utils.isEmptyArray(chargingStations)) {
               // Convert (public) charging stations to OICP EVSE Statuses
               const evseStatuses = OICPUtils.convertChargingStationsToEvseStatuses(chargingStations, options);
@@ -444,7 +444,7 @@ export default class CpoOICPClient extends OICPClient {
     }
     // Save
     const executionDurationSecs = (new Date().getTime() - startTime) / 1000;
-    await OICPEndpointStorage.saveOicpEndpoint(this.tenant.id, this.oicpEndpoint);
+    await OICPEndpointStorage.saveOicpEndpoint(this.tenant, this.oicpEndpoint);
     await Logging.logOicpResult(this.tenant.id, ServerAction.OICP_PUSH_EVSE_STATUSES,
       MODULE_NAME, 'sendEVSEStatuses', result,
       `{{inSuccess}} EVSE Status(es) were successfully patched in ${executionDurationSecs}s`,
@@ -527,8 +527,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(pushEvseDataResponse, requestError),
         module: MODULE_NAME, method: 'pushEvseData',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           evse: payload,
           response: pushEvseDataResponse,
         }
@@ -582,8 +581,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(pushEvseStatusResponse, requestError),
         module: MODULE_NAME, method: 'pushEvseStatus',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           evseStatus: payload,
           response: pushEvseStatusResponse,
         }
@@ -640,8 +638,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
         module: MODULE_NAME, method: 'authorizeStart',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           authorize: payload,
           response: authorizeResponse,
         }
@@ -709,8 +706,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(authorizeResponse, requestError),
         module: MODULE_NAME, method: 'authorizeStop',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           authorize: payload,
           response: authorizeResponse,
         }
@@ -816,8 +812,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(pushCdrResponse, requestError),
         module: MODULE_NAME, method: 'pushCdr',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           cdr: payload,
           response: pushCdrResponse,
         }
@@ -892,9 +887,8 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(notificationStartResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationStart',
         detailedMessages: {
-          error: requestError?.message,
           chargingStart: payload,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           response: notificationStartResponse,
         }
       });
@@ -972,8 +966,7 @@ export default class CpoOICPClient extends OICPClient {
           message: this.buildOICPChargingNotificationErrorMessage(notificationProgressResponse, requestError),
           module: MODULE_NAME, method: 'sendChargingNotificationProgress',
           detailedMessages: {
-            error: requestError?.message,
-            stack: requestError?.stack,
+            error: requestError?.stack,
             chargingProgress: payload,
             response: notificationProgressResponse,
           }
@@ -1066,8 +1059,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(notificationEndResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationEnd',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           chargingEnd: payload,
           response: notificationEndResponse,
         }
@@ -1139,8 +1131,7 @@ export default class CpoOICPClient extends OICPClient {
         message: this.buildOICPChargingNotificationErrorMessage(notificationErrorResponse, requestError),
         module: MODULE_NAME, method: 'sendChargingNotificationError',
         detailedMessages: {
-          error: requestError?.message,
-          stack: requestError?.stack,
+          error: requestError?.stack,
           chargingError: payload,
           response: notificationErrorResponse,
         }

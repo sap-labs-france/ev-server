@@ -29,10 +29,12 @@ export interface AssetInError extends Asset, InError {
 
 export enum TransactionInErrorType {
   NO_CONSUMPTION = 'no_consumption',
+  LOW_CONSUMPTION = 'low_consumption',
   OVER_CONSUMPTION = 'average_consumption_greater_than_connector_capacity',
   NEGATIVE_ACTIVITY = 'negative_inactivity',
   LONG_INACTIVITY = 'long_inactivity',
   NEGATIVE_DURATION = 'negative_duration',
+  LOW_DURATION = 'low_duration',
   INVALID_START_DATE = 'incorrect_starting_date',
   MISSING_PRICE = 'missing_price',
   MISSING_USER = 'missing_user',

@@ -102,7 +102,7 @@ export default class LoggingStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      filters.$text = { $search: params.search };
+      filters.$text = { $search: `"${params.search}"` };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
@@ -163,12 +163,7 @@ export default class LoggingStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
-      .aggregate([...aggregation, { $count: 'count' }], {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        }
-      })
+      .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {

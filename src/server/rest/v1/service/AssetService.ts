@@ -233,7 +233,7 @@ export default class AssetService {
         module: MODULE_NAME, method: 'handleCheckAssetConnection',
         message: 'Asset connection failed',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       // Create fail response
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
@@ -482,7 +482,7 @@ export default class AssetService {
     // Filter
     const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
     // Get authorization filters
-    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizationFilters(
+    const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationAssetsFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);

@@ -76,7 +76,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withSite?: boolean; withChargingStations?: boolean,withAvailableChargingStations?: boolean; withImage?: boolean } = {},
+      params: { withSite?: boolean; withChargingStations?: boolean, withAvailableChargingStations?: boolean; withImage?: boolean } = {},
       projectFields?: string[]): Promise<SiteArea> {
     const siteAreasMDB = await SiteAreaStorage.getSiteAreas(tenantID, {
       siteAreaIDs: [id],
@@ -136,7 +136,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
       params: {
-        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
+        siteAreaIDs?: string[]; search?: string; siteIDs?: string[]; companyIDs?: string[]; withSite?: boolean; issuer?: boolean; name?: string;
         withChargingStations?: boolean; withOnlyChargingStations?: boolean; withAvailableChargingStations?: boolean;
         locCoordinates?: number[]; locMaxDistanceMeters?: number; smartCharging?: boolean; withImage?: boolean;
       } = {},
@@ -186,6 +186,17 @@ export default class SiteAreaStorage {
       filters.siteID = {
         $in: params.siteIDs.map((siteID) => DatabaseUtils.convertToObjectID(siteID))
       };
+    }
+    // Company
+    if (!Utils.isEmptyArray(params.companyIDs)) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+      filters['site.companyID'] = {
+        $in: params.companyIDs.map((companyID) => companyID)
+      };
+      params.withSite = false;
     }
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
@@ -337,8 +348,9 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: {
+              companyID: DatabaseUtils.convertToObjectID(siteArea.site?.companyID),
+              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID),
               siteAreaID: DatabaseUtils.convertToObjectID(siteArea.id),
-              siteID: DatabaseUtils.convertToObjectID(siteArea.siteID)
             }
           });
       }
@@ -361,8 +373,9 @@ export default class SiteAreaStorage {
           { '_id': { $in: chargingStationIDs } },
           {
             $set: {
+              companyID: null,
+              siteID: null,
               siteAreaID: null,
-              siteID: null
             }
           });
       }

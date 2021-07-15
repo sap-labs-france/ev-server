@@ -434,7 +434,7 @@ Here are the default delivered locales:
     "supported": [
       "en_US",
       "fr_FR",
-      "es_MX",
+      "es_ES",
       "de_DE",
       "pt_PT",
       "it_IT",

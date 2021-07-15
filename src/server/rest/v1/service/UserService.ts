@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { ActionsResponse, ImportStatus } from '../../../../types/GlobalType';
 import { AsyncTaskType, AsyncTasks } from '../../../../types/AsyncTask';
 import { Car, CarType } from '../../../../types/Car';
+import { DataResult, UserDataResult } from '../../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import User, { ImportedUser, UserRequiredImportProperties } from '../../../../types/User';
@@ -16,7 +17,6 @@ import Busboy from 'busboy';
 import CSVError from 'csvtojson/v2/CSVError';
 import CarStorage from '../../../../storage/mongodb/CarStorage';
 import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
 import EmspOCPIClient from '../../../../client/ocpi/EmspOCPIClient';
 import JSONStream from 'JSONStream';
 import LockingHelper from '../../../../locking/LockingHelper';
@@ -33,7 +33,6 @@ import { StartTransactionErrorCode } from '../../../../types/Transaction';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
-import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import { UserInErrorType } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -123,7 +122,7 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.DELETE, action);
+      req.tenant, req.user, userID, Action.DELETE, action, null, {}, false, false);
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
@@ -144,7 +143,7 @@ export default class UserService {
     // Delete OCPI
     await UserService.checkAndDeleteUserOCPI(req.tenant, req.user, user);
     // Delete Car
-    await UserService.checkAndDeleteUserCar(req.tenant, req.user, user);
+    await UserService.checkAndDeleteCar(req.tenant, req.user, user);
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
@@ -165,7 +164,7 @@ export default class UserService {
     const filteredRequest = UserValidator.getInstance().validateUserUpdate({ ...req.params, ...req.body });
     // Check and Get User
     let user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
+      req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (userWithEmail && user.id !== userWithEmail.id) {
@@ -298,9 +297,9 @@ export default class UserService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetUser', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, {
+      req.tenant, req.user, filteredRequest.ID.toString(), Action.READ, action, null, {
         withImage: true
-      }, true);
+      }, true, false);
     res.json(user);
     next();
   }
@@ -339,7 +338,7 @@ export default class UserService {
       return;
     }
     // Check dynamic auth for reading Sites
-    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizationFilters(req.tenant,
+    const authorizationUserSitesFilters = await AuthorizationService.checkAndGetUserSitesAuthorizations(req.tenant,
       req.user, filteredRequest);
     if (!authorizationUserSitesFilters.authorized) {
       UtilsService.sendEmptyDataResult(res, next);
@@ -373,7 +372,7 @@ export default class UserService {
 
   public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Return
-    res.json(await UserService.getUsers(req, res, next));
+    res.json(await UserService.getUsers(req));
     next();
   }
 
@@ -381,7 +380,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersGetInError(req.query);
     // Get authorization filters
-    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizationFilters(
+    const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -400,7 +399,7 @@ export default class UserService {
       authorizationUserInErrorFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUserInErrorFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUserInErrorFilters);
     res.json(users);
     next();
   }
@@ -503,7 +502,7 @@ export default class UserService {
                 action: action,
                 user: req.user.id,
                 message: `Exception while parsing the CSV '${filename}': ${error.message}`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -576,7 +575,7 @@ export default class UserService {
                 action: action,
                 user: req.user.id,
                 message: `Invalid Json file '${filename}'`,
-                detailedMessages: { error: error.message, stack: error.stack }
+                detailedMessages: { error: error.stack }
               });
               if (!res.headersSent) {
                 res.writeHead(HTTPError.INVALID_FILE_FORMAT);
@@ -611,19 +610,21 @@ export default class UserService {
   }
 
   public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!(await Authorizations.canCreateUser(req.user)).authorized) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.USER,
-        module: MODULE_NAME, method: 'handleCreateUser'
-      });
-    }
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUserCreate(req.body);
     // Check Mandatory fields
     UtilsService.checkIfUserValid(filteredRequest, null, req);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetUserAuthorizations(
+      req.tenant, req.user, {}, Action.CREATE, filteredRequest);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: Action.READ, entity: Entity.SITE,
+        module: MODULE_NAME, method: 'handleCreateSite'
+      });
+    }
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {
@@ -721,7 +722,7 @@ export default class UserService {
         action: action,
         user: user.id,
         message: `Cannot import ${error.writeErrors.length as number} users!`,
-        detailedMessages: { error: error.message, stack: error.stack, tagsError: error.writeErrors }
+        detailedMessages: { error: error.stack, tagsError: error.writeErrors }
       });
     }
     usersToBeImported.length = 0;
@@ -766,11 +767,11 @@ export default class UserService {
     return Utils.isNullOrUndefined(headers) ? Constants.CR_LF + rows : [headers, rows].join(Constants.CR_LF);
   }
 
-  private static async getUsers(req: Request, res: Response, next: NextFunction): Promise<DataResult<User>> {
+  private static async getUsers(req: Request): Promise<DataResult<User>> {
     // Filter
     const filteredRequest = UserValidator.getInstance().validateUsersGet(req.query);
     // Get authorization filters
-    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizationFilters(
+    const authorizationUsersFilters = await AuthorizationService.checkAndGetUsersAuthorizations(
       req.tenant, req.user, filteredRequest);
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
@@ -786,9 +787,6 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
-        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null),
-        includeCarUserIDs: (filteredRequest.IncludeCarUserIDs ? filteredRequest.IncludeCarUserIDs.split('|') : null),
-        notAssignedToCarID: filteredRequest.NotAssignedToCarID,
         ...authorizationUsersFilters.filters
       },
       {
@@ -800,7 +798,7 @@ export default class UserService {
       authorizationUsersFilters.projectFields
     );
     // Add Auth flags
-    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users.result, authorizationUsersFilters);
+    await AuthorizationService.addUsersAuthorizations(req.tenant, req.user, users as UserDataResult, authorizationUsersFilters);
     // Return
     return users;
   }
@@ -827,7 +825,7 @@ export default class UserService {
         module: MODULE_NAME, method: 'importUser',
         action: action,
         message: 'User cannot be imported',
-        detailedMessages: { user: importedUser, error: error.message, stack: error.stack }
+        detailedMessages: { user: importedUser, error: error.stack }
       });
       return false;
     }
@@ -849,7 +847,7 @@ export default class UserService {
           method: 'checkBillingErrorCodes',
           action: action,
           message: `Start Transaction checks failed for ${user.id}`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
         // Billing module is ON but the settings are not set or inconsistent
         errorCodes.push(StartTransactionErrorCode.BILLING_INCONSISTENT_SETTINGS);
@@ -893,7 +891,7 @@ export default class UserService {
           message: 'Error occurred in billing system',
           module: MODULE_NAME, method: 'checkAndDeleteUserBilling',
           user: loggedUser, actionOnUser: user,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -928,34 +926,27 @@ export default class UserService {
           method: 'checkAndDeleteUserOCPI',
           action: ServerAction.USER_DELETE,
           message: `Unable to disable tokens of user ${user.id} with IOP`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
   }
 
-  private static async checkAndDeleteUserCar(tenant: Tenant, loggedUser: UserToken, user: User) {
+  private static async checkAndDeleteCar(tenant: Tenant, loggedUser: UserToken, user: User) {
     // Delete cars
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.CAR)) {
-      const carUsers = await CarStorage.getCarUsers(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-      if (carUsers.count > 0) {
-        for (const carUser of carUsers.result) {
-          // Owner ?
-          if (carUser.owner) {
-            // Private ?
-            const car = await CarStorage.getCar(tenant, carUser.carID, { type: CarType.PRIVATE });
-            if (car) {
-              // Delete All Users Car
-              await CarStorage.deleteCarUsersByCarID(tenant, car.id);
-              // Delete Car
-              await CarStorage.deleteCar(tenant, car.id);
-            } else {
-              // Delete User Car
-              await CarStorage.deleteCarUser(tenant, carUser.id);
-            }
+      const cars = await CarStorage.getCars(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (!Utils.isEmptyArray(cars.result)) {
+        for (const car of cars.result) {
+          // Delete private Car
+          if (car.type === CarType.PRIVATE) {
+            // Delete Car
+            await CarStorage.deleteCar(tenant, car.id);
           } else {
-            // Delete User Car
-            await CarStorage.deleteCarUser(tenant, carUser.id);
+            // Clear User
+            car.userID = null;
+            car.default = false;
+            await CarStorage.saveCar(tenant, car);
           }
         }
       }
@@ -974,7 +965,7 @@ export default class UserService {
             module: MODULE_NAME, method: 'updateUserBilling',
             user: loggedUser, actionOnUser: user,
             message: 'User cannot be updated in billing system',
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }

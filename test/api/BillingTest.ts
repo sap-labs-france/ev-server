@@ -11,7 +11,7 @@ import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
-import { DataResult } from '../types/DataResult';
+import { DataResult } from '../../src/types/DataResult';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectID } from 'mongodb';
@@ -425,6 +425,29 @@ describe('Billing Service', function() {
       await testData.billingImpl.forceSynchronizeUser(basicUser);
     });
 
+    xdescribe('Tune user profiles', () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      before(async () => {
+        testData.userContext = testData.adminUserContext;
+        assert(testData.userContext, 'User context cannot be null');
+        testData.userService = testData.adminUserService;
+        assert(!!testData.userService, 'User service cannot be null');
+        // await testData.setBillingSystemValidCredentials();
+      });
+
+      it('Should change admin user locale to fr_FR', async () => {
+        const user: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        const { id, email, name, firstName } = user;
+        await testData.userService.updateEntity(testData.userService.userApi, { id, email, name, firstName, locale: 'fr_FR' }, true);
+      });
+
+      it('Should change basic user locale to es_ES', async () => {
+        const user: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        const { id, email, name, firstName } = user;
+        await testData.userService.updateEntity(testData.userService.userApi, { id, email, name, firstName, locale: 'es_ES' }, true);
+      });
+    });
+
     describe('Where admin user (essential)', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
@@ -478,9 +501,6 @@ describe('Billing Service', function() {
         testData.createdUsers.push(fakeUser);
         // Let's check that the corresponding billing user exists as well (a Customer in the STRIPE DB)
         let billingUser = await testData.billingImpl.getUser(fakeUser);
-        if (!billingUser && !FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-          billingUser = await testData.billingImpl.forceSynchronizeUser(fakeUser);
-        }
         expect(billingUser).to.be.not.null;
         // Let's update the new user
         fakeUser.firstName = 'Test';
@@ -491,9 +511,6 @@ describe('Billing Service', function() {
           fakeUser,
           false
         );
-        if (!FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-          billingUser = await testData.billingImpl.forceSynchronizeUser(fakeUser);
-        }
         // Let's check that the corresponding billing user was updated as well
         billingUser = await testData.billingImpl.getUser(fakeUser);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
@@ -731,11 +748,7 @@ describe('Billing Service', function() {
         );
         testData.createdUsers.push(fakeUser);
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
-        if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-          await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
-        } else {
-          await testData.userService.billingApi.forceSynchronizeUser(fakeUser);
-        }
+        await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
         const userExists = await testData.billingImpl.isUserSynchronized(fakeUser);
         expect(userExists).to.be.true;
       });

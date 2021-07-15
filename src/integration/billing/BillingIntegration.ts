@@ -8,7 +8,7 @@ import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -89,36 +89,26 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-      try {
-        billingUser = await this._synchronizeUser(user);
-        await Logging.logInfo({
-          tenantID: this.tenant.id,
-          actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
-        });
-        return billingUser;
-      } catch (error) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
-    } else {
-      await Logging.logWarning({
+    try {
+      billingUser = await this._synchronizeUser(user);
+      await Logging.logInfo({
         tenantID: this.tenant.id,
+        actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
-        message: 'Feature is switched OFF - operation has been aborted'
+        message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
+      });
+      return billingUser;
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        actionOnUser: user,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USER,
+        module: MODULE_NAME, method: 'synchronizeUser',
+        message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
+        detailedMessages: { error: error.stack }
       });
     }
     return billingUser;
@@ -153,7 +143,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
         message: `Failed to force the synchronization of user: '${user.id}' - '${user.email}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     return billingUser;
@@ -195,7 +185,7 @@ export default abstract class BillingIntegration {
       for (const invoice of invoices.result) {
         try {
           // Skip invoices that are already PAID or not relevant for the current billing process
-          if (this.invoiceMustBeSkipped(invoice)) {
+          if (this.isInvoiceOutOfPeriodicOperationScope(invoice)) {
             continue;
           }
           // Make sure to avoid trying to charge it again too soon
@@ -204,18 +194,22 @@ export default abstract class BillingIntegration {
             await Logging.logWarning({
               tenantID: this.tenant.id,
               source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_CHARGE_INVOICE,
+              action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
               module: MODULE_NAME, method: 'chargeInvoices',
               message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
             });
             continue;
           }
-          await this.chargeInvoice(invoice);
+          const newInvoice = await this.chargeInvoice(invoice);
+          if (this.isInvoiceOutOfPeriodicOperationScope(newInvoice)) {
+            // The new invoice may now have a different status - and this impacts the pagination
+            skip--; // This is very important!
+          }
           await Logging.logInfo({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Successfully charged invoice '${invoice.id}'`
@@ -226,11 +220,11 @@ export default abstract class BillingIntegration {
           await Logging.logError({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Failed to charge invoice '${invoice.id}'`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
@@ -275,7 +269,7 @@ export default abstract class BillingIntegration {
         action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'sendInvoiceNotification',
         message: `Failed to send notification for invoice '${billingInvoice.id}'`,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       return false;
     }
@@ -304,15 +298,13 @@ export default abstract class BillingIntegration {
     }
     // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
-      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
-        throw new BackendError({
-          message: 'User has no Billing Data',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkStopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+      throw new BackendError({
+        message: 'User has no Billing Data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 
@@ -329,15 +321,13 @@ export default abstract class BillingIntegration {
     }
     // Check Billing Data (only in Live Mode)
     if (!transaction.user?.billingData?.customerID) {
-      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
-        throw new BackendError({
-          message: 'User has no billing data or no customer ID',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkStartTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+      throw new BackendError({
+        message: 'User has no billing data or no customer ID',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 
@@ -436,7 +426,7 @@ export default abstract class BillingIntegration {
           actionOnUser: invoice.user,
           module: MODULE_NAME, method: '_clearAllInvoiceTestData',
           message: `Failed to clear invoice test data - Invoice: '${invoice.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -481,7 +471,7 @@ export default abstract class BillingIntegration {
           action: ServerAction.BILLING_TEST_DATA_CLEANUP,
           module: MODULE_NAME, method: '_clearTransactionsTestData',
           message: 'Failed to clear transaction billing data',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }));
@@ -509,7 +499,7 @@ export default abstract class BillingIntegration {
           actionOnUser: user,
           module: MODULE_NAME, method: '_clearAllUsersTestData',
           message: `Failed to clear user test data - User: '${user.id}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -542,7 +532,7 @@ export default abstract class BillingIntegration {
     await UserStorage.saveUserBillingData(this.tenant.id, user.id, null);
   }
 
-  private invoiceMustBeSkipped(invoice: BillingInvoice): boolean {
+  private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {
     if (invoice.status === BillingInvoiceStatus.DRAFT && this.settings.billing?.periodicBillingAllowed) {
       return false;
     }
@@ -566,15 +556,25 @@ export default abstract class BillingIntegration {
       startDateTime = moment().date(0).date(1).startOf('day').toDate(); // 1st day of the previous month 00:00:00 (AM)
       endDateTime = moment().date(1).startOf('day').toDate(); // 1st day of this month 00:00:00 (AM)
     }
+    // Filter the invoice status based on the billing settings
+    let invoiceStatus;
+    if (this.settings.billing?.periodicBillingAllowed) {
+      // Let's finalize DRAFT invoices and trigger a payment attemnpt for unpaid invoices as well
+      invoiceStatus = [ BillingInvoiceStatus.DRAFT, BillingInvoiceStatus.OPEN ];
+    } else {
+      // Let's trigger a new payment attemnpt for unpaid invoices
+      invoiceStatus = [ BillingInvoiceStatus.OPEN ];
+    }
     // Now return the query parameters
     return {
-      // ------------------------------------------------------------------------------
-      // ACHTUNG!!! Make sure not to filter on data which is changed while paginating!
-      // Filtering on the invoice status is not possible here
-      // ------------------------------------------------------------------------------
+      // --------------------------------------------------------------------------------
+      // ACHTUNG!!! Make sure to adapt the paging logic when the data used for filtering
+      // is also updated by the periodic operation
+      // --------------------------------------------------------------------------------
       filter: {
         startDateTime,
-        endDateTime
+        endDateTime,
+        invoiceStatus
       },
       limit,
       sort: { createdOn: 1 } // Sort by creation date - process the eldest first!

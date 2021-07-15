@@ -121,7 +121,7 @@ export default class ChargingStationService {
               action: action,
               user: req.user,
               message: `Unable to remove charging station ${chargingStation.id} from IOP`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              detailedMessages: { error: error.stack }
             });
           }
         }
@@ -153,7 +153,7 @@ export default class ChargingStationService {
               action: action,
               user: req.user,
               message: `Unable to insert or remove charging station ${chargingStation.id} from HBS`,
-              detailedMessages: { error: error.message, stack: error.stack }
+              detailedMessages: { error: error.stack }
             });
           }
         }
@@ -261,8 +261,9 @@ export default class ChargingStationService {
           action: action
         });
       }
-      chargingStation.siteAreaID = siteArea.id;
+      chargingStation.companyID = siteArea.site?.companyID;
       chargingStation.siteID = siteArea.siteID;
+      chargingStation.siteAreaID = siteArea.id;
       // Check if number of phases corresponds to the site area one
       for (const connector of chargingStation.connectors) {
         const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
@@ -283,8 +284,9 @@ export default class ChargingStationService {
       }
     } else {
       delete chargingStation.excludeFromSmartCharging;
-      chargingStation.siteAreaID = null;
+      chargingStation.companyID = null;
       chargingStation.siteID = null;
+      chargingStation.siteAreaID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
@@ -310,7 +312,7 @@ export default class ChargingStationService {
           message: 'Error occurred while restarting the charging station',
           module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
           user: req.user, actionOnUser: req.user,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: error.stack }
         });
       }
     }
@@ -325,7 +327,6 @@ export default class ChargingStationService {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -475,7 +476,6 @@ export default class ChargingStationService {
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: { result }
     });
-    // Ok
     res.json({ status: result.status });
     next();
   }
@@ -588,7 +588,6 @@ export default class ChargingStationService {
         await LockingManager.release(siteAreaLock);
       }
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -702,10 +701,9 @@ export default class ChargingStationService {
         message: 'Error occurred while clearing Charging Profile',
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
         user: req.user, actionOnUser: req.user,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -763,7 +761,6 @@ export default class ChargingStationService {
     if (filteredRequest.forceUpdateOCPPParamsFromTemplate) {
       result = await OCPPUtils.updateChargingStationOcppParametersWithTemplate(req.tenant, chargingStation);
     }
-    // Ok
     res.json(result);
     next();
   }
@@ -860,16 +857,15 @@ export default class ChargingStationService {
             action: action,
             user: req.user,
             message: `Unable to remove charging station ${chargingStation.id} from HBS`,
-            detailedMessages: { error: error.message, stack: error.stack }
+            detailedMessages: { error: error.stack }
           });
         }
       }
     }
-    // Remove Site Area
-    chargingStation.siteArea = null;
-    chargingStation.siteAreaID = null;
-    // Remove Site
+    // Remove Org
+    chargingStation.companyID = null;
     chargingStation.siteID = null;
+    chargingStation.siteAreaID = null;
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
@@ -877,12 +873,13 @@ export default class ChargingStationService {
       { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_COUNT_ONLY);
     if (transactions.count > 0) {
       // Delete logically
-      await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(req.tenant.id, chargingStation);
+      // Delete Charging Profiles
+      await ChargingStationStorage.deleteChargingProfiles(req.tenant.id, chargingStation.id);
     } else {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
     }
-    // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
@@ -890,7 +887,6 @@ export default class ChargingStationService {
       action: action,
       detailedMessages: { chargingStation }
     });
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -912,7 +908,7 @@ export default class ChargingStationService {
     }
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ID, action, {
+      req.tenant, req.user, filteredRequest.ID, action, null, {
         withLogo: true
       }, true);
     res.json(chargingStation);
@@ -950,7 +946,7 @@ export default class ChargingStationService {
       // Get OCPP Params
       const dataToExport = ChargingStationService.convertOCPPParamsToCSV({
         params: ocppParameters.result,
-        siteName: chargingStation.siteArea.site.name,
+        siteName: chargingStation.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
       }, writeHeader);
@@ -1114,7 +1110,7 @@ export default class ChargingStationService {
         action: action,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
-        detailedMessages: { error: error.message, stack: error.stack },
+        detailedMessages: { error: error.stack },
       });
       // Remove file related headers
       res.setHeader('Content-Type', 'text/plain');
@@ -1140,7 +1136,7 @@ export default class ChargingStationService {
     // Backward compatibility for the mobile application
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const command = action.slice(15) as Command;
+    const command = action.slice('RestChargingStation'.length) as Command;
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
@@ -1323,7 +1319,6 @@ export default class ChargingStationService {
     }
     // Check
     await smartCharging.checkConnection();
-    // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -1340,6 +1335,13 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationsGetReq(req.query);
+    // Create GPS Coordinates
+    if (filteredRequest.LocLongitude && filteredRequest.LocLatitude) {
+      filteredRequest.LocCoordinates = [
+        Utils.convertToFloat(filteredRequest.LocLongitude),
+        Utils.convertToFloat(filteredRequest.LocLatitude)
+      ];
+    }
     // Check Users
     let userProject: string[] = [];
     if ((await Authorizations.canListUsers(req.user)).authorized) {
@@ -1349,10 +1351,10 @@ export default class ChargingStationService {
     if (!projectFields) {
       projectFields = [
         'id', 'inactive', 'connectorsStatus', 'connectorsConsumption', 'public', 'firmwareVersion', 'chargePointVendor', 'chargePointModel',
-        'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage',
-        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'siteArea.site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
+        'ocppVersion', 'ocppProtocol', 'lastSeen', 'firmwareUpdateStatus', 'coordinates', 'issuer', 'voltage', 'distanceMeters',
+        'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'site.name', 'siteArea.address', 'siteID', 'maximumPower', 'powerLimitUnit',
         'chargePointModel', 'chargePointSerialNumber', 'chargeBoxSerialNumber', 'connectors.connectorId', 'connectors.status', 'connectors.type', 'connectors.power', 'connectors.errorCode',
-        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge',
+        'connectors.currentTotalConsumptionWh', 'connectors.currentInstantWatts', 'connectors.currentStateOfCharge', 'connectors.info',
         'connectors.currentTransactionID', 'connectors.currentTotalInactivitySecs', 'connectors.currentTagID', 'chargePoints', 'lastReboot', 'createdOn',
         ...userProject
       ];
@@ -1378,12 +1380,14 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
+        withSiteArea: filteredRequest.WithSiteArea,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
         connectorStatuses: filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null,
         connectorTypes: filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null,
         issuer: filteredRequest.Issuer,
         siteIDs: siteIDs,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,
+        companyIDs: filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null,
         includeDeleted: filteredRequest.IncludeDeleted,
         locCoordinates: filteredRequest.LocCoordinates,
         locMaxDistanceMeters: filteredRequest.LocMaxDistanceMeters,
@@ -1693,7 +1697,6 @@ export default class ChargingStationService {
           });
           break;
       }
-      // Ok?
       if (result) {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
@@ -1738,7 +1741,7 @@ export default class ChargingStationService {
         message: `OCPP Command '${command}' has failed`,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         user: user,
-        detailedMessages: { error: error.message, stack: error.stack, params }
+        detailedMessages: { error: error.stack, params }
       });
     }
   }
@@ -1792,8 +1795,6 @@ export default class ChargingStationService {
       });
     }
     // Apply & Save charging plan
-    const chargingProfileID = await OCPPUtils.setAndSaveChargingProfile(req.tenant, filteredRequest);
-    // Ok
-    return chargingProfileID;
+    return OCPPUtils.setAndSaveChargingProfile(req.tenant, filteredRequest);
   }
 }

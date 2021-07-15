@@ -7,6 +7,10 @@ export default class CarApi extends CrudApi {
     super(authenticatedApi);
   }
 
+  public async readById(id): Promise<any> {
+    return super.readById(id, '/client/api/Car');
+  }
+
   public async readCarCatalog(id) {
     return super.read({ ID: id }, '/client/api/CarCatalog');
   }
@@ -42,9 +46,4 @@ export default class CarApi extends CrudApi {
   public async delete(id) {
     return super.delete(id, '/client/api/CarDelete');
   }
-
-  public async readCarUsers(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, '/client/api/CarUsers');
-  }
-
 }

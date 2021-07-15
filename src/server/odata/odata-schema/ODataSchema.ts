@@ -48,7 +48,7 @@ export default class ODataSchema {
         source: 'ODataServer', method: 'getSchema',
         action: ServerAction.ODATA_SERVER,
         message: 'Unauthorized Access',
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       res.send(StatusCodes.UNAUTHORIZED);
       return;

@@ -24,7 +24,7 @@ export default class OICPPushEvseStatusTask extends SchedulerTask {
       // Check if OICP component is active
       if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
         // Get all available endpoints
-        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant.id, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+        const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const oicpEndpoint of oicpEndpoints.result) {
           await this.processOICPEndpoint(tenant, oicpEndpoint, config);
         }

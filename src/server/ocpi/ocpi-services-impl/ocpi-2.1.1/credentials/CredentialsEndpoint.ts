@@ -227,7 +227,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
     }
     // Generate new token

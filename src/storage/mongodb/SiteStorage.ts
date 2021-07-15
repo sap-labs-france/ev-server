@@ -470,7 +470,7 @@ export default class SiteStorage {
         if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
         // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
-            { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
+            { siteIDs: [siteMDB.id], includeDeleted: false, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
           // Skip site with no charging stations if asked
           if (params.withOnlyChargingStations && chargingStations.count === 0) {
             continue;

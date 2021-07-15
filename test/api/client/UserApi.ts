@@ -61,7 +61,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async exportTags(params) {
-    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAG_EXPORT));
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TAGS_EXPORT));
   }
 
   public async exportUsers(params) {

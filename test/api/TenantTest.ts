@@ -140,13 +140,6 @@ describe('Tenant', function() {
   });
 
   describe('Error cases', () => {
-    it('Should not be possible to read an empty tenant', async () => {
-      // Exec
-      const response = await CentralServerService.defaultInstance.getEntityById(
-        CentralServerService.defaultInstance.tenantApi, { id: '' }, false);
-      // Check
-      expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
-    });
 
     it('Should not be possible to read an invalid tenant', async () => {
       // Exec

@@ -73,7 +73,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleClearBillingTestData',
         message: 'Failed to clear billing test data',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       const operationResult: BillingOperationResult = {
         succeeded: false,
@@ -120,7 +120,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',
         action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
@@ -509,67 +509,6 @@ export default class BillingService {
     next();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
-  public static async handleCreateTransactionInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // TODO - no use-case for this endpoint so far!
-    throw new Error('Method not implemented.');
-    // // Check if component is active
-    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-    //   Action.CREATE, Entity.INVOICE, MODULE_NAME, 'handleCreateTransactionInvoice');
-    // // Check Auth
-    // if (!await Authorizations.canCreateTransactionInvoice(req.user)) {
-    //   throw new AppAuthError({
-    //     errorCode: HTTPAuthError.FORBIDDEN,
-    //     user: req.user,
-    //     entity: Entity.INVOICE, action: Action.CREATE,
-    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-    //   });
-    // }
-    // const filteredRequest = BillingSecurity.filterLinkTransactionToInvoiceRequest(req.body);
-    // // Get Billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    // if (!billingImpl) {
-    //   throw new AppError({
-    //     source: Constants.CENTRAL_SERVER,
-    //     errorCode: HTTPError.GENERAL_ERROR,
-    //     message: 'Billing service is not configured',
-    //     module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-    //     action: action,
-    //     user: req.user
-    //   });
-    // }
-    // // Get the Transaction
-    // const transaction = await TransactionStorage.getTransaction(req.user.tenantID,
-    //   Utils.convertToInt(filteredRequest.transactionID));
-    // UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionID}' does not exist`,
-    //   MODULE_NAME, 'handleCreateTransactionInvoice', req.user);
-    // Create an invoice for the transaction
-    // ----------------------------------------------------------------------
-    // TODO - Rethink that part!
-    // Calling StopTransaction without calling startTransaction may have
-    // unpredictable side-effects.
-    // ----------------------------------------------------------------------
-    // const billingDataStop = await billingImpl.stopTransaction(transaction);
-    // // Update transaction billing data
-    // if (transaction.billingData) {
-    //   transaction.billingData.stop = billingDataStop;
-    //   transaction.billingData.lastUpdate = new Date();
-    // }
-    // // Save it
-    // await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-    // // Ok
-    // await Logging.logInfo({
-    //   tenantID: req.user.tenantID,
-    //   user: req.user, actionOnUser: transaction.userID,
-    //   module: MODULE_NAME, method: 'handleCreateTransactionInvoice',
-    //   message: `Transaction ID '${transaction.id}' has been billed successfully`,
-    //   action: action,
-    // });
-    // Ok
-    // res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS));
-    // next();
-  }
-
   public static async handleBillingSetupPaymentMethod(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -749,49 +688,6 @@ export default class BillingService {
     res.attachment(fileName);
     res.setHeader('Content-Type', 'application/pdf');
     res.end(buffer, 'binary');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
-  public static async handleBillingChargeInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
-    // TODO - no use-case for this endpoint so far! - only used for troubleshooting!
-    throw new Error('Method not implemented.');
-    // // Check if component is active
-    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-    //   Action.BILLING_CHARGE_INVOICE, Entity.INVOICE, MODULE_NAME, 'handleBillingChargeInvoice');
-    // // Filter
-    // const filteredRequest = BillingSecurity.filterChargeInvoiceRequest(req.body);
-    // // Get the Invoice
-    // const invoice = await BillingStorage.getInvoice(req.user.tenantID, filteredRequest.ID); // ID of the Billing Invoice (not the stripe invoice)
-    // UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.ID}' does not exist`,
-    //   MODULE_NAME, 'handleDownloadInvoice', req.user);
-    // // Check Auth
-    // // if (!await Authorizations.canChargeInvoice(req.user, invoice.userID)) {
-    // //   throw new AppAuthError({
-    // //     errorCode: HTTPAuthError.ERROR,
-    // //     user: req.user,
-    // //     entity: Entity.INVOICE, action: Action.CHARGE_INVOICE,
-    // //     module: MODULE_NAME, method: 'handleBillingChargeInvoice',
-    // //   });
-    // // }
-    // // Get the billing impl
-    // const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    // if (!billingImpl) {
-    //   throw new AppError({
-    //     source: Constants.CENTRAL_SERVER,
-    //     errorCode: HTTPError.GENERAL_ERROR,
-    //     message: 'Billing service is not configured',
-    //     module: MODULE_NAME, method: 'handleBillingChargeInvoice',
-    //     action: action,
-    //     user: req.user
-    //   });
-    // }
-    // // Invoke the billing implementation (stripe)
-    // let billingInvoice:BillingInvoice = await billingImpl.getInvoice(invoice.invoiceID);
-    // billingInvoice = await billingImpl.chargeInvoice(billingInvoice);
-    // res.json({
-    //   succeeded: true,
-    //   status: billingInvoice.status
-    // });
   }
 
   public static async handleBillingWebHook(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {

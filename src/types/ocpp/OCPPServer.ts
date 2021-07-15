@@ -357,6 +357,7 @@ export interface OCPPStartTransactionRequestExtended extends OCPPStartTransactio
   userID: string;
   siteAreaID: string;
   siteID: string;
+  companyID: string;
 }
 
 export interface OCPPStartTransactionResponse {

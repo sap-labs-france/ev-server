@@ -153,7 +153,7 @@ export default abstract class AbstractOICPService {
         module: MODULE_NAME, method: endpointName,
         message: `<< OICP Response Error ${req.method} ${req.originalUrl}`,
         action: ServerAction.OICP_ENDPOINT,
-        detailedMessages: { error: error.message, stack: error.stack }
+        detailedMessages: { error: error.stack }
       });
       await Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, ServerAction.OICP_ENDPOINT, error);
       let errorCode: any = {};

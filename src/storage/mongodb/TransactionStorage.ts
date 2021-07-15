@@ -19,7 +19,7 @@ const MODULE_NAME = 'TransactionStorage';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transactionID: number): Promise<void> {
-    await this.deleteTransactions(tenantID, [transactionID]);
+    await TransactionStorage.deleteTransactions(tenantID, [transactionID]);
   }
 
   public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
@@ -53,6 +53,7 @@ export default class TransactionStorage {
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
       issuer: Utils.convertToBoolean(transactionToSave.issuer),
+      companyID: DatabaseUtils.convertToObjectID(transactionToSave.companyID),
       siteID: DatabaseUtils.convertToObjectID(transactionToSave.siteID),
       siteAreaID: DatabaseUtils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
@@ -111,6 +112,7 @@ export default class TransactionStorage {
         timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
         tagID: transactionToSave.stop.tagID,
         meterStop: transactionToSave.stop.meterStop,
+        reason: transactionToSave.stop.reason,
         transactionData: transactionToSave.stop.transactionData,
         stateOfCharge: Utils.convertToInt(transactionToSave.stop.stateOfCharge),
         signedData: transactionToSave.stop.signedData,
@@ -272,7 +274,7 @@ export default class TransactionStorage {
         chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
-        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string;
+        ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
         statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
@@ -614,18 +616,39 @@ export default class TransactionStorage {
         }
       });
     }
-    // Transaction tag
+    // Tag
     if (params.withTag) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
         foreignField: '_id', oneToOneCardinality: true
       });
     }
-    // Charge Box
+    // Charging Station
     DatabaseUtils.pushChargingStationLookupInAggregation({
       tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
       asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
+    // Company
+    if (params.withCompany) {
+      DatabaseUtils.pushCompanyLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'companyID', foreignField: '_id',
+        asField: 'company', oneToOneCardinality: true
+      });
+    }
+    // Site
+    if (params.withSite) {
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
+    }
+    // Site Area
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true
+      });
+    }
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     // Add Connector and Status
     if (projectFields && projectFields.includes('status')) {
@@ -895,7 +918,7 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charging Station?
+    // Charging Station
     if (params.withChargingStations ||
       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
@@ -905,10 +928,15 @@ export default class TransactionStorage {
       });
       DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
     }
-    // Add respective users
+    // User
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
       foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
+    // Car Catalog
+    DatabaseUtils.pushCarCatalogLookupInAggregation({
+      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+      foreignField: '_id', oneToOneCardinality: true
     });
     // Used only in the error type : missing_user
     if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
@@ -924,7 +952,7 @@ export default class TransactionStorage {
       const array = [];
       for (const type of params.errorType) {
         array.push(`$${type}`);
-        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
+        facets.$facet[type] = TransactionStorage.getTransactionsInErrorFacet(type);
       }
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -1256,8 +1284,13 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.NO_CONSUMPTION:
         return [
-          { $match: { 'stop.totalConsumptionWh': { $lte: 0 } } },
+          { $match: { 'stop.totalConsumptionWh': { $eq: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.NO_CONSUMPTION } }
+        ];
+      case TransactionInErrorType.LOW_CONSUMPTION:
+        return [
+          { $match: { 'stop.totalConsumptionWh': { $gt: 0, $lt: 1000 } } },
+          { $addFields: { 'errorCode': TransactionInErrorType.LOW_CONSUMPTION } }
         ];
       case TransactionInErrorType.NEGATIVE_ACTIVITY:
         return [
@@ -1275,6 +1308,11 @@ export default class TransactionStorage {
         return [
           { $match: { 'stop.totalDurationSecs': { $lt: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.NEGATIVE_DURATION } }
+        ];
+      case TransactionInErrorType.LOW_DURATION:
+        return [
+          { $match: { 'stop.totalDurationSecs': { $gte: 0, $lt: 60 } } },
+          { $addFields: { 'errorCode': TransactionInErrorType.LOW_DURATION } }
         ];
       case TransactionInErrorType.INVALID_START_DATE:
         return [
@@ -1301,15 +1339,7 @@ export default class TransactionStorage {
         return [
           {
             $match: {
-              $and: [
-                {
-                  $or: [
-                    { 'userID': null },
-                    { 'user': null },
-                  ]
-                },
-                { 'siteArea.accessControl': { '$eq': true } }
-              ]
+              'userID': null,
             }
           },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
@@ -1325,8 +1355,6 @@ export default class TransactionStorage {
                     { 'billingData': { $exists: false } },
                     { 'billingData.stop': { $exists: false } },
                     { 'billingData.stop.status': { $eq: BillingStatus.FAILED } },
-                    // { 'billingData.stop.invoiceID': { $exists: false } },
-                    // { 'billingData.stop.invoiceID': { $eq: null } }
                   ]
                 }
               ]

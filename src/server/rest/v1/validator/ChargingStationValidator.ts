@@ -1,11 +1,9 @@
 import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
-import Utils from '../../../../utils/Utils';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';
 
@@ -62,12 +60,6 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationsGetReq(data: any): HttpChargingStationsRequest {
     // Validate schema
     this.validate(this.chargingStationsGet, data);
-    if (data.LocLongitude && data.LocLatitude) {
-      data.LocCoordinates = [
-        Utils.convertToFloat(data.LocLongitude),
-        Utils.convertToFloat(data.LocLatitude)
-      ];
-    }
     return data;
   }
 

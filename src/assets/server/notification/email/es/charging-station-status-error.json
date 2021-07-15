@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Un usuario desconocido tiene una insignia",
+  "subject": "'<%- chargeBoxID %>' - Conector '<%- connectorId %>' - '<%- error %>'",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Un usuario desconocido tiene una insignia",
+      "title": "Error en la terminal",
       "image": {
         "left": {
           "height": 60,
@@ -19,17 +19,16 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "Un usuario desconocido acaba de conectarse a <strong> '<% - chargeBoxID%>' </strong> con el ID de la insignia <strong> '<% - badgeID%>' </strong>."
+      "Se produjo un error en <strong> '<%- chargeBoxID%>' </strong>, conector <strong> '<%- connectorId%>' </strong>: <strong> <%- error%> </ b>. "
     ],
     "actions": [{
-      "title": "Editar Insignia",
-      "url": "<%- evseDashboardTagURL %>"
-    }],
+        "title": "Ver Error",
+        "url": "<%- evseDashboardChargingStationURL %>"
+      }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 }
