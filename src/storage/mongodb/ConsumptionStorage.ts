@@ -311,10 +311,10 @@ export default class ConsumptionStorage {
       .toArray();
 
     const siteAreaData: SiteAreaValues = {
-      assetConsumptions: consumptionsMDB[0]['assetConsumptions'],
-      assetProductions: consumptionsMDB[0]['assetProductions'],
-      chargingStationConsumptions: consumptionsMDB[0]['chargingStationConsumptions'],
-      netConsumptions: consumptionsMDB[0]['netConsumptions']
+      assetConsumptions: consumptionsMDB[0][SiteAreaValueTypes.ASSET_CONSUMPTIONS],
+      assetProductions: consumptionsMDB[0][SiteAreaValueTypes.ASSET_PRODUCTIONS],
+      chargingStationConsumptions: consumptionsMDB[0][SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS],
+      netConsumptions: consumptionsMDB[0][SiteAreaValueTypes.NET_CONSUMPTIONS]
     };
 
     // Debug
