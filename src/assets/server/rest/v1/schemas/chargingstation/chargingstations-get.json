@@ -62,6 +62,17 @@
       "sanitize": "mongo",
       "exclusiveMinimum": 0
     },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "in-error"
+      ],
+      "sanitize": "mongo"
+    },
     "Limit": {
       "$ref": "common.json#/definitions/limit"
     },

@@ -4,7 +4,7 @@ import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import Schema from '../../../../types/validator/Schema';
-import SchemaValidator from './SchemaValidator';
+import SchemaValidator from '../../SchemaValidator';
 import Tenant from '../../../../types/Tenant';
 import fs from 'fs';
 import global from '../../../../types/GlobalType';

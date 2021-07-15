@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "424a6ba2-0c9e-4e7e-9ea2-23b30933aa44",
+		"_postman_id": "e1f068bb-7c03-4826-a627-24d827203a9f",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -2019,81 +2019,91 @@
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithSite",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorStatus",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ChargingStationID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "IncludeDeleted",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLongitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLatitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocMaxDistanceMeters",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "Status",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "ErrorType",
 							"value": null,
 							"disabled": true
 						}
@@ -2297,7 +2307,7 @@
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -2512,16 +2522,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/api/charging-stations/status/in-error",
+					"raw": "{{base_url}}/v1/api/charging-stations?Status=in-error",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
 						"api",
-						"charging-stations",
-						"status",
-						"in-error"
+						"charging-stations"
 					],
 					"query": [
 						{
@@ -2568,6 +2576,10 @@
 							"key": "ProjectFields",
 							"value": null,
 							"disabled": true
+						},
+						{
+							"key": "Status",
+							"value": "in-error"
 						}
 					]
 				}
@@ -2609,82 +2621,82 @@
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteAreaID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "WithNoSiteArea",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorStatus",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ConnectorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ChargingStationID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "IncludeDeleted",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLongitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocLatitude",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "LocMaxDistanceMeters",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -3075,57 +3087,57 @@
 					"query": [
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Role",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Status",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -3193,7 +3205,7 @@
 					"query": [
 						{
 							"key": "Role",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3203,22 +3215,22 @@
 						},
 						{
 							"key": "ErrorType",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3261,22 +3273,22 @@
 					"query": [
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SiteID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3286,27 +3298,27 @@
 						},
 						{
 							"key": "Status",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Limit",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
@@ -3748,42 +3760,42 @@
 					"query": [
 						{
 							"key": "Active",
-							"value": null
+							"value": ""
 						},
 						{
 							"key": "Issuer",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "UserID",
-							"value": null,
+							"value": "",
 							"description": "Pipe separated user ids",
 							"disabled": true
 						},
 						{
 							"key": "Search",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "SortFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "Skip",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "OnlyRecordCount",
-							"value": null,
+							"value": "",
 							"disabled": true
 						},
 						{
 							"key": "ProjectFields",
-							"value": null,
+							"value": "",
 							"disabled": true
 						}
 					]
@@ -3870,12 +3882,7 @@
 				"header": [],
 				"body": {
 					"mode": "file",
-					"file": {},
-					"options": {
-						"raw": {
-							"language": "text"
-						}
-					}
+					"file": {}
 				},
 				"url": {
 					"raw": "{{base_url}}/v1/api/tags/action/import",
