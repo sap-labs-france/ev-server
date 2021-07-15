@@ -123,18 +123,6 @@ export default abstract class WSConnection {
       // Check Tenant?
       await DatabaseUtils.checkTenant(this.tenantID);
       this.validTenant = true;
-      // Update the Charging Station
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID(), {}, ['id']);
-      if (chargingStation) {
-        // Update Last Seen
-        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
-          chargingStation.id, { lastSeen: new Date() });
-        // Update CF Instance
-        if (Configuration.isCloudFoundry()) {
-          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
-            this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
-        }
-      }
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);

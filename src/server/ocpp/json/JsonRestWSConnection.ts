@@ -25,9 +25,7 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!this.initialized) {
       // Call super class
       await super.initialize();
-      // Ok
       this.initialized = true;
-      // Log
       await Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
