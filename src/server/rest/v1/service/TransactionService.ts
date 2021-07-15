@@ -533,7 +533,7 @@ export default class TransactionService {
       if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel',
           'carCatalog.vehicleModelVersion', 'carCatalog.image',
         ];
       }
@@ -553,7 +553,7 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId,
-      { withTag: filteredRequest.WithTag }, projectFields);
+      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar }, projectFields);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
@@ -881,7 +881,7 @@ export default class TransactionService {
       if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
         ];
       }
     }
@@ -1080,7 +1080,7 @@ export default class TransactionService {
       if (await Authorizations.canListCars(req.user)) {
         projectFields = [
           ...projectFields,
-          'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+          'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
         ];
       }
       if (await Authorizations.canUpdateCar(req.user)) {
@@ -1105,7 +1105,7 @@ export default class TransactionService {
     if (!Utils.isEmptyArray(httpProjectFields)) {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
-    // Check Visual Tag IDs
+    // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
       const tagIDs = await TagStorage.getTags(req.tenant.id, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
@@ -1122,6 +1122,9 @@ export default class TransactionService {
         tagIDs: filteredRequest.TagID ? filteredRequest.TagID.split('|') : null,
         ownerID: Authorizations.isBasic(req.user) ? req.user.id : null,
         withTag: filteredRequest.WithTag,
+        withUser: filteredRequest.WithUser,
+        withChargingStation: filteredRequest.WithChargingStation,
+        withCar: filteredRequest.WithCar,
         withSite: filteredRequest.WithSite,
         withCompany: filteredRequest.WithCompany,
         siteAreaIDs: filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null,

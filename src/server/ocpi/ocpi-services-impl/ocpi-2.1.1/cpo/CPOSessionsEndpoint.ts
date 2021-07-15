@@ -72,10 +72,9 @@ export default class CPOSessionsEndpoint extends AbstractEndpoint {
     // Result
     const sessions: OCPISession[] = [];
     // Get all transactions
-    const transactions = await TransactionStorage.getTransactions(tenant.id, { issuer: true, ocpiSessionDateFrom: dateFrom, ocpiSessionDateTo: dateTo }, {
-      limit,
-      skip
-    });
+    const transactions = await TransactionStorage.getTransactions(tenant.id,
+      { issuer: true, ocpiSessionDateFrom: dateFrom, ocpiSessionDateTo: dateTo },
+      { limit, skip }, ['ocpiData']);
     for (const transaction of transactions.result) {
       sessions.push(transaction.ocpiData.session);
     }

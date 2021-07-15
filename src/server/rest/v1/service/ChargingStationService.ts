@@ -874,8 +874,8 @@ export default class ChargingStationService {
     chargingStation.deleted = true;
     // Check if charging station has had transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_COUNT_ONLY);
-    if (transactions.count > 0) {
+      { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    if (!Utils.isEmptyArray(transactions.result)) {
       // Delete logically
       await ChargingStationStorage.saveChargingStation(req.tenant.id, chargingStation);
       // Delete Charging Profiles

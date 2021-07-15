@@ -117,7 +117,7 @@ export default class TagService {
     }
     // Check if Tag has been already used
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD);
+      { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(transactions.result)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

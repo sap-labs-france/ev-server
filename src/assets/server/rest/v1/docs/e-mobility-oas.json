@@ -709,10 +709,19 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
             "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
           },
           {
             "$ref": "#/components/parameters/UserIDs"
@@ -6499,6 +6508,30 @@
         "in": "query",
         "name": "WithTag",
         "description": "With tag attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithUser": {
+        "in": "query",
+        "name": "WithUser",
+        "description": "With user attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithCar": {
+        "in": "query",
+        "name": "WithCar",
+        "description": "With car attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithChargingStation": {
+        "in": "query",
+        "name": "WithChargingStation",
+        "description": "With charging station attribute",
         "schema": {
           "type": "boolean"
         }

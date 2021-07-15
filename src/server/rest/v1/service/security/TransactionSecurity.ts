@@ -111,6 +111,9 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'WithTag')) {
       filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
     }
+    if (Utils.objectHasProperty(request, 'WithCar')) {
+      filteredRequest.WithCar = UtilsSecurity.filterBoolean(request.WithCar);
+    }
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }
