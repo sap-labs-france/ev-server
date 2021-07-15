@@ -20,7 +20,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll({ Status: 'in-error', ...params }, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}`);
+    return super.readAll({ Status: 'in-error', ...params }, paging, ordering, `/v2/api/${ServerRoute.REST_CHARGING_STATIONS}`);
   }
 
   public async update(data) {
