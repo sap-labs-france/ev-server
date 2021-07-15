@@ -257,8 +257,8 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         }
       };
-      groupFields.instantWatts = { $sum: { '$abs': '$instantWatts' } };
-      groupFields.instantAmps = { $sum: { '$abs': '$instantAmps' } };
+      groupFields.instantWattsPreAbs = { $sum: '$instantWatts' };
+      groupFields.instantAmpsPreAbs = { $sum: '$instantAmps' };
       if (detailedType === SiteAreaValueTypes.NET_CONSUMPTIONS) {
         groupFields.limitWatts = { $last: '$limitSiteAreaWatts' };
       }
@@ -278,9 +278,12 @@ export default class ConsumptionStorage {
         }
       });
       // Same date
+      // Convert instant watts / amps to absolute value
       facetAggregation.push({
         $addFields: {
-          endedAt: '$startedAt'
+          endedAt: '$startedAt',
+          instantWatts: { $abs: '$instantWattsPreAbs' },
+          instantAmps: { $abs: '$instantAmpsPreAbs' }
         }
       });
       // Convert Object ID to string
