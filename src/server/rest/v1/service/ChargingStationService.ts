@@ -18,6 +18,7 @@ import Constants from '../../../../utils/Constants';
 import CpoOCPIClient from '../../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../../client/oicp/CpoOICPClient';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../../utils/I18nManager';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
@@ -36,10 +37,12 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import { StatusCodes } from 'http-status-codes';
+import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -1141,180 +1144,40 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
-      MODULE_NAME, 'handleAction', req.user);
-    let result = null;
-    // Remote Stop Transaction / Unlock Connector
-    if (command === Command.REMOTE_STOP_TRANSACTION) {
-      // Check Transaction ID
-      if (!filteredRequest.args || !filteredRequest.args.transactionId) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Transaction ID is mandatory',
-          module: MODULE_NAME,
-          method: 'handleAction',
-          user: req.user,
-          action: action,
-        });
-      }
-      // Get Transaction
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
-      UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
-        MODULE_NAME, 'handleAction', req.user);
-      // Add connector ID
-      filteredRequest.args.connectorId = transaction.connectorId;
-      // Check Tag ID
-      if (Utils.isEmptyArray(req.user.tagIDs)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NO_BADGE_ERROR,
-          message: 'The user does not have any badge',
-          module: MODULE_NAME,
-          method: 'handleAction',
-          user: req.user,
-          action: action,
-        });
-      }
-      // Check if user is authorized
-      await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, req.user.tagIDs[0],
-        ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
-      // Set the tag ID to handle the Stop Transaction afterwards
-      transaction.remotestop = {
-        timestamp: new Date(),
-        tagID: req.user.tagIDs[0],
-        userID: req.user.id
-      };
-      // Save Transaction
-      await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-      // Ok: Execute it
-      result = await ChargingStationService.handleChargingStationCommand(
-        req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+    const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
+      req.tenant, req.user, filteredRequest.chargingStationID, action);
+    let result: any;
+    switch (command) {
+      // Remote Stop Transaction / Unlock Connector
+      case Command.REMOTE_STOP_TRANSACTION:
+        result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
+        break;
       // Remote Start Transaction
-    } else if (command === Command.REMOTE_START_TRANSACTION) {
-      // Check Tag ID
-      if (!filteredRequest.args || !filteredRequest.args.userID || !filteredRequest.args.visualTagID) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NO_BADGE_ERROR,
-          message: 'The user does not have any badge',
-          module: MODULE_NAME,
-          method: 'handleAction',
-          user: req.user,
-          action: action,
-        });
-      }
-      // Check and Get User
-      const user = await UtilsService.checkAndGetUserAuthorization(
-        req.tenant, req.user, filteredRequest.args.userID, Action.READ, action);
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.args.userID}' does not exist`,
-        MODULE_NAME, 'handleAction', req.user);
-      if (!user.issuer) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `User not issued by the organization execute command '${Command.REMOTE_START_TRANSACTION}'`,
-          module: MODULE_NAME, method: 'handleAction',
-          user: req.user,
-          action: action
-        });
-      }
-      const tag = await TagStorage.getTagByVisualID(req.tenant.id, filteredRequest.args.visualTagID, { userIDs: [user.id] });
-      if (!tag) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_NO_BADGE_ERROR,
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          message: `The user does not own a badge with visual ID '${filteredRequest.args.visualTagID}'`,
-          module: MODULE_NAME,
-          method: 'handleAction',
-          user: req.user,
-          action: action,
-        });
-      }
-      // Inactive Tag
-      if (!tag.active) {
-        throw new BackendError({
-          source: chargingStation.id,
-          action: action,
-          message: `Tag ID '${tag.id}' is not active`,
-          module: MODULE_NAME, method: 'handleAction',
-          user: tag.user,
-          detailedMessages: { tag }
-        });
-      }
-      await Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
-      // Ok: Execute it
-      result = await ChargingStationService.handleChargingStationCommand(
-        req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
-      // Save Car ID
-      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-        if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-          if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-            // Save Car selection
-            await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
-          }
+      case Command.REMOTE_START_TRANSACTION:
+        result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
+        break;
+      // Get the Charging Plans
+      case Command.GET_COMPOSITE_SCHEDULE:
+        result = await ChargingStationService.executeChargingStationGetCompositeSchedule(action, chargingStation, command, filteredRequest, req, res, next);
+        break;
+      // Other commands
+      default:
+        // Check auth
+        if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.FORBIDDEN,
+            user: req.user,
+            action: command as unknown as Action,
+            entity: Entity.CHARGING_STATION,
+            module: MODULE_NAME, method: 'handleAction',
+            value: chargingStation.id
+          });
         }
-      }
-    } else if (command === Command.GET_COMPOSITE_SCHEDULE) {
-      // Check auth
-      if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: command as unknown as Action,
-          entity: Entity.CHARGING_STATION,
-          module: MODULE_NAME, method: 'handleAction',
-          value: chargingStation.id
-        });
-      }
-      // Get the Vendor instance
-      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
-      if (!chargingStationVendor) {
-        throw new AppError({
-          source: chargingStation.id,
-          action: action,
-          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-          message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
-          module: MODULE_NAME, method: 'handleAction',
-          user: req.user
-        });
-      }
-      // Get composite schedule
-      if (filteredRequest.args.connectorId === 0) {
-        result = [] as OCPPGetCompositeScheduleCommandResult[];
-        for (const connector of chargingStation.connectors) {
-          // Connector ID > 0
-          const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-          result.push(await chargingStationVendor.getCompositeSchedule(
-            req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration));
-        }
-      } else {
-        // Connector ID > 0
-        const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
-        const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
-        result = await chargingStationVendor.getCompositeSchedule(
-          req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
-      }
-    } else {
-      // Check auth
-      if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.FORBIDDEN,
-          user: req.user,
-          action: command as unknown as Action,
-          entity: Entity.CHARGING_STATION,
-          module: MODULE_NAME, method: 'handleAction',
-          value: chargingStation.id
-        });
-      }
-      // Execute it
-      result = await ChargingStationService.handleChargingStationCommand(
-        req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        // Execute it
+        result = await ChargingStationService.executeChargingStationCommand(
+          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+        break;
     }
-    // Return
     res.json(result);
     next();
   }
@@ -1591,7 +1454,7 @@ export default class ChargingStationService {
     pdfDocument.text(qrCodeTitle, 65, bigSquareSide + mediumSquareSide + smallSquareSide + (marginHeight * 3) + 10, { align: 'center' });
   }
 
-  private static async handleChargingStationCommand(tenant: Tenant, user: UserToken, chargingStation: ChargingStation,
+  private static async executeChargingStationCommand(tenant: Tenant, user: UserToken, chargingStation: ChargingStation,
       action: ServerAction, command: Command, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
@@ -1825,5 +1688,175 @@ export default class ChargingStationService {
     }
     // Apply & Save charging plan
     return OCPPUtils.setAndSaveChargingProfile(req.tenant, filteredRequest);
+  }
+
+  private static async executeChargingStationGetCompositeSchedule(action: ServerAction, chargingStation: ChargingStation, command: Command,
+      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+    // Check auth
+    if (!await Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: req.user,
+        action: command as unknown as Action,
+        entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleAction',
+        value: chargingStation.id
+      });
+    }
+    // Get the Vendor instance
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
+    if (!chargingStationVendor) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: action,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user
+      });
+    }
+    // Get composite schedule
+    let result: any;
+    if (filteredRequest.args.connectorId === 0) {
+      result = [] as OCPPGetCompositeScheduleCommandResult[];
+      for (const connector of chargingStation.connectors) {
+        // Connector ID > 0
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        result.push(await chargingStationVendor.getCompositeSchedule(
+          req.tenant, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration));
+      }
+    } else {
+      // Connector ID > 0
+      const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
+      const chargePoint = Utils.getChargePointFromID(chargingStation, connector?.chargePointID);
+      result = await chargingStationVendor.getCompositeSchedule(
+        req.tenant, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
+    }
+    return result;
+  }
+
+  private static async executeChargingStationStartTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
+      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+    // Check Tag ID
+    if (!filteredRequest.args || (!filteredRequest.args.visualTagID && !filteredRequest.args.tagID)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.USER_NO_BADGE_ERROR,
+        message: 'The user does not have any badge',
+        module: MODULE_NAME,
+        method: 'handleAction',
+        user: req.user,
+        action: action,
+      });
+    }
+    let tag: Tag;
+    if (filteredRequest.args.tagID) {
+      tag = await UtilsService.checkAndGetTagAuthorization(
+        req.tenant, req.user, filteredRequest.args.tagID, Action.READ, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION);
+    } else {
+      tag = await UtilsService.checkAndGetTagByVisualIDAuthorization(
+        req.tenant, req.user, filteredRequest.args.visualTagID, Action.READ, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION);
+    }
+    // Inactive Tag
+    if (!tag.active) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: action,
+        message: `Tag ID '${tag.id}' is not active`,
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user,
+        actionOnUser: tag.user,
+        detailedMessages: { tag }
+      });
+    }
+    // Set the logged user
+    if (!filteredRequest.userID) {
+      filteredRequest.userID = req.user.id;
+    }
+    // Check and Get User
+    let user: User;
+    if (filteredRequest.userID === req.user.id) {
+      user = req.user.user;
+    } else {
+      user = await UtilsService.checkAndGetUserAuthorization(
+        req.tenant, req.user, filteredRequest.userID, Action.READ, action, null, { tagIDs: [tag.id] });
+    }
+    // Check Tag/User
+    if (tag.userID !== user.id) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: action,
+        message: `Tag ID '${tag.id}' is not linked to User ID '${user.id}'`,
+        module: MODULE_NAME, method: 'handleAction',
+        user: req.user,
+        actionOnUser: tag.user,
+        detailedMessages: { tag }
+      });
+    }
+    // Check Charging Station
+    await Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    // Execute it
+    const result = await ChargingStationService.executeChargingStationCommand(
+      req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
+    // Save Car selection
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
+        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+          await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
+        }
+      }
+    }
+    return result;
+  }
+
+  private static async executeChargingStationStopTransaction(action: ServerAction, chargingStation: ChargingStation, command: Command,
+      filteredRequest: HttpChargingStationCommandRequest, req: Request, res: Response, next: NextFunction): Promise<any> {
+    // Check Transaction ID
+    if (!filteredRequest.args || !filteredRequest.args.transactionId) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Transaction ID is mandatory',
+        module: MODULE_NAME,
+        method: 'handleAction',
+        user: req.user,
+        action: action,
+      });
+    }
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
+    UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
+      MODULE_NAME, 'handleAction', req.user);
+    // Add connector ID
+    filteredRequest.args.connectorId = transaction.connectorId;
+    // Get default Tag
+    const tags = await TagStorage.getTags(req.tenant.id, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    if (!Utils.isEmptyArray(tags)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.USER_NO_BADGE_ERROR,
+        message: 'The user does not have any active badge',
+        module: MODULE_NAME,
+        method: 'handleAction',
+        user: req.user,
+        actionOnUser: transaction.userID,
+        action: action,
+      });
+    }
+    const tag = tags.result[0];
+    // Check if user is authorized
+    await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
+      ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
+    // Set the tag ID to handle the Stop Transaction afterwards
+    transaction.remotestop = {
+      timestamp: new Date(),
+      tagID: tag.id,
+      userID: req.user.id
+    };
+    // Save Transaction
+    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    // Ok: Execute it
+    return ChargingStationService.executeChargingStationCommand(
+      req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
   }
 }

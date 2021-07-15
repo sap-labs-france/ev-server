@@ -1739,13 +1739,22 @@
                     "type": "string",
                     "example": ""
                   },
+                  "userID": {
+                    "type": "string",
+                    "example": ""
+                  },
                   "args": {
                     "type": "object",
                     "properties": {
                       "tagID": {
                         "type": "string",
-                        "description": "Required. The identifier that Charge Point must use to start a transaction.",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
                         "example": "123456"
+                      },
+                      "visualTagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456-123456"
                       },
                       "connectorId": {
                         "type": "integer",
@@ -1753,10 +1762,7 @@
                         "minimum": 1,
                         "example": 1
                       }
-                    },
-                    "required": [
-                      "tagID"
-                    ]
+                    }
                   }
                 },
                 "required": [

@@ -108,11 +108,12 @@ export default class UserStorage {
   }
 
   public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
-      params: { withImage?: boolean; siteIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
+      params: { withImage?: boolean; siteIDs?: string[]; tagIDs?: string[]; } = {}, projectFields?: string[]): Promise<User> {
     const userMDB = await UserStorage.getUsers(tenantID, {
       userIDs: [id],
       withImage: params.withImage,
       siteIDs: params.siteIDs,
+      tagIDs: params.tagIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return userMDB.count === 1 ? userMDB.result[0] : null;
   }
@@ -539,7 +540,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; visualTagIDs?: string[];
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; visualTagIDs?: string[]; tagIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -628,13 +629,20 @@ export default class UserStorage {
       $match: filters
     });
     // Add Tags
-    if (!Utils.isEmptyArray(params.visualTagIDs)) {
+    if (!Utils.isEmptyArray(params.visualTagIDs) || !Utils.isEmptyArray(params.tagIDs)) {
       DatabaseUtils.pushTagLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
       });
-      aggregation.push({
-        $match: { 'tag.visualID': { $in: params.visualTagIDs } }
-      });
+      if (!Utils.isEmptyArray(params.tagIDs)) {
+        aggregation.push({
+          $match: { 'tag.id': { $in: params.tagIDs } }
+        });
+      }
+      if (!Utils.isEmptyArray(params.visualTagIDs)) {
+        aggregation.push({
+          $match: { 'tag.visualID': { $in: params.visualTagIDs } }
+        });
+      }
     }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {

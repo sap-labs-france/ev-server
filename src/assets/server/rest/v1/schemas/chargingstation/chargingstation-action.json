@@ -8,6 +8,9 @@
     "carID": {
       "$ref": "common.json#/definitions/id"
     },
+    "userID": {
+      "$ref": "common.json#/definitions/id"
+    },
     "args": {
       "type": "object",
       "properties": {
@@ -45,12 +48,13 @@
         "stackLevel": {
           "$ref": "chargingstation.json#/definitions/chargingProfile/properties/profile/properties/stackLevel"
         },
-        "visualTagID": {
+        "tagID": {
           "type": "string",
           "sanitize": "mongo"
         },
-        "userID": {
-          "$ref": "common.json#/definitions/id"
+        "visualTagID": {
+          "type": "string",
+          "sanitize": "mongo"
         },
         "location": {
           "type": "string",
