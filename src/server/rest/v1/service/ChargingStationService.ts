@@ -916,11 +916,7 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (req.query.Status && req.query.Status === 'in-error') {
-      await ChargingStationService.handleGetChargingStationsInError(action, req, res, next);
-    } else {
-      res.json(await ChargingStationService.getChargingStations(req));
-    }
+    res.json(await ChargingStationService.getChargingStations(req));
     next();
   }
 
