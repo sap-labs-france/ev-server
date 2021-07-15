@@ -45,7 +45,7 @@ export default class UserValidator extends SchemaValidator {
     this.validate(this.importedUserCreation, importedUser);
   }
 
-  validateUserCreate(user: any): Partial<User> {
+  validateUserCreate(user: any): User {
     this.validate(this.userCreate, user);
     return user;
   }
@@ -75,7 +75,7 @@ export default class UserValidator extends SchemaValidator {
     return data;
   }
 
-  validateUserUpdate(data: any): Partial<User> {
+  validateUserUpdate(data: any): User {
     this.validate(this.userUpdate, data);
     return data;
   }

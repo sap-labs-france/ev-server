@@ -1,10 +1,10 @@
 {
-  "subject": "Facturación: La sincronización del usuario falló",
-  "tenant": "<%- tenantID %>",
+  "subject": "Activación de cuenta",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Facturación: La sincronización del usuario falló",
+      "title": "Activación de cuenta",
       "image": {
         "left": {
           "height": 60,
@@ -17,13 +17,15 @@
       }
     },
     "beforeActionLines": [
-      "Estimado administrador,",
+      "Hola <%- (user.firstName? User.firstName: user.name)%>,",
       "",
-      "No se pueden sincronizar <% - nbrUsersInError%> usuarios con el sistema de facturación."
+      "Ha iniciado una solicitud para activar su cuenta",
+      "",
+      "Haga click en el enlace a continuación para completar la activación de su cuenta."
     ],
     "actions": [{
-      "title": "Ver configuración",
-      "url": "<%- evseDashboardBillingURL %>"
+      "title": "Activación de su cuenta",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",

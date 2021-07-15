@@ -26,9 +26,6 @@ export default class OwnUserDynamicAuthorizationFilter extends DynamicAuthorizat
     if (!Utils.isEmptyArray(authorizationFilters.filters.userIDs)) {
       authorizationFilters.authorized = true;
     }
-    if (this.negateFilter) {
-      authorizationFilters.authorized = !authorizationFilters.authorized;
-    }
   }
 
   public getApplicableEntities(): Entity[] {

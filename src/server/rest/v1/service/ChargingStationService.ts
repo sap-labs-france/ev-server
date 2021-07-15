@@ -875,7 +875,9 @@ export default class ChargingStationService {
       { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_COUNT_ONLY);
     if (transactions.count > 0) {
       // Delete logically
-      await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(req.tenant.id, chargingStation);
+      // Delete Charging Profiles
+      await ChargingStationStorage.deleteChargingProfiles(req.tenant.id, chargingStation.id);
     } else {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
@@ -908,7 +910,7 @@ export default class ChargingStationService {
     }
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.ID, action, {
+      req.tenant, req.user, filteredRequest.ID, action, null, {
         withLogo: true
       }, true);
     res.json(chargingStation);

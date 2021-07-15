@@ -102,7 +102,7 @@ export default class LoggingStorage {
     const filters: FilterParams = {};
     // Search
     if (params.search) {
-      filters.$text = { $search: params.search };
+      filters.$text = { $search: `"${params.search}"` };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {

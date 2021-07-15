@@ -1,10 +1,10 @@
 {
-  "subject": "Sesión iniciada",
+  "subject": "Cuenta de usuario inactiva",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Sesión iniciada",
+      "title": "Cuenta de usuario inactiva",
       "image": {
         "left": {
           "height": 60,
@@ -19,16 +19,22 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su vehículo eléctrico está conectado correctamente a la terminal <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>."
+      "No ha iniciado sesión en la aplicación e-Mobility desde <%- lastLogin%>.",
+      "",
+      "Para cumplir con las leyes europeas sobre protección general de datos, un administrador puede desactivar su cuenta y posiblemente eliminarla.",
+      "",
+      "Inicie sesión en su cuenta y lea los últimos términos y condiciones de uso."
     ],
     "actions": [{
-      "title": "Ver sesion",
-      "url": "<%- evseDashboardChargingStationURL %>"
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."
     ],
-    "footer": {}
+    "footer": {
+    }
   }
 }
+

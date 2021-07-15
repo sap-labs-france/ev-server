@@ -54,12 +54,6 @@ export default class DatabaseUtils {
     }, additionalPipeline);
   }
 
-  public static pushUserCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
-    DatabaseUtils.pushCollectionLookupInAggregation('carusers', {
-      ...lookupParams
-    }, additionalPipeline);
-  }
-
   public static pushSiteUserLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
       ...lookupParams
