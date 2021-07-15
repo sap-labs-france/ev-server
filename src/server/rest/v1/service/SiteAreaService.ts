@@ -261,7 +261,7 @@ export default class SiteAreaService {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate,
-    });
+    }, ['startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts']);
     siteArea.values = siteAreaDetailedData;
     // Return
     res.json(siteArea);

@@ -1,4 +1,4 @@
-import global, { FilterParams } from '../../types/GlobalType';
+import global, { FilterParams, GroupParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import Consumption from '../../types/Consumption';
@@ -190,77 +190,84 @@ export default class ConsumptionStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
     await DatabaseUtils.checkTenant(tenantID);
+    // Create filters
+    const filters: FilterParams = {};
+    // ID
+    if (params.siteAreaID) {
+      filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
+    }
+    // Date provided?
+    if (params.startDate || params.endDate) {
+      filters.startedAt = {};
+    }
+    // Start date
+    if (params.startDate) {
+      filters.startedAt.$gte = Utils.convertToDate(params.startDate);
+    }
+    // End date
+    if (params.endDate) {
+      filters.startedAt.$lte = Utils.convertToDate(params.endDate);
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
     const facets = {};
     // Specific filters for each type of data
-    const filterTypes = [
-      {
-        name: 'assetConsumptions',
-        filters: { instantWatts : { '$gte': 0 }, assetID : { '$ne': null } },
-        projectFields: [ 'startedAt', 'instantAmps', 'instantWatts' ]
-      },
-      // {
-      //   name: 'assetProductions',
-      //   filters: { instantWatts : { '$lt': 0 }, assetID : { '$ne': null } },
-      //   projectFields: [ 'startedAt', 'instantAmps', 'instantWatts' ]
-      // },
-      // {
-      //   name: 'chargingStationConsumptions',
-      //   filters: { chargeBoxID : { '$ne': null } },
-      //   projectFields: [ 'startedAt', 'instantAmps', 'instantWatts' ]
-      // },
-      // {
-      //   name: 'netConsumptions',
-      //   filters: {},
-      //   projectFields: ['startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts']
-      // }
-    ];
-    for (const filterValue of filterTypes) {
+    const detailedGroups = ['assetConsumptions', 'assetProductions', 'chargingStationConsumptions', 'netConsumptions'];
+    // Subset project fields
+    const projectFieldsNonNet = [...projectFields];
+    projectFieldsNonNet.splice(projectFieldsNonNet.indexOf('limitWatts'), 1);
+    projectFieldsNonNet.splice(projectFieldsNonNet.indexOf('limitAmps'), 1);
+    for (const detailedType of detailedGroups) {
       // Create filters
-      const filters: FilterParams = {};
-      // ID
-      if (params.siteAreaID) {
-        filters.siteAreaID = DatabaseUtils.convertToObjectID(params.siteAreaID);
-      }
-      // Date provided?
-      if (params.startDate || params.endDate) {
-        filters.startedAt = {};
-      }
-      // Start date
-      if (params.startDate) {
-        filters.startedAt.$gte = Utils.convertToDate(params.startDate);
-      }
-      // End date
-      if (params.endDate) {
-        filters.startedAt.$lte = Utils.convertToDate(params.endDate);
-      }
+      const facetFilters: FilterParams = {};
       // Type of query
-      Object.assign(filters, filterValue.filters);
+      if (detailedType === 'assetConsumptions') {
+        facetFilters.instantWatts = { '$gte': 0 };
+        facetFilters.assetID = { '$ne': null };
+      } else if (detailedType === 'assetProductions') {
+        facetFilters.instantWatts = { '$lt': 0 };
+        facetFilters.assetID = { '$ne': null };
+      } else if (detailedType === 'chargingStationConsumptions') {
+        facetFilters.chargeBoxID = { '$ne': null };
+      }
       // Create Aggregation
-      const aggregation = [];
+      const facetAggregation = [];
       // Filters
-      if (filters) {
-        aggregation.push({
-          $match: filters
+      if (facetFilters) {
+        facetAggregation.push({
+          $match: facetFilters
         });
       }
-      // Group consumption values per minute
-      aggregation.push({
-        $group: {
-          _id: {
-            year: { '$year': '$startedAt' },
-            month: { '$month': '$startedAt' },
-            day: { '$dayOfMonth': '$startedAt' },
-            hour: { '$hour': '$startedAt' },
-            minute: { '$minute': '$startedAt' }
-          },
-          instantWatts: { $sum: '$instantWatts' },
-          instantAmps: { $sum: '$instantAmps' },
-          limitWatts: { $last: '$limitSiteAreaWatts' },
-          limitAmps: { $last: '$limitSiteAreaAmps' }
+      // grouping fields
+      const groupFields : GroupParams = {
+        _id: {
+          year: { '$year': '$startedAt' },
+          month: { '$month': '$startedAt' },
+          day: { '$dayOfMonth': '$startedAt' },
+          hour: { '$hour': '$startedAt' },
+          minute: { '$minute': '$startedAt' }
         }
+      };
+      groupFields.instantWatts = { $sum: { '$abs': '$instantWatts' } };
+      groupFields.instantAmps = { $sum: { '$abs': '$instantAmps' } };
+      if (detailedType === 'netConsumptions') {
+        groupFields.limitWatts = { $last: '$limitSiteAreaWatts' };
+      }
+      if (detailedType === 'netConsumptions') {
+        groupFields.limitAmps = { $last: '$limitSiteAreaAmps' };
+      }
+      // Group consumption values per minute
+      facetAggregation.push({
+        $group: groupFields
       });
       // Rebuild the date
-      aggregation.push({
+      facetAggregation.push({
         $addFields: {
           startedAt: {
             $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
@@ -268,29 +275,36 @@ export default class ConsumptionStorage {
         }
       });
       // Same date
-      aggregation.push({
+      facetAggregation.push({
         $addFields: {
           endedAt: '$startedAt'
         }
       });
       // Convert Object ID to string
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-      aggregation.push({
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'siteID');
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'siteAreaID');
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'userID');
+      facetAggregation.push({
         $sort: {
           startedAt: 1
         }
       });
       // Project
-      DatabaseUtils.projectFields(aggregation, filterValue.projectFields, ['_id']);
+      if (detailedType === 'netConsumptions') {
+        DatabaseUtils.projectFields(facetAggregation, projectFields, ['_id']);
+      } else {
+        DatabaseUtils.projectFields(facetAggregation, projectFieldsNonNet, ['_id']);
+      }
       // Add projection as field in facet
-      facets[filterValue.name] = aggregation;
+      facets[detailedType] = facetAggregation;
     }
+
+    // push the facet based aggregation pipelines
+    aggregation.push({ $facet: facets });
 
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
-      .aggregate([{ $facet: facets }], { allowDiskUse: true })
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
 
     const siteAreaData: SiteAreaValues = {
