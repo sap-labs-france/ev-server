@@ -1,3 +1,4 @@
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import CrudApi from './utils/CrudApi';
 import { ServerRoute } from '../../../src/types/Server';
 import { StatusCodes } from 'http-status-codes';
@@ -5,15 +6,12 @@ import TestConstants from './utils/TestConstants';
 import { expect } from 'chai';
 
 export default class ChargingStationApi extends CrudApi {
-  private _baseApi;
 
-  public constructor(authenticatedApi, baseApi) {
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
     super(authenticatedApi);
-    // Keep it
-    this._baseApi = baseApi;
   }
 
-  public async readById(id) {
+  public async readById(id: string) {
     return super.read({}, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${id}`);
   }
 
@@ -22,14 +20,14 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return super.readAll(params, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS_IN_ERROR}`);
+    return super.readAll({ Status: 'in-error', ...params }, paging, ordering, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}`);
   }
 
   public async update(data) {
     return super.update(data, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${data.id}/parameters`);
   }
 
-  public async delete(id) {
+  public async delete(id: string) {
     return super.delete(id, `/v1/api/${ServerRoute.REST_CHARGING_STATIONS}/${id}`);
   }
 
