@@ -3,8 +3,7 @@ import { ServerAction, ServerRoute } from '../../../../../types/Server';
 import express, { NextFunction, Request, Response } from 'express';
 
 import RouterUtils from '../../../RouterUtils';
-import { default as UserServiceV1 } from '../../../v1/service/UserService';
-import { default as UserServiceV2 } from '../../../v2/service/UserService';
+import UserService from '../../../v1/service/UserService';
 
 export default class UserRouter {
   private router: express.Router;
@@ -21,9 +20,10 @@ export default class UserRouter {
   protected buildRouteUsers(): void {
     this.router.get(`/${ServerRoute.REST_USERS}`, async (req: Request, res: Response, next: NextFunction) => {
       if (req.query.Status && req.query.Status === 'in-error') {
-        await RouterUtils.handleServerAction(UserServiceV1.handleGetUsersInError.bind(this), ServerAction.USERS_IN_ERROR, req, res, next);
+        await RouterUtils.handleServerAction(UserService.handleGetUsersInError.bind(this), ServerAction.USERS_IN_ERROR, req, res, next);
       } else {
-        await RouterUtils.handleServerAction(UserServiceV2.handleGetUsers.bind(this), ServerAction.USERS, req, res, next);
+        req.query.Status = req.query.UserStatus;
+        await RouterUtils.handleServerAction(UserService.handleGetUsers.bind(this), ServerAction.USERS, req, res, next);
       }
     });
   }
