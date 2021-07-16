@@ -383,6 +383,7 @@ export default class ContextDefinition {
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
       tags: (ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
+        visualID: new ObjectID().toString(),
         issuer: false,
         active: true
       }] : null)

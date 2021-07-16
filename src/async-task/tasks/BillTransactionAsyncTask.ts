@@ -44,7 +44,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
               // Save
               await TransactionStorage.saveTransaction(tenant.id, transaction);
             } finally {
-            // Release the lock
+              // Release the lock
               await LockingManager.release(transactionLock);
             }
           }

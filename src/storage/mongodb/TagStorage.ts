@@ -261,22 +261,24 @@ export default class TagStorage {
   }
 
   public static async getTag(tenantID: string, id: string,
-      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { userIDs?: string[], withUser?: boolean; withNbrTransactions?: boolean; active?: boolean; } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       tagIDs: [id],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
-      userIDs: params.userIDs
+      userIDs: params.userIDs,
+      active: params.active,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
 
   public static async getTagByVisualID(tenantID: string, visualID: string,
-      params: { withUser?: boolean; withNbrTransactions?: boolean } = {}, projectFields?: string[]): Promise<Tag> {
+      params: { withUser?: boolean; withNbrTransactions?: boolean, userIDs?: string[] } = {}, projectFields?: string[]): Promise<Tag> {
     const tagMDB = await TagStorage.getTags(tenantID, {
       visualIDs: [visualID],
       withUser: params.withUser,
       withNbrTransactions: params.withNbrTransactions,
+      userIDs: params.userIDs
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return tagMDB.count === 1 ? tagMDB.result[0] : null;
   }
@@ -305,7 +307,7 @@ export default class TagStorage {
   public static async getTags(tenantID: string,
       params: {
         issuer?: boolean; tagIDs?: string[]; visualIDs?: string[]; userIDs?: string[]; siteIDs?: string[]; dateFrom?: Date; dateTo?: Date;
-        withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean
+        withUser?: boolean; withUsersOnly?: boolean; withNbrTransactions?: boolean; search?: string, defaultTag?: boolean, active?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getTags');
@@ -341,9 +343,10 @@ export default class TagStorage {
     // Users
     if (!Utils.isEmptyArray(params.userIDs)) {
       filters.userID = { $in: params.userIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
-      if (params.defaultTag) {
-        filters.default = true;
-      }
+    }
+    // Default Tag
+    if (params.defaultTag) {
+      filters.default = true;
     }
     // Sites
     if (!Utils.isEmptyArray(params.siteIDs)) {
@@ -451,7 +454,8 @@ export default class TagStorage {
     return {
       count: (tagsCountMDB.length > 0 ?
         (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),
-      result: tagsMDB
+      result: tagsMDB,
+      projectedFields: projectFields
     };
   }
 }

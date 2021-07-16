@@ -512,10 +512,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: transaction ? transaction.chargeBoxID : null,
+        source: transaction?.chargeBoxID,
         message: `OCPI Remote Stop Session is not available for the Session ID '${transactionId}'`,
         module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { transaction: transaction }
+        detailedMessages: { transaction }
       });
     }
     const payload: OCPIStopSession = {

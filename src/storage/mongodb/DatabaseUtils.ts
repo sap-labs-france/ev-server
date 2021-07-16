@@ -97,7 +97,7 @@ export default class DatabaseUtils {
   public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['lastChangedBy'],
-      projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
+      projectedFields: ['id', 'description', 'visualID', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
     }, additionalPipeline);
   }
