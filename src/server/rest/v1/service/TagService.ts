@@ -46,7 +46,7 @@ export default class TagService {
     const filteredRequest = TagValidator.getInstance().validateTagGetByID(req.query);
     // Check and Get Tag
     const tag = await UtilsService.checkAndGetTagAuthorization(
-      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: true }, true);
+      req.tenant, req.user, filteredRequest.ID, Action.READ, action, null, { withUser: filteredRequest.WithUser }, true);
     res.json(tag);
     next();
   }
