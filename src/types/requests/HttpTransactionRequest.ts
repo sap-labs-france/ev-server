@@ -16,6 +16,9 @@ export interface HttpUnassignTransactionsToUserRequest {
 
 export interface HttpTransactionRequest {
   ID: number;
+  WithTag: boolean;
+  WithCar: boolean;
+  WithUser: boolean;
 }
 
 export interface HttpPushTransactionCdrRequest {
@@ -54,6 +57,7 @@ export interface HttpConsumptionFromTransactionRequest {
   TransactionId: number;
   WithTag: boolean;
   WithCar: boolean;
+  WithUser: boolean;
   LoadAllConsumptions?: boolean;
   StartDateTime: Date;
   EndDateTime: Date;

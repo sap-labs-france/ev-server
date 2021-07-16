@@ -39,7 +39,10 @@ export default class TransactionSecurity {
 
   public static filterTransactionRequest(request: any): HttpTransactionRequest {
     return {
-      ID: Utils.convertToInt(sanitize(request.ID))
+      ID: Utils.convertToInt(sanitize(request.ID)),
+      WithCar: UtilsSecurity.filterBoolean(request.WithCar),
+      WithTag: UtilsSecurity.filterBoolean(request.WithTag),
+      WithUser: UtilsSecurity.filterBoolean(request.WithUser),
     };
   }
 
@@ -113,6 +116,9 @@ export default class TransactionSecurity {
     }
     if (Utils.objectHasProperty(request, 'WithCar')) {
       filteredRequest.WithCar = UtilsSecurity.filterBoolean(request.WithCar);
+    }
+    if (Utils.objectHasProperty(request, 'WithUser')) {
+      filteredRequest.WithUser = UtilsSecurity.filterBoolean(request.WithUser);
     }
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));

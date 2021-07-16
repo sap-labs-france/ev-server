@@ -905,6 +905,15 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/transactionID"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
           }
         ],
         "tags": [
@@ -983,6 +992,15 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
           }
         ],
         "tags": [

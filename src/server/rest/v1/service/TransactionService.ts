@@ -99,7 +99,7 @@ export default class TransactionService {
     }
     const transactionsToRefund: Transaction[] = [];
     for (const transactionId of filteredRequest.transactionIds) {
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId, { withUser: true });
       if (!transaction) {
         await Logging.logError({
           tenantID: req.user.tenantID,
@@ -191,7 +191,7 @@ export default class TransactionService {
       });
     }
     // Check Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId);
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Charging Station
@@ -339,7 +339,8 @@ export default class TransactionService {
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
+    const transaction = await TransactionStorage.getTransaction(
+      req.user.tenantID, filteredRequest.ID, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get unassigned transactions
@@ -477,14 +478,6 @@ export default class TransactionService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    // Check User
-    let user: User;
-    if (!transaction.user && transaction.userID) {
-      // Get Transaction User
-      user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
-      UtilsService.assertObjectExists(action, user, `User ID '${transaction.userID}' does not exist`,
-        MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    }
     // Stop Transaction
     const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
       {
@@ -504,7 +497,7 @@ export default class TransactionService {
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
-      user: req.user, actionOnUser: user,
+      user: req.user, actionOnUser: transaction.userID,
       module: MODULE_NAME, method: 'handleTransactionSoftStop',
       message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
       action: action,
@@ -553,7 +546,7 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId,
-      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar }, projectFields);
+      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser }, projectFields);
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.TransactionId}' does not exist`,
       MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check Transaction
@@ -624,17 +617,21 @@ export default class TransactionService {
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID, { withTag: true }, [
-      'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
-      'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
-      'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
-      'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
-      'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
-      'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
-      'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
-      'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
-    ]);
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID,
+      { withTag: filteredRequest.WithTag, withCar: filteredRequest.WithCar, withUser: filteredRequest.WithUser },
+      [
+        'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'tagID', 'tag.visualID', 'tag.description', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
+        'userID', 'user.id', 'user.name', 'user.firstName', 'user.email', 'roundedPrice', 'price', 'priceUnit',
+        'stop.userID', 'stop.user.id', 'stop.user.name', 'stop.user.firstName', 'stop.user.email',
+        'currentTotalDurationSecs', 'currentTotalInactivitySecs', 'currentInstantWatts', 'currentTotalConsumptionWh', 'currentStateOfCharge',
+        'currentCumulatedPrice', 'currentInactivityStatus', 'signedData', 'stop.reason',
+        'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh', 'stop.meterStop',
+        'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.pricingSource', 'stop.signedData',
+        'stop.tagID', 'stop.tag.visualID', 'stop.tag.description', 'billingData.stop.status', 'billingData.stop.invoiceID',
+        'billingData.stop.invoiceStatus', 'billingData.stop.invoiceNumber',
+        'carID' ,'carCatalogID', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion',
+      ]
+    );
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetTransaction', req.user);
     // Check Transaction
@@ -707,7 +704,8 @@ export default class TransactionService {
     const transactions = await TransactionService.getTransactions(req, action, {}, [
       'id', 'chargeBoxID', 'timestamp', 'issuer', 'stateOfCharge', 'timezone', 'connectorId', 'meterStart', 'siteAreaID', 'siteID', 'companyID',
       'stop.roundedPrice', 'stop.price', 'stop.priceUnit', 'stop.inactivityStatus', 'stop.stateOfCharge', 'stop.timestamp', 'stop.totalConsumptionWh',
-      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop', 'site.name', 'siteArea.name', 'company.name',
+      'stop.totalDurationSecs', 'stop.totalInactivitySecs', 'stop.extraInactivitySecs', 'stop.meterStop',
+      'site.name', 'siteArea.name', 'company.name',
       'billingData.stop.invoiceNumber', 'stop.reason', 'ocpi', 'ocpiWithCdr', 'tagID', 'tag.visualID', 'stop.tagID', 'stop.tag.visualID'
     ]);
     res.json(transactions);

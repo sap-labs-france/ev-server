@@ -1824,7 +1824,8 @@ export default class ChargingStationService {
       });
     }
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
+    const transaction = await TransactionStorage.getTransaction(
+      req.user.tenantID, filteredRequest.args.transactionId, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Add connector ID
