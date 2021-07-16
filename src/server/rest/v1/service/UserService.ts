@@ -40,6 +40,7 @@ import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import _ from 'lodash';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
 
@@ -49,32 +50,32 @@ export default class UserService {
 
   public static async handleGetUserDefaultTagCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
-    UtilsService.assertIdIsProvided(action, userID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
+    const filteredRequest = UserValidator.getInstance().validateUserDefaultTagCar(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.UserID, MODULE_NAME, 'handleGetUserDefaultTagCar', req.user);
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action);
+      req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
     // Handle Tag
     // Get the default Tag
     let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
       issuer: true
-    }, ['id', 'description', 'active']);
+    }, ['visualID', 'description', 'active']);
     if (!tag) {
       // Get the first active Tag
       tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
         issuer: true
-      }, ['id', 'description', 'active']);
+      }, ['visualID', 'description', 'active']);
     }
     // Handle Car
     let car: Car;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       // Get the default Car
-      car = await CarStorage.getDefaultUserCar(req.tenant, userID, {},
+      car = await CarStorage.getDefaultUserCar(req.tenant, filteredRequest.UserID, {},
         ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
       );
       if (!car) {
         // Get the first available car
-        car = await CarStorage.getFirstAvailableUserCar(req.tenant, userID,
+        car = await CarStorage.getFirstAvailableUserCar(req.tenant, filteredRequest.UserID,
           ['id', 'type', 'licensePlate', 'carCatalog.vehicleMake', 'carCatalog.vehicleModel', 'carCatalog.vehicleModelVersion']
         );
       }
@@ -83,7 +84,7 @@ export default class UserService {
     // Check Billing errors
     await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
     res.json({
-      tag, car, errorCodes,
+      tag, car, errorCodes
     });
     next();
   }
@@ -776,6 +777,14 @@ export default class UserService {
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
+    // Get Tag IDs from Visual IDs
+    if (filteredRequest.VisualTagID) {
+      const tagIDs = await TagStorage.getTags(req.tenant.id, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      if (!Utils.isEmptyArray(tagIDs.result)) {
+        const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
+        filteredRequest.UserID = userIDs.join('|');
+      }
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -783,7 +792,6 @@ export default class UserService {
         issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
-        tagIDs: (filteredRequest.TagID ? filteredRequest.TagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,

@@ -52,7 +52,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
-                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id, { withUser: true });
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,

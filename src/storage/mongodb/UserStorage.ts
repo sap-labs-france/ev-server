@@ -539,7 +539,7 @@ export default class UserStorage {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
         statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
-        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date; tagIDs?: string[];
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -627,15 +627,6 @@ export default class UserStorage {
     aggregation.push({
       $match: filters
     });
-    // Add Tags
-    if (params.tagIDs) {
-      DatabaseUtils.pushTagLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
-      });
-      aggregation.push({
-        $match: { 'tag.id': { $in: params.tagIDs } }
-      });
-    }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({

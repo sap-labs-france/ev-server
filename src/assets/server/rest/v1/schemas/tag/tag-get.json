@@ -6,6 +6,10 @@
     "ID": {
       "$ref": "tag.json#/definitions/id"
     },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
     }

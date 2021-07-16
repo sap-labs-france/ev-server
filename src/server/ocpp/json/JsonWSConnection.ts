@@ -59,6 +59,18 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.initialized) {
       // Call super class
       await super.initialize();
+      // Update the Charging Station
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), {}, ['id']);
+      if (chargingStation) {
+        // Update Last Seen
+        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
+          chargingStation.id, { lastSeen: new Date() });
+        // Update CF Instance
+        if (Configuration.isCloudFoundry()) {
+          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
+            this.getTenantID(), chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
+        }
+      }
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),

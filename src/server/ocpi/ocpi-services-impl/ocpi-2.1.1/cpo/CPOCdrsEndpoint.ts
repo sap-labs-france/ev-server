@@ -50,7 +50,7 @@ export default class CPOCdrsEndpoint extends AbstractEndpoint {
     // Get all transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id,
       { issuer: true, ocpiCdrDateFrom: dateFrom, ocpiCdrDateTo: dateTo, ocpiCdrChecked: true },
-      { limit, skip }
+      { limit, skip }, ['ocpiData']
     );
     return {
       count: transactions.count,

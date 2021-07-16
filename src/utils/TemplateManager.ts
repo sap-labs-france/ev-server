@@ -37,7 +37,8 @@ export default class TemplateManager {
       parsedTemplate = await this.loadTemplateAndParse(templateName);
       this.parsedTemplates.set(templateName, parsedTemplate);
     }
-    return Promise.resolve(parsedTemplate);
+    // Very important here - Make sure to return a clone!
+    return Utils.cloneObject(parsedTemplate);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

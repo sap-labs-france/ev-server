@@ -271,11 +271,11 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
       params: {
         transactionIDs?: number[]; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
-        chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date;
+        chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorIDs?: number[]; startDateTime?: Date; withChargingStation?: boolean;
         endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; tagIDs?: string[]; inactivityStatus?: string[];
         ocpiSessionID?: string; ocpiAuthorizationID?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
         ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean; oicpSessionID?: string; withSite?: boolean; withSiteArea?: boolean; withCompany?: boolean;
-        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean;
+        statistics?: 'refund' | 'history' | 'ongoing'; refundStatus?: string[]; withTag?: boolean; hasUserID?: boolean; withUser?: boolean; withCar?: boolean;
       },
       dbParams: DbParams, projectFields?: string[]):
       Promise<{
@@ -311,6 +311,8 @@ export default class TransactionStorage {
         }
       });
     }
+    // Create Aggregation
+    const aggregation = [];
     // Filter?
     if (params.search) {
       // Build filter
@@ -445,8 +447,6 @@ export default class TransactionStorage {
     if (params.reportIDs) {
       filters['refundData.reportId'] = { $in: params.reportIDs };
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
@@ -622,12 +622,11 @@ export default class TransactionStorage {
         tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
         foreignField: '_id', oneToOneCardinality: true
       });
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'stop.tag', localField: 'stop.tagID',
+        foreignField: '_id', oneToOneCardinality: true
+      });
     }
-    // Charging Station
-    DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
     // Company
     if (params.withCompany) {
       DatabaseUtils.pushCompanyLookupInAggregation({
@@ -649,43 +648,52 @@ export default class TransactionStorage {
         asField: 'siteArea', oneToOneCardinality: true
       });
     }
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
-    // Add Connector and Status
-    if (projectFields && projectFields.includes('status')) {
-      aggregation.push({
-        $addFields: {
-          connector: {
-            $arrayElemAt: [
-              '$chargeBox.connectors', {
-                $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
-              }
-            ]
+    // Charging Station
+    if (params.withChargingStation) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, 'chargeBox.siteAreaID');
+      // Add Connector and Status
+      if (projectFields && projectFields.includes('status')) {
+        aggregation.push({
+          $addFields: {
+            connector: {
+              $arrayElemAt: [
+                '$chargeBox.connectors', {
+                  $indexOfArray: ['$chargeBox.connectors.connectorId', '$connectorId']
+                }
+              ]
+            }
           }
-        }
-      }, {
-        $addFields: { status: '$connector.status' }
+        }, {
+          $addFields: { status: '$connector.status' }
+        });
+      }
+    }
+    // User
+    if (params.withUser) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
       });
     }
-    // Users
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID, aggregation: aggregation, asField: 'user', localField: 'userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
     // Car
-    DatabaseUtils.pushCarLookupInAggregation({
-      tenantID, aggregation: aggregation, asField: 'car', localField: 'carID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
-    // Car Catalog
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
-      foreignField: '_id', oneToOneCardinality: true
-    });
-    // User
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID, aggregation: aggregation, asField: 'stop.user', localField: 'stop.userID',
-      foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-    });
+    if (params.withCar) {
+      DatabaseUtils.pushCarLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'car', localField: 'carID',
+        foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+      DatabaseUtils.pushCarCatalogLookupInAggregation({
+        tenantID: Constants.DEFAULT_TENANT, aggregation: aggregation, asField: 'carCatalog', localField: 'carCatalogID',
+        foreignField: '_id', oneToOneCardinality: true
+      });
+    }
     // Rename ID
     DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
@@ -1010,28 +1018,37 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
-      projectFields?: string[]): Promise<Transaction> {
+      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean } = {}, projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
-      transactionIDs: [id]
+      transactionIDs: [id],
+      withTag: params.withTag,
+      withCar: params.withCar,
+      withUser: params.withUser,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getOCPITransactionBySessionID(tenantID: string, sessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
-      { ocpiSessionID: sessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+      {
+        ocpiSessionID: sessionID
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getOCPITransactionByAuthorizationID(tenantID: string, authorizationID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
-      { ocpiAuthorizationID: authorizationID }, Constants.DB_PARAMS_SINGLE_RECORD);
+      {
+        ocpiAuthorizationID: authorizationID
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
   public static async getOICPTransactionBySessionID(tenantID: string, oicpSessionID: string): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID,
-      { oicpSessionID: oicpSessionID }, Constants.DB_PARAMS_SINGLE_RECORD);
+      {
+        oicpSessionID: oicpSessionID
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
 
