@@ -555,7 +555,7 @@ export default class OCPPService {
         // Signed Data
         this.checkAndUpdateTransactionWithSignedDataInStopTransaction(transaction, stopTransaction);
         // Update Transaction with Stop Transaction and Stop MeterValues
-        OCPPUtils.updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagID);
+        OCPPUtils.updateTransactionWithStopTransaction(transaction, chargingStation, stopTransaction, user, alternateUser, tagID);
         // Bill
         await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
         // Roaming
