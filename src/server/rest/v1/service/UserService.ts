@@ -40,6 +40,7 @@ import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import _ from 'lodash';
 import csvToJson from 'csvtojson/v2';
 import moment from 'moment';
 
@@ -776,6 +777,14 @@ export default class UserService {
     if (!authorizationUsersFilters.authorized) {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
+    // Get Tag IDs from Visual IDs
+    if (filteredRequest.VisualTagID) {
+      const tagIDs = await TagStorage.getTags(req.tenant.id, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      if (!Utils.isEmptyArray(tagIDs.result)) {
+        const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
+        filteredRequest.UserID = userIDs.join('|');
+      }
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -783,7 +792,6 @@ export default class UserService {
         issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         userIDs: (filteredRequest.UserID ? filteredRequest.UserID.split('|') : null),
-        visualTagIDs: (filteredRequest.VisualTagID ? filteredRequest.VisualTagID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
