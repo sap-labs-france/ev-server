@@ -23,7 +23,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private wsServer: WSServer;
   private jsonChargingStationClients: Map<string, JsonWSConnection>;
   private jsonRestClients: Map<string, JsonRestWSConnection>;
-  private keepAliveIntervalValue: number;
+  private keepAliveIntervalMillis: number;
   private keepAliveInterval: NodeJS.Timeout;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
@@ -32,7 +32,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Keep local
     this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
     this.jsonRestClients = new Map<string, JsonRestWSConnection>();
-    this.keepAliveIntervalValue = (this.centralSystemConfig.keepaliveinterval ? this.centralSystemConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Milliseconds
+    // Disable Ping/Pong
+    // this.keepAliveIntervalMillis = this.centralSystemConfig.keepAliveIntervalMillis ?
+    //   this.centralSystemConfig.keepAliveIntervalMillis : Constants.WS_DEFAULT_KEEP_ALIVE_MILLIS;
   }
 
   public start(): void {
@@ -43,17 +45,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
-    // Build ID
-    const id = `${tenantID}~${chargingStationID}`;
     // Get the Json Web Socket
-    let jsonWebSocket: JsonWSConnection;
-    const jsonChargingStationClientsReversedMap = new Map<string, JsonWSConnection>(Array.from(this.jsonChargingStationClients).reverse());
-    for (const [wsClientID, wsClient] of jsonChargingStationClientsReversedMap) {
-      if (wsClientID.startsWith(id) && wsClient.isWSConnectionOpen()) {
-        jsonWebSocket = wsClient;
-        break;
-      }
-    }
+    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
@@ -164,12 +157,17 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         }
       } catch (error) {
         await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
-        // Respond
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
     // Keep alive WebSocket connection
-    if (this.keepAliveIntervalValue > 0 && !this.keepAliveInterval) {
+    if (this.keepAliveIntervalMillis > 0 && !this.keepAliveInterval) {
+      void Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME, method: 'createWSServer',
+        action: ServerAction.EXPRESS_SERVER,
+        message: 'Charging Station Web Socket ping/pong is active'
+      });
       this.keepAliveInterval = setInterval((): void => {
         for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
           if (!jsonWSConnection.isConnectionAlive) {
@@ -185,7 +183,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           jsonWSConnection.isConnectionAlive = false;
           jsonWSConnection.getWSConnection().ping((): void => { });
         }
-      }, this.keepAliveIntervalValue);
+      }, this.keepAliveIntervalMillis);
+    } else {
+      void Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME, method: 'createWSServer',
+        action: ServerAction.EXPRESS_SERVER,
+        message: 'Charging Station Web Socket ping/pong is disabled'
+      });
     }
   }
 }
