@@ -717,24 +717,13 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationOcpiData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    const ocpiDataMDB = {
-      evses: ocpiData.evses.map((evse) => ({
-        uid: evse.uid,
-        evse_id: evse.evse_id,
-        location_id: evse.location_id,
-        status: evse.status,
-        capabilities: evse.capabilities,
-        connectors: evse.connectors,
-        coordinates: evse.coordinates,
-        last_updated: Utils.convertToDate(evse.last_updated),
-      }))
-    };
     // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: {
-        ocpiData : ocpiDataMDB
-      }
+      {
+        $set: {
+          ocpiData
+        }
       },
       { upsert: false });
     // Debug

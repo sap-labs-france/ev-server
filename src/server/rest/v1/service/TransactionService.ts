@@ -237,7 +237,7 @@ export default class TransactionService {
           // Roaming
           await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
-          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+          await TransactionStorage.saveTransactionOcpiData(req.user.tenantID, transaction.id, transaction.ocpiData);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,
@@ -273,7 +273,7 @@ export default class TransactionService {
           // Post CDR
           await OCPPUtils.processOICPTransaction(req.tenant, transaction, chargingStation, TransactionAction.END);
           // Save
-          await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+          await TransactionStorage.saveTransactionOicpData(req.user.tenantID, transaction.id, transaction.oicpData);
           // Ok
           await Logging.logInfo({
             tenantID: req.user.tenantID,

@@ -867,8 +867,9 @@ export default class CpoOCPIClient extends OCPIClient {
     } else if (OCPIUtilsService.isSuccessResponse(response.data)) {
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
+        // CDR checked
         transaction.ocpiData.cdrCheckedOn = new Date();
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           source: transaction.chargeBoxID,

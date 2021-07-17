@@ -1,8 +1,9 @@
-import RefundReport, { RefundStatus } from '../../types/Refund';
+import { BillingStatus, TransactionBillingData } from '../../types/Billing';
+import RefundReport, { RefundStatus, TransactionRefundData } from '../../types/Refund';
+import Transaction, { TransactionOcpiData, TransactionOicpData } from '../../types/Transaction';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import global, { FilterParams } from './../../types/GlobalType';
 
-import { BillingStatus } from '../../types/Billing';
 import Constants from '../../utils/Constants';
 import ConsumptionStorage from './ConsumptionStorage';
 import { DataResult } from '../../types/DataResult';
@@ -11,7 +12,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/UserNotifications';
 import { ServerAction } from '../../types/Server';
-import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -209,6 +209,82 @@ export default class TransactionStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransaction', uniqueTimerID, transactionMDB);
     // Return
     return transactionToSave.id;
+  }
+
+  public static async saveTransactionOcpiData(tenantID: string, id: number,
+      ocpiData: TransactionOcpiData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTransactionOcpiData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<Transaction>(tenantID, 'transactions').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          ocpiData
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransactionOcpiData', uniqueTimerID, ocpiData);
+  }
+
+  public static async saveTransactionOicpData(tenantID: string, id: number,
+      oicpData: TransactionOicpData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTransactionOicpData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<Transaction>(tenantID, 'transactions').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          oicpData
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransactionOicpData', uniqueTimerID, oicpData);
+  }
+
+  public static async saveTransactionBillingData(tenantID: string, id: number,
+      billingData: TransactionBillingData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTransactionBillingData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<Transaction>(tenantID, 'transactions').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          billingData
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransactionBillingData', uniqueTimerID, billingData);
+  }
+
+  public static async saveTransactionRefundData(tenantID: string, id: number,
+      refundData: TransactionRefundData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTransactionRefundData');
+    // Check Tenant
+    await DatabaseUtils.checkTenant(tenantID);
+    // Modify document
+    await global.database.getCollection<Transaction>(tenantID, 'transactions').findOneAndUpdate(
+      { '_id': id },
+      {
+        $set: {
+          refundData
+        }
+      },
+      { upsert: false });
+    // Debug
+    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveTransactionRefundData', uniqueTimerID, refundData);
   }
 
   public static async assignTransactionsToUser(tenantID: string, userID: string, tagID: string): Promise<void> {
