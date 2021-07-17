@@ -470,6 +470,7 @@ export default class TransactionStorage {
       }
     }
     if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
+      filters.stop = { $exists: true };
       filters['ocpiData.session'] = { $exists: true };
       filters['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
