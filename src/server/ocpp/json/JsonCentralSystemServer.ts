@@ -162,6 +162,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
     // Keep alive WebSocket connection
     if (this.keepAliveIntervalMillis > 0 && !this.keepAliveInterval) {
+      void Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME, method: 'createWSServer',
+        action: ServerAction.EXPRESS_SERVER,
+        message: 'Charging Station Web Socket ping/pong is active'
+      });
       this.keepAliveInterval = setInterval((): void => {
         for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
           if (!jsonWSConnection.isConnectionAlive) {
@@ -178,6 +184,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           jsonWSConnection.getWSConnection().ping((): void => { });
         }
       }, this.keepAliveIntervalMillis);
+    } else {
+      void Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME, method: 'createWSServer',
+        action: ServerAction.EXPRESS_SERVER,
+        message: 'Charging Station Web Socket ping/pong is disabled'
+      });
     }
   }
 }
