@@ -23,6 +23,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   private wsServer: WSServer;
   private jsonChargingStationClients: Map<string, JsonWSConnection>;
   private jsonRestClients: Map<string, JsonRestWSConnection>;
+  private keepAliveIntervalMillis: number;
+  private keepAliveInterval: NodeJS.Timeout;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
@@ -30,6 +32,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Keep local
     this.jsonChargingStationClients = new Map<string, JsonWSConnection>();
     this.jsonRestClients = new Map<string, JsonRestWSConnection>();
+    // Disable Ping/Pong
+    // this.keepAliveIntervalMillis = this.centralSystemConfig.keepAliveIntervalMillis ?
+    //   this.centralSystemConfig.keepAliveIntervalMillis : Constants.WS_DEFAULT_KEEP_ALIVE_MILLIS;
   }
 
   public start(): void {
@@ -155,6 +160,25 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
       }
     });
+    // Keep alive WebSocket connection
+    if (this.keepAliveIntervalMillis > 0 && !this.keepAliveInterval) {
+      this.keepAliveInterval = setInterval((): void => {
+        for (const jsonWSConnection of this.jsonChargingStationClients.values()) {
+          if (!jsonWSConnection.isConnectionAlive) {
+            void Logging.logError({
+              tenantID: jsonWSConnection.getTenantID(),
+              source: jsonWSConnection.getChargingStationID(),
+              action: ServerAction.WS_JSON_CONNECTION_CLOSED,
+              module: MODULE_NAME, method: 'createWSServer',
+              message: `WebSocket does not respond to ping (IP: ${jsonWSConnection.getClientIP().toString()}), terminating`
+            });
+            jsonWSConnection.getWSConnection().terminate();
+          }
+          jsonWSConnection.isConnectionAlive = false;
+          jsonWSConnection.getWSConnection().ping((): void => { });
+        }
+      }, this.keepAliveIntervalMillis);
+    }
   }
 }
 

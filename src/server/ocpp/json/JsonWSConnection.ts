@@ -21,6 +21,7 @@ import http from 'http';
 const MODULE_NAME = 'JsonWSConnection';
 
 export default class JsonWSConnection extends WSConnection {
+  public isConnectionAlive: boolean;
   private chargingStationClient: ChargingStationClient;
   private chargingStationService: JsonChargingStationService;
   private headers: OCPPHeader;
@@ -48,6 +49,7 @@ export default class JsonWSConnection extends WSConnection {
           message: `Protocol ${wsConnection.protocol} not supported`
         });
     }
+    this.isConnectionAlive = true;
     // Handle Socket ping
     this.getWSConnection().on('ping', this.onPing.bind(this));
     // Handle Socket pong
@@ -128,6 +130,7 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPong(): Promise<void> {
+    this.isConnectionAlive = true;
     void Logging.logDebug({
       tenantID: this.getTenantID(),
       source: this.getChargingStationID(),

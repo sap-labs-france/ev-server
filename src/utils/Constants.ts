@@ -282,6 +282,7 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
+  public static readonly WS_DEFAULT_KEEP_ALIVE_MILLIS = 180 * 1000;
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;
