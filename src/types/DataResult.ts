@@ -7,6 +7,10 @@ import Tag from './Tag';
 import { Transaction } from '@google-cloud/firestore';
 import User from './User';
 
+export interface DeletedResult {
+  acknowledged?: boolean;
+  deletedCount?: number;
+}
 export interface DataResult<T> {
   count: number;
   result: T[];

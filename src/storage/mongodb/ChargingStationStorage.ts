@@ -2,7 +2,7 @@ import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServ
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectID } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -43,7 +43,7 @@ export interface ConnectorMDB {
   voltage: Voltage;
   amperage: number;
   amperageLimit: number;
-  currentUserID: ObjectID;
+  currentUserID: ObjectId;
   statusLastChangedOn: Date;
   numberOfConnectedPhase: number;
   currentType: CurrentType;

@@ -5,7 +5,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import SiteArea from '../../types/SiteArea';
 import Utils from '../../utils/Utils';
 
@@ -66,7 +66,7 @@ export default class SiteAreaStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteareaimages')
+    const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenantID, 'siteareaimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getSiteAreaImage', uniqueTimerID, siteAreaImageMDB);
@@ -95,7 +95,7 @@ export default class SiteAreaStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Set
     const siteAreaMDB: any = {
-      _id: !siteAreaToSave.id ? new ObjectID() : DatabaseUtils.convertToObjectID(siteAreaToSave.id),
+      _id: !siteAreaToSave.id ? new ObjectId() : DatabaseUtils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
       issuer: siteAreaToSave.issuer,
       accessControl: Utils.convertToBoolean(siteAreaToSave.accessControl),
@@ -127,11 +127,11 @@ export default class SiteAreaStorage {
       { upsert: true, returnDocument: 'after' }
     );
     if (saveImage) {
-      await SiteAreaStorage.saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
+      await SiteAreaStorage.saveSiteAreaImage(tenantID, siteAreaMDB._id.toString(), siteAreaToSave.image);
     }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSiteArea', uniqueTimerID, siteAreaMDB);
-    return siteAreaMDB._id.toHexString();
+    return siteAreaMDB._id.toString();
   }
 
   public static async getSiteAreas(tenantID: string,
@@ -423,7 +423,7 @@ export default class SiteAreaStorage {
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
       .find({ siteID: { $in: siteIDs.map((id) => DatabaseUtils.convertToObjectID(id)) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper): string => idWrapper._id.toHexString());
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => idWrapper._id.toString());
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug

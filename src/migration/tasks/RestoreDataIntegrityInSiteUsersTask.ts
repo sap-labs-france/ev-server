@@ -32,8 +32,8 @@ export default class RestoreDataIntegrityInSiteUsersTask extends MigrationTask {
       for (const siteUser of siteUsers) {
         let toBeDeleted = true;
         if (siteUser.siteID && siteUser.userID) {
-          siteUser.siteID = siteUser.siteID.toHexString();
-          siteUser.userID = siteUser.userID.toHexString();
+          siteUser.siteID = siteUser.siteID.toString();
+          siteUser.userID = siteUser.userID.toString();
           // Find the Site
           const foundSite = sites.find((site) => site.id === siteUser.siteID);
           if (foundSite) {

@@ -7,7 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -485,7 +485,7 @@ export default class CarStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const carMDB: any = {
-      _id: carToSave.id ? DatabaseUtils.convertToObjectID(carToSave.id) : new ObjectID(),
+      _id: carToSave.id ? DatabaseUtils.convertToObjectID(carToSave.id) : new ObjectId(),
       vin: carToSave.vin,
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID),
@@ -509,7 +509,7 @@ export default class CarStorage {
     );
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveCar', uniqueTimerID, carMDB);
-    return carMDB._id.toHexString();
+    return carMDB._id.toString();
   }
 
   public static async getCar(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
