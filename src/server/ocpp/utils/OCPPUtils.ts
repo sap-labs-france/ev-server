@@ -1772,9 +1772,9 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number): void {
+  public static clearChargingStationConnector(chargingStation: ChargingStation, connectorID: number): void {
     // Cleanup connector transaction data
-    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
+    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (foundConnector) {
       foundConnector.currentInstantWatts = 0;
       foundConnector.currentTotalConsumptionWh = 0;

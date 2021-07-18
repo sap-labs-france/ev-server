@@ -832,7 +832,7 @@ export default class ChargingStationService {
             user: req.user
           });
         } else {
-          OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, connector.connectorId);
+          OCPPUtils.clearChargingStationConnector(chargingStation, connector.connectorId);
         }
       }
     }

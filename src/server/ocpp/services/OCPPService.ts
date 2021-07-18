@@ -444,7 +444,7 @@ export default class OCPPService {
         // Save it
         await TransactionStorage.saveTransaction(tenant.id, transaction);
         // Clean up
-        await this.clearChargingStationConnectorRuntimeData(tenant, transaction, chargingStation, user);
+        await this.updateChargingStationConnectorWithTransaction(tenant, transaction, chargingStation, user);
         // Save
         await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
         // Notify
@@ -545,7 +545,7 @@ export default class OCPPService {
         const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
           tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
         // Free the connector
-        OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
+        OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
         // Save Charging Station
         await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
         // Soft Stop
@@ -1202,7 +1202,7 @@ export default class OCPPService {
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
-      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, foundConnector.connectorId);
+      OCPPUtils.clearChargingStationConnector(chargingStation, foundConnector.connectorId);
     }
   }
 
@@ -1605,7 +1605,7 @@ export default class OCPPService {
     }
   }
 
-  private async clearChargingStationConnectorRuntimeData(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User): Promise<void> {
+  private async updateChargingStationConnectorWithTransaction(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, user: User): Promise<void> {
     const foundConnector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
     if (foundConnector) {
       foundConnector.currentInstantWatts = 0;

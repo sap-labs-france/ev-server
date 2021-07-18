@@ -18,6 +18,7 @@ import { DataResult } from '../../../../types/DataResult';
 import LockingHelper from '../../../../locking/LockingHelper';
 import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
+import { OCPPAuthorizationStatus } from '../../../../types/ocpp/OCPPServer';
 import OCPPService from '../../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../../ocpp/utils/OCPPUtils';
 import RefundFactory from '../../../../integration/refund/RefundFactory';
@@ -478,33 +479,56 @@ export default class TransactionService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
-    // Stop Transaction
-    const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
-      {
-        chargeBoxIdentity: chargingStation.id,
-        tenantID: req.user.tenantID
-      },
-      {
-        transactionId: transactionId,
-        chargeBoxID: chargingStation.id,
-        idTag: req.user.tagIDs[0],
-        timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
-        meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
-      },
-      true
-    );
-    // Log
-    await Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      source: chargingStation.id,
-      user: req.user, actionOnUser: transaction.userID,
-      module: MODULE_NAME, method: 'handleTransactionSoftStop',
-      message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
-      action: action,
-      detailedMessages: { result }
-    });
-    // Ok
-    res.json(result);
+    // Check if already stopped
+    if (transaction.stop) {
+      // Clear Connector
+      OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
+      // Save Connectors
+      await ChargingStationStorage.saveChargingStationConnectors(req.tenant.id, chargingStation.id, chargingStation.connectors);
+      await Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        source: chargingStation.id,
+        user: req.user, actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped and connector has been cleaned`,
+        action: action,
+      });
+    } else {
+      // Stop Transaction
+      const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
+        {
+          chargeBoxIdentity: chargingStation.id,
+          tenantID: req.user.tenantID
+        },
+        {
+          transactionId: transactionId,
+          chargeBoxID: chargingStation.id,
+          idTag: req.user.tagIDs[0],
+          timestamp: Utils.convertToDate(transaction.lastConsumption ? transaction.lastConsumption.timestamp : transaction.timestamp).toISOString(),
+          meterStop: transaction.lastConsumption ? transaction.lastConsumption.value : transaction.meterStart
+        },
+        true
+      );
+      if (result.idTagInfo?.status !== OCPPAuthorizationStatus.ACCEPTED) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
+          module: MODULE_NAME, method: 'handleTransactionSoftStop',
+          user: req.user, action: action
+        });
+      }
+      await Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        source: chargingStation.id,
+        user: req.user, actionOnUser: transaction.userID,
+        module: MODULE_NAME, method: 'handleTransactionSoftStop',
+        message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
+        action: action,
+        detailedMessages: { result }
+      });
+    }
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -1027,7 +1051,7 @@ export default class TransactionService {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
-            OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+            OCPPUtils.clearChargingStationConnector(transaction.chargeBox, transaction.connectorId);
             await ChargingStationStorage.saveChargingStationConnectors(loggedUser.tenantID, transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
           // To Delete
