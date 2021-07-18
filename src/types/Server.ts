@@ -235,6 +235,8 @@ export enum ServerAction {
   WS_JSON_CONNECTION_OPENED = 'WSJsonConnectionOpened',
   WS_JSON_CONNECTION_CLOSED = 'WSJsonConnectionClosed',
   WS_JSON_CONNECTION_ERROR = 'WSJsonConnectionError',
+  WS_JSON_CONNECTION_PINGED = 'WSJsonConnectionPinged',
+  WS_JSON_CONNECTION_PONGED = 'WSJsonConnectionPonged',
 
   WS_REST_CONNECTION_OPENED = 'WSRestServerConnectionOpened',
   WS_REST_CONNECTION_CLOSED = 'WSRestServerConnectionClosed',

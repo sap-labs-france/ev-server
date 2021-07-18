@@ -104,8 +104,8 @@ export default class ConsumptionStorage {
           hour: { '$hour': '$startedAt' },
           minute: { '$minute': '$startedAt' }
         },
-        instantWatts: { $sum: '$instantWatts' },
-        instantAmps: { $sum: '$instantAmps' },
+        instantWatts: { $avg: '$instantWatts' },
+        instantAmps: { $avg: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
         limitAmps: { $last: '$limitSiteAreaAmps' },
         stateOfCharge: { $last: '$stateOfCharge' },
