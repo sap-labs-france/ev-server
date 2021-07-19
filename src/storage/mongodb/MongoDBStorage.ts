@@ -1,4 +1,5 @@
 import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -12,7 +13,6 @@ import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
-import mongoUriBuilder from 'mongo-uri-builder';
 import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -205,26 +205,20 @@ export default class MongoDBStorage {
       // Yes: use it
       mongoUrl = this.dbConfig.uri;
     // Build URI without replicaset
-    } else if (Utils.isDevelopmentEnv()) {
-      mongoUrl = mongoUriBuilder({
-        host: urlencode(this.dbConfig.host),
-        port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
-        username: urlencode(this.dbConfig.user),
-        password: urlencode(this.dbConfig.password),
-        database: urlencode(this.dbConfig.database),
-      });
-    // Build URI with replicaset (prod)
     } else {
-      mongoUrl = mongoUriBuilder({
+      const uri: MongoUriConfig = {
         host: urlencode(this.dbConfig.host),
         port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
-        options: {
-          replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet
-        }
-      });
+        options: {}
+      };
+      // Set the Replica Set
+      if (this.dbConfig.replicaSet) {
+        uri.options.replicaSet = Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet;
+      }
+      mongoUrl = mongoUriBuilder(uri);
     }
     // Connect to EVSE
     const mongoDBClient = await MongoClient.connect(
