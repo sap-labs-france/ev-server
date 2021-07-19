@@ -1095,7 +1095,7 @@ export default class TransactionStorage {
   }
 
   public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID,
-      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean; withChargingStation?: boolean; } = {}, projectFields?: string[]): Promise<Transaction> {
+      params: { withTag?: boolean; withCar?: boolean; withUser?: boolean, withChargingStation?: boolean } = {}, projectFields?: string[]): Promise<Transaction> {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, {
       transactionIDs: [id],
       withTag: params.withTag,
