@@ -7,7 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TenantStorage';
@@ -54,7 +54,7 @@ export default class TenantStorage {
     if (tenantToSave.id) {
       tenantFilter._id = DatabaseUtils.convertToObjectID(tenantToSave.id);
     } else {
-      tenantFilter._id = new ObjectID();
+      tenantFilter._id = new ObjectId();
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
@@ -88,11 +88,11 @@ export default class TenantStorage {
       { upsert: true, returnDocument: 'after' });
     // Save Logo
     if (saveLogo) {
-      await TenantStorage._saveTenantLogo(tenantMDB._id.toHexString(), tenantToSave.logo);
+      await TenantStorage._saveTenantLogo(tenantMDB._id.toString(), tenantToSave.logo);
     }
     // Debug
     await Logging.traceEnd(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveTenant', uniqueTimerID, tenantMDB);
-    return tenantFilter._id.toHexString();
+    return tenantFilter._id.toString();
   }
 
   public static async createTenantDB(tenantID: string): Promise<void> {
@@ -244,7 +244,7 @@ export default class TenantStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
+    const tenantLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(Constants.DEFAULT_TENANT, 'tenantlogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(tenantID) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getTenantLogo', uniqueTimerID, tenantLogoMDB);

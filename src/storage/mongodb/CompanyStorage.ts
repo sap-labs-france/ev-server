@@ -6,7 +6,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import SiteStorage from './SiteStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -31,7 +31,7 @@ export default class CompanyStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenant.id, 'companylogos')
+    const companyLogoMDB = await global.database.getCollection<{ _id: ObjectId; logo: string }>(tenant.id, 'companylogos')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getCompanyLogo', uniqueTimerID, companyLogoMDB);
@@ -48,7 +48,7 @@ export default class CompanyStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Set
     const companyMDB: any = {
-      _id: !companyToSave.id ? new ObjectID() : DatabaseUtils.convertToObjectID(companyToSave.id),
+      _id: !companyToSave.id ? new ObjectId() : DatabaseUtils.convertToObjectID(companyToSave.id),
       name: companyToSave.name,
       issuer: Utils.convertToBoolean(companyToSave.issuer),
     };
@@ -75,11 +75,11 @@ export default class CompanyStorage {
     );
     // Save Logo
     if (saveLogo) {
-      await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toHexString(), companyToSave.logo);
+      await CompanyStorage.saveCompanyLogo(tenant, companyMDB._id.toString(), companyToSave.logo);
     }
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveCompany', uniqueTimerID, companyMDB);
-    return companyMDB._id.toHexString();
+    return companyMDB._id.toString();
   }
 
   public static async getCompanies(tenant: Tenant,

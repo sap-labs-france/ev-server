@@ -7,7 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'AssetStorage';
@@ -28,7 +28,7 @@ export default class AssetStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const assetImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'assetimages')
+    const assetImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenantID, 'assetimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetImage', uniqueTimerID, assetImageMDB);
@@ -45,7 +45,7 @@ export default class AssetStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Set
     const assetMDB: any = {
-      _id: assetToSave.id ? DatabaseUtils.convertToObjectID(assetToSave.id) : new ObjectID(),
+      _id: assetToSave.id ? DatabaseUtils.convertToObjectID(assetToSave.id) : new ObjectId(),
       name: assetToSave.name,
       siteAreaID: DatabaseUtils.convertToObjectID(assetToSave.siteAreaID),
       siteID: DatabaseUtils.convertToObjectID(assetToSave.siteID),
@@ -93,11 +93,11 @@ export default class AssetStorage {
     );
     // Save Image
     if (saveImage) {
-      await AssetStorage.saveAssetImage(tenantID, assetMDB._id.toHexString(), assetToSave.image);
+      await AssetStorage.saveAssetImage(tenantID, assetMDB._id.toString(), assetToSave.image);
     }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveAsset', uniqueTimerID, assetMDB);
-    return assetMDB._id.toHexString();
+    return assetMDB._id.toString();
   }
 
   public static async getAssets(tenantID: string,
