@@ -1100,8 +1100,8 @@ export default class TransactionStorage {
       transactionIDs: [id],
       withTag: params.withTag,
       withCar: params.withCar,
-      withUser: params.withUser,
       withChargingStation: params.withChargingStation,
+      withUser: params.withUser,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return transactionsMDB.count === 1 ? transactionsMDB.result[0] : null;
   }
