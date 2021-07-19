@@ -204,8 +204,17 @@ export default class MongoDBStorage {
     if (this.dbConfig.uri) {
       // Yes: use it
       mongoUrl = this.dbConfig.uri;
+    // Build URI without replicaset
+    } else if (Utils.isDevelopmentEnv()) {
+      mongoUrl = mongoUriBuilder({
+        host: urlencode(this.dbConfig.host),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
+        username: urlencode(this.dbConfig.user),
+        password: urlencode(this.dbConfig.password),
+        database: urlencode(this.dbConfig.database),
+      });
+    // Build URI with replicaset (prod)
     } else {
-      // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
         port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
@@ -213,7 +222,7 @@ export default class MongoDBStorage {
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
         options: {
-          replicaSet: this.dbConfig.replicaSet
+          replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet
         }
       });
     }
@@ -223,7 +232,7 @@ export default class MongoDBStorage {
       {
         minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
-        replicaSet: this.dbConfig.replicaSet,
+        replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
       }
     );
