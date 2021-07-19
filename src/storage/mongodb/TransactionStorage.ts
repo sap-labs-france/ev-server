@@ -699,10 +699,11 @@ export default class TransactionStorage {
         tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
         foreignField: '_id', oneToOneCardinality: true
       });
-      DatabaseUtils.pushTagLookupInAggregation({
-        tenantID, aggregation: aggregation, asField: 'stop.tag', localField: 'stop.tagID',
-        foreignField: '_id', oneToOneCardinality: true
-      });
+      // TODO: [To Investigate] Cause big perf issue in prod (local it takes 2sec with this lookup instead of 165ms, in prod it can takes up to 20s)
+      // DatabaseUtils.pushTagLookupInAggregation({
+      //   tenantID, aggregation: aggregation, asField: 'stop.tag', localField: 'stop.tagID',
+      //   foreignField: '_id', oneToOneCardinality: true
+      // });
     }
     // Company
     if (params.withCompany) {
