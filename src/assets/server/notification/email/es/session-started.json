@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Sessão não iniciada",
+  "subject": "Sesión iniciada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Sessão não iniciada",
+      "title": "Sesión iniciada",
       "image": {
         "left": {
           "height": 60,
@@ -17,21 +17,18 @@
       }
     },
     "beforeActionLines": [
-      "Olá <%- (user.firstName?user.firstName:user.name) %>,",
+      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Você não iniciou a sessão na estação de carregamento <b> '<%- chargeBoxID %>' </b>, conector <b> '<% -connectorId %>' </b>.",
-      ""
+      "Su vehículo eléctrico está conectado correctamente a la terminal <strong> '<%- chargeBoxID%>' </strong>, conector <strong> '<%- connectorId%>' </strong>."
     ],
     "actions": [{
-      "title": "View <%- chargeBoxID %>",
+      "title": "Ver sesion",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [
-      "Com os melhores cumprimentos,",
+      "Atentamente,",
       "EV Admins."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 }
-

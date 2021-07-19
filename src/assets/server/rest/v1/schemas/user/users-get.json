@@ -25,17 +25,9 @@
     "ExcludeSiteID": {
       "$ref": "common.json#/definitions/ids"
     },
-    "TagID": {
-      "$ref": "tag.json#/definitions/ids"
-    },
-    "ExcludeUserIDs": {
-      "$ref": "user.json#/definitions/ids"
-    },
-    "IncludeCarUserIDs": {
-      "$ref": "common.json#/definitions/ids"
-    },
-    "NotAssignedToCarID": {
-      "$ref": "common.json#/definitions/id"
+    "VisualTagID": {
+      "type": "string",
+      "sanitize": "mongo"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"

@@ -1,10 +1,10 @@
 {
-  "subject": "'<% - chargeBoxID%> 'se acaba de conectar",
+  "subject": "Carga óptima alcanzada",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Terminal conectada",
+      "title": "Carga óptima alcanzada",
       "image": {
         "left": {
           "height": 60,
@@ -17,12 +17,15 @@
       }
     },
     "beforeActionLines": [
-      "Estimado administrador,",
+      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "La terminal <strong> <% - chargeBoxID%> </strong> acaba de conectarse al servidor central."
+      "Su vehículo eléctrico, que está conectado a <strong> '<%- chargeBoxID%>' </strong>, conector <strong> '<%- connectorId%>' </strong>, ha alcanzado su carga óptima."
+    ],
+    "stats": [
+      { "label": "Nivel de batería", "value": "<%- stateOfCharge %> %" }
     ],
     "actions": [{
-      "title": "Ver <%- chargeBoxID %>",
+      "title": "Ver sesión",
       "url": "<%- evseDashboardChargingStationURL %>"
     }],
     "afterActionLines": [

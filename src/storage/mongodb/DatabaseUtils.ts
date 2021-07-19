@@ -3,7 +3,7 @@ import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
@@ -29,7 +29,7 @@ export default class DatabaseUtils {
 
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
     let prefix = Constants.DEFAULT_TENANT;
-    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectID.isValid(tenantID)) {
+    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectId.isValid(tenantID)) {
       prefix = tenantID;
     }
     return `${prefix}.${collectionNameSuffix}`;
@@ -50,12 +50,6 @@ export default class DatabaseUtils {
 
   public static pushCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('cars', {
-      ...lookupParams
-    }, additionalPipeline);
-  }
-
-  public static pushUserCarLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
-    DatabaseUtils.pushCollectionLookupInAggregation('carusers', {
       ...lookupParams
     }, additionalPipeline);
   }
@@ -103,7 +97,7 @@ export default class DatabaseUtils {
   public static pushTagLookupInAggregation(lookupParams: DbLookup, additionalPipeline: Record<string, any>[] = []): void {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
       objectIDFields: ['lastChangedBy'],
-      projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
+      projectedFields: ['id', 'description', 'visualID', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
     }, additionalPipeline);
   }
@@ -187,7 +181,7 @@ export default class DatabaseUtils {
     }
     // Replace ID field
     DatabaseUtils.pushRenameDatabaseID(pipeline);
-    // Convert ObjectID fields to String
+    // Convert ObjectId fields to String
     if (lookupParams.objectIDFields) {
       for (const foreignField of lookupParams.objectIDFields) {
         DatabaseUtils.pushConvertObjectIDToString(pipeline, foreignField);
@@ -371,23 +365,23 @@ export default class DatabaseUtils {
     }
   }
 
-  public static convertToObjectID(id: any): ObjectID {
-    let changedID: ObjectID = id;
+  public static convertToObjectID(id: any): ObjectId {
+    let changedID: ObjectId = id;
     // Check
     if (typeof id === 'string') {
       // Create Object
-      changedID = new ObjectID(id);
+      changedID = new ObjectId(id);
     }
     return changedID;
   }
 
-  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
-    let userID: ObjectID | null = null;
+  public static convertUserToObjectID(user: User | UserToken | string): ObjectId | null {
+    let userID: ObjectId | null = null;
     // Check Created By
     if (user) {
       // Check User Model
       if (typeof user === 'object' &&
-        user.constructor.name !== 'ObjectID') {
+        user.constructor.name !== 'ObjectId') {
         // This is the User Model
         userID = DatabaseUtils.convertToObjectID(user.id);
       }
@@ -411,7 +405,7 @@ export default class DatabaseUtils {
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
-      if (!ObjectID.isValid(tenantID)) {
+      if (!ObjectId.isValid(tenantID)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
@@ -465,12 +459,12 @@ export default class DatabaseUtils {
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...
-  private static _mongoConvertUserID(obj: any, prop: string): ObjectID | null {
+  private static _mongoConvertUserID(obj: any, prop: string): ObjectId | null {
     if (!obj || !obj[prop]) {
       return null;
     }
-    if (ObjectID.isValid(obj[prop])) {
-      return obj[prop] as ObjectID;
+    if (ObjectId.isValid(obj[prop])) {
+      return obj[prop] as ObjectId;
     }
     if (obj[prop].id) {
       return DatabaseUtils.convertToObjectID(obj[prop].id);

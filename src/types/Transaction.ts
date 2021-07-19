@@ -2,7 +2,6 @@ import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
 
-import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
 import { OCPICdr } from './ocpi/OCPICdr';
@@ -10,10 +9,11 @@ import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
 import { PricingModel } from './Pricing';
-import { RefundTransactionData } from './Refund';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
+import { TransactionBillingData } from './Billing';
+import { TransactionRefundData } from './Refund';
 import User from './User';
 
 export type InactivityStatusLevel =
@@ -77,7 +77,6 @@ export default interface Transaction extends AbstractCurrentConsumption {
     tagID: string;
     userID: string;
   };
-  refundData?: RefundTransactionData;
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
@@ -100,11 +99,12 @@ export default interface Transaction extends AbstractCurrentConsumption {
   numberOfMeterValues: number;
   uniqueId?: string;
   values?: Consumption[];
-  billingData?: BillingTransactionData;
   ocpi?: boolean;
   ocpiWithCdr?: boolean;
   ocpiData?: TransactionOcpiData;
   oicpData?: TransactionOicpData;
+  billingData?: TransactionBillingData;
+  refundData?: TransactionRefundData;
   migrationTag?: string;
 }
 

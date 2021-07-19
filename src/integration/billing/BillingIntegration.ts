@@ -8,7 +8,7 @@ import { BillingSettings } from '../../types/Setting';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
-import Decimal from 'decimal.js';
+import { Decimal } from 'decimal.js';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
@@ -89,36 +89,26 @@ export default abstract class BillingIntegration {
 
   public async synchronizeUser(user: User): Promise<BillingUser> {
     let billingUser: BillingUser = null;
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_SYNC_USER)) {
-      try {
-        billingUser = await this._synchronizeUser(user);
-        await Logging.logInfo({
-          tenantID: this.tenant.id,
-          actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
-        });
-        return billingUser;
-      } catch (error) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          actionOnUser: user,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USER,
-          module: MODULE_NAME, method: 'synchronizeUser',
-          message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
-          detailedMessages: { error: error.stack }
-        });
-      }
-    } else {
-      await Logging.logWarning({
+    try {
+      billingUser = await this._synchronizeUser(user);
+      await Logging.logInfo({
         tenantID: this.tenant.id,
+        actionOnUser: user,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.BILLING_SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'synchronizeUser',
-        message: 'Feature is switched OFF - operation has been aborted'
+        message: `Successfully synchronized user: '${user.id}' - '${user.email}'`,
+      });
+      return billingUser;
+    } catch (error) {
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        actionOnUser: user,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USER,
+        module: MODULE_NAME, method: 'synchronizeUser',
+        message: `Failed to synchronize user: '${user.id}' - '${user.email}'`,
+        detailedMessages: { error: error.stack }
       });
     }
     return billingUser;
@@ -204,7 +194,7 @@ export default abstract class BillingIntegration {
             await Logging.logWarning({
               tenantID: this.tenant.id,
               source: Constants.CENTRAL_SERVER,
-              action: ServerAction.BILLING_CHARGE_INVOICE,
+              action: ServerAction.BILLING_PERFORM_OPERATIONS,
               actionOnUser: invoice.user,
               module: MODULE_NAME, method: 'chargeInvoices',
               message: `Invoice is too new - Operation has been skipped - '${invoice.id}'`
@@ -219,7 +209,7 @@ export default abstract class BillingIntegration {
           await Logging.logInfo({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Successfully charged invoice '${invoice.id}'`
@@ -230,7 +220,7 @@ export default abstract class BillingIntegration {
           await Logging.logError({
             tenantID: this.tenant.id,
             source: Constants.CENTRAL_SERVER,
-            action: ServerAction.BILLING_CHARGE_INVOICE,
+            action: ServerAction.BILLING_PERFORM_OPERATIONS,
             actionOnUser: invoice.user,
             module: MODULE_NAME, method: 'chargeInvoices',
             message: `Failed to charge invoice '${invoice.id}'`,
@@ -308,15 +298,13 @@ export default abstract class BillingIntegration {
     }
     // Check Billing Data
     if (!transaction.user?.billingData?.customerID) {
-      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
-        throw new BackendError({
-          message: 'User has no Billing Data',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkStopTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+      throw new BackendError({
+        message: 'User has no Billing Data',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStopTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 
@@ -333,15 +321,13 @@ export default abstract class BillingIntegration {
     }
     // Check Billing Data (only in Live Mode)
     if (!transaction.user?.billingData?.customerID) {
-      if (FeatureToggles.isFeatureActive(Feature.BILLING_CHECK_USER_BILLING_DATA)) {
-        throw new BackendError({
-          message: 'User has no billing data or no customer ID',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'checkStartTransaction',
-          action: ServerAction.BILLING_TRANSACTION
-        });
-      }
+      throw new BackendError({
+        message: 'User has no billing data or no customer ID',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'checkStartTransaction',
+        action: ServerAction.BILLING_TRANSACTION
+      });
     }
   }
 

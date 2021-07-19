@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Sesión no iniciada",
+  "subject": "Terminales sin conexión",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Sesión no iniciada",
+      "title": "Terminales sin conexión",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,14 @@
       }
     },
     "beforeActionLines": [
-      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
+      "Estimado administrador,",
       "",
-      "No ha comenzado la sesión en la estación de carga <strong> '<% - chargeBoxID%>' </strong>, conector <strong> '<% - connectorId%>' </strong>.",
+      "Las siguientes terminales en su organización están fuera de línea:  <strong> <%- chargeBoxIDs%> </strong> ",
       ""
     ],
     "actions": [{
-      "title": "Ver <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
     }],
     "afterActionLines": [
       "Atentamente,",

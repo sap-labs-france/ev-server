@@ -52,7 +52,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
-                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id);
+                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id, { withUser: true });
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -85,7 +85,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     // Roaming
                     await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, TransactionAction.END);
                     // Save
-                    await TransactionStorage.saveTransaction(tenant.id, transaction);
+                    await TransactionStorage.saveTransactionOcpiData(tenant.id, transaction.id, transaction.ocpiData);
                     // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,

@@ -8,5 +8,5 @@ export enum CentralSystemImplementation {
 export default interface CentralSystemConfiguration extends CentralSystemServerConfiguration {
   implementation: CentralSystemImplementation;
   debug: boolean;
-  keepaliveinterval?: number;
+  keepAliveIntervalMillis?: number;
 }

@@ -39,10 +39,8 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   Role: string;
   Status: string;
   ErrorType?: string;
-  TagID?: string;
+  VisualTagID?: string;
   ExcludeSiteID: string;
-  ExcludeUserIDs: string;
-  IncludeCarUserIDs: string;
   NotAssignedToCarID: string;
 }
 
@@ -98,4 +96,8 @@ export interface HttpResendVerificationMailRequest {
 
 export interface HttpEulaRequest {
   Language: string;
+}
+
+export interface HttpUserDefaultTagCar {
+  UserID: string;
 }

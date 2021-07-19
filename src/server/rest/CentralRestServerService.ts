@@ -34,31 +34,11 @@ class RequestMapper {
     switch (httpVerb) {
       // Create
       case 'POST':
-        this.registerOneActionManyPaths(
-          async (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
-            // Delegate
-            await ChargingStationService.handleAction(action, req, res, next);
-          },
-          ServerAction.CHARGING_STATION_CLEAR_CACHE,
-          ServerAction.CHARGING_STATION_GET_CONFIGURATION,
-          ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-          ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
-          ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
-          ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
-          ServerAction.CHARGING_STATION_RESET,
-          ServerAction.CHARGING_STATION_SET_CHARGING_PROFILE,
-          ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-          ServerAction.CHARGING_STATION_CLEAR_CHARGING_PROFILE,
-          ServerAction.CHARGING_STATION_GET_DIAGNOSTICS,
-          ServerAction.CHARGING_STATION_CHANGE_AVAILABILITY,
-          ServerAction.CHARGING_STATION_UPDATE_FIRMWARE
-        );
         // Register REST actions
         this.registerJsonActionsPaths({
           [ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
           [ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
           [ServerAction.REGISTRATION_TOKEN_CREATE]: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
-          [ServerAction.USER_CREATE]: UserService.handleCreateUser.bind(this),
           [ServerAction.COMPANY_CREATE]: CompanyService.handleCreateCompany.bind(this),
           [ServerAction.ADD_ASSET_TO_SITE_AREA]: SiteAreaService.handleAssignAssetsToSiteArea.bind(this),
           [ServerAction.REMOVE_ASSET_TO_SITE_AREA]: SiteAreaService.handleAssignAssetsToSiteArea.bind(this),
@@ -67,8 +47,6 @@ class RequestMapper {
           [ServerAction.SITE_CREATE]: SiteService.handleCreateSite.bind(this),
           [ServerAction.ADD_USERS_TO_SITE]: SiteService.handleAssignUsersToSite.bind(this),
           [ServerAction.REMOVE_USERS_FROM_SITE]: SiteService.handleAssignUsersToSite.bind(this),
-          [ServerAction.ADD_SITES_TO_USER]: UserService.handleAssignSitesToUser.bind(this),
-          [ServerAction.REMOVE_SITES_FROM_USER]: UserService.handleAssignSitesToUser.bind(this),
           [ServerAction.SITE_AREA_CREATE]: SiteAreaService.handleCreateSiteArea.bind(this),
           [ServerAction.TRANSACTIONS_REFUND]: TransactionService.handleRefundTransactions.bind(this),
           [ServerAction.TRANSACTION_PUSH_CDR]: TransactionService.handlePushTransactionCdr.bind(this),
@@ -79,7 +57,6 @@ class RequestMapper {
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER]: BillingService.handleForceSynchronizeUser.bind(this),
           [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER_INVOICES]: BillingService.handleForceSynchronizeUserInvoices.bind(this),
-          [ServerAction.BILLING_CREATE_TRANSACTION_INVOICE]: BillingService.handleCreateTransactionInvoice.bind(this),
           [ServerAction.BILLING_SETUP_PAYMENT_METHOD]: BillingService.handleBillingSetupPaymentMethod.bind(this),
           [ServerAction.OCPI_ENDPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENDPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
@@ -102,7 +79,6 @@ class RequestMapper {
           [ServerAction.CAR_CREATE]: CarService.handleCreateCar.bind(this),
           [ServerAction.TAG_CREATE]: TagService.handleCreateTag.bind(this),
           [ServerAction.END_USER_REPORT_ERROR]: NotificationService.handleEndUserReportError.bind(this),
-          [ServerAction.USERS_IMPORT]: UserService.handleImportUsers.bind(this),
           [ServerAction.TAGS_IMPORT]: TagService.handleImportTags.bind(this),
         });
         break;
@@ -120,20 +96,9 @@ class RequestMapper {
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
           [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR]: CarService.handleGetCar.bind(this),
-          [ServerAction.CAR_USERS]: CarService.handleGetCarUsers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
-          [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleExportChargingStations.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleExportChargingStationsOCPPParams.bind(this),
-          [ServerAction.CHARGING_STATION]: ChargingStationService.handleGetChargingStation.bind(this),
-          [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
-          [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
-          [ServerAction.TRIGGER_SMART_CHARGING]: ChargingStationService.handleTriggerSmartCharging.bind(this),
-          [ServerAction.GENERATE_QR_CODE_FOR_CONNECTOR]: ChargingStationService.handleGenerateQrCodeForConnector.bind(this),
-          [ServerAction.CHARGING_STATION_DOWNLOAD_QR_CODE_PDF]: ChargingStationService.handleDownloadQrCodesPdf.bind(this),
           [ServerAction.REGISTRATION_TOKENS]: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           [ServerAction.REGISTRATION_TOKEN]: RegistrationTokenService.handleGetRegistrationToken.bind(this),
-          [ServerAction.STATUS_NOTIFICATIONS]: ChargingStationService.handleGetStatusNotifications.bind(this),
-          [ServerAction.BOOT_NOTIFICATION]: ChargingStationService.handleGetBootNotifications.bind(this),
           [ServerAction.COMPANIES]: CompanyService.handleGetCompanies.bind(this),
           [ServerAction.COMPANY]: CompanyService.handleGetCompany.bind(this),
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
@@ -152,16 +117,10 @@ class RequestMapper {
           [ServerAction.SITE_AREA]: SiteAreaService.handleGetSiteArea.bind(this),
           [ServerAction.SITE_AREA_CONSUMPTION]: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
           [ServerAction.USERS]: UserService.handleGetUsers.bind(this),
-          [ServerAction.USER_SITES]: UserService.handleGetSites.bind(this),
-          [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
-          [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
-          [ServerAction.USER]: UserService.handleGetUser.bind(this),
-          [ServerAction.USERS_EXPORT]: UserService.handleExportUsers.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TAGS]: TagService.handleGetTags.bind(this),
           [ServerAction.TAG]: TagService.handleGetTag.bind(this),
           [ServerAction.TAGS_EXPORT]: TagService.handleExportTags.bind(this),
-          [ServerAction.USER_DEFAULT_TAG_CAR]: UserService.handleGetUserDefaultTagCar.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND_EXPORT]: TransactionService.handleExportTransactionsToRefund.bind(this),
@@ -187,8 +146,6 @@ class RequestMapper {
           [ServerAction.CHARGING_STATION_TRANSACTIONS]: TransactionService.handleGetChargingStationTransactions.bind(this),
           [ServerAction.TRANSACTION]: TransactionService.handleGetTransaction.bind(this),
           [ServerAction.TRANSACTION_CONSUMPTION]: TransactionService.handleGetTransactionConsumption.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMETERS]: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
-          [ServerAction.CHARGING_STATIONS_IN_ERROR]: ChargingStationService.handleGetChargingStationsInError.bind(this),
           [ServerAction.SETTING_BY_IDENTIFIER]: SettingService.handleGetSettingByIdentifier.bind(this),
           [ServerAction.SETTINGS]: SettingService.handleGetSettings.bind(this),
           [ServerAction.SETTING]: SettingService.handleGetSetting.bind(this),
@@ -213,11 +170,6 @@ class RequestMapper {
       case 'PUT':
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.USER_UPDATE]: UserService.handleUpdateUser.bind(this),
-          [ServerAction.USER_UPDATE_MOBILE_TOKEN]: UserService.handleUpdateUserMobileToken.bind(this),
-          [ServerAction.CHARGING_STATION_UPDATE_PARAMS]: ChargingStationService.handleUpdateChargingStationParams.bind(this),
-          [ServerAction.CHARGING_STATION_LIMIT_POWER]: ChargingStationService.handleChargingStationLimitPower.bind(this),
-          [ServerAction.CHARGING_PROFILE_UPDATE]: ChargingStationService.handleUpdateChargingProfile.bind(this),
           [ServerAction.TENANT_UPDATE]: TenantService.handleUpdateTenant.bind(this),
           [ServerAction.SITE_UPDATE]: SiteService.handleUpdateSite.bind(this),
           [ServerAction.SITE_AREA_UPDATE]: SiteAreaService.handleUpdateSiteArea.bind(this),
@@ -237,7 +189,6 @@ class RequestMapper {
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
           [ServerAction.TAG_UPDATE]: TagService.handleUpdateTag.bind(this),
-          [ServerAction.BILLING_CHARGE_INVOICE]: BillingService.handleBillingChargeInvoice.bind(this),
           [ServerAction.REGISTRATION_TOKEN_UPDATE]: RegistrationTokenService.handleUpdateRegistrationToken.bind(this),
         });
         break;
@@ -246,7 +197,6 @@ class RequestMapper {
       case 'DELETE':
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.USER_DELETE]: UserService.handleDeleteUser.bind(this),
           [ServerAction.TENANT_DELETE]: TenantService.handleDeleteTenant.bind(this),
           [ServerAction.REGISTRATION_TOKEN_DELETE]: RegistrationTokenService.handleDeleteRegistrationToken.bind(this),
           [ServerAction.REGISTRATION_TOKEN_REVOKE]: RegistrationTokenService.handleRevokeRegistrationToken.bind(this),
@@ -254,8 +204,6 @@ class RequestMapper {
           [ServerAction.SITE_AREA_DELETE]: SiteAreaService.handleDeleteSiteArea.bind(this),
           [ServerAction.COMPANY_DELETE]: CompanyService.handleDeleteCompany.bind(this),
           [ServerAction.ASSET_DELETE]: AssetService.handleDeleteAsset.bind(this),
-          [ServerAction.CHARGING_STATION_DELETE]: ChargingStationService.handleDeleteChargingStation.bind(this),
-          [ServerAction.CHARGING_PROFILE_DELETE]: ChargingStationService.handleDeleteChargingProfile.bind(this),
           [ServerAction.TRANSACTION_DELETE]: TransactionService.handleDeleteTransaction.bind(this),
           [ServerAction.TRANSACTIONS_DELETE]: TransactionService.handleDeleteTransactions.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_DELETE]: ConnectionService.handleDeleteConnection.bind(this),
@@ -332,10 +280,6 @@ export default class CentralRestServerService {
               break;
             case ServerAction.TENANT_LOGO:
               await TenantService.handleGetTenantLogo(action, req, res, next);
-              break;
-            // Firmware Download
-            case ServerAction.FIRMWARE_DOWNLOAD:
-              await ChargingStationService.handleGetFirmware(action, req, res, next);
               break;
             default:
               // Delegate

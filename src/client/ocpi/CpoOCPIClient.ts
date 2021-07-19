@@ -489,7 +489,8 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
+    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID,
+      OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
   }
 
   public async checkSessions(): Promise<OCPIResult> {
@@ -535,7 +536,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} Session(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} Session(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} Session(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No Sessions have been checked'
+      'No Session has to be checked'
     );
     return result;
   }
@@ -587,7 +588,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} Location(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} Location(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} Location(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No Locations have been checked'
+      'No Location has to be checked'
     );
     return result;
   }
@@ -633,7 +634,7 @@ export default class CpoOCPIClient extends OCPIClient {
       `{{inSuccess}} CDR(s) were successfully checked in ${executionDurationSecs}s`,
       `{{inError}} CDR(s) failed to be checked in ${executionDurationSecs}s`,
       `{{inSuccess}} CDR(s) were successfully checked and {{inError}} failed to be checked in ${executionDurationSecs}s`,
-      'No CDR to be checked'
+      'No CDR has to be checked'
     );
     return result;
   }
@@ -866,8 +867,9 @@ export default class CpoOCPIClient extends OCPIClient {
     } else if (OCPIUtilsService.isSuccessResponse(response.data)) {
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
+        // CDR checked
         transaction.ocpiData.cdrCheckedOn = new Date();
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           source: transaction.chargeBoxID,

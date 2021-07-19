@@ -8,7 +8,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readById(id) {
-    return await super.readById(id, `/v1/api/transactions/${id}`);
+    return await super.readById(id, `/v1/api/transactions/${id}?WithUser=true`);
   }
 
   public async readAllActive(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
@@ -24,7 +24,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllConsumption(params) {
-    return await super.read(params, `/v1/api/transactions/${params.TransactionId}/consumptions`);
+    return await super.read(params, `/v1/api/transactions/${params.TransactionId}/consumptions?WithUser=true`);
   }
 
   public async readAllYears(params) {

@@ -61,6 +61,18 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.initialized) {
       // Call super class
       await super.initialize();
+      // Update the Charging Station
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), {}, ['id']);
+      if (chargingStation) {
+        // Update Last Seen
+        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
+          chargingStation.id, { lastSeen: new Date() });
+        // Update CF Instance
+        if (Configuration.isCloudFoundry()) {
+          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
+            this.getTenantID(), chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
+        }
+      }
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
@@ -73,9 +85,7 @@ export default class JsonWSConnection extends WSConnection {
           Address: this.getClientIP()
         }
       };
-      // Ok
       this.initialized = true;
-      // Log
       await Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
@@ -87,10 +97,9 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public onError(errorEvent: ErrorEvent): void {
-    // Log
     void Logging.logError({
       tenantID: this.getTenantID(),
-      source: this.getChargingStationID() ? this.getChargingStationID() : '',
+      source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: `Error ${errorEvent?.error} ${errorEvent?.message}`,
@@ -99,30 +108,40 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public onClose(closeEvent: CloseEvent): void {
-    // Log
     void Logging.logInfo({
       tenantID: this.getTenantID(),
-      source: this.getChargingStationID() ? this.getChargingStationID() : '',
+      source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
       detailedMessages: { closeEvent: closeEvent }
     });
-    // Remove the connection
-    this.wsServer.removeJsonConnection(this);
   }
 
   public async onPing(): Promise<void> {
+    void Logging.logDebug({
+      tenantID: this.getTenantID(),
+      source: this.getChargingStationID(),
+      action: ServerAction.WS_JSON_CONNECTION_PINGED,
+      module: MODULE_NAME, method: 'onPing',
+      message: 'Ping received',
+    });
     await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
+    void Logging.logDebug({
+      tenantID: this.getTenantID(),
+      source: this.getChargingStationID(),
+      action: ServerAction.WS_JSON_CONNECTION_PONGED,
+      module: MODULE_NAME, method: 'onPong',
+      message: 'Pong received',
+    });
     await this.updateChargingStationLastSeen();
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
-    // Log
     await Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     const methodName = `handle${commandName}`;
     // Check if method exist in the service
@@ -149,18 +168,17 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public getChargingStationClient(): ChargingStationClient {
-    // Only return client if WS is open
-    if (this.isWSConnectionOpen()) {
-      return this.chargingStationClient;
+    if (!this.isWSConnectionOpen()) {
+      void Logging.logError({
+        tenantID: this.getTenantID(),
+        source: this.getChargingStationID(),
+        module: MODULE_NAME, method: 'getChargingStationClient',
+        action: ServerAction.WS_CONNECTION,
+        message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
+      });
+      return null;
     }
-    void Logging.logError({
-      tenantID: this.getTenantID(),
-      source: this.getChargingStationID(),
-      module: MODULE_NAME, method: 'getChargingStationClient',
-      action: ServerAction.WS_CONNECTION,
-      message: `Cannot retrieve WS client from WS connection with status '${this.getConnectionStatusString()}'`,
-    });
-    return null;
+    return this.chargingStationClient;
   }
 
   private async updateChargingStationLastSeen(): Promise<void> {

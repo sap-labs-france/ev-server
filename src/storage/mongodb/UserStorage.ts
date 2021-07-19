@@ -15,7 +15,7 @@ import DbParams from '../../types/database/DbParams';
 import Eula from '../../types/Eula';
 import Logging from '../../utils/Logging';
 import Mustache from 'mustache';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import TagStorage from './TagStorage';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
@@ -130,7 +130,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'userimages')
+    const userImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenantID, 'userimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getUserImage', uniqueTimerID, userImageMDB);
@@ -229,7 +229,7 @@ export default class UserStorage {
     // Properties to save
     // eslint-disable-next-line prefer-const
     const userMDB: any = {
-      _id: userToSave.id ? DatabaseUtils.convertToObjectID(userToSave.id) : new ObjectID(),
+      _id: userToSave.id ? DatabaseUtils.convertToObjectID(userToSave.id) : new ObjectId(),
       issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
       firstName: userToSave.firstName,
@@ -290,17 +290,17 @@ export default class UserStorage {
       { upsert: true, returnDocument: 'after' });
     // Delegate saving image as well if specified
     if (saveImage) {
-      await UserStorage.saveUserImage(tenantID, userMDB._id.toHexString(), userToSave.image);
+      await UserStorage.saveUserImage(tenantID, userMDB._id.toString(), userToSave.image);
     }
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveUser', uniqueTimerID, userMDB);
-    return userMDB._id.toHexString();
+    return userMDB._id.toString();
   }
 
   public static async saveImportedUser(tenantID: string, importedUserToSave: ImportedUser): Promise<string> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUser');
     const userMDB = {
-      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectId(),
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
@@ -318,13 +318,13 @@ export default class UserStorage {
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveImportedUser', uniqueTimerID, userMDB);
-    return userMDB._id.toHexString();
+    return userMDB._id.toString();
   }
 
   public static async saveImportedUsers(tenantID: string, importedUsersToSave: ImportedUser[]): Promise<number> {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveImportedUsers');
     const importedUsersToSaveMDB: any = importedUsersToSave.map((importedUserToSave) => ({
-      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectID(),
+      _id: importedUserToSave.id ? DatabaseUtils.convertToObjectID(importedUserToSave.id) : new ObjectId(),
       email: importedUserToSave.email,
       firstName: importedUserToSave.firstName,
       name: importedUserToSave.name,
@@ -564,11 +564,9 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
       params: {
         notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-        includeCarUserIDs?: string[]; excludeUserIDs?: string[]; notAssignedToCarID?: string;
         userIDs?: string[]; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-        statuses?: string[]; withImage?: boolean; billingUserID?: string;
-        notSynchronizedBillingData?: boolean; withTestBillingData?: boolean;
-        notifications?: any; noLoginSince?: Date; tagIDs?: string[];
+        statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
+        withTestBillingData?: boolean; notifications?: any; noLoginSince?: Date;
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -600,10 +598,6 @@ export default class UserStorage {
     // Issuer
     if (Utils.objectHasProperty(params, 'issuer') && Utils.isBoolean(params.issuer)) {
       filters.issuer = params.issuer;
-    }
-    // Exclude Users
-    if (!Utils.isEmptyArray(params.excludeUserIDs)) {
-      filters._id = { $nin: params.excludeUserIDs.map((userID) => DatabaseUtils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {
@@ -660,39 +654,6 @@ export default class UserStorage {
     aggregation.push({
       $match: filters
     });
-    // Add additional filters
-    if (params.notAssignedToCarID) {
-      const notAssignedToCarIDFilter = { '$or': [] };
-      DatabaseUtils.pushUserCarLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'carUsers'
-      });
-      // Add Car ID in OR
-      const carIDFilter = {};
-      carIDFilter['carUsers.carID'] = { $ne: DatabaseUtils.convertToObjectID(params.notAssignedToCarID) };
-      notAssignedToCarIDFilter.$or.push(carIDFilter);
-      // Bypass Car ID if users has been removed in UI
-      if (params.includeCarUserIDs) {
-        const includeCarUserIDsFilter = {};
-        includeCarUserIDsFilter['carUsers.userID'] = {
-          $in: params.includeCarUserIDs.map((includeCarUserID) =>
-            DatabaseUtils.convertToObjectID(includeCarUserID))
-        };
-        notAssignedToCarIDFilter.$or.push(includeCarUserIDsFilter);
-      }
-      // Add
-      aggregation.push({
-        $match: notAssignedToCarIDFilter
-      });
-    }
-    // Add Tags
-    if (params.tagIDs) {
-      DatabaseUtils.pushTagLookupInAggregation({
-        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tag'
-      });
-      aggregation.push({
-        $match: { 'tag.id': { $in: params.tagIDs } }
-      });
-    }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
@@ -1103,7 +1064,7 @@ export default class UserStorage {
   // Alternative system of registering new users by badging should be found - for now, an empty user is created and saved.
   public static createNewUser(): Partial<User> {
     return {
-      id: new ObjectID().toHexString(),
+      id: new ObjectId().toString(),
       issuer: true,
       name: 'Unknown',
       firstName: 'User',

@@ -276,7 +276,7 @@ describe('User', function() {
           // Retrieve it
           response = await testData.userService.userApi.getDefaultTagCar(testData.newUser.id);
           expect(response.status).to.be.eq(StatusCodes.OK);
-          expect(response.data.tag.id).to.be.eq(testData.newTag.id);
+          expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
           expect(response.data.errorCodes).to.be.not.null;
           expect(response.data.errorCodes[0]).to.be.eq(StartTransactionErrorCode.EULA_NOT_ACCEPTED);

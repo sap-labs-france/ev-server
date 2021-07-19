@@ -31,7 +31,7 @@ export interface ConcurLocation {
   URI: string;
 }
 
-export interface RefundTransactionData {
+export interface TransactionRefundData {
   refundId: string;
   refundedAt: Date;
   reportId?: string;

@@ -3,7 +3,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
@@ -17,7 +17,7 @@ export default class ConnectionStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Create
     const connectionMDB: any = {
-      _id: !connectionToSave.id ? new ObjectID() : DatabaseUtils.convertToObjectID(connectionToSave.id),
+      _id: !connectionToSave.id ? new ObjectId() : DatabaseUtils.convertToObjectID(connectionToSave.id),
       connectorId: connectionToSave.connectorId,
       userId: DatabaseUtils.convertToObjectID(connectionToSave.userId),
       createdAt: Utils.convertToDate(connectionToSave.createdAt),
@@ -31,7 +31,7 @@ export default class ConnectionStorage {
       { $set: connectionMDB },
       { upsert: true, returnDocument: 'after' });
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveConnection', uniqueTimerID, connectionMDB);
-    return result.value._id.toHexString();
+    return result.value._id.toString();
   }
 
   static async getConnectionByConnectorIdAndUserId(tenant: Tenant, connectorId: string, userId: string, projectFields?: string[]): Promise<Connection> {

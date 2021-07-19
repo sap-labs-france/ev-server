@@ -1,10 +1,10 @@
 {
-  "subject": "Cuenta de usuario inactiva",
+  "subject": "OCPI - Error al actualizar el estatus de la terminal",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Cuenta de usuario inactiva",
+      "title": "Error al actualizar el estatus de la terminal",
       "image": {
         "left": {
           "height": 60,
@@ -17,13 +17,12 @@
       }
     },
     "beforeActionLines": [
-      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
+      "Estimado administrador,",
       "",
-      "No ha iniciado sesión en la aplicación e-Mobility desde <% - lastLogin%>.",
+      "La actualización del estatus de la terminal falló en el sitio <strong> '<%- location%>' </strong> ",
       "",
-      "Para cumplir con las leyes europeas sobre protección general de datos, un administrador puede desactivar su cuenta y posiblemente eliminarla.",
-      "",
-      "Inicie sesión en su cuenta y lea los últimos términos y condiciones de uso."
+      "Por favor revise el registro",
+      ""
     ],
     "actions": [{
       "title": "e-Mobility",
