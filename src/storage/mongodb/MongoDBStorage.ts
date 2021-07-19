@@ -221,7 +221,7 @@ export default class MongoDBStorage {
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        minPoolSize: this.dbConfig.poolSize,
+        minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
         replicaSet: this.dbConfig.replicaSet,
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
