@@ -125,7 +125,7 @@ export default class MongoDBStorage {
       { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1 } },
     ]);
     // Settings
     await this.handleIndexesInCollection(tenantID, 'settings', [
@@ -359,7 +359,7 @@ export default class MongoDBStorage {
         let foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
         // Check DB unique index
         const databaseIndexISUnique = !!databaseIndex?.unique;
-        const indexIsUnique = !!foundIndex.options?.unique;
+        const indexIsUnique = !!foundIndex?.options?.unique;
         if (indexIsUnique !== databaseIndexISUnique) {
           // Delete the index
           foundIndex = null;
