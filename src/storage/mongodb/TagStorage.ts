@@ -6,7 +6,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
 
@@ -25,7 +25,7 @@ export default class TagStorage {
       issuer: Utils.convertToBoolean(tag.issuer),
       active: Utils.convertToBoolean(tag.active),
       default: Utils.convertToBoolean(tag.default),
-      visualID: tag.visualID ?? new ObjectID().toHexString(),
+      visualID: tag.visualID ?? new ObjectId().toString(),
       ocpiToken: tag.ocpiToken,
       description: tag.description
     };

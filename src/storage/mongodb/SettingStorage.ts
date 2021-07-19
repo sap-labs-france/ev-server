@@ -7,7 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
@@ -48,7 +48,7 @@ export default class SettingStorage {
     if (settingToSave.id) {
       settingFilter._id = DatabaseUtils.convertToObjectID(settingToSave.id);
     } else {
-      settingFilter._id = new ObjectID();
+      settingFilter._id = new ObjectId();
     }
     // Properties to save
     const settingMDB = {
@@ -67,7 +67,7 @@ export default class SettingStorage {
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
-    return settingFilter._id.toHexString();
+    return settingFilter._id.toString();
   }
 
   public static async getOCPISettings(tenantID: string): Promise<RoamingSettings> {

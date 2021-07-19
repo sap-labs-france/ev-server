@@ -221,11 +221,10 @@ export default class MongoDBStorage {
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        useNewUrlParser: true,
-        poolSize: this.dbConfig.poolSize,
+        minPoolSize: this.dbConfig.poolSize,
+        maxPoolSize: this.dbConfig.poolSize,
         replicaSet: this.dbConfig.replicaSet,
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
-        useUnifiedTopology: true
       }
     );
     // Get the EVSE DB

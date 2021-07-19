@@ -9,7 +9,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import SiteAreaStorage from './SiteAreaStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -33,7 +33,7 @@ export default class SiteStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Read DB
-    const siteImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenant.id, 'siteimages')
+    const siteImageMDB = await global.database.getCollection<{ _id: ObjectId; image: string }>(tenant.id, 'siteimages')
       .findOne({ _id: DatabaseUtils.convertToObjectID(id) });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSiteImage', uniqueTimerID, siteImageMDB);
@@ -249,7 +249,7 @@ export default class SiteStorage {
     if (siteToSave.id) {
       siteFilter._id = DatabaseUtils.convertToObjectID(siteToSave.id);
     } else {
-      siteFilter._id = new ObjectID();
+      siteFilter._id = new ObjectId();
     }
     // Properties to save
     const siteMDB: any = {
@@ -282,11 +282,11 @@ export default class SiteStorage {
       { upsert: true }
     );
     if (saveImage) {
-      await SiteStorage.saveSiteImage(tenant, siteFilter._id.toHexString(), siteToSave.image);
+      await SiteStorage.saveSiteImage(tenant, siteFilter._id.toString(), siteToSave.image);
     }
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveSite', uniqueTimerID, siteMDB);
-    return siteFilter._id.toHexString();
+    return siteFilter._id.toString();
   }
 
   public static async saveSiteImage(tenant: Tenant, siteID: string, siteImageToSave: string): Promise<void> {
@@ -510,7 +510,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => DatabaseUtils.convertToObjectID(id));
+    const cids: ObjectId[] = ids.map((id) => DatabaseUtils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenant.id, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -530,11 +530,11 @@ export default class SiteStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Get Sites of Company
-    const siteIDs: string[] = (await global.database.getCollection<{ _id: ObjectID }>(tenant.id, 'sites')
+    const siteIDs: string[] = (await global.database.getCollection<{ _id: ObjectId }>(tenant.id, 'sites')
       .find({ companyID: DatabaseUtils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => site._id.toHexString());
+      .map((site): string => site._id.toString());
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, siteIDs);
     // Delete Sites

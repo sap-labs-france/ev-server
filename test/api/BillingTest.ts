@@ -14,7 +14,7 @@ import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
@@ -624,7 +624,7 @@ describe('Billing Service', function() {
 
       it('Should not update a user', async () => {
         const fakeUser = {
-          id: new ObjectID(),
+          id: new ObjectId(),
           ...Factory.user.build(),
         } as User;
         fakeUser.firstName = 'Test';

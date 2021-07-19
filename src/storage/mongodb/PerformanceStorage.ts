@@ -2,6 +2,7 @@ import global, { FilterParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import { DeletedResult } from '../../types/DataResult';
 import PerformanceRecord from '../../types/Performance';
 import Utils from '../../utils/Utils';
 
@@ -62,7 +63,7 @@ export default class PerformanceStorage {
       .insertOne(performanceRecordMDB);
   }
 
-  public static async deletePerformanceRecords(params?: { deleteUpToDate: Date }): Promise<{ ok?: number; n?: number; }> {
+  public static async deletePerformanceRecords(params?: { deleteUpToDate: Date }): Promise<DeletedResult> {
     // Build filter
     const filters: FilterParams = {};
     // Date provided?
@@ -74,6 +75,6 @@ export default class PerformanceStorage {
     const result = await global.database.getCollection<PerformanceRecord>(Constants.DEFAULT_TENANT, 'performances')
       .deleteMany(filters);
     // Return the result
-    return result.result;
+    return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
   }
 }
