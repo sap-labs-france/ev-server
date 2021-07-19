@@ -39,7 +39,10 @@ export default class TransactionSecurity {
 
   public static filterTransactionRequest(request: any): HttpTransactionRequest {
     return {
-      ID: Utils.convertToInt(sanitize(request.ID))
+      ID: Utils.convertToInt(sanitize(request.ID)),
+      WithCar: UtilsSecurity.filterBoolean(request.WithCar),
+      WithTag: UtilsSecurity.filterBoolean(request.WithTag),
+      WithUser: UtilsSecurity.filterBoolean(request.WithUser),
     };
   }
 
@@ -58,8 +61,8 @@ export default class TransactionSecurity {
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);
-    filteredRequest.TagID = sanitize(request.TagID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.VisualTagID = sanitize(request.VisualTagID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.InactivityStatus = sanitize(request.InactivityStatus);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
@@ -107,6 +110,15 @@ export default class TransactionSecurity {
     // Set
     if (Utils.objectHasProperty(request, 'TransactionId')) {
       filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
+    }
+    if (Utils.objectHasProperty(request, 'WithTag')) {
+      filteredRequest.WithTag = UtilsSecurity.filterBoolean(request.WithTag);
+    }
+    if (Utils.objectHasProperty(request, 'WithCar')) {
+      filteredRequest.WithCar = UtilsSecurity.filterBoolean(request.WithCar);
+    }
+    if (Utils.objectHasProperty(request, 'WithUser')) {
+      filteredRequest.WithUser = UtilsSecurity.filterBoolean(request.WithUser);
     }
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));

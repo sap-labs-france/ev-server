@@ -29,8 +29,9 @@
     "ExcludeSiteID": {
       "$ref": "common.json#/definitions/ids"
     },
-    "TagID": {
-      "$ref": "tag.json#/definitions/ids"
+    "VisualTagID": {
+      "type": "string",
+      "sanitize": "mongo"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"

@@ -1,6 +1,6 @@
 {
   "name": "ev-server",
-  "version": "2.4.76",
+  "version": "2.4.77",
   "engines": {
     "node": "14.x.x",
     "npm": "6.x.x"
@@ -139,7 +139,7 @@
     "moment-timezone": "^0.5.33",
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^3.2.2",
-    "mongodb": "^3.6.9",
+    "mongodb": "^4.0.0",
     "morgan": "^1.10.0",
     "mustache": "^4.2.0",
     "node-cron": "^3.0.0",
@@ -200,7 +200,6 @@
     "@types/moment-duration-format": "^2.2.2",
     "@types/moment-timezone": "^0.5.30",
     "@types/mongo-sanitize": "^1.0.1",
-    "@types/mongodb": "^3.6.16",
     "@types/mustache": "^4.1.1",
     "@types/node": "^14.17.0",
     "@types/node-cron": "^2.0.3",

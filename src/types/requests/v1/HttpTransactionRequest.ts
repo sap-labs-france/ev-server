@@ -1,5 +1,5 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import { InactivityStatus } from '../Transaction';
+import { InactivityStatus } from '../../Transaction';
 
 export interface HttpTransactionsRefundRequest {
   transactionIds: number[];
@@ -16,6 +16,9 @@ export interface HttpUnassignTransactionsToUserRequest {
 
 export interface HttpTransactionRequest {
   ID: number;
+  WithTag: boolean;
+  WithCar: boolean;
+  WithUser: boolean;
 }
 
 export interface HttpPushTransactionCdrRequest {
@@ -26,12 +29,17 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargingStationID: string;
   Issuer: boolean;
   WithCompany: boolean;
+  WithTag: boolean;
+  WithUser: boolean;
+  WithChargingStation: boolean;
+  WithCar: boolean;
   WithSite: boolean;
   WithSiteArea: boolean;
   ConnectorID: string;
   SiteAreaID?: string;
   SiteID?: string;
   UserID?: string;
+  VisualTagID?: string;
   TagID?: string;
   StartDateTime?: Date;
   EndDateTime?: Date;
@@ -47,6 +55,9 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
 
 export interface HttpConsumptionFromTransactionRequest {
   TransactionId: number;
+  WithTag: boolean;
+  WithCar: boolean;
+  WithUser: boolean;
   LoadAllConsumptions?: boolean;
   StartDateTime: Date;
   EndDateTime: Date;

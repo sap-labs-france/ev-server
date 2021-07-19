@@ -709,16 +709,31 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
             "$ref": "#/components/parameters/ChargingStationIDs"
           },
           {
             "$ref": "#/components/parameters/ConnectorIDs"
           },
           {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
             "$ref": "#/components/parameters/UserIDs"
           },
           {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
             "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
           },
           {
             "$ref": "#/components/parameters/SiteIDs"
@@ -890,6 +905,15 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/transactionID"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
           }
         ],
         "tags": [
@@ -968,6 +992,15 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
           }
         ],
         "tags": [
@@ -1750,13 +1783,22 @@
                     "type": "string",
                     "example": ""
                   },
+                  "userID": {
+                    "type": "string",
+                    "example": ""
+                  },
                   "args": {
                     "type": "object",
                     "properties": {
                       "tagID": {
                         "type": "string",
-                        "description": "Required. The identifier that Charge Point must use to start a transaction.",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
                         "example": "123456"
+                      },
+                      "visualTagID": {
+                        "type": "string",
+                        "description": "The identifier that Charge Point must use to start a transaction.",
+                        "example": "123456-123456"
                       },
                       "connectorId": {
                         "type": "integer",
@@ -1764,10 +1806,7 @@
                         "minimum": 1,
                         "example": 1
                       }
-                    },
-                    "required": [
-                      "tagID"
-                    ]
+                    }
                   }
                 },
                 "required": [
@@ -2876,13 +2915,10 @@
             }
           },
           {
-            "in": "query",
-            "name": "TagID",
-            "description": "Pipe separated Tag IDs",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
           },
           {
             "in": "query",
@@ -6220,6 +6256,15 @@
           "type": "string"
         }
       },
+      "VisualTagIDs": {
+        "in": "query",
+        "name": "VisualTagID",
+        "description": "Pipe separated Visual Tag IDs",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "TagIDs": {
         "in": "query",
         "name": "TagID",
@@ -6487,6 +6532,38 @@
         "in": "query",
         "name": "WithSiteArea",
         "description": "With site area attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithTag": {
+        "in": "query",
+        "name": "WithTag",
+        "description": "With tag attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithUser": {
+        "in": "query",
+        "name": "WithUser",
+        "description": "With user attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithCar": {
+        "in": "query",
+        "name": "WithCar",
+        "description": "With car attribute",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "WithChargingStation": {
+        "in": "query",
+        "name": "WithChargingStation",
+        "description": "With charging station attribute",
         "schema": {
           "type": "boolean"
         }

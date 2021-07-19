@@ -8,7 +8,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -47,7 +47,7 @@ export default class OCPIEndpointStorage {
     if (ocpiEndpointToSave.id) {
       ocpiEndpointFilter._id = DatabaseUtils.convertToObjectID(ocpiEndpointToSave.id);
     } else {
-      ocpiEndpointFilter._id = new ObjectID();
+      ocpiEndpointFilter._id = new ObjectId();
     }
     const ocpiEndpointMDB: any = {
       _id: ocpiEndpointFilter._id,
@@ -77,7 +77,7 @@ export default class OCPIEndpointStorage {
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveOcpiEndpoint', uniqueTimerID, ocpiEndpointMDB);
     // Create
-    return ocpiEndpointFilter._id.toHexString();
+    return ocpiEndpointFilter._id.toString();
   }
 
   // Delegate

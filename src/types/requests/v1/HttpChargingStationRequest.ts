@@ -1,4 +1,4 @@
-import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../ChargingStation';
+import { ChargePoint, ConnectorType, CurrentType, PhaseAssignmentToGrid, Voltage } from '../../ChargingStation';
 
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
@@ -107,6 +107,7 @@ export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpCha
 export interface HttpChargingStationCommandRequest {
   chargingStationID: string;
   carID?: string;
+  userID?: string;
   args?: any;
 }
 

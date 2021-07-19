@@ -641,7 +641,7 @@ export default class OCPPUtils {
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
-  public static updateTransactionWithStopTransaction(transaction: Transaction,
+  public static updateTransactionWithStopTransaction(transaction: Transaction, chargingStation: ChargingStation,
       stopTransaction: OCPPStopTransactionRequestExtended, user: User, alternateUser: User, tagId: string): void {
     // Set final data
     transaction.stop = {
@@ -655,7 +655,7 @@ export default class OCPPUtils {
       totalConsumptionWh: transaction.currentTotalConsumptionWh,
       totalInactivitySecs: transaction.currentTotalInactivitySecs,
       totalDurationSecs: transaction.currentTotalDurationSecs,
-      inactivityStatus: Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs),
+      inactivityStatus: Utils.getInactivityStatusLevel(chargingStation, transaction.connectorId, transaction.currentTotalInactivitySecs),
       price: transaction.currentCumulatedPrice,
       roundedPrice: Utils.truncTo(transaction.currentCumulatedPrice, 2),
       priceUnit: transaction.priceUnit,
@@ -1772,9 +1772,9 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number): void {
+  public static clearChargingStationConnector(chargingStation: ChargingStation, connectorID: number): void {
     // Cleanup connector transaction data
-    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
+    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (foundConnector) {
       foundConnector.currentInstantWatts = 0;
       foundConnector.currentTotalConsumptionWh = 0;

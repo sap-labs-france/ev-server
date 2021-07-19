@@ -5,7 +5,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import RegistrationToken from '../../types/RegistrationToken';
 import Utils from '../../utils/Utils';
 
@@ -19,7 +19,7 @@ export default class RegistrationTokenStorage {
     await DatabaseUtils.checkTenant(tenantID);
     // Set
     const registrationTokenMDB = {
-      _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectID(),
+      _id: registrationToken.id ? DatabaseUtils.convertToObjectID(registrationToken.id) : new ObjectId(),
       description: registrationToken.description,
       siteAreaID: DatabaseUtils.convertToObjectID(registrationToken.siteAreaID),
       expirationDate: Utils.convertToDate(registrationToken.expirationDate),
@@ -35,7 +35,7 @@ export default class RegistrationTokenStorage {
     );
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, registrationTokenMDB);
-    return registrationTokenMDB._id.toHexString();
+    return registrationTokenMDB._id.toString();
   }
 
   static async getRegistrationTokens(tenantID: string,
