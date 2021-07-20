@@ -7,13 +7,16 @@ import AxiosFactory from '../../../utils/AxiosFactory';
 import { AxiosInstance } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
+import { constant } from 'lodash';
 import moment from 'moment';
+import { time } from 'console';
 
 const MODULE_NAME = 'LacroixAssetIntegration';
 
@@ -92,8 +95,27 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       };
       consumptions.push(consumption);
     }
+    if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) > 1) {
+      const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(this.tenant,
+        { siteAreaID: asset.siteAreaID, startDate: asset.lastConsumption.timestamp, endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp },
+        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'endedAt']);
+      for (const consumption of consumptions) {
+        const timestamp = consumption.lastConsumption.timestamp;
+        timestamp.setSeconds(0);
+        timestamp.setMilliseconds(0);
+        const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) => {
+          consumptionDB.endedAt === timestamp;
+        });
+        if (consumptionToSubtract && (moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes')) > 1) {
+          consumption.currentInstantWatts = -consumptionToSubtract.instantWatts;
+          consumption.currentInstantWattsL1 = -consumptionToSubtract.instantWattsL1;
+          consumption.currentInstantWattsL2 = -consumptionToSubtract.instantWattsL2;
+          consumption.currentInstantWattsL3 = -consumptionToSubtract.instantWattsL3;
+        }
+      }
+    }
     const transactionResponse = await TransactionStorage.getTransactions(this.tenant.id, { siteAreaIDs:[asset.siteAreaID],
-      stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT);
+      stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT, ['currentInstantWatts', 'currentInstantWattsL1','currentInstantWattsL2','currentInstantWattsL3']);
     for (const transaction of transactionResponse.result) {
       consumptions[consumptions.length - 1].currentInstantWatts -= transaction.currentInstantWatts;
       consumptions[consumptions.length - 1].currentInstantWattsL1 -= transaction.currentInstantWattsL1;
