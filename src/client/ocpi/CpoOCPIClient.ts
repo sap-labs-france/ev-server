@@ -574,7 +574,7 @@ export default class CpoOCPIClient extends OCPIClient {
             result.failure++;
             result.objectIDsInFailure.push(String(location.id));
             result.logs.push(
-              `Failed to check Location ID '${location.id}': ${error.message}`
+              `Failed to check the Location '${location.name}' with ID '${location.id}': ${error.message}`
             );
           }
         }
