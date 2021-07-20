@@ -302,7 +302,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_PATCH_LOCATION,
-          message: `Charging Station '${evse.uid}' of Location ID '${location.id}' has been deleted`,
+          message: `Charging Station '${evse.uid}' of Location '${location.name}' with ID '${location.id}' has been deleted`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateEvse',
           detailedMessages: location
@@ -315,7 +315,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
-        message: `Charging Station '${evse.uid}' of Location ID '${location.id}' has been updated`,
+        message: `Charging Station '${evse.uid}' of Location '${location.name}' with ID '${location.id}' has been updated`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateEvse',
         detailedMessages: location
@@ -332,7 +332,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         action: ServerAction.OCPI_PUT_LOCATION,
         module: MODULE_NAME, method: 'updateConnector',
         errorCode: StatusCodes.NOT_FOUND,
-        message: `Unknown Charging Station with EVSE UID '${evse.uid}' and Location ID '${location.id}'`,
+        message: `Unknown Charging Station with EVSE UID '${evse.uid}' and Location '${location.name}' with ID '${location.id}'`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR,
         detailedMessages: { location, evse }
       });
