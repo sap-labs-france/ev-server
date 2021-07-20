@@ -1,4 +1,4 @@
-import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient, ReadPreferenceMode } from 'mongodb';
 import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
@@ -212,7 +212,9 @@ export default class MongoDBStorage {
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
-        options: {}
+        options: {
+          readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
+        }
       };
       // Set the Replica Set
       if (this.dbConfig.replicaSet) {
@@ -227,7 +229,8 @@ export default class MongoDBStorage {
         minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
         maxPoolSize: this.dbConfig.poolSize,
         replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
-        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
+        loggerLevel: this.dbConfig.debug ? 'debug' : null,
+        readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
     // Get the EVSE DB
