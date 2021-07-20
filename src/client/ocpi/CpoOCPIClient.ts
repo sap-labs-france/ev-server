@@ -844,6 +844,9 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
+    // Mark it as done (checked at least once)
+    transaction.ocpiData.cdrCheckedOn = new Date();
+    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
     // Create if it does not exit
     if (response.data.status_code === 3001) {
       await Logging.logError({
@@ -868,8 +871,6 @@ export default class CpoOCPIClient extends OCPIClient {
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
         // CDR checked
-        transaction.ocpiData.cdrCheckedOn = new Date();
-        await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
         await Logging.logInfo({
           tenantID: this.tenant.id,
           source: transaction.chargeBoxID,
@@ -918,6 +919,9 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
+    // Mark it as done (checked at least once)
+    transaction.ocpiData.sessionCheckedOn = new Date();
+    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
     if (OCPIUtilsService.isSuccessResponse(response.data)) {
       const session = response.data.data as OCPISession;
       if (session) {
@@ -929,8 +933,6 @@ export default class CpoOCPIClient extends OCPIClient {
           module: MODULE_NAME, method: 'checkSession',
           detailedMessages: { response: response.data, transaction }
         });
-        transaction.ocpiData.sessionCheckedOn = new Date();
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
         return true;
       }
     }
