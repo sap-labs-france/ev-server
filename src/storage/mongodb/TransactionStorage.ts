@@ -471,7 +471,7 @@ export default class TransactionStorage {
     }
     if (Utils.objectHasProperty(params, 'ocpiSessionChecked')) {
       filters.stop = { $exists: true };
-      filters['ocpiData.session'] = { $exists: true };
+      filters['ocpiData.session'] = { $exists: true, $ne: null };
       filters['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
     // OCPI Cdr Date provided?
@@ -487,7 +487,7 @@ export default class TransactionStorage {
     }
     if (Utils.objectHasProperty(params, 'ocpiCdrChecked')) {
       filters.stop = { $exists: true };
-      filters['ocpiData.cdr'] = { $exists: true };
+      filters['ocpiData.cdr'] = { $exists: true, $ne: null };
       filters['ocpiData.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
     }
     // Check stop transaction

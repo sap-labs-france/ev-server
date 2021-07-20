@@ -621,7 +621,7 @@ export default class CpoOCPIClient extends OCPIClient {
           result.failure++;
           result.objectIDsInFailure.push(String(transaction.id));
           result.logs.push(
-            `Failed to check CDR of OCPI Transaction ID '${transaction.ocpiData.session.id}' (ID '${transaction.id}'): ${error.message}`
+            `Failed to check CDR of OCPI Transaction ID '${transaction.id}': ${error.message}`
           );
         }
         result.total++;
@@ -700,7 +700,7 @@ export default class CpoOCPIClient extends OCPIClient {
                   result.failure++;
                   result.objectIDsInFailure.push(evse.chargeBoxId);
                   result.logs.push(
-                    `Update status failed on Location ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
+                    `Update status failed on Location '${location.name}' with ID '${location.id}', Charging Station ID '${evse.evse_id}': ${error.message}`
                   );
                 }
                 if (result.failure > 0) {
@@ -835,8 +835,11 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'checkCdr',
       });
     }
-    const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_CHECK_CDRS);
+    // Mark it as done (checked at least once)
+    transaction.ocpiData.cdrCheckedOn = new Date();
+    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
     // Check CDR
+    const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_CHECK_CDRS);
     const response = await this.axiosInstance.get(
       `${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       {
@@ -844,9 +847,6 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
-    // Mark it as done (checked at least once)
-    transaction.ocpiData.cdrCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
     // Create if it does not exit
     if (response.data.status_code === 3001) {
       await Logging.logError({
@@ -910,8 +910,11 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'checkSession',
       });
     }
+    // Mark it as done (checked at least once)
+    transaction.ocpiData.sessionCheckedOn = new Date();
+    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
+    // Check Session
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpiData.session.id}`;
-    // Check
     const response = await this.axiosInstance.get(
       sessionsUrl,
       {
@@ -919,9 +922,6 @@ export default class CpoOCPIClient extends OCPIClient {
           'Authorization': `Token ${this.ocpiEndpoint.token}`
         },
       });
-    // Mark it as done (checked at least once)
-    transaction.ocpiData.sessionCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
     if (OCPIUtilsService.isSuccessResponse(response.data)) {
       const session = response.data.data as OCPISession;
       if (session) {
@@ -976,7 +976,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!result) {
       throw new BackendError({
         action: ServerAction.OCPI_CHECK_LOCATIONS,
-        message: `Failed to check Location ID '${location.id}'`,
+        message: `Failed to check Location '${location.name}' with ID '${location.id}'`,
         module: MODULE_NAME, method: 'checkLocation',
         detailedMessages: { location, ocpiLocation }
       });
@@ -984,7 +984,7 @@ export default class CpoOCPIClient extends OCPIClient {
     await Logging.logInfo({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_LOCATIONS,
-      message: `Location ID '${location.id}' checked successfully`,
+      message: `Location '${location.name}' with ID '${location.id}' checked successfully`,
       module: MODULE_NAME, method: 'checkLocation',
       detailedMessages: { location, ocpiLocation }
     });
