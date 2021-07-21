@@ -494,6 +494,7 @@ export enum ServerRoute {
   REST_TRANSACTION_CONSUMPTIONS_REBUILD = 'transactions/:id/consumptions/rebuild',
   REST_TRANSACTION_SOFT_STOP = 'transactions/:id/stop/soft',
   REST_TRANSACTIONS_REFUND = 'transactions/action/refund',
+  REST_TRANSACTIONS_REFUND_EXPORT = 'transactions/action/refund/export',
   REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign',
   REST_TRANSACTIONS_SYNCHRONIZE_REFUNDED = 'transactions/action/refund/synchronize',
   REST_TRANSACTIONS_REFUND_REPORTS = 'transactions/action/refund/reports',

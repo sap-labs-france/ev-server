@@ -20,7 +20,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/TransactionsInError');
+    return await super.readAll({ ...params, Status: 'in-error' }, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS));
   }
 
   public async readAllConsumption(params) {
@@ -46,15 +46,15 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllToRefund(params) {
-    return await super.readAll(params, TestConstants.ADVANCED_PAGING, TestConstants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
+    return await super.readAll({ ...params, Status: 'to-refund' }, TestConstants.ADVANCED_PAGING, TestConstants.DEFAULT_ORDERING, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS));
   }
 
   public async readAllRefundReports(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/TransactionsRefundReports');
+    return await super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_REFUND_REPORTS));
   }
 
   public async exportTransactionsToRefund(params) {
-    return await super.read(params, '/client/api/TransactionsToRefundExport');
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_REFUND_EXPORT));
   }
 
 }

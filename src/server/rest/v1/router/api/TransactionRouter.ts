@@ -27,6 +27,7 @@ export default class TransactionRouter {
     this.buildRouteTransactionsExport();
     this.buildRouteSynchronizeRefundedTransactions();
     this.buildRouteTransactionsRefundReports();
+    this.buildRouteTransactionsToRefundExport();
     return this.router;
   }
 
@@ -137,6 +138,12 @@ export default class TransactionRouter {
   protected buildRouteTransactionsRefundReports(): void {
     this.router.post(`/${ServerRoute.REST_TRANSACTIONS_REFUND_REPORTS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TransactionService.handleGetRefundReports.bind(this), ServerAction.TRANSACTIONS_TO_REFUND_REPORTS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsToRefundExport(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_REFUND_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleExportTransactionsToRefund.bind(this), ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, req, res, next);
     });
   }
 }
