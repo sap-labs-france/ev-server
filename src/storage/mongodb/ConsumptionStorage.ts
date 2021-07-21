@@ -269,7 +269,7 @@ export default class ConsumptionStorage {
       params: { siteAreaID: string; startDate: Date; endDate: Date }, dbParams: DbParams = Constants.DB_PARAMS_MAX_LIMIT,
       projectFields?: string[]): Promise<DataResult<Consumption>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getSiteAreaConsumptions');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getSiteAreaChargingStationConsumptions');
     // Check
     DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
@@ -284,17 +284,6 @@ export default class ConsumptionStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    aggregation.push({
-      $sort: dbParams.sort
-    });
-    // Skip
-    aggregation.push({
-      $skip: dbParams.skip
-    });
-    // Limit
-    aggregation.push({
-      $limit: dbParams.limit
-    });
     // Create filters
     const filters: FilterParams = {};
     // ID
@@ -321,6 +310,17 @@ export default class ConsumptionStorage {
         $match: filters
       });
     }
+    aggregation.push({
+      $sort: dbParams.sort
+    });
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
     // Group consumption values per minute
     aggregation.push({
       $group: {
@@ -355,7 +355,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, consumptionsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSiteAreaChargingStationConsumptions', uniqueTimerID, consumptionsMDB);
     return {
       count: consumptionsMDB.length,
       result: consumptionsMDB
