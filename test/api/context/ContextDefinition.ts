@@ -1,7 +1,7 @@
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
 
 import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Voltage } from '../../../src/types/ChargingStation';
 import faker from 'faker';
 
@@ -383,6 +383,7 @@ export default class ContextDefinition {
       assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
       tags: (ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -402,7 +403,7 @@ export default class ContextDefinition {
       emailPrefix: 'a-unassigned-',
       tags: (ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -422,7 +423,7 @@ export default class ContextDefinition {
       emailPrefix: 'basic-',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -442,7 +443,7 @@ export default class ContextDefinition {
       emailPrefix: 'demo-',
       tags: (ContextDefinition.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -462,7 +463,7 @@ export default class ContextDefinition {
       emailPrefix: 'b-unassigned-',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -482,7 +483,7 @@ export default class ContextDefinition {
       emailPrefix: 'b-pending-',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -502,7 +503,7 @@ export default class ContextDefinition {
       emailPrefix: 'b-locked-',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -522,7 +523,7 @@ export default class ContextDefinition {
       emailPrefix: 'b-notTag',
       tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)
@@ -542,7 +543,7 @@ export default class ContextDefinition {
       emailPrefix: 'b-external-',
       tags: (ContextDefinition.USER_CONTEXTS.EXTERNAL_USER.withTags ? [{
         id: 'A220311',
-        visualID: new ObjectID().toString(),
+        visualID: new ObjectId().toString(),
         issuer: false,
         active: true
       }] : null)

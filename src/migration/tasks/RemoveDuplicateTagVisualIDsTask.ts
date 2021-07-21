@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import Tenant from '../../types/Tenant';
@@ -50,7 +50,7 @@ export default class RemoveDuplicateTagVisualIDsTask extends MigrationTask {
         for (const duplicateTag of duplicateTags.result) {
           await global.database.getCollection<any>(tenant.id, 'tags').updateOne(
             { _id: duplicateTag.id },
-            { $set: { visualID: new ObjectID().toHexString() } }
+            { $set: { visualID: new ObjectId().toString() } }
           );
           updated++;
         }

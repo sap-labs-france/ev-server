@@ -3,6 +3,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpTagRequest extends HttpByIDRequest {
   ID: string;
+  WithUser: boolean;
 }
 
 export interface HttpTagsRequest extends HttpDatabaseRequest {

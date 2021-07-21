@@ -105,8 +105,8 @@ export default class ConsumptionStorage {
           hour: { '$hour': '$startedAt' },
           minute: { '$minute': '$startedAt' }
         },
-        instantWatts: { $sum: '$instantWatts' },
-        instantAmps: { $sum: '$instantAmps' },
+        instantWatts: { $avg: '$instantWatts' },
+        instantAmps: { $avg: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
         limitAmps: { $last: '$limitSiteAreaAmps' },
         stateOfCharge: { $last: '$stateOfCharge' },
@@ -137,7 +137,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')
-      .aggregate(...aggregation, { allowDiskUse: true })
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getAssetConsumptions', uniqueTimerID, consumptionsMDB);

@@ -81,7 +81,7 @@ export default class UserApi extends CrudApi {
   }
 
   public async getDefaultTagCar(userID: string) {
-    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { id: userID });
-    return await super.read({}, url);
+    const url = this.buildRestEndpointUrl(ServerRoute.REST_USER_DEFAULT_TAG_CAR, { });
+    return await super.read({ UserID: userID }, url);
   }
 }

@@ -442,19 +442,22 @@ export default class OCPPCommonTests {
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
       'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
-        'tagID': this.transactionStartUser.tags[0].id,
-        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+        'visualTagID': this.transactionStartUser.tags[0].visualID,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId,
+        'userID': this.transactionStartUser.id
       }
     });
     expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testRemoteStartTransactionWithUnassignedChargingStation() {
+    console.log('yooo ' + this.transactionStartUser.tags[0].id);
     const response = await this.centralUserService.chargingStationApi.remoteStartTransaction({
       'chargingStationID': this.chargingStationContext.getChargingStation().id,
       'args': {
-        'tagID': this.transactionStartUser.tags[0].id,
-        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId
+        'visualTagID': this.transactionStartUser.tags[0].visualID,
+        'connectorId': this.chargingStationContext.getChargingStation().connectors[0].connectorId,
+        'userID': this.transactionStartUser.id
       }
     });
     expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);

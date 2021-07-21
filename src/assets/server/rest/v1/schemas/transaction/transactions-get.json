@@ -21,6 +21,22 @@
       "type": "boolean",
       "sanitize": "mongo"
     },
+    "WithTag": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithCar": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithChargingStation": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
     "ConnectorID": {
       "$ref": "chargingstation.json#/definitions/connectorIDs"
     },
@@ -34,11 +50,16 @@
       "$ref": "common.json#/definitions/ids"
     },
     "TagID": {
-      "$ref": "tag.json#/definitions/ids"
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "VisualTagID": {
+      "type": "string",
+      "sanitize": "mongo"
     },
     "StartDateTime": {
       "type": "string",
-      "format":"date-time",
+      "format": "date-time",
       "sanitize": "mongo"
     },
     "EndDateTime": {
@@ -67,7 +88,11 @@
     "Statistics": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["refund", "history", "ongoing"]
+      "enum": [
+        "refund",
+        "history",
+        "ongoing"
+      ]
     },
     "ReportIDs": {
       "$ref": "common.json#/definitions/ids"
@@ -75,7 +100,10 @@
     "Status": {
       "type": "string",
       "sanitize": "mongo",
-      "enum": ["completed", "active"]
+      "enum": [
+        "completed",
+        "active"
+      ]
     },
     "Search": {
       "$ref": "common.json#/definitions/search"
