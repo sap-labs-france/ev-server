@@ -1213,6 +1213,7 @@ export default class OCPPService {
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
         tenant,
+        transaction.id.toString() + '-EOC',
         transaction.user,
         chargingStation,
         {

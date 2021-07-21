@@ -90,7 +90,7 @@ export default class NotificationHandler {
     }
   }
 
-  public static async sendEndOfCharge(tenant: Tenant, user: User, chargingStation: ChargingStation,
+  public static async sendEndOfCharge(tenant: Tenant, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: EndOfChargeNotification): Promise<void> {
     if (tenant.id !== Constants.DEFAULT_TENANT) {
       // Get the Tenant logo
@@ -103,19 +103,15 @@ export default class NotificationHandler {
       for (const notificationSource of NotificationHandler.notificationSources) {
         if (notificationSource.enabled) {
           try {
-            // Get the interval
-            const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(
-              chargingStation, Utils.getConnectorIDFromConnectorLetter(sourceData.connectorId));
             // Check notification
-            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenant, notificationSource.channel, ServerAction.END_OF_CHARGE,
-              chargingStation.id, user.id, { intervalMins, additionalFilters: { transactionId: sourceData.transactionId } });
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenant, notificationSource.channel, notificationID);
             if (!hasBeenNotified) {
               // Enabled?
               if (user.notificationsActive && user.notifications.sendEndOfCharge) {
                 // Save
                 await NotificationHandler.saveNotification(
-                  tenant, notificationSource.channel, null, ServerAction.END_OF_CHARGE, {
+                  tenant, notificationSource.channel, notificationID, ServerAction.END_OF_CHARGE, {
                     user,
                     chargingStation,
                     notificationData: {
