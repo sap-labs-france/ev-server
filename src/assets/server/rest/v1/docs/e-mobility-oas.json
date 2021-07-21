@@ -3,7 +3,7 @@
   "servers": [
     {
       "description": "Current server",
-      "url": "/v1"
+      "url": "http://localhost:8080/v1"
     }
   ],
   "info": {
@@ -692,7 +692,10 @@
               "type": "string",
               "enum": [
                 "completed",
-                "active"
+                "active",
+                "to-refund",
+                "in-error",
+                "not-assigned-to-user"
               ]
             }
           },
@@ -1493,6 +1496,106 @@
           },
           "552": {
             "description": "No Refund valid connection found"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/refund/synchronize": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Synchronize refunded Transactions",
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Synchronized refunded transactions successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/refund/reports": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve Transactions refund reports",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved Transactions refund reports",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": "###",
+                      "user": {
+                        "id": "###",
+                        "name": "###",
+                        "firstName": "###",
+                        "email": "###"
+                      }
+                    }
+                  ]
+
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
