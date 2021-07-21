@@ -55,10 +55,31 @@ export default class TransactionRouter {
     });
   }
 
+  protected buildRouteExportTransactionCDR(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTION_CDR_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleExportTransactionOcpiCdr.bind(this), ServerAction.TRANSACTION_OCPI_CDR_EXPORT, req, res, next);
+    });
+  }
+
   protected buildRouteTransactionConsumption(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.TransactionId = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
+    });
+  }
+
+  protected buildRouteRebuildTransactionConsumption(): void {
+    this.router.post(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS_REBUILD}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleRebuildTransactionConsumptions.bind(this), ServerAction.REBUILD_TRANSACTION_CONSUMPTIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionSoftStop(): void {
+    this.router.put(`/${ServerRoute.REST_TRANSACTION_SOFT_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleTransactionSoftStop.bind(this), ServerAction.TRANSACTION_SOFT_STOP, req, res, next);
     });
   }
 }

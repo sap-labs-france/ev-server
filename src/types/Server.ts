@@ -488,7 +488,10 @@ export enum ServerRoute {
   REST_TRANSACTIONS = 'transactions',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
+  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/action/export',
   REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
+  REST_TRANSACTION_CONSUMPTIONS_REBUILD = 'transactions/:id/consumptions/rebuild',
+  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/stop/soft',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',
