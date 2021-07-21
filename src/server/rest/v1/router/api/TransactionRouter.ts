@@ -19,6 +19,9 @@ export default class TransactionRouter {
     this.buildRouteDeleteTransaction();
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
+    this.buildRouteTransactionsRefund();
+    this.buildRouteTransactionsAssignUser();
+    this.buildRouteTransactionsExport();
     return this.router;
   }
 
@@ -80,6 +83,24 @@ export default class TransactionRouter {
     this.router.put(`/${ServerRoute.REST_TRANSACTION_SOFT_STOP}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.ID = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleTransactionSoftStop.bind(this), ServerAction.TRANSACTION_SOFT_STOP, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsRefund(): void {
+    this.router.post(`/${ServerRoute.REST_TRANSACTIONS_REFUND}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleRefundTransactions.bind(this), ServerAction.TRANSACTIONS_REFUND, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsAssignUser(): void {
+    this.router.put(`/${ServerRoute.REST_TRANSACTIONS_ASSIGN_USER}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleAssignTransactionsToUser.bind(this), ServerAction.ASSIGN_TRANSACTIONS_TO_USER, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsExport(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleExportTransactions.bind(this), ServerAction.TRANSACTIONS_EXPORT, req, res, next);
     });
   }
 }
