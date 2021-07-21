@@ -19,6 +19,9 @@ export default class TransactionRouter {
     this.buildRouteDeleteTransaction();
     this.buildRouteDeleteTransactions();
     this.buildRoutePushTransactionCDR();
+    this.buildRouteExportTransactionCDR();
+    this.buildRouteRebuildTransactionConsumption();
+    this.buildRouteTransactionSoftStop();
     this.buildRouteTransactionsRefund();
     this.buildRouteTransactionsAssignUser();
     this.buildRouteTransactionsExport();
