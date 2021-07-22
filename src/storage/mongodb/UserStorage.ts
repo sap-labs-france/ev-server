@@ -734,7 +734,7 @@ export default class UserStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Count documents
-    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedusers').count();
+    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedusers').countDocuments();
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedUsersCount', uniqueTimerID);
     return nbrOfDocuments;

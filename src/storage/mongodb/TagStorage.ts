@@ -124,7 +124,7 @@ export default class TagStorage {
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
     // Count documents
-    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedtags').count();
+    const nbrOfDocuments = await global.database.getCollection<any>(tenantID, 'importedtags').countDocuments();
     // Debug
     await Logging.traceEnd(tenantID, MODULE_NAME, 'getImportedTagsCount', uniqueTimerID);
     return nbrOfDocuments;
