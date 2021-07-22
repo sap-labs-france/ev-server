@@ -24,7 +24,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllConsumption(params) {
-    return await super.read(params, `${this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_CONSUMPTION, { id: params.TransactionId })}?WithUser=true`);
+    return await super.read(params, `${this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTION_CONSUMPTION, { id: params.TransactionId })}?WithUser=true`);
   }
 
   public async readAllYears(params) {
