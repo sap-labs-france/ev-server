@@ -10,7 +10,6 @@ import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import TagStorage from '../../storage/mongodb/TagStorage';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -45,9 +44,12 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
           let tagToSave: Tag;
           for (const importedTag of importedTags.result) {
             try {
-              // Existing tags
+              // Get Tag
               let foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
-              foundTag = foundTag ? foundTag : await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID);
+              // Try to get Tag with Visual ID
+              if (!foundTag) {
+                foundTag = await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID);
+              }
               if (foundTag) {
                 // Check tag is already in use
                 if (!foundTag.issuer) {
@@ -63,7 +65,7 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
                   throw new Error(`Tag is already used in ${foundTag.transactionsCount} transaction(s)`);
                 }
                 if (foundTag.id !== importedTag.id) {
-                  throw new Error('Tag VisualID is already assigned to another tag');
+                  throw new Error('Tag Visual ID is already assigned to another tag');
                 }
                 tagToSave = { ...foundTag, ...importedTag };
               } else {
@@ -81,7 +83,13 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
               }
               // Save user if any and get the ID to assign tag
               if (importedTag.email && importedTag.name && importedTag.firstName) {
-                await this.processImportedTag(tenant, importedTag, tagToSave);
+                // Check & Import the User
+                const user = await this.processImportedUser(tenant, importedTag);
+                // Assign
+                tagToSave.userID = user.id;
+                // Make this Tag default
+                await TagStorage.clearDefaultUserTag(tenant.id, user.id);
+                tagToSave.default = true;
               }
               // Save the new Tag
               await TagStorage.saveTag(tenant.id, tagToSave);
@@ -89,23 +97,20 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
               await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
               result.inSuccess++;
             } catch (error) {
-              // Update the imported Tag
+              // Mark the imported Tag faulty with the reason
               importedTag.status = ImportStatus.ERROR;
               importedTag.errorDescription = error.message;
               result.inError++;
-              // Update it
               await TagStorage.saveImportedTag(tenant.id, importedTag);
-              // Log
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
                 message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
-                detailedMessages: { tag: importedTag, error: error.stack }
+                detailedMessages: { importedTag, error: error.stack }
               });
             }
           }
-          // Log
           if (!Utils.isEmptyArray(importedTags.result) && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
@@ -132,13 +137,5 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
         await LockingManager.release(importTagsLock);
       }
     }
-  }
-
-  private async processImportedTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
-    // if user not found we create one
-    const user = await this.processImportedUser(tenant, importedTag);
-    tag.userID = user.id;
-    await TagStorage.clearDefaultUserTag(tenant.id, user.id);
-    tag.default = true;
   }
 }
