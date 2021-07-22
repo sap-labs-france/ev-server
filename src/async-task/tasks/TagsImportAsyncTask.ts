@@ -47,8 +47,8 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
               // Get Tag
               let foundTag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
               // Try to get Tag with Visual ID
-              if (!foundTag) {
-                foundTag = await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID);
+              if (!foundTag && importedTag.visualID) {
+                foundTag = await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID, { withNbrTransactions: true });
               }
               if (foundTag) {
                 // Check tag is already in use
@@ -106,7 +106,7 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
                 tenantID: tenant.id,
                 action: ServerAction.TAGS_IMPORT,
                 module: MODULE_NAME, method: 'processTenant',
-                message: `Error when importing Tag ID '${importedTag.id}': ${error.message}`,
+                message: `Cannot import Tag ID '${importedTag.id}': ${error.message}`,
                 detailedMessages: { importedTag, error: error.stack }
               });
             }
