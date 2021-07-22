@@ -6,6 +6,7 @@ import { ImportedTag } from '../../types/Tag';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -14,32 +15,37 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ImportAsyncTask';
 
-export default class ImportAsyncTask extends AbstractAsyncTask {
+export default abstract class ImportAsyncTask extends AbstractAsyncTask {
   // To store existing sites from db to avoid getting the sites erverytime
-  existingSitesAutoAssignable: string[] = [];
+  private existingAutoAssignableSites: Map<string, Site> = new Map();
+  private existingSites: Map<string, Site> = new Map();
 
   protected async processImportedUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
     // Existing Users
     let user = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
     if (user) {
-      // Check user is already in use
-      if (!user.issuer) {
-        throw new Error('User is not local to the organization');
-      }
-      // Update it
-      user.name = importedUser.name;
-      user.firstName = importedUser.firstName;
-      await UserStorage.saveUser(tenant.id, user);
+      await this.updateUser(tenant, user, importedUser);
     } else {
       user = await this.createUser(tenant, importedUser);
     }
-    if (importedUser.siteIDs && Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !Utils.isEmptyArray(importedUser.siteIDs)) {
       await this.processSiteAssignment(tenant, user, importedUser);
     }
     return user;
   }
 
-  protected async createUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
+  private async updateUser(tenant: Tenant, user: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
+    // Check user is already in use
+    if (!user.issuer) {
+      throw new Error('User is not local to the organization');
+    }
+    // Update it
+    user.name = importedUser.name;
+    user.firstName = importedUser.firstName;
+    await UserStorage.saveUser(tenant.id, user);
+  }
+
+  private async createUser(tenant: Tenant, importedUser: ImportedUser|ImportedTag): Promise<User> {
     // New User
     const newUser = UserStorage.createNewUser() as User;
     // Set
@@ -51,40 +57,54 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
     newUser.importedData = importedUser.importedData;
     // Save the new User
     newUser.id = await UserStorage.saveUser(tenant.id, newUser);
-    // Role need to be set separately
     await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
-    // Status need to be set separately
     await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
     await this.sendNotifications(tenant, newUser);
     return newUser;
   }
 
-  protected async processSiteAssignment(tenant: Tenant, newUser: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
-    // if we never got the sites from db -> construct array of existing sites that are autoassignable
-    if (this.existingSitesAutoAssignable.length === 0) {
-      const sites = await SiteStorage.getSites(tenant, { withAutoUserAssignment: true }, Constants.DB_PARAMS_MAX_LIMIT);
-      sites.result.map((site) => {
-        this.existingSitesAutoAssignable.push(site.id);
-      });
+  private async processSiteAssignment(tenant: Tenant, user: User, importedUser: ImportedUser|ImportedTag): Promise<void> {
+    // If we never got the sites from db -> construct array of existing sites that are autoassignable
+    if (Utils.isEmptyArray(this.existingAutoAssignableSites)) {
+      // Init Site collections
+      const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name', 'autoUserSiteAssignment']);
+      for (const site of sites.result) {
+        if (site.autoUserSiteAssignment) {
+          this.existingAutoAssignableSites.set(site.id, site);
+        }
+        this.existingSites.set(site.id, site);
+      }
     }
-    const importedSites = importedUser.siteIDs.split('|');
-    for (const siteID of importedSites) {
-      // if site exists and is autoassignable
-      if (this.existingSitesAutoAssignable.includes(siteID)) {
-        await UserStorage.addSiteToUser(tenant.id, newUser.id, siteID);
-      } else {
-        // if site does not exist OR is not assignable
+    const importedSiteIDs = importedUser.siteIDs.split('|');
+    for (const importedSiteID of importedSiteIDs) {
+      const existingAutoAssignableSite = this.existingAutoAssignableSites.get(importedSiteID);
+      const existingSite = this.existingSites.get(importedSiteID);
+      // Assign Site
+      if (existingAutoAssignableSite) {
+        await UserStorage.addSiteToUser(tenant.id, user.id, importedSiteID);
+      // Site is not auto assignable
+      } else if (existingSite) {
         await Logging.logWarning({
           tenantID: tenant.id,
           action: ServerAction.USERS_IMPORT,
           module: MODULE_NAME, method: 'executeAsyncTask',
-          message: `Cannot assign user to site ${siteID} as this site has not been found or does not allow autoassignment`
+          user,
+          message: `Site '${existingSite.name}' with ID '${existingSite.id}' does not allow auto assignment`
+        });
+      // Site does not exist
+      } else {
+        await Logging.logError({
+          tenantID: tenant.id,
+          action: ServerAction.USERS_IMPORT,
+          module: MODULE_NAME, method: 'executeAsyncTask',
+          user,
+          message: `Site ID '${importedSiteID}' does not exist`
         });
       }
     }
   }
 
-  protected async sendNotifications(tenant: Tenant, newUser: User): Promise<void> {
+  private async sendNotifications(tenant: Tenant, newUser: User): Promise<void> {
     // Handle sending email for reseting password if user auto activated
     // Init Password info
     const resetHash = Utils.generateUUID();
@@ -95,8 +115,7 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
     await UserStorage.saveUserAccountVerification(tenant.id, newUser.id, { verificationToken });
     // Build account verif email with reset password embeded
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
-    '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-    newUser.email + '&ResetToken=' + resetHash;
+      '/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email + '&ResetToken=' + resetHash;
     // Send activate account link
     await NotificationHandler.sendVerificationEmailUserImport(
       tenant.id,
@@ -108,10 +127,5 @@ export default class ImportAsyncTask extends AbstractAsyncTask {
         'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       });
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected async executeAsyncTask(): Promise<void> {
-    // const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
   }
 }
