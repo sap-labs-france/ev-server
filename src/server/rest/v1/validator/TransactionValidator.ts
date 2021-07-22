@@ -1,4 +1,4 @@
-import { HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
@@ -11,6 +11,8 @@ export default class TransactionValidator extends SchemaValidator {
   private transactionGet: Schema;
   private transactionsGetByIDs: Schema;
   private transactionPushCDR: Schema;
+  private transactionGetConsumption: Schema;
+  private transactionsAssignUser: Schema;
 
 
   private constructor() {
@@ -19,6 +21,8 @@ export default class TransactionValidator extends SchemaValidator {
     this.transactionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
     this.transactionsGetByIDs = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get-by-ids.json`, 'utf8'));
     this.transactionPushCDR = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-push-cdr.json`, 'utf8'));
+    this.transactionGetConsumption = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get-consumption.json`, 'utf8'));
+    this.transactionsAssignUser = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-assign-user.json`, 'utf8'));
   }
 
   public static getInstance(): TransactionValidator {
@@ -49,6 +53,18 @@ export default class TransactionValidator extends SchemaValidator {
   public validateTransactionPushCDRReq(data: any): HttpPushTransactionCdrRequest {
     // Validate schema
     this.validate(this.transactionPushCDR, data);
+    return data;
+  }
+
+  public validateTransactionGetConsumptionReq(data: any): HttpConsumptionFromTransactionRequest {
+    // Validate schema
+    this.validate(this.transactionGetConsumption, data);
+    return data;
+  }
+
+  public validateTransactionsAssignUserReq(data: any): HttpAssignTransactionsToUserRequest {
+    // Validate schema
+    this.validate(this.transactionsAssignUser, data);
     return data;
   }
 }
