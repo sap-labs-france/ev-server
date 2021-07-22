@@ -33,7 +33,7 @@ export default class TemplateManager {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getTemplate(templateName: string) : Promise<any> {
     let parsedTemplate = this.parsedTemplates.get(templateName);
-    if (!this.parsedTemplates.get(templateName)) {
+    if (!parsedTemplate) {
       parsedTemplate = await this.loadTemplateAndParse(templateName);
       this.parsedTemplates.set(templateName, parsedTemplate);
     }

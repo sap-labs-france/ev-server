@@ -469,9 +469,9 @@ export default class TransactionStorage {
         filters['ocpiData.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
       }
     }
-    if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
+    if (Utils.objectHasProperty(params, 'ocpiSessionChecked')) {
       filters.stop = { $exists: true };
-      filters['ocpiData.session'] = { $exists: true };
+      filters['ocpiData.session'] = { $exists: true, $ne: null };
       filters['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
     // OCPI Cdr Date provided?
@@ -485,13 +485,14 @@ export default class TransactionStorage {
         filters['ocpiData.cdr.last_updated'] = { $lte: Utils.convertToDate(params.ocpiCdrDateTo) };
       }
     }
-    if (params.ocpiCdrChecked === true || params.ocpiCdrChecked === false) {
-      filters['ocpiData.cdr'] = { $exists: true };
+    if (Utils.objectHasProperty(params, 'ocpiCdrChecked')) {
+      filters.stop = { $exists: true };
+      filters['ocpiData.cdr'] = { $exists: true, $ne: null };
       filters['ocpiData.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
     }
     // Check stop transaction
     if (params.stop) {
-      filters.stop = params.stop;
+      filters.stop = filters.stop ? { ...filters.stop, ...params.stop } : params.stop;
     }
     // Inactivity Status
     if (params.inactivityStatus) {
