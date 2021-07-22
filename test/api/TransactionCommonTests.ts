@@ -1032,12 +1032,12 @@ export default class TransactionCommonTests {
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(StatusCodes.FORBIDDEN);
+    expect(response.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {

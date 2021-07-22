@@ -178,7 +178,7 @@ export default class TransactionService {
 
   public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterPushTransactionCdrRequest(req.body);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionPushCDRReq(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
@@ -416,7 +416,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -439,7 +439,12 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
+    try {
+      TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
+    } catch (e) {
+      const a = 5;
+    }
+    const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
