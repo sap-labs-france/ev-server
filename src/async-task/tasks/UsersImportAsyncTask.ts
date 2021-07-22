@@ -43,28 +43,27 @@ export default class UsersImportAsyncTask extends ImportAsyncTask {
           importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
           for (const importedUser of importedUsers.result) {
             try {
-              // if user not found we create one
+              // Check & Import the User
               await this.processImportedUser(tenant, importedUser);
               // Remove the imported User either it's found or not
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               result.inSuccess++;
             } catch (error) {
+              // Mark the imported User faulty with the reason
               importedUser.status = ImportStatus.ERROR;
               importedUser.errorDescription = error.message;
               result.inError++;
               // Update it
               await UserStorage.saveImportedUser(tenant.id, importedUser);
-              // Log
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
                 module: MODULE_NAME, method: 'executeAsyncTask',
-                message: `Error when importing User with email '${importedUser.email}': ${error.message}`,
-                detailedMessages: { user: importedUser, error: error.stack }
+                message: `Cannot import User with email '${importedUser.email}': ${error.message}`,
+                detailedMessages: { importedUser, error: error.stack }
               });
             }
           }
-          // Log
           if (importedUsers.result.length > 0 && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({
