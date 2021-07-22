@@ -9,12 +9,14 @@ export default class TransactionValidator extends SchemaValidator {
   private static instance: TransactionValidator | undefined;
   private transactionsGet: Schema;
   private transactionGet: Schema;
+  private transactionsGetByIDs: Schema;
 
 
   private constructor() {
     super('TransactionValidator');
     this.transactionsGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get.json`, 'utf8'));
     this.transactionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
+    this.transactionsGetByIDs = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get-by-ids.json`, 'utf8'));
   }
 
   public static getInstance(): TransactionValidator {
@@ -33,6 +35,12 @@ export default class TransactionValidator extends SchemaValidator {
   public validateTransactionGetReq(data: any): HttpTransactionRequest {
     // Validate schema
     this.validate(this.transactionGet, data);
+    return data;
+  }
+
+  public validateTransactionsGetByIDsReq(data: any): number[] {
+    // Validate schema
+    this.validate(this.transactionsGetByIDs, data);
     return data;
   }
 }

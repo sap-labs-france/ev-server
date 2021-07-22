@@ -17,5 +17,8 @@
       "type": "boolean",
       "sanitize": "mongo"
     }
-  }
+  },
+  "required": [
+    "ID"
+  ]
 }
