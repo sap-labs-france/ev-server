@@ -57,4 +57,8 @@ export default class TransactionApi extends CrudApi {
     return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_REFUND_EXPORT));
   }
 
+  public async exportTransactions(params) {
+    return await super.read(params, this.buildRestEndpointUrl(ServerRoute.REST_TRANSACTIONS_EXPORT));
+  }
+
 }

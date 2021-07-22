@@ -726,6 +726,11 @@ describe('Transaction', function() {
 
       });
 
+      describe('Using function "exportTransactions"', () => {
+        it('Should export completed transactions', async () => {
+          await testData.transactionCommonTests.testExportTransactions({});
+        });
+      });
     });
 
     describe('Where admin user', () => {
