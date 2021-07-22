@@ -337,7 +337,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
@@ -638,7 +638,7 @@ export default class TransactionService {
 
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID,
@@ -851,7 +851,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID, {}, ['id', 'ocpiData']);
