@@ -247,10 +247,10 @@ const config = convict({
       format: Number,
       default: 20
     },
-    replicateSet: {
-      doc: 'replicateSet',
+    replicaSet: {
+      doc: 'replica set name',
       format: String,
-      default: ''
+      default: 'rs0'
     },
     monitorDBChange: {
       doc: 'monitor changes',
