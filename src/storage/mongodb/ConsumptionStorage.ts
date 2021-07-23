@@ -280,7 +280,7 @@ export default class ConsumptionStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Sort
     if (!dbParams.sort) {
-      dbParams.sort = { endedAt: 1 };
+      dbParams.sort = { startedAt: 1 };
     }
     // Create Aggregation
     const aggregation = [];
@@ -292,15 +292,15 @@ export default class ConsumptionStorage {
     }
     // Date provided?
     if (params.startDate || params.endDate) {
-      filters.endedAt = {};
+      filters.startedAt = {};
     }
     // Start date
     if (params.startDate) {
-      filters.endedAt.$gte = Utils.convertToDate(params.startDate);
+      filters.startedAt.$gte = Utils.convertToDate(params.startDate);
     }
     // End date
     if (params.endDate) {
-      filters.endedAt.$lte = Utils.convertToDate(params.endDate);
+      filters.startedAt.$lte = Utils.convertToDate(params.endDate);
     }
     // Check that charging station is set
     filters.chargeBoxID = { '$ne': null };
@@ -325,11 +325,11 @@ export default class ConsumptionStorage {
     aggregation.push({
       $group: {
         _id: {
-          year: { '$year': '$endedAt' },
-          month: { '$month': '$endedAt' },
-          day: { '$dayOfMonth': '$endedAt' },
-          hour: { '$hour': '$endedAt' },
-          minute: { '$minute': '$endedAt' }
+          year: { '$year': '$startedAt' },
+          month: { '$month': '$startedAt' },
+          day: { '$dayOfMonth': '$startedAt' },
+          hour: { '$hour': '$startedAt' },
+          minute: { '$minute': '$startedAt' }
         },
         instantWatts: { $sum: '$instantWatts' },
         instantWattsL1: { $sum: '$instantWattsL1' },
@@ -343,7 +343,7 @@ export default class ConsumptionStorage {
     // Rebuild the date
     aggregation.push({
       $addFields: {
-        endedAt: {
+        startedAt: {
           $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
       }

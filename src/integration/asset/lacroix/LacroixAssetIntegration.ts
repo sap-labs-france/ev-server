@@ -14,9 +14,7 @@ import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
-import { constant } from 'lodash';
 import moment from 'moment';
-import { time } from 'console';
 
 const MODULE_NAME = 'LacroixAssetIntegration';
 
@@ -37,7 +35,14 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     if (!manualCall && !this.checkIfIntervalExceeded(asset)) {
       return [];
     }
-    const timeSinceLastConsumption = moment().diff(asset.lastConsumption?.timestamp ? asset.lastConsumption.timestamp : moment().startOf('day').toISOString(), 'minutes');
+    // Check if last consumption available --> if not set it to start of day
+    if (Utils.isNullOrUndefined(asset.lastConsumption)) {
+      asset.lastConsumption = {
+        timestamp: moment().startOf('day').toDate(),
+        value: 0
+      };
+    }
+    const timeSinceLastConsumption = moment().diff(asset.lastConsumption.timestamp, 'minutes');
     let period = LacroixPeriods.FIVE_MINUTES;
     if (timeSinceLastConsumption > 5 && timeSinceLastConsumption < 60) {
       period = LacroixPeriods.ONE_HOUR;
@@ -82,6 +87,10 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
 
   private async filterConsumptionRequest(asset: Asset, responseData: LacroixResponse, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
     const consumptions: AbstractCurrentConsumption[] = [];
+    const currentIndex = responseData.data.findIndex((data) => moment(data.date).isSame(asset.lastConsumption.timestamp));
+    if (currentIndex >= 0) {
+      consumptions.splice(0, currentIndex);
+    }
     for (const dataPoint of responseData.data) {
       const consumption = {} as AbstractCurrentConsumption;
       consumption.currentInstantWatts = dataPoint.powerApparentConsumedTotal;
@@ -90,7 +99,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       consumption.currentInstantWattsL3 = dataPoint.powerApparentConsumed3;
       consumption.currentTotalConsumptionWh = Utils.createDecimal(consumption.currentInstantWatts).mul(60).toNumber();
       consumption.lastConsumption = {
-        timestamp: new Date(dataPoint.date),
+        timestamp: moment(dataPoint.date).toDate(),
         value: consumption.currentTotalConsumptionWh
       };
       consumptions.push(consumption);
@@ -98,19 +107,16 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) > 1) {
       const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(this.tenant,
         { siteAreaID: asset.siteAreaID, startDate: asset.lastConsumption.timestamp, endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp },
-        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'endedAt']);
+        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'startedAt']);
       for (const consumption of consumptions) {
         const timestamp = consumption.lastConsumption.timestamp;
-        timestamp.setSeconds(0);
-        timestamp.setMilliseconds(0);
-        const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) => {
-          consumptionDB.endedAt === timestamp;
-        });
+        const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) =>
+          consumptionDB.startedAt.getTime() === timestamp.getTime());
         if (consumptionToSubtract && (moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes')) > 1) {
-          consumption.currentInstantWatts = -consumptionToSubtract.instantWatts;
-          consumption.currentInstantWattsL1 = -consumptionToSubtract.instantWattsL1;
-          consumption.currentInstantWattsL2 = -consumptionToSubtract.instantWattsL2;
-          consumption.currentInstantWattsL3 = -consumptionToSubtract.instantWattsL3;
+          consumption.currentInstantWatts -= consumptionToSubtract.instantWatts;
+          consumption.currentInstantWattsL1 -= consumptionToSubtract.instantWattsL1;
+          consumption.currentInstantWattsL2 -= consumptionToSubtract.instantWattsL2;
+          consumption.currentInstantWattsL3 -= consumptionToSubtract.instantWattsL3;
         }
       }
     }
@@ -149,6 +155,9 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
           'axios-retry': {
             retries: 0
           },
+          transformResponse: [
+            () => ('###')
+          ],
           headers: this.buildFormHeaders(),
         }),
       `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
