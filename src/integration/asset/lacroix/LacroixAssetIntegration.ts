@@ -44,14 +44,13 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     }
     const timeSinceLastConsumption = moment().diff(asset.lastConsumption.timestamp, 'minutes');
     let period = LacroixPeriods.FIVE_MINUTES;
-    if (timeSinceLastConsumption > 5 && timeSinceLastConsumption < 60) {
+    if (timeSinceLastConsumption > 5 && timeSinceLastConsumption <= 60) {
       period = LacroixPeriods.ONE_HOUR;
     } else if (timeSinceLastConsumption > 60) {
       period = LacroixPeriods.ONE_DAY;
     }
     const request = manualCall ?
       `${this.connection.url}/${asset.meterID}/getPowerData?period=${LacroixPeriods.LAST}&group_by=1m` :
-      // Check if it is first consumption for this asset
       `${this.connection.url}/${asset.meterID}/getPowerData?period=${period}&group_by=1m`;
     try {
       // Get consumption
@@ -87,10 +86,12 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
 
   private async filterConsumptionRequest(asset: Asset, responseData: LacroixResponse, manualCall: boolean): Promise<AbstractCurrentConsumption[]> {
     const consumptions: AbstractCurrentConsumption[] = [];
+    // Check returned data and delete consumptions before the last saved asset consumption
     const currentIndex = responseData.data.findIndex((data) => moment(data.date).isSame(asset.lastConsumption.timestamp));
     if (currentIndex >= 0) {
-      consumptions.splice(0, currentIndex);
+      responseData.data.splice(0, currentIndex);
     }
+    // Create consumptions from response
     for (const dataPoint of responseData.data) {
       const consumption = {} as AbstractCurrentConsumption;
       consumption.currentInstantWatts = dataPoint.powerApparentConsumedTotal;
@@ -104,15 +105,19 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
       };
       consumptions.push(consumption);
     }
+    // Check if history needs to be taken into account
     if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) > 1) {
+      // Get consumptions from charging stations in the missing time period
       const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(this.tenant,
         { siteAreaID: asset.siteAreaID, startDate: asset.lastConsumption.timestamp, endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp },
         Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'endedAt']);
       for (const consumption of consumptions) {
         const timestamp = consumption.lastConsumption.timestamp;
+        // Create consumption with charging station consumption at this time
         const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) =>
-          consumptionDB.startedAt.getTime() === timestamp.getTime());
-        if (consumptionToSubtract && (moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes')) > 1) {
+          consumptionDB.endedAt.getTime() === timestamp.getTime());
+        // Check if consumption is existing and older than one minute
+        if (!Utils.isNullOrUndefined(consumptionToSubtract) && (moment().diff(moment(consumption.lastConsumption?.timestamp), 'minutes')) > 1) {
           consumption.currentInstantWatts -= consumptionToSubtract.instantWatts;
           consumption.currentInstantWattsL1 -= consumptionToSubtract.instantWattsL1;
           consumption.currentInstantWattsL2 -= consumptionToSubtract.instantWattsL2;
@@ -120,14 +125,18 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
         }
       }
     }
-    const transactionResponse = await TransactionStorage.getTransactions(this.tenant.id, { siteAreaIDs:[asset.siteAreaID],
-      stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT, ['currentInstantWatts', 'currentInstantWattsL1','currentInstantWattsL2','currentInstantWattsL3']);
-    for (const transaction of transactionResponse.result) {
-      consumptions[consumptions.length - 1].currentInstantWatts -= transaction.currentInstantWatts;
-      consumptions[consumptions.length - 1].currentInstantWattsL1 -= transaction.currentInstantWattsL1;
-      consumptions[consumptions.length - 1].currentInstantWattsL2 -= transaction.currentInstantWattsL2;
-      consumptions[consumptions.length - 1].currentInstantWattsL3 -= transaction.currentInstantWattsL3;
+    // Get transactions to calculate asset consumption of the current minute
+    if (moment().diff(moment(consumptions[consumptions.length - 1].lastConsumption.timestamp), 'minutes') <= 1) {
+      const transactionResponse = await TransactionStorage.getTransactions(this.tenant.id, { siteAreaIDs:[asset.siteAreaID],
+        stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT, ['currentInstantWatts', 'currentInstantWattsL1','currentInstantWattsL2','currentInstantWattsL3']);
+      for (const transaction of transactionResponse.result) {
+        consumptions[consumptions.length - 1].currentInstantWatts -= transaction.currentInstantWatts;
+        consumptions[consumptions.length - 1].currentInstantWattsL1 -= transaction.currentInstantWattsL1;
+        consumptions[consumptions.length - 1].currentInstantWattsL2 -= transaction.currentInstantWattsL2;
+        consumptions[consumptions.length - 1].currentInstantWattsL3 -= transaction.currentInstantWattsL3;
+      }
     }
+    // Create amperage values
     if (asset.siteArea?.voltage) {
       for (const consumption of consumptions) {
         consumption.currentInstantAmps = Utils.createDecimal(consumption.currentInstantWatts).div(asset.siteArea.voltage).toNumber();
@@ -147,7 +156,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     this.checkConnectionIsProvided();
     // Get credential params
     const credentials = await this.getCredentialParams();
-    // Send credentials to get the token
+    // Send request to check if credentials are valid
     await Utils.executePromiseWithTimeout(5000,
       this.axiosInstance.post(`${this.connection.url}/login`,
         credentials,
@@ -160,7 +169,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
           ],
           headers: this.buildFormHeaders(),
         }),
-      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}/token'`
+      `Time out error (5s) when getting the token with the connection URL '${this.connection.url}'`
     );
   }
 

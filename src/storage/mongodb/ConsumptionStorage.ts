@@ -280,7 +280,7 @@ export default class ConsumptionStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Sort
     if (!dbParams.sort) {
-      dbParams.sort = { startedAt: 1 };
+      dbParams.sort = { endedAt: 1 };
     }
     // Create Aggregation
     const aggregation = [];
@@ -292,7 +292,7 @@ export default class ConsumptionStorage {
     }
     // Date provided?
     if (params.startDate || params.endDate) {
-      filters.startedAt = {};
+      filters.endedAt = {};
     }
     // Start date
     if (params.startDate) {
