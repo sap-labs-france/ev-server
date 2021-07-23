@@ -45,24 +45,27 @@ export default class MongoDBStorageNotification {
   }
 
   static handleDBInvalidChange(tenantID: string, collection: string, change: Event): void {
-    Logging.logError({
+    const message = `Invalid change received on collection ${tenantID}.${collection}`;
+    void Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
       module: MODULE_NAME, method: 'handleDBInvalidChange',
-      message: `Invalid change received on collection ${tenantID}.${collection}`,
+      message,
       detailedMessages: { change }
     });
+    Utils.isDevelopmentEnv() && console.error(chalk.red(message));
   }
 
   static handleDBChangeStreamError(error: Error): void {
-    // Log
-    Logging.logError({
+    const message = `Error occurred in watching database: ${error}`;
+    void Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
       module: MODULE_NAME, method: 'handleDBChangeStreamError',
-      message: `Error occurred in watching database: ${error}`,
+      message,
       detailedMessages: { error: error.stack }
     });
+    Utils.isDevelopmentEnv() && console.error(chalk.red(message));
   }
 
   async start(): Promise<void> {
@@ -87,7 +90,7 @@ export default class MongoDBStorageNotification {
         MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
       const message = `The monitoring on database '${this.dbConfig.implementation}' is enabled`;
-      Logging.logInfo({
+      await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
@@ -96,7 +99,7 @@ export default class MongoDBStorageNotification {
       Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     } else {
       const message = `The monitoring on database '${this.dbConfig.implementation}' is disabled`;
-      Logging.logWarning({
+      await Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
