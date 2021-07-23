@@ -107,7 +107,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     if ((moment().diff(moment(asset.lastConsumption?.timestamp), 'minutes')) > 1) {
       const consumptionsDB = await ConsumptionStorage.getSiteAreaChargingStationConsumptions(this.tenant,
         { siteAreaID: asset.siteAreaID, startDate: asset.lastConsumption.timestamp, endDate: consumptions[consumptions.length - 1].lastConsumption.timestamp },
-        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'startedAt']);
+        Constants.DB_PARAMS_MAX_LIMIT, ['instantWatts', 'instantWattsL1','instantWattsL2','instantWattsL3', 'endedAt']);
       for (const consumption of consumptions) {
         const timestamp = consumption.lastConsumption.timestamp;
         const consumptionToSubtract = consumptionsDB.result.find((consumptionDB) =>
