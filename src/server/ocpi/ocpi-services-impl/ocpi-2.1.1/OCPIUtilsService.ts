@@ -863,6 +863,9 @@ export default class OCPIUtilsService {
           // Mougins - South - Fastcharging
           case '5b72cef274ae30000855e458':
             return 'FR*SLF_DC_Sud';
+          // Caen
+          case '5ac678b5c0cc5e7fdd2c5ef3':
+            return 'FR*SLF_Caen';
         }
         return '';
       // Proviridis
