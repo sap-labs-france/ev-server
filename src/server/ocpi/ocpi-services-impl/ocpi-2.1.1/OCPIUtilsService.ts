@@ -199,8 +199,8 @@ export default class OCPIUtilsService {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        // Mougins
         switch (site.id) {
+          // Mougins
           case '5abeba8d4bae1457eb565e5b':
             return {
               regular_hours: [
@@ -232,9 +232,8 @@ export default class OCPIUtilsService {
               ],
               twentyfourseven: false
             };
-        }
-        case '5abeba9e4bae1457eb565e66':
-            // Caen
+          // Caen
+          case '5abeba9e4bae1457eb565e66':
             return {
               regular_hours: [
                 {
