@@ -1732,35 +1732,9 @@ export default class OCPPService {
   }
 
   private async checkAndCreateChargingStation(tenant: Tenant, bootNotification: OCPPBootNotificationRequestExtended, headers: OCPPHeader): Promise<ChargingStation> {
-    // Check Token
-    if (!headers.token) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
-        message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
-        detailedMessages: { headers, bootNotification }
-      });
-    }
-    const token = await RegistrationTokenStorage.getRegistrationToken(tenant.id, headers.token);
-    if (!token || !token.expirationDate || moment().isAfter(token.expirationDate)) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
-        message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
-        detailedMessages: { headers, bootNotification }
-      });
-    }
-    if (token.revocationDate || moment().isAfter(token.revocationDate)) {
-      throw new BackendError({
-        source: headers.chargeBoxIdentity,
-        action: ServerAction.BOOT_NOTIFICATION,
-        module: MODULE_NAME, method: 'checkAndRegisterNewChargingStation',
-        message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress.toString()}'`,
-        detailedMessages: { headers, bootNotification }
-      });
-    }
+    // Check connection Token
+    const token = await OCPPUtils.checkChargingStationConnectionToken(
+      ServerAction.BOOT_NOTIFICATION, tenant, headers.chargeBoxIdentity, headers.token, { headers, bootNotification });
     // New Charging Station: Create
     const newChargingStation = {} as ChargingStation;
     for (const key in bootNotification) {

@@ -1,16 +1,16 @@
 import chai, { expect } from 'chai';
-
-import CentralServerService from '../client/CentralServerService';
-import Constants from '../../../src/utils/Constants';
-import ContextDefinition from './ContextDefinition';
-import Factory from '../../factories/Factory';
-import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
-import SiteContext from './SiteContext';
-import TenantComponents from '../../../src/types/TenantComponents';
-import TenantContext from './TenantContext';
 import chaiSubset from 'chai-subset';
+import { ObjectId } from 'mongodb';
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
+import TenantComponents from '../../../src/types/TenantComponents';
+import Constants from '../../../src/utils/Constants';
 import config from '../../config';
-import faker from 'faker';
+import Factory from '../../factories/Factory';
+import CentralServerService from '../client/CentralServerService';
+import ContextDefinition from './ContextDefinition';
+import SiteContext from './SiteContext';
+import TenantContext from './TenantContext';
+
 
 chai.use(chaiSubset);
 
@@ -135,7 +135,7 @@ export default class ContextProvider {
       await newTenantContext.addChargingStation(chargingStation);
     }
 
-    const registrationToken = faker.random.alphaNumeric(10);
+    const registrationToken = new ObjectId().toHexString();
     const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: OCPPVersion.VERSION_15 });
     await newTenantContext.addChargingStation(unregisteredChargingStation15, registrationToken);
     const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: OCPPVersion.VERSION_16 });

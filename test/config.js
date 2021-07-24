@@ -187,7 +187,7 @@ const config = convict({
     autoReconnectMaxRetries: {
       doc: 'WebSocket client re-connection max retries.',
       format: 'int',
-      default: 10,
+      default: 0,
     },
     autoReconnectTimeout: {
       doc: 'WebSocket client re-connection timeout.',
