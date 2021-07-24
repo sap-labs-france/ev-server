@@ -120,7 +120,7 @@ export default class JsonWSConnection extends WSConnection {
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
-      detailedMessages: { closeEvent: closeEvent }
+      detailedMessages: { closeEvent }
     });
   }
 
