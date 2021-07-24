@@ -37,7 +37,6 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onError(errorEvent: ErrorEvent): void {
-    // Log
     void Logging.logError({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
@@ -49,7 +48,6 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onClose(closeEvent: CloseEvent): void {
-    // Log
     void Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
