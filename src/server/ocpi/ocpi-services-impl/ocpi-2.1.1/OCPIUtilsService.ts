@@ -233,6 +233,74 @@ export default class OCPIUtilsService {
               twentyfourseven: false
             };
         }
+        case '5abeba9e4bae1457eb565e66':
+            // Caen
+            return {
+              regular_hours: [
+                {
+                  weekday: 1, // Monday
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 1, // Monday
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 6,
+                  period_begin: '00:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 7,
+                  period_begin: '00:00',
+                  period_end: '23:59'
+                },
+              ],
+              twentyfourseven: false
+            };
+        }
     }
     // Default
     return {
