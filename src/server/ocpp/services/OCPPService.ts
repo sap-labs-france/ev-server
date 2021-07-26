@@ -430,7 +430,7 @@ export default class OCPPService {
           startTransaction.userID = user.id;
         }
         // Cleanup ongoing Transaction
-        await this.stopOrDeleteActiveTransaction(tenant, chargingStation.id, startTransaction.connectorId);
+        await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
         // Create Transaction
         const transaction = await this.createTransaction(tenant, user, startTransaction);
         // Car
@@ -1417,12 +1417,12 @@ export default class OCPPService {
     };
   }
 
-  private async stopOrDeleteActiveTransaction(tenant: Tenant, chargingStationID: string, connectorId: number) {
+  private async stopOrDeleteActiveTransaction(tenant: Tenant, chargingStation: ChargingStation, connectorId: number) {
     // Check
     let activeTransaction: Transaction, lastCheckedTransactionID: number;
     do {
       // Check if the charging station has already a transaction
-      activeTransaction = await TransactionStorage.getActiveTransaction(tenant.id, chargingStationID, connectorId);
+      activeTransaction = await TransactionStorage.getActiveTransaction(tenant.id, chargingStation.id, connectorId);
       // Exists already?
       if (activeTransaction) {
         // Avoid infinite Loop
@@ -1434,7 +1434,7 @@ export default class OCPPService {
           // No consumption: delete
           await Logging.logWarning({
             tenantID: tenant.id,
-            source: chargingStationID,
+            source: chargingStation.id,
             module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
             action: ServerAction.CLEANUP_TRANSACTION,
             actionOnUser: activeTransaction.user,
@@ -1442,6 +1442,8 @@ export default class OCPPService {
           });
           // Delete
           await TransactionStorage.deleteTransaction(tenant.id, activeTransaction.id);
+          // Clear connector
+          OCPPUtils.clearChargingStationConnector(chargingStation, activeTransaction.connectorId);
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
@@ -1458,7 +1460,7 @@ export default class OCPPService {
             // No consumption: delete
             await Logging.logError({
               tenantID: tenant.id,
-              source: chargingStationID,
+              source: chargingStation.id,
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
               actionOnUser: activeTransaction.userID,
@@ -1468,7 +1470,7 @@ export default class OCPPService {
             // Has consumption: close it!
             await Logging.logWarning({
               tenantID: tenant.id,
-              source: chargingStationID,
+              source: chargingStation.id,
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
               actionOnUser: activeTransaction.userID,
