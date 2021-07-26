@@ -311,7 +311,7 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action);
+      req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, user.id);
     res.json(userImage);
