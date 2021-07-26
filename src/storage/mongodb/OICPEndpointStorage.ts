@@ -7,7 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import OICPEndpoint from '../../types/oicp/OICPEndpoint';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -40,7 +40,7 @@ export default class OICPEndpointStorage {
     if (oicpEndpointToSave.id) {
       oicpEndpointFilter._id = DatabaseUtils.convertToObjectID(oicpEndpointToSave.id);
     } else {
-      oicpEndpointFilter._id = new ObjectID();
+      oicpEndpointFilter._id = new ObjectId();
     }
     const oicpEndpointMDB: any = {
       _id: oicpEndpointFilter._id,
@@ -67,7 +67,7 @@ export default class OICPEndpointStorage {
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveOicpEndpoint', uniqueTimerID, { oicpEndpointToSave: oicpEndpointToSave });
     // Create
-    return oicpEndpointFilter._id.toHexString();
+    return oicpEndpointFilter._id.toString();
   }
 
   // Delegate

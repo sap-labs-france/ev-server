@@ -3,6 +3,7 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
+import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
@@ -23,7 +24,16 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     super();
     this.tenantID = tenantID;
     // Get URL
-    let chargingStationURL: string = chargingStation.chargingStationURL;
+    let chargingStationURL = chargingStation.chargingStationURL;
+    if (!chargingStationURL) {
+      throw new BackendError({
+        source: chargingStation.id,
+        module: MODULE_NAME,
+        method: 'constructor',
+        message: 'Cannot access the Charging Station via a REST call because no URL is provided',
+        detailedMessages: { chargingStation }
+      });
+    }
     // Check URL: remove starting and trailing '/'
     if (chargingStationURL.endsWith('/')) {
       // Remove '/'
@@ -140,7 +150,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
           module: MODULE_NAME, method: 'onClose',
-          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`
+          message: `Connection closed to '${this.serverURL}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`,
+          detailedMessages: { code }
         });
       };
       // Handle Error Message

@@ -2,7 +2,7 @@ import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServ
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ChargingStationOcpiData, ChargingStationOcppParameters, ChargingStationOicpData, ChargingStationTemplate, Connector, ConnectorType, CurrentType, OcppParameter, PhaseAssignmentToGrid, RemoteAuthorization, Voltage } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectID } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream, GridFSBucketWriteStream, ObjectId } from 'mongodb';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -43,7 +43,7 @@ export interface ConnectorMDB {
   voltage: Voltage;
   amperage: number;
   amperageLimit: number;
-  currentUserID: ObjectID;
+  currentUserID: ObjectId;
   statusLastChangedOn: Date;
   numberOfConnectedPhase: number;
   currentType: CurrentType;
@@ -636,27 +636,6 @@ export default class ChargingStationStorage {
     await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationConnectors', uniqueTimerID, connectors);
   }
 
-  public static async saveChargingStationBackupConnectors(tenantID: string, id: string, backupConnectors: Connector[]): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors');
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
-    // Ensure good typing
-    const backupConnectorsMDB = backupConnectors.map((connector) =>
-      ChargingStationStorage.filterConnectorMDB(connector));
-    // Modify document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
-      { '_id': id },
-      {
-        $set: {
-          backupConnectors: backupConnectorsMDB
-        }
-      },
-      { upsert: true });
-    // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveChargingStationBackupConnectors', uniqueTimerID, backupConnectors);
-  }
-
   public static async saveChargingStationCFApplicationIDAndInstanceIndex(tenantID: string, id: string,
       cfApplicationIDAndInstanceIndex: string): Promise<void> {
     // Debug
@@ -717,24 +696,13 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveChargingStationOcpiData');
     // Check Tenant
     await DatabaseUtils.checkTenant(tenantID);
-    const ocpiDataMDB = {
-      evses: ocpiData.evses.map((evse) => ({
-        uid: evse.uid,
-        evse_id: evse.evse_id,
-        location_id: evse.location_id,
-        status: evse.status,
-        capabilities: evse.capabilities,
-        connectors: evse.connectors,
-        coordinates: evse.coordinates,
-        last_updated: Utils.convertToDate(evse.last_updated),
-      }))
-    };
     // Modify document
     await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': id },
-      { $set: {
-        ocpiData : ocpiDataMDB
-      }
+      {
+        $set: {
+          ocpiData
+        }
       },
       { upsert: false });
     // Debug

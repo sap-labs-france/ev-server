@@ -533,7 +533,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         },
         attributes: [
           'id', 'userID', 'issuer', 'active', 'description', 'visualID', 'default',
-          'user.id', 'user.name', 'user.firstName', 'user.email'
+          'user.id', 'user.name', 'user.firstName', 'user.email', 'user.issuer'
         ],
       },
       {

@@ -1,4 +1,5 @@
-import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import { ChangeStream, ChangeStreamOptions, ClientSession, Collection, Db, GridFSBucket, MongoClient, ReadPreferenceMode } from 'mongodb';
+import mongoUriBuilder, { MongoUriConfig } from 'mongo-uri-builder';
 
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -12,7 +13,6 @@ import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
-import mongoUriBuilder from 'mongo-uri-builder';
 import urlencode from 'urlencode';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -125,7 +125,7 @@ export default class MongoDBStorage {
       { fields: { issuer: 1, timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { tagID: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { userID: 1 } },
     ]);
     // Settings
     await this.handleIndexesInCollection(tenantID, 'settings', [
@@ -204,28 +204,33 @@ export default class MongoDBStorage {
     if (this.dbConfig.uri) {
       // Yes: use it
       mongoUrl = this.dbConfig.uri;
+    // Build URI without replicaset
     } else {
-      // No: Build it
-      mongoUrl = mongoUriBuilder({
+      const uri: MongoUriConfig = {
         host: urlencode(this.dbConfig.host),
         port: Utils.convertToInt(urlencode(this.dbConfig.port.toString())),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
         options: {
-          replicaSet: this.dbConfig.replicaSet
+          readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
         }
-      });
+      };
+      // Set the Replica Set
+      if (this.dbConfig.replicaSet) {
+        uri.options.replicaSet = Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet;
+      }
+      mongoUrl = mongoUriBuilder(uri);
     }
     // Connect to EVSE
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
-        useNewUrlParser: true,
-        poolSize: this.dbConfig.poolSize,
-        replicaSet: this.dbConfig.replicaSet,
-        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
-        useUnifiedTopology: true
+        minPoolSize: Math.floor(this.dbConfig.poolSize / 4),
+        maxPoolSize: this.dbConfig.poolSize,
+        replicaSet: Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet,
+        loggerLevel: this.dbConfig.debug ? 'debug' : null,
+        readPreference: this.dbConfig.readPreference ? this.dbConfig.readPreference as ReadPreferenceMode : ReadPreferenceMode.secondaryPreferred
       }
     );
     // Get the EVSE DB
@@ -351,7 +356,7 @@ export default class MongoDBStorage {
         let foundIndex = indexes.find((index) => this.buildIndexName(index.fields) === databaseIndex.name);
         // Check DB unique index
         const databaseIndexISUnique = !!databaseIndex?.unique;
-        const indexIsUnique = !!foundIndex.options?.unique;
+        const indexIsUnique = !!foundIndex?.options?.unique;
         if (indexIsUnique !== databaseIndexISUnique) {
           // Delete the index
           foundIndex = null;

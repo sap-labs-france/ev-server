@@ -245,7 +245,7 @@ export default class Constants {
   public static readonly OCPI_SERVER = 'OCPI Server';
   public static readonly OCPI_SEPARATOR = '*';
   public static readonly OCPI_RECORDS_LIMIT = 25;
-  public static readonly OCPI_MAX_PARALLEL_REQUESTS = 5;
+  public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
   public static readonly OICP_SERVER = 'OICP Server';
 
@@ -282,7 +282,7 @@ export default class Constants {
 
   public static readonly ANONYMIZED_VALUE = '####';
 
-  public static readonly WS_DEFAULT_KEEPALIVE = 180; // Seconds
+  public static readonly WS_DEFAULT_KEEP_ALIVE_MILLIS = 180 * 1000;
   public static readonly WS_RECONNECT_DISABLED = 0;
   public static readonly WS_RECONNECT_UNLIMITED = -1;
   public static readonly WS_DEFAULT_RECONNECT_MAX_RETRIES = -1;

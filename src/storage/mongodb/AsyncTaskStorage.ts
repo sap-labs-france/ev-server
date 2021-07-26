@@ -6,7 +6,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'AsyncTaskStorage';
@@ -25,7 +25,7 @@ export default class AsyncTaskStorage {
     const uniqueTimerID = Logging.traceStart(Constants.DEFAULT_TENANT, MODULE_NAME, 'saveAsyncTask');
     // Set
     const asyncTaskMDB: any = {
-      _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectID(),
+      _id: asyncTaskToSave.id ? DatabaseUtils.convertToObjectID(asyncTaskToSave.id) : new ObjectId(),
       name: asyncTaskToSave.name,
       action: asyncTaskToSave.action,
       type: asyncTaskToSave.type,

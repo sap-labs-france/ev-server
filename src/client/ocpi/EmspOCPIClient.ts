@@ -378,7 +378,7 @@ export default class EmspOCPIClient extends OCPIClient {
         if (!evse.uid) {
           throw new BackendError({
             action: ServerAction.OCPI_PULL_LOCATIONS,
-            message: `Missing Charging Station EVSE UID in Location ID '${location.id}'`,
+            message: `Missing Charging Station EVSE UID in Location '${location.name}' with ID '${location.id}'`,
             module: MODULE_NAME, method: 'processLocation',
             detailedMessages:  { evse, location }
           });
@@ -393,7 +393,7 @@ export default class EmspOCPIClient extends OCPIClient {
             await Logging.logDebug({
               tenantID: this.tenant.id,
               action: ServerAction.OCPI_PULL_LOCATIONS,
-              message: `Removed Charging Station EVSE UID '${evse.uid}' in Location ID '${location.id}'`,
+              message: `Removed Charging Station EVSE UID '${evse.uid}' in Location '${location.name}' with ID '${location.id}'`,
               module: MODULE_NAME, method: 'processLocation',
               detailedMessages: { evse, location }
             });
@@ -512,10 +512,10 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
-        source: transaction ? transaction.chargeBoxID : null,
+        source: transaction?.chargeBoxID,
         message: `OCPI Remote Stop Session is not available for the Session ID '${transactionId}'`,
         module: MODULE_NAME, method: 'remoteStopSession',
-        detailedMessages: { transaction: transaction }
+        detailedMessages: { transaction }
       });
     }
     const payload: OCPIStopSession = {

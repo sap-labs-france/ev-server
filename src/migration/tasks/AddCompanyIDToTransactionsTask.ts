@@ -42,10 +42,10 @@ export default class AddCompanyIDToTransactionsTask extends MigrationTask {
             continue;
           }
           // Find the Site
-          const foundSite = sites.find((site) => chargingStation.siteID?.toHexString() === site.id);
+          const foundSite = sites.find((site) => chargingStation.siteID?.toString() === site.id);
           if (foundSite?.companyID) {
             await global.database.getCollection<any>(tenant.id, 'chargingstations').updateOne(
-              { _id: chargingStation._id },
+              { _id: chargingStation['_id'] },
               {
                 $set: { companyID: DatabaseUtils.convertToObjectID(foundSite.companyID) }
               }

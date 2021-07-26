@@ -6,7 +6,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -161,7 +161,7 @@ export default class BillingStorage {
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
-      _id: invoiceToSave.id ? DatabaseUtils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
+      _id: invoiceToSave.id ? DatabaseUtils.convertToObjectID(invoiceToSave.id) : new ObjectId(),
       invoiceID: invoiceToSave.invoiceID,
       // eslint-disable-next-line id-blacklist
       number: invoiceToSave.number,
@@ -185,7 +185,7 @@ export default class BillingStorage {
     );
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveInvoice', uniqueTimerID, invoiceMDB);
-    return invoiceMDB._id.toHexString();
+    return invoiceMDB._id.toString();
   }
 
   public static async updateInvoiceAdditionalData(tenant: Tenant, invoiceToUpdate: BillingInvoice, additionalData: BillingAdditionalData): Promise<void> {

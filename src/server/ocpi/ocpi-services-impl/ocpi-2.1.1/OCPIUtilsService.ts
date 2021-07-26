@@ -851,14 +851,11 @@ export default class OCPIUtilsService {
     }
   }
 
-  // TODO: Implement the tariff module under dev in Gireve, to provide in UI later on
-  // FIXME: add tariff id from the simple pricing settings remapping
   private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
         // Check Site Area
-        // FIXME: siteAreaID must always be an attribute non null
         switch (chargingStation?.siteAreaID) {
           // Mougins - South
           case '5abebb1b4bae1457eb565e98':
@@ -886,6 +883,15 @@ export default class OCPIUtilsService {
               case 'F3CBaume-CAHORS25DC':
                 return 'Tarif_EVSE_DC';
               case 'F3CBaume-LAFON22AC':
+                return 'Tarif_EVSE_AC';
+            }
+            return '';
+          // Garage Cheval
+          case '60e40cfc32a7e60014672290':
+            switch (chargingStation?.id) {
+              case 'F3CALBON-CAHORS25DC':
+                return 'Tarif_EVSE_DC';
+              case 'F3CALBON-SCHNEIDER22AC':
                 return 'Tarif_EVSE_AC';
             }
             return '';

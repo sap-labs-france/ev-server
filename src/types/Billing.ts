@@ -1,7 +1,7 @@
 import { ActionsResponse } from './GlobalType';
 import User from './User';
 
-export interface BillingTransactionData {
+export interface TransactionBillingData {
   withBillingActive?: boolean;
   lastUpdate?: Date;
   stop?: BillingDataTransactionStop;

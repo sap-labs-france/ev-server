@@ -21,7 +21,6 @@ const MODULE_NAME = 'WSConnection';
 export default abstract class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  private readonly uuid: string;
   private readonly chargingStationID: string;
   private readonly tenantID: string;
   private readonly token: string;
@@ -76,7 +75,6 @@ export default abstract class WSConnection {
         message: `The URL '${req.url}' is invalid (/(OCPPxx|REST)/TENANT_ID/CHARGEBOX_ID)`
       });
     }
-    this.uuid = Utils.generateUUID();
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
     let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
     if (req.url.startsWith('/REST')) {
@@ -123,18 +121,6 @@ export default abstract class WSConnection {
       // Check Tenant?
       await DatabaseUtils.checkTenant(this.tenantID);
       this.validTenant = true;
-      // Update the Charging Station
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID(), {}, ['id']);
-      if (chargingStation) {
-        // Update Last Seen
-        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
-          chargingStation.id, { lastSeen: new Date() });
-        // Update CF Instance
-        if (Configuration.isCloudFoundry()) {
-          await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
-            this.tenantID, chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
-        }
-      }
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
@@ -342,12 +328,10 @@ export default abstract class WSConnection {
   }
 
   public getTenantID(): string {
-    // Check
     if (this.isTenantValid()) {
-      // Ok
       return this.tenantID;
     }
-    // No, go to the master tenant
+    // No: go to the master tenant
     return Constants.DEFAULT_TENANT;
   }
 
@@ -356,7 +340,7 @@ export default abstract class WSConnection {
   }
 
   public getID(): string {
-    return `${this.getTenantID()}~${this.getChargingStationID()}~${this.uuid}`;
+    return `${this.getTenantID()}~${this.getChargingStationID()}`;
   }
 
   public isTenantValid(): boolean {
