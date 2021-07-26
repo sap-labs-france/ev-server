@@ -1,26 +1,38 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 
+import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
-import ImportAsyncTask from './ImportAsyncTask';
+import ImportHelper from './ImportHelper';
 import { ImportedTag } from '../../types/Tag';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TagStorage from '../../storage/mongodb/TagStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'TagsImportAsyncTask';
 
-export default class TagsImportAsyncTask extends ImportAsyncTask {
+export default class TagsImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const importTagsLock = await LockingHelper.acquireImportTagsLock(this.asyncTask.tenantID);
+    const importHelper = new ImportHelper();
+    const existingSites: Map<string, Site> = new Map();
     if (importTagsLock) {
       const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
+        // If we never got the sites from db -> construct array of existing sites
+        if (existingSites.size === 0) {
+          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          for (const site of sites.result) {
+            existingSites.set(site.id, site);
+          }
+        }
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedTags: DataResult<ImportedTag>;
         const result: ActionsResponse = {
@@ -43,8 +55,8 @@ export default class TagsImportAsyncTask extends ImportAsyncTask {
           importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
           for (const importedTag of importedTags.result) {
             try {
-              // Check & Import the Tag
-              await this.processImportedTag(tenant, importedTag);
+              // Check & Import the Tag (+ User if present)
+              await importHelper.processImportedTag(tenant, importedTag, existingSites);
               // Remove the imported Tag
               await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
               result.inSuccess++;

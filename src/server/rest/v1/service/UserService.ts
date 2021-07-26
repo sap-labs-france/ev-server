@@ -84,10 +84,6 @@ export default class UserService {
     const errorCodes: Array<StartTransactionErrorCode> = [];
     // Check Billing errors
     await UserService.checkBillingErrorCodes(action, req.tenant, req.user, user, errorCodes);
-    // Add error if EULA are not accepted (use case -> at user import)
-    if (!user.eulaAcceptedOn) {
-      errorCodes.push(StartTransactionErrorCode.EULA_NOT_ACCEPTED);
-    }
     res.json({
       tag, car, errorCodes
     });
@@ -487,8 +483,7 @@ export default class UserService {
               user.importedBy = importedBy;
               user.importedOn = importedOn;
               user.importedData = {
-                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
-                'autoActivateTagAtImport' :  UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
+                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
               };
               // Import
               const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);

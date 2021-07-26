@@ -1,7 +1,6 @@
 import Tag, { ImportedTag } from '../../types/Tag';
 import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
-import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
@@ -14,43 +13,41 @@ import TenantComponents from '../../types/TenantComponents';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'ImportAsyncTask';
+const MODULE_NAME = 'ImportHelper';
 
-export default abstract class ImportAsyncTask extends AbstractAsyncTask {
-  // To store existing sites from db to avoid getting the sites erverytime
-  private existingAutoAssignableSites: Map<string, Site> = new Map();
-  private existingSites: Map<string, Site> = new Map();
-
-  protected async processImportedUser(tenant: Tenant, importedUser: ImportedUser): Promise<User> {
+export default class ImportHelper {
+  public async processImportedUser(tenant: Tenant, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<User> {
     // Get User
     let user = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
+    // If one found lets update it else create new User
     if (user) {
       await this.updateUser(tenant, user, importedUser);
     } else {
       user = await this.createUser(tenant, importedUser);
     }
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && !Utils.isEmptyArray(importedUser.siteIDs)) {
-      await this.processSiteAssignment(tenant, user, importedUser);
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) && importedUser.siteIDs) {
+      await this.processSiteAssignment(tenant, user, importedUser, existingSites);
     }
     return user;
   }
 
-  protected async processImportedTag(tenant: Tenant, importedTag: ImportedTag): Promise<Tag> {
+  public async processImportedTag(tenant: Tenant, importedTag: ImportedTag, existingSites: Map<string, Site>): Promise<Tag> {
     // Get Tag
     let tag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
     // Try to get Tag with Visual ID
     if (!tag && importedTag.visualID) {
       tag = await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID, { withNbrTransactions: true });
     }
+    // If one found lets update it else create new tag
     if (tag) {
       this.updateTag(tag, importedTag);
     } else {
       tag = this.createTag(importedTag);
     }
-    // Save user if any and get the ID to assign tag
+    // Save user if any and get the ID to assign current tag
     if (importedTag.email && importedTag.name && importedTag.firstName) {
       // Check & Import the User
-      const user = await this.processImportedUser(tenant, importedTag as ImportedUser);
+      const user = await this.processImportedUser(tenant, importedTag as ImportedUser, existingSites);
       // Assign
       tag.userID = user.id;
       // Make this Tag default
@@ -129,36 +126,23 @@ export default abstract class ImportAsyncTask extends AbstractAsyncTask {
     return newUser;
   }
 
-  private async processSiteAssignment(tenant: Tenant, user: User, importedUser: ImportedUser): Promise<void> {
-    // If we never got the sites from db -> construct array of existing sites that are autoassignable
-    if (Utils.isEmptyArray(this.existingAutoAssignableSites)) {
+  private async processSiteAssignment(tenant: Tenant, user: User, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<void> {
+    // If we never got the sites from db -> construct array of existing sites
+    if (existingSites.size === 0) {
       // Init Site collections
-      const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name', 'autoUserSiteAssignment']);
+      const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
       for (const site of sites.result) {
-        if (site.autoUserSiteAssignment) {
-          this.existingAutoAssignableSites.set(site.id, site);
-        }
-        this.existingSites.set(site.id, site);
+        existingSites.set(site.id, site);
       }
     }
     const importedSiteIDs = importedUser.siteIDs.split('|');
     for (const importedSiteID of importedSiteIDs) {
-      const existingAutoAssignableSite = this.existingAutoAssignableSites.get(importedSiteID);
-      const existingSite = this.existingSites.get(importedSiteID);
-      // Assign Site
-      if (existingAutoAssignableSite) {
+      const existingSite = existingSites.get(importedSiteID);
+      if (existingSite) {
+        // Assign Site
         await UserStorage.addSiteToUser(tenant.id, user.id, importedSiteID);
-      // Site is not auto assignable
-      } else if (existingSite) {
-        await Logging.logWarning({
-          tenantID: tenant.id,
-          action: ServerAction.USERS_IMPORT,
-          module: MODULE_NAME, method: 'executeAsyncTask',
-          user,
-          message: `Site '${existingSite.name}' with ID '${existingSite.id}' does not allow auto assignment`
-        });
-      // Site does not exist
       } else {
+        // Site does not exist
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.USERS_IMPORT,

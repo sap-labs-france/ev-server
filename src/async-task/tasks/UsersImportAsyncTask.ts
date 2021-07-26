@@ -1,26 +1,37 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
 
+import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
-import ImportAsyncTask from './ImportAsyncTask';
+import ImportHelper from './ImportHelper';
 import { ImportedUser } from '../../types/User';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'UsersImportAsyncTask';
 
-export default class UsersImportAsyncTask extends ImportAsyncTask {
+export default class UsersImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const importUsersLock = await LockingHelper.acquireImportUsersLock(this.asyncTask.tenantID);
+    const importHelper = new ImportHelper();
+    const existingSites: Map<string, Site> = new Map();
     if (importUsersLock) {
       const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
+        if (existingSites.size === 0) {
+          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          for (const site of sites.result) {
+            existingSites.set(site.id, site);
+          }
+        }
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedUsers: DataResult<ImportedUser>;
         const result: ActionsResponse = {
@@ -44,7 +55,7 @@ export default class UsersImportAsyncTask extends ImportAsyncTask {
           for (const importedUser of importedUsers.result) {
             try {
               // Check & Import the User
-              await this.processImportedUser(tenant, importedUser);
+              await importHelper.processImportedUser(tenant, importedUser, existingSites);
               // Remove the imported User either it's found or not
               await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
               result.inSuccess++;

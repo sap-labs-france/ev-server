@@ -647,7 +647,7 @@ export default class TagService {
         };
         try {
           UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
-          tagToImport = { ...tagToImport, ...newImportedUser };
+          tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
         } catch (error) {
           await Logging.logWarning({
             tenantID: req.user.tenantID,

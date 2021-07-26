@@ -40,7 +40,6 @@ export default interface User extends CreatedUpdatedProps, AuthorizationActions 
   authorizationID?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;
-    autoActivateTagAtImport: boolean;
   };
 }
 
@@ -63,7 +62,6 @@ export interface ImportedUser {
   errorDescription?: string;
   importedData?: {
     autoActivateUserAtImport: boolean;
-    autoActivateTagAtImport: boolean;
   };
   siteIDs?: string;
 }
