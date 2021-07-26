@@ -33,6 +33,8 @@ import OICPUtils from '../../oicp/OICPUtils';
 import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
+import RegistrationToken from '../../../types/RegistrationToken';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -50,6 +52,41 @@ import url from 'url';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
+  public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
+      tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
+    // Check Token
+    if (!tokenID) {
+      throw new BackendError({
+        source: chargingStationID,
+        action: ServerAction.BOOT_NOTIFICATION,
+        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
+        message: 'Charging Station Token is required, connection refused',
+        detailedMessages
+      });
+    }
+    // Get the Token
+    const token = await RegistrationTokenStorage.getRegistrationToken(tenant.id, tokenID);
+    if (!token) {
+      throw new BackendError({
+        source: chargingStationID,
+        action,
+        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
+        message: `Charging Station Token ID '${tokenID}' has not been found, connection refused`,
+        detailedMessages
+      });
+    }
+    if (!token.expirationDate || moment().isAfter(token.expirationDate)) {
+      throw new BackendError({
+        source: chargingStationID,
+        action,
+        module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
+        message: `Charging Station Token ID '${tokenID}' is expired, connection refused`,
+        detailedMessages
+      });
+    }
+    return token;
+  }
+
   public static async processTransactionRoaming(tenant: Tenant, transaction: Transaction,
       chargingStation: ChargingStation, transactionAction: TransactionAction): Promise<void> {
     try {

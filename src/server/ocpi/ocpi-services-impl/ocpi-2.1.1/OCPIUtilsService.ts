@@ -199,8 +199,8 @@ export default class OCPIUtilsService {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        // Mougins
         switch (site.id) {
+          // Mougins
           case '5abeba8d4bae1457eb565e5b':
             return {
               regular_hours: [
@@ -228,6 +228,73 @@ export default class OCPIUtilsService {
                   weekday: 5,
                   period_begin: '08:00',
                   period_end: '18:00'
+                },
+              ],
+              twentyfourseven: false
+            };
+          // Caen
+          case '5abeba9e4bae1457eb565e66':
+            return {
+              regular_hours: [
+                {
+                  weekday: 1, // Monday
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 1, // Monday
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 6,
+                  period_begin: '00:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 7,
+                  period_begin: '00:00',
+                  period_end: '23:59'
                 },
               ],
               twentyfourseven: false
@@ -863,6 +930,9 @@ export default class OCPIUtilsService {
           // Mougins - South - Fastcharging
           case '5b72cef274ae30000855e458':
             return 'FR*SLF_DC_Sud';
+          // Caen
+          case '5ac678b5c0cc5e7fdd2c5ef3':
+            return 'FR*SLF_Caen';
         }
         return '';
       // Proviridis

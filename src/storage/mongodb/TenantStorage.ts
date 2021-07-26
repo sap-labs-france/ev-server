@@ -257,8 +257,6 @@ export default class TenantStorage {
   private static async _saveTenantLogo(tenantID: string, tenantLogoToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveTenantLogo');
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenantlogos').findOneAndUpdate(
       { '_id': DatabaseUtils.convertToObjectID(tenantID) },
