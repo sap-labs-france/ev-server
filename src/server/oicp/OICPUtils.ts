@@ -178,7 +178,7 @@ export default class OICPUtils {
   public static getOICPIdentificationFromRemoteAuthorization(chargingStation: ChargingStation, connectorId: number,
       action?: ServerAction): { sessionId: OICPSessionID; identification: OICPIdentification; } {
     // Check remote auth in Charging Station
-    if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
+    if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       const existingAuthorization = chargingStation.remoteAuthorizations.find(
         (authorization) => authorization.connectorId === connectorId && authorization.oicpIdentification);
       if (existingAuthorization) {
@@ -204,7 +204,7 @@ export default class OICPUtils {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenant, {
-      dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+      dateFrom: moment(transaction.timestamp).subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes').toDate(),
       chargeBoxID: transaction.chargeBoxID,
       tagID: transaction.tagID
     }, Constants.DB_PARAMS_MAX_LIMIT);

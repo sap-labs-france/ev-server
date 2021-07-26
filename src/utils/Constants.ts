@@ -247,6 +247,8 @@ export default class Constants {
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
+  public static readonly ROAMING_AUTHORIZATION_TIMEOUT_MINS = 2;
+
   public static readonly OICP_SERVER = 'OICP Server';
 
   // OICP constants
@@ -304,7 +306,7 @@ export default class Constants {
   ]);
 
   public static readonly SENSITIVE_DATA = Object.freeze([
-    'firstName', 'name', 'repeatPassword', 'password', 'captcha', 'email', 'coordinates', 'latitude', 'longitude',
+    'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
     'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
   ]);
 

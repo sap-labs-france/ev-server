@@ -2,9 +2,7 @@ import { OCPPErrorType, OCPPIncomingRequest, OCPPMessageType, OCPPRequest } from
 import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Command } from '../../../types/ChargingStation';
-import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -12,6 +10,7 @@ import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
 import http from 'http';
@@ -21,12 +20,13 @@ const MODULE_NAME = 'WSConnection';
 export default abstract class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  private readonly chargingStationID: string;
-  private readonly tenantID: string;
-  private readonly token: string;
-  private readonly url: string;
-  private readonly clientIP: string | string[];
-  private readonly wsConnection: WebSocket;
+  private chargingStationID: string;
+  private tenantID: string;
+  private tenant: Tenant;
+  private token: string;
+  private url: string;
+  private clientIP: string | string[];
+  private wsConnection: WebSocket;
   private requests: { [id: string]: OCPPRequest };
   private validTenant: boolean;
 
@@ -76,7 +76,7 @@ export default abstract class WSConnection {
       });
     }
     let logMsg = `Unknown type WS connection attempts with URL: '${req.url}'`;
-    let action: ServerAction = ServerAction.WS_CONNECTION_OPENED;
+    let action = ServerAction.WS_CONNECTION_OPENED;
     if (req.url.startsWith('/REST')) {
       logMsg = `REST service connection attempts to Charging Station with URL: '${req.url}'`;
       action = ServerAction.WS_REST_CONNECTION_OPENED;
@@ -119,7 +119,7 @@ export default abstract class WSConnection {
   public async initialize(): Promise<void> {
     try {
       // Check Tenant?
-      await DatabaseUtils.checkTenant(this.tenantID);
+      this.tenant = await DatabaseUtils.checkTenant(this.tenantID);
       this.validTenant = true;
     } catch (error) {
       // Custom Error
@@ -333,6 +333,10 @@ export default abstract class WSConnection {
     }
     // No: go to the master tenant
     return Constants.DEFAULT_TENANT;
+  }
+
+  public getTenant(): Tenant {
+    return this.tenant;
   }
 
   public getToken(): string {

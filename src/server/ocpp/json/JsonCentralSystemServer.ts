@@ -10,6 +10,7 @@ import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Utils from '../../../utils/Utils';
+import WSConnection from './WSConnection';
 import WSServer from './WSServer';
 import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
@@ -136,28 +137,30 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.wsServer = new WSServer(this.centralSystemConfig, this.serverName, verifyClient, handleProtocols);
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
+      let wsConnection: WSConnection;
       try {
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest WebSocket connection object
-          const wsConnection = new JsonRestWSConnection(ws, req, this);
+          wsConnection = new JsonRestWSConnection(ws, req, this);
           // Init
           await wsConnection.initialize();
           // Add
-          this.addRestConnection(wsConnection);
+          this.addRestConnection(wsConnection as JsonRestWSConnection);
         } else if (req.url.startsWith(`/${Utils.getOCPPServerVersionURLPath(OCPPVersion.VERSION_16)}`)) {
           // Create a Json WebSocket connection object
-          const wsConnection = new JsonWSConnection(ws, req, this);
+          wsConnection = new JsonWSConnection(ws, req, this);
           // Init
           await wsConnection.initialize();
           // Add
-          this.addJsonConnection(wsConnection);
+          this.addJsonConnection(wsConnection as JsonWSConnection);
         } else {
           throw Error('Wrong WebSocket client connection URI path');
         }
       } catch (error) {
-        await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         ws.close(WebSocketCloseEventStatusCode.CLOSE_UNSUPPORTED, error.message);
+        await Logging.logException(error, ServerAction.WS_CONNECTION, '', MODULE_NAME, 'connection',
+          wsConnection?.getTenantID() ? wsConnection.getTenantID() : Constants.DEFAULT_TENANT);
       }
     });
     // Keep alive WebSocket connection

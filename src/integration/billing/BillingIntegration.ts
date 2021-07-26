@@ -464,7 +464,7 @@ export default abstract class BillingIntegration {
           stop
         };
         // Save to clear billing data
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionBillingData(this.tenant.id, transaction.id, transaction.billingData);
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
