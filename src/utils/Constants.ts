@@ -247,6 +247,8 @@ export default class Constants {
   public static readonly OCPI_RECORDS_LIMIT = 25;
   public static readonly OCPI_MAX_PARALLEL_REQUESTS = 2;
 
+  public static readonly ROAMING_AUTHORIZATION_TIMEOUT_MINS = 2;
+
   public static readonly OICP_SERVER = 'OICP Server';
 
   // OICP constants

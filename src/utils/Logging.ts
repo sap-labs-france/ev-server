@@ -908,11 +908,13 @@ export default class Logging {
     // Keep duration (only for one Action per Charging Station)
     // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
     Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
+    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action, action,
-      message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`,
+      message,
       detailedMessages: { args }
     });
   }
