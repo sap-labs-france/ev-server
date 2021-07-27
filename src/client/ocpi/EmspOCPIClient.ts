@@ -508,7 +508,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
     // Get transaction
-    const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
+    const transaction = await TransactionStorage.getTransaction(this.tenant, transactionId);
     if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,

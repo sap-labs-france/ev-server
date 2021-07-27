@@ -488,7 +488,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Perfs trace
     const startTime = new Date().getTime();
-    const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
+    const transactions = await TransactionStorage.getTransactions(this.tenant, {
       issuer: true,
       ocpiSessionChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);

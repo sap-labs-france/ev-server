@@ -152,7 +152,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     const session = {} as Partial<OICPSession>;
     session.id = authorizeRemoteStop.SessionID;
     session.providerID = authorizeRemoteStop.ProviderID;
-    const transaction = await TransactionStorage.getOICPTransactionBySessionID(tenant.id, authorizeRemoteStop.SessionID);
+    const transaction = await TransactionStorage.getOICPTransactionBySessionID(tenant, authorizeRemoteStop.SessionID);
     if (!transaction) {
       await Logging.logError({
         tenantID: tenant.id,

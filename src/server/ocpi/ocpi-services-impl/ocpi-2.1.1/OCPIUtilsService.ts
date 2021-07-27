@@ -481,7 +481,7 @@ export default class OCPIUtilsService {
     if (!session.kwh) {
       session.kwh = 0;
     }
-    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, session.id);
+    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     if (!transaction) {
       const user = await UserStorage.getUser(tenant.id, session.auth_id);
       if (!user) {
@@ -590,7 +590,7 @@ export default class OCPIUtilsService {
         userID: transaction.userID
       };
     }
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
@@ -605,7 +605,7 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, cdr.id);
+    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -653,7 +653,7 @@ export default class OCPIUtilsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.cdr = cdr;
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
