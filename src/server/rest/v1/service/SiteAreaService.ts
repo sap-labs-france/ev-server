@@ -1,7 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import SiteArea, { SiteAreaValueTypes, SiteAreaValues } from '../../../../types/SiteArea';
+import SiteArea, { SiteAreaValueTypes } from '../../../../types/SiteArea';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
 import AppAuthError from '../../../../exception/AppAuthError';

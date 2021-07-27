@@ -1,4 +1,3 @@
-import { SiteAreaValueTypes, SiteAreaValues } from '../../types/SiteArea';
 import global, { FilterParams, GroupParams } from '../../types/GlobalType';
 
 import Constants from '../../utils/Constants';
@@ -8,6 +7,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { SiteAreaValueTypes } from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 
@@ -273,6 +273,10 @@ export default class ConsumptionStorage {
       facetAggregation.push({
         $group: groupFields
       });
+      // Convert Object ID to string
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'siteID');
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'siteAreaID');
+      DatabaseUtils.pushConvertObjectIDToString(facetAggregation, 'userID');
       // Add projection as field in facet
       facets[detailedType] = facetAggregation;
     }
@@ -285,10 +289,10 @@ export default class ConsumptionStorage {
       $addFields: {
         allInOne: {
           $setUnion: [
-            SiteAreaValueTypes.ASSET_CONSUMPTIONS,
-            SiteAreaValueTypes.ASSET_PRODUCTIONS,
-            SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
-            SiteAreaValueTypes.NET_CONSUMPTIONS
+            '$' + SiteAreaValueTypes.ASSET_CONSUMPTIONS,
+            '$' + SiteAreaValueTypes.ASSET_PRODUCTIONS,
+            '$' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTIONS,
+            '$' + SiteAreaValueTypes.NET_CONSUMPTIONS
           ]
         }
       }
@@ -313,14 +317,16 @@ export default class ConsumptionStorage {
     const groupFields = {
       _id: '$allInOne._id'
     };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: SiteAreaValueTypes.ASSET_PRODUCTION_WATTS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: SiteAreaValueTypes.ASSET_PRODUCTION_AMPS };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS };
-    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
+    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS };
+    groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS };
+    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS };
+    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS };
+    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS };
+    groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
+    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_WATTS };
+    groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
+    groupFields['limitWatts'] = { $sum: '$allInOne.limitWatts' };
+    groupFields['limitAmps'] = { $sum: '$allInOne.limitAmps' };
     aggregation.push({
       $group: groupFields
     });
@@ -329,7 +335,13 @@ export default class ConsumptionStorage {
     aggregation.push({
       $addFields: {
         startedAt: {
-          $dateFromParts: { 'year': '$allInOne._id.year', 'month': '$allInOne._id.month', 'day': '$allInOne._id.day', 'hour': '$allInOne._id.hour', 'minute': '$allInOne._id.minute' }
+          $dateFromParts: {
+            'year': '$_id.year',
+            'month': '$_id.month',
+            'day': '$_id.day',
+            'hour': '$_id.hour',
+            'minute': '$_id.minute'
+          }
         }
       }
     });
@@ -340,17 +352,17 @@ export default class ConsumptionStorage {
         endedAt: '$allInOne.startedAt'
       }
     });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     aggregation.push({
       $sort: {
         startedAt: 1
       }
     });
-    // // Project
-    // DatabaseUtils.projectFields(facetAggregation, , ['_id']);
+
+    aggregation.push({
+      $project: {
+        _id: 0
+      }
+    });
 
     // Read DB
     const consumptionsMDB = await global.database.getCollection<Consumption>(tenantID, 'consumptions')

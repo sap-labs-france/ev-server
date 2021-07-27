@@ -23,13 +23,6 @@ export enum SiteAreaValueTypes {
   NET_CONSUMPTION_AMPS = 'NetConsumptionAmps',
 }
 
-export interface SiteAreaValues {
-  assetConsumptions: Consumption[];
-  assetProductions: Consumption[];
-  chargingStationConsumptions: Consumption[];
-  netConsumptions: Consumption[];
-}
-
 export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthorizationActions {
   id: string;
   name: string;
@@ -45,7 +38,7 @@ export default interface SiteArea extends CreatedUpdatedProps, SiteAreaAuthoriza
   accessControl: boolean;
   chargingStations: ChargingStation[];
   connectorStats: ConnectorStats;
-  values: SiteAreaValues;
+  values: Consumption[];
   distanceMeters?: number;
   openingTimes?: OpeningTimes;
 }
