@@ -397,7 +397,7 @@ export default class Logging {
       tenantID: tenantID,
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
-      module: 'Axios', method: 'interceptor',
+      module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
         request: Utils.cloneObject(request),
       }
@@ -423,7 +423,7 @@ export default class Logging {
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
-        module: 'Axios', method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.stack }
       });
@@ -441,7 +441,7 @@ export default class Logging {
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
-        module: 'Axios', method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.stack }
       });
@@ -458,7 +458,7 @@ export default class Logging {
         tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
         message,
-        module: 'Axios', method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,
           statusText: response.statusText,
@@ -477,7 +477,7 @@ export default class Logging {
           durationMs: executionDurationMillis,
           sizeKb: sizeOfDataKB,
           source: Constants.AXIOS_CLIENT,
-          module: 'Axios', method: 'logAxiosResponse',
+          module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           action: ServerAction.HTTP_RESPONSE,
         })
       );
@@ -487,7 +487,7 @@ export default class Logging {
         tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
         message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
-        module: 'Axios', method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,
           statusText: response.statusText
@@ -502,7 +502,7 @@ export default class Logging {
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
-      module: 'Axios', method: 'interceptor',
+      module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
         url: error.config?.url,
         status: error.response?.status,

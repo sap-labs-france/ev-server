@@ -251,6 +251,9 @@ export default class Constants {
 
   public static readonly OICP_SERVER = 'OICP Server';
 
+  public static readonly MODULE_AXIOS = 'Axios';
+  public static readonly MODULE_JSON_OCPP_SERVER = 'JsonOcppServer';
+
   // OICP constants
   public static readonly OICP_PROGRESS_NOTIFICATION_MAX_INTERVAL = 300; // Hubject restriction: "Progress Notification can be sent only at interval of at least 300 seconds." (5 Minutes)
   public static readonly OICP_VIRTUAL_USER_EMAIL = 'virtual@oicp.com';

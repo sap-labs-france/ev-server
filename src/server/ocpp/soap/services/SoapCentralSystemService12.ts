@@ -7,7 +7,7 @@ import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
 
-const MODULE_NAME = 'SoapCentralSystemService12';
+const MODULE_NAME = 'SoapOcppServer12';
 
 export default { /* Services */
   CentralSystemService: { /* Ports */
