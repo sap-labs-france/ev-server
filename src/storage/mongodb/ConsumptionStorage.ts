@@ -319,8 +319,8 @@ export default class ConsumptionStorage {
     };
     groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_WATTS };
     groupFields[SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_CONSUMPTION_AMPS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS };
-    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS };
+    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_WATTS] = { $sum: { $abs: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_WATTS } };
+    groupFields[SiteAreaValueTypes.ASSET_PRODUCTION_AMPS] = { $sum: { $abs: '$allInOne.' + SiteAreaValueTypes.ASSET_PRODUCTION_AMPS } };
     groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_WATTS };
     groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
     groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_WATTS };
