@@ -325,8 +325,8 @@ export default class ConsumptionStorage {
     groupFields[SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.CHARGING_STATION_CONSUMPTION_AMPS };
     groupFields[SiteAreaValueTypes.NET_CONSUMPTION_WATTS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_WATTS };
     groupFields[SiteAreaValueTypes.NET_CONSUMPTION_AMPS] = { $sum: '$allInOne.' + SiteAreaValueTypes.NET_CONSUMPTION_AMPS };
-    groupFields['limitWatts'] = { $sum: '$allInOne.limitWatts' };
-    groupFields['limitAmps'] = { $sum: '$allInOne.limitAmps' };
+    groupFields['limitWatts'] = { $last: '$allInOne.limitWatts' };
+    groupFields['limitAmps'] = { $last: '$allInOne.limitAmps' };
     aggregation.push({
       $group: groupFields
     });
