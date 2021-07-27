@@ -262,7 +262,7 @@ export default class SiteAreaService {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate,
-    }, ['startedAt', 'instantAmps', 'instantWatts', 'limitAmps', 'limitWatts']);
+    });
     // Assign
     siteArea.values = consumptions;
     // Return

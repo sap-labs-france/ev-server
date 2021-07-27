@@ -184,8 +184,7 @@ export default class ConsumptionStorage {
   }
 
   static async getSiteAreaConsumptions(tenantID: string,
-      params: { siteAreaID: string; startDate: Date; endDate: Date},
-      projectFields?: string[]): Promise<Consumption[]> {
+      params: { siteAreaID: string; startDate: Date; endDate: Date}): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
