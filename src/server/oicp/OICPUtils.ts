@@ -56,7 +56,7 @@ export default class OICPUtils {
       if (chargingStation.issuer && chargingStation.public) {
         const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(site, chargingStation.siteArea, chargingStation, options);
         // Update the Charging Station's OICP Data
-        await ChargingStationStorage.saveChargingStationOicpData(tenant.id, chargingStation.id, {
+        await ChargingStationStorage.saveChargingStationOicpData(tenant, chargingStation.id, {
           evses: chargingStationEvses
         });
         evses.push(...chargingStationEvses);
@@ -130,7 +130,7 @@ export default class OICPUtils {
 
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
-    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant.id, evseID);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant, evseID);
     let foundConnector: Connector;
     if (chargingStation) {
       for (const connector of chargingStation.connectors) {

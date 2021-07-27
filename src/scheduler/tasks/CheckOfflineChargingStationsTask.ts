@@ -24,7 +24,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
       try {
         // Compute the date some minutes ago
         const offlineSince = moment().subtract(Configuration.getChargingStationConfig().maxLastSeenIntervalSecs, 'seconds').toDate();
-        const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+        const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
           issuer: true, withSiteArea: true, offlineSince
         }, Constants.DB_PARAMS_MAX_LIMIT);
         if (chargingStations.count > 0) {
@@ -50,7 +50,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 detailedMessages: { ocppHeartbeatConfiguration }
               });
               // Update lastSeen
-              await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id,
+              await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id,
                 { lastSeen: new Date() }
               );
               // Remove charging station from notification
