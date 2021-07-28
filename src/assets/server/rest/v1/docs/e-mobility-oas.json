@@ -1462,7 +1462,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Transaction stop successfully",
+            "description": "Transactions refund result",
             "content": {
               "application/json": {
                 "example": {
