@@ -196,7 +196,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Issuer
@@ -476,7 +476,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, transaction, `Transaction ID ${transactionId} does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${transaction.chargeBoxID}' does not exist`,
       MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check if already stopped
@@ -484,7 +484,7 @@ export default class TransactionService {
       // Clear Connector
       OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
       // Save Connectors
-      await ChargingStationStorage.saveChargingStationConnectors(req.tenant.id, chargingStation.id, chargingStation.connectors);
+      await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         source: chargingStation.id,
@@ -1052,7 +1052,8 @@ export default class TransactionService {
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
             OCPPUtils.clearChargingStationConnector(transaction.chargeBox, transaction.connectorId);
-            await ChargingStationStorage.saveChargingStationConnectors(loggedUser.tenantID, transaction.chargeBox.id, transaction.chargeBox.connectors);
+            await ChargingStationStorage.saveChargingStationConnectors(await TenantStorage.getTenant(loggedUser.tenantID),
+              transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
           // To Delete
           transactionsIDsToDelete.push(transactionID);

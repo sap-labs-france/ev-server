@@ -329,7 +329,11 @@ export default abstract class WSConnection {
   }
 
   public getTenant(): Tenant {
-    return this.tenant;
+    if (this.isTenantValid()) {
+      return this.tenant;
+    }
+    // No: go to the master tenant
+    return Constants.DEFAULT_TENANT_OBJECT;
   }
 
   public getToken(): string {

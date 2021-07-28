@@ -938,7 +938,7 @@ export default class Authorizations {
       // Update Remote Authorizations
       if (remoteAuthorizationsUpdated) {
         await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-          tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+          tenant, chargingStation.id, chargingStation.remoteAuthorizations);
       }
     }
     return authorizationID;

@@ -104,7 +104,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
     const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(
-      tenant.id, locationReference.evse_uids[0]);
+      tenant, locationReference.evse_uids[0]);
     if (!chargingStation) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

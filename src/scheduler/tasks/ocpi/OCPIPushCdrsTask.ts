@@ -73,7 +73,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Get Charging Station
-                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,

@@ -82,7 +82,7 @@ export default class OCPPService {
         });
       }
       // Get Charging Station
-      let chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, headers.chargeBoxIdentity);
+      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity);
       if (!chargingStation) {
         // Create Charging Station
         chargingStation = await this.checkAndCreateChargingStation(tenant, bootNotification, headers);
@@ -94,12 +94,12 @@ export default class OCPPService {
       this.enrichChargingStation(chargingStation, headers, bootNotification);
       // Clear Firmware Status
       if (chargingStation.firmwareUpdateStatus) {
-        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant.id, chargingStation.id, null);
+        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, null);
       }
       // Apply Charging Station Template
       const templateUpdateResult = await this.applyChargingStationTemplate(tenant, chargingStation);
       // Save Charging Station
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       // Save Boot Notification
       await OCPPStorage.saveBootNotification(tenant, bootNotification);
       // Send Notification (Async)
@@ -151,7 +151,7 @@ export default class OCPPService {
           timezone: Utils.getTimezone(chargingStation.coordinates)
         };
         // Save Charging Station lastSeen date
-        await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id, {
+        await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id, {
           lastSeen: chargingStation.lastSeen,
           currentIPAddress: chargingStation.currentIPAddress,
         });
@@ -275,7 +275,7 @@ export default class OCPPService {
         // Handle End Of charge
         await this.checkNotificationEndOfCharge(tenant, chargingStation, transaction);
         // Save Charging Station
-        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
         // First Meter Value -> Trigger Smart Charging to adjust the limit
         if (transaction.numberOfMeterValues === 1 && transaction.phasesUsed) {
           // Yes: Trigger Smart Charging
@@ -391,7 +391,7 @@ export default class OCPPService {
         // Enrich
         this.enrichOCPPRequest(chargingStation, firmwareStatusNotification);
         // Save the status to Charging Station
-        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant.id, chargingStation.id, firmwareStatusNotification.status);
+        await ChargingStationStorage.saveChargingStationFirmwareStatus(tenant, chargingStation.id, firmwareStatusNotification.status);
         // Save it
         await OCPPStorage.saveFirmwareStatusNotification(tenant, firmwareStatusNotification);
         // Log
@@ -450,7 +450,7 @@ export default class OCPPService {
         // Clean up
         await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
         // Save
-        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
         // Notify
         this.notifyStartTransaction(tenant, newTransaction, chargingStation, user);
         // Log
@@ -551,7 +551,7 @@ export default class OCPPService {
         // Free the connector
         OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
         // Save Charging Station
-        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
         // Soft Stop
         this.checkSoftStopTransaction(transaction, stopTransaction, isSoftStop);
         // Transaction End has already been received?
@@ -675,7 +675,7 @@ export default class OCPPService {
   }
 
   private async deleteAllTransactionTxProfile(tenant: Tenant, transaction: Transaction) {
-    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant.id, {
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant, {
       chargingStationIDs: [transaction.chargeBoxID],
       connectorID: transaction.connectorId,
       profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
@@ -728,9 +728,9 @@ export default class OCPPService {
         connector1?.connectorId - connector2?.connectorId);
     }
     // Save Charging Station
-    await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id,
+    await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id,
       chargingStation.connectors, chargingStation.backupConnectors);
-    await ChargingStationStorage.saveChargingStationLastSeen(tenant.id, chargingStation.id, { lastSeen: new Date() });
+    await ChargingStationStorage.saveChargingStationLastSeen(tenant, chargingStation.id, { lastSeen: new Date() });
     // Process Smart Charging
     await this.processSmartChargingStatusNotification(tenant, chargingStation, connector);
     // Log

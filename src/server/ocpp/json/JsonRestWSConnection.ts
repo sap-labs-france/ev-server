@@ -62,7 +62,7 @@ export default class JsonRestWSConnection extends WSConnection {
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
+    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID());
     if (!chargingStation) {
       throw new BackendError({
         source: this.getChargingStationID(),

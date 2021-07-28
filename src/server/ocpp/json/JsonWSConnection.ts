@@ -85,15 +85,15 @@ export default class JsonWSConnection extends WSConnection {
         }
       };
       // Update the Charging Station
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID(), {}, ['id']);
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(), this.getChargingStationID(), {}, ['id']);
       if (chargingStation) {
         // Update Last Seen
-        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(),
+        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenant(),
           chargingStation.id, { lastSeen: new Date() });
         // Update CF Instance
         if (Configuration.isCloudFoundry()) {
           await ChargingStationStorage.saveChargingStationCFApplicationIDAndInstanceIndex(
-            this.getTenantID(), chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
+            this.getTenant(), chargingStation.id, Configuration.getCFApplicationIDAndInstanceIndex());
         }
       // Must have a valid Token
       } else {
@@ -202,10 +202,10 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.lastSeen || (Date.now() - this.lastSeen.getTime()) > Constants.LAST_SEEN_UPDATE_INTERVAL_MILLIS) {
       // Update last seen
       this.lastSeen = new Date();
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(),
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenant(),
         this.getChargingStationID(), { issuer: true }, ['id']);
       if (chargingStation) {
-        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenantID(), this.getChargingStationID(),
+        await ChargingStationStorage.saveChargingStationLastSeen(this.getTenant(), this.getChargingStationID(),
           { lastSeen: this.lastSeen });
       }
     }
