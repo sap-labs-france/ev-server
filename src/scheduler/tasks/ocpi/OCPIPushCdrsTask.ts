@@ -5,6 +5,7 @@ import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import SchedulerTask from '../../SchedulerTask';
 import { ServerAction } from '../../../types/Server';
+import TagStorage from '../../../storage/mongodb/TagStorage';
 import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
@@ -52,7 +53,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
-                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id, { withUser: true });
+                    const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true });
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -72,7 +73,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Get Charging Station
-                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -82,10 +83,21 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       });
                       continue;
                     }
+                    // Get Tag
+                    const tag = await TagStorage.getTag(tenant.id, transaction.tagID);
+                    if (!tag) {
+                      await Logging.logError({
+                        tenantID: tenant.id,
+                        action: ServerAction.OCPI_PUSH_CDRS,
+                        module: MODULE_NAME, method: 'processTenant',
+                        message: `Tag ID '${transaction.tagID}' not found`,
+                      });
+                      continue;
+                    }
                     // Roaming
-                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, TransactionAction.END);
+                    await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
                     // Save
-                    await TransactionStorage.saveTransactionOcpiData(tenant.id, transaction.id, transaction.ocpiData);
+                    await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
                     // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,

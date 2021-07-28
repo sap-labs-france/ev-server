@@ -17,7 +17,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerT
     if (await LockingManager.acquire(sessionNotStartedLock)) {
       try {
         // Get notification
-        const notificationTransactionNotStarted = await TransactionStorage.getNotStartedTransactions(tenant.id, {
+        const notificationTransactionNotStarted = await TransactionStorage.getNotStartedTransactions(tenant, {
           'checkPastAuthorizeMins': config.checkPastAuthorizeMins,
           'sessionShouldBeStartedAfterMins': config.sessionShouldBeStartedAfterMins
         });

@@ -412,8 +412,13 @@ export default class StatisticService {
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
-      // Only for current user
-      filter.userIDs = [loggedUser.id];
+      if (Authorizations.isSiteAdmin(loggedUser)) {
+        // Only for current sites
+        filter.siteIDs = loggedUser.sitesAdmin;
+      } else {
+        // Only for current user
+        filter.userIDs = [loggedUser.id];
+      }
     } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserIDs) {
       filter.userIDs = filteredRequest.UserIDs;
     }

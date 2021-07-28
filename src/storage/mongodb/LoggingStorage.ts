@@ -54,8 +54,6 @@ export default class LoggingStorage {
   }
 
   public static async saveLog(tenantID: string, logToSave: Log): Promise<string> {
-    // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
     // Set
     const logMDB: any = {
       userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,

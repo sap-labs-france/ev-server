@@ -76,27 +76,24 @@ jobs:
       run: |
         mongo docker/initdb/000_createMongoUsers.js
         mongo docker/initdb/002_createSuperAdmin.js
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Install NodeJs
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install
+    - name: Install NodeJs Packages
       run: npm ci
-    - name: npm run build:dev
+    - name: Build production sources
       run: |
         cp src/assets/configs-ci/config.json src/assets
-        npm run build:dev
-    - name: npm run start:devbuild
+        npm run build:prod
+    - name: Start Server in Prod mode
       run: |
-        npm run start:email &
-        npm run start:devbuild &
-    - name: npm run mochatest:createContext
+        npm run start:prod
+    - name: Create Unit Test context
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run mochatest:createContext
-    - name: npm run mochatest:nyc
-      run: npm run mochatest:nyc
-    - name: npm run coverage
-      run: npm run coverage
+    - name: Run Unit Test
+      run: npm run mochatest
 

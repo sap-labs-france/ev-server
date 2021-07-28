@@ -450,7 +450,7 @@ export default abstract class BillingIntegration {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant.id, Number(transactionID));
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
         const stop: BillingDataTransactionStop = {
           status: BillingStatus.UNBILLED,
@@ -464,7 +464,7 @@ export default abstract class BillingIntegration {
           stop
         };
         // Save to clear billing data
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,

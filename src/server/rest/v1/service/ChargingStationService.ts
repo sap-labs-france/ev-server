@@ -55,7 +55,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationUpdateParametersReq({ ...req.params, ...req.body });
     // Check the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.id}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     // OCPI Charging Station
@@ -302,7 +302,7 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
-    await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+    await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
     // Reboot the Charging Station to reapply the templates
     if (resetAndApplyTemplate) {
       try {
@@ -350,7 +350,7 @@ export default class ChargingStationService {
       });
     }
     // Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
     // Charge Point
@@ -409,7 +409,7 @@ export default class ChargingStationService {
       });
     }
     // Check Charging Profile
-    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.tenant,
       { chargingStationIDs: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneObject(chargingProfiles.result);
@@ -517,7 +517,7 @@ export default class ChargingStationService {
       projectFields = projectFields.filter((projectField) => httpProjectFields.includes(projectField));
     }
     // Get the profiles
-    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.tenant,
       {
         search: filteredRequest.Search,
         chargingStationIDs: filteredRequest.ChargingStationID ? filteredRequest.ChargingStationID.split('|') : null,
@@ -614,7 +614,7 @@ export default class ChargingStationService {
     // Check ConnectorID
     UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
@@ -647,7 +647,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationValidator.getInstance().validateChargingProfileUpdateReq({ ...req.params, ...req.body });
     // Check for existing charging profile
-    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.tenant.id, filteredRequest.id);
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${filteredRequest.id}' does not exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
     const chargingProfileID = await ChargingStationService.setAndSaveChargingProfile(filteredRequest, action, req);
@@ -659,11 +659,11 @@ export default class ChargingStationService {
     // Check existence
     const chargingProfileID = ChargingStationValidator.getInstance().validateChargingProfileDeleteReq(req.query).ID;
     // Get Profile
-    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, chargingProfileID);
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.tenant, chargingProfileID);
     UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${chargingProfileID}' does not exist.`,
       MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // Get Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, chargingProfile.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingProfile.chargingStationID}' does not exist.`,
       MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // OCPI Charging Station
@@ -720,7 +720,7 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertIdIsProvided(action, filteredRequest.ChargingStationID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
@@ -735,7 +735,7 @@ export default class ChargingStationService {
       });
     }
     // Get the Parameters
-    const parameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
+    const parameters = await ChargingStationStorage.getOcppParameters(req.tenant, chargingStation.id);
     // Return the result
     res.json(parameters);
     next();
@@ -756,7 +756,7 @@ export default class ChargingStationService {
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist`,
       MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
@@ -776,7 +776,7 @@ export default class ChargingStationService {
     UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME,
       'handleDeleteChargingStation', req.user);
     // Get
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${chargingStationID}' does not exist`,
       MODULE_NAME, 'handleDeleteChargingStation', req.user);
     // OCPI Charging Station
@@ -820,7 +820,7 @@ export default class ChargingStationService {
     }
     for (const connector of chargingStation.connectors) {
       if (connector && connector.currentTransactionID) {
-        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.currentTransactionID);
+        const transaction = await TransactionStorage.getTransaction(req.tenant, connector.currentTransactionID);
         if (transaction && !transaction.stop) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -873,16 +873,16 @@ export default class ChargingStationService {
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+    const transactions = await TransactionStorage.getTransactions(req.tenant,
       { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(transactions.result)) {
       // Delete logically
-      await ChargingStationStorage.saveChargingStation(req.tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(req.tenant, chargingStation);
       // Delete Charging Profiles
-      await ChargingStationStorage.deleteChargingProfiles(req.tenant.id, chargingStation.id);
+      await ChargingStationStorage.deleteChargingProfiles(req.tenant, chargingStation.id);
     } else {
       // Delete physically
-      await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
+      await ChargingStationStorage.deleteChargingStation(req.tenant, chargingStation.id);
     }
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -946,7 +946,7 @@ export default class ChargingStationService {
     res.attachment('exported-ocpp-params.csv');
     let writeHeader = true;
     for (const chargingStation of chargingStations.result) {
-      const ocppParameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
+      const ocppParameters = await ChargingStationStorage.getOcppParameters(req.tenant, chargingStation.id);
       // Get OCPP Params
       const dataToExport = ChargingStationService.convertOCPPParamsToCSV({
         params: ocppParameters.result,
@@ -1027,7 +1027,7 @@ export default class ChargingStationService {
       projectFields = projectFields.filter((projectField) => projectHttpFields.includes(projectField));
     }
     // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
+    const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.tenant,
       {
         search: filteredRequest.Search,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
@@ -1267,7 +1267,7 @@ export default class ChargingStationService {
       return { count: 0, result: [] };
     }
     // Get Charging Stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
+    const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
       {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
@@ -1508,7 +1508,7 @@ export default class ChargingStationService {
             // Custom param?
             if (params.custom) {
               // Get OCPP Parameters from DB
-              const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant.id, chargingStation.id);
+              const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id);
               // Set new structure
               const chargingStationOcppParameters: ChargingStationOcppParameters = {
                 id: chargingStation.id,
@@ -1523,7 +1523,7 @@ export default class ChargingStationService {
                 // Save config
                 if (foundOcppParam.custom) {
                   // Save
-                  await ChargingStationStorage.saveOcppParameters(tenant.id, chargingStationOcppParameters);
+                  await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
                 } else {
                   // Not a custom param: refresh the whole OCPP Parameters
                   await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant, chargingStation);
@@ -1532,7 +1532,7 @@ export default class ChargingStationService {
                 // Add custom param
                 chargingStationOcppParameters.configuration.push(params);
                 // Save
-                await ChargingStationStorage.saveOcppParameters(tenant.id, chargingStationOcppParameters);
+                await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
               }
             } else {
               // Refresh the whole OCPP Parameters
@@ -1640,7 +1640,7 @@ export default class ChargingStationService {
 
   private static async setAndSaveChargingProfile(filteredRequest: ChargingProfile, action: ServerAction, req: Request): Promise<string> {
     // Check existence
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.chargingStationID}' does not exist.`,
       MODULE_NAME, 'setAndSaveChargingProfile', req.user);
     // OCPI Charging Station
@@ -1825,7 +1825,7 @@ export default class ChargingStationService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
-      req.user.tenantID, filteredRequest.args.transactionId, { withUser: true });
+      req.tenant, filteredRequest.args.transactionId, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Add connector ID
@@ -1855,7 +1855,7 @@ export default class ChargingStationService {
       userID: req.user.id
     };
     // Save Transaction
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    await TransactionStorage.saveTransaction(req.tenant, transaction);
     // Ok: Execute it
     return ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, filteredRequest.args);

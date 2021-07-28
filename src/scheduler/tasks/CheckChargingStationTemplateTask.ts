@@ -50,7 +50,7 @@ export default class CheckChargingStationTemplateTask extends SchedulerTask {
       return;
     }
     // Get the charging stations
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
       issuer: true, withSiteArea: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
     // Update
