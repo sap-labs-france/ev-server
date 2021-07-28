@@ -120,14 +120,14 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     // Find the connector
-    const connectorID = OCPIUtils.getConnectorIDFromEvseID(startSession.evse_uid);
-    const connector = Utils.getConnectorFromID(chargingStation, Utils.convertToInt(connectorID));
+    const connectorID = Utils.convertToInt(OCPIUtils.getConnectorIDFromEvseID(startSession.evse_uid));
+    const connector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (!connector) {
       await Logging.logError({
         tenantID: tenant.id,
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
-        message: `Connector ID '${connectorID}' for Charging Station ID '${startSession.evse_uid}' not found`,
+        message: `${Utils.buildConnectorInfo(connectorID)} Connector not found`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { connectorID, chargingStation, startSession }
       });
