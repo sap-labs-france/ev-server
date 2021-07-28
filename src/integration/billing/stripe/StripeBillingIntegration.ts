@@ -856,24 +856,30 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private _buildInvoiceItemParkTimeParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
-    const { parkingData, taxes } = billingInvoiceItem;
-    const currency = parkingData.pricingData.currency.toLowerCase();
+  private async _buildInvoiceItemParametersFor(customerID: string, pricingDimension: string, idemPotencyKey: string,
+      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
+    const { effectivePricing, taxes } = billingInvoiceItem;
+    const currency = effectivePricing.currency.toLowerCase();
+    if (!effectivePricing[pricingDimension]?.amount) {
+      // Do not bill that dimension
+      return null;
+    }
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
       customer: customerID,
       currency,
-      description: parkingData.description,
+      description: effectivePricing[pricingDimension].description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(parkingData.pricingData.amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(effectivePricing[pricingDimension].amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
       // STRIPE throws an exception when invoice is set to null.
       delete parameters.invoice;
     }
+    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(idemPotencyKey, pricingDimension));
     return parameters;
   }
 
@@ -889,8 +895,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
-    const { description, pricingData, taxes } = billingInvoiceItem;
-    const currency = pricingData.currency.toLowerCase();
+    const { description, effectivePricing, taxes } = billingInvoiceItem;
+    const currency = effectivePricing.currency.toLowerCase();
     // Build stripe parameters for the item
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
@@ -899,7 +905,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description,
       tax_rates: taxes,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(pricingData.amount).times(100).round().toNumber(), // In cents
+      amount: Utils.createDecimal(effectivePricing.energy.amount).times(100).round().toNumber(), // In cents
       metadata: { ...billingInvoiceItem?.metadata }
     };
 
@@ -1049,12 +1055,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { description, transactionID, pricingData } = fatInvoiceItem;
+    const { description, transactionID, effectivePricing } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       description,
       transactionID,
-      pricingData
+      effectivePricing
     };
     return lightInvoiceItem;
   }
@@ -1076,10 +1082,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const billingInvoiceItem: BillingInvoiceItem = {
       description,
       transactionID,
-      pricingData: {
-        quantity,
-        amount,
-        currency
+      effectivePricing: {
+        currency,
+        energy: {
+          amount,
+          quantity
+        }
       },
       taxes,
       metadata: {
@@ -1095,18 +1103,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
         end: timestamp?.valueOf()
       }
     };
-    // Add Parking Time information
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME)) {
-      // TODO - draft implementation - behind a feature toggle - not yet activated
-      billingInvoiceItem.parkingData = {
-        description: this.buildLineItemParkingTimeDescription(transaction),
-        pricingData: {
-          quantity: 1,
-          amount: 0,
-          currency
-        }
-      };
-    }
     // Returns a item representing the complete charging session (energy + parking information)
     return billingInvoiceItem ;
   }
@@ -1126,33 +1122,17 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
       stripeInvoice = await this._getLatestDraftInvoiceOfTheMonth(customerID);
     }
-    // Let's create an invoice item
-    // When the stripeInvoice is null a pending item is created
-    if (FeatureToggles.isFeatureActive(Feature.BILLING_ITEM_WITH_PARKING_TIME) && billingInvoiceItem.parkingData) {
-      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParkTimeParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-      const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'parkTime'));
-      if (!stripeInvoiceItem) {
-        await Logging.logError({
-          tenantID: this.tenant.id,
-          user: user.id,
-          source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_TRANSACTION,
-          module: MODULE_NAME, method: 'billInvoiceItem',
-          message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
-        });
-      }
-    }
-    const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-    const stripeInvoiceItem = await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
-    if (!stripeInvoiceItem) {
-      await Logging.logError({
-        tenantID: this.tenant.id,
-        user: user.id,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.BILLING_TRANSACTION,
-        module: MODULE_NAME, method: 'billInvoiceItem',
-        message: `Unexpected situation - stripe invoice item is null - stripe invoice id: '${stripeInvoice?.id}'`
-      });
+    if (FeatureToggles.isFeatureActive(Feature.PRINCING_NEW_MODEL)) {
+      // Let's create an invoice item per dimension
+      await this._buildInvoiceItemParametersFor(customerID, 'flatFee', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
+      await this._buildInvoiceItemParametersFor(customerID, 'chargingTime', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
+      await this._buildInvoiceItemParametersFor(customerID, 'energy', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
+      await this._buildInvoiceItemParametersFor(customerID, 'parkingTime', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
+    } else {
+      // Let's create an invoice item
+      // When the stripeInvoice is null a pending item is created
+      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
+      await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
     }
     if (!stripeInvoice) {
       // Let's create a new DRAFT invoice (if none has been found)

@@ -1,4 +1,5 @@
 import { ActionsResponse } from './GlobalType';
+import { EffectivePricing } from './Pricing';
 import User from './User';
 
 export interface TransactionBillingData {
@@ -83,24 +84,20 @@ export interface BillingInvoice {
 export interface BillingInvoiceItem {
   description: string;
   transactionID: number;
-  pricingData: BillingPricingData;
+  // pricingData: BillingPricingData;
+  effectivePricing: EffectivePricing
   taxes?: string[];
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
   }
-  parkingData?: BillingParkingData
-}
-
-export interface BillingParkingData {
-  description: string;
-  pricingData: BillingPricingData;
 }
 
 export interface BillingSessionData {
   transactionID: number;
   description: string;
-  pricingData: BillingPricingData;
+  // pricingData: BillingPricingData;
+  effectivePricing: EffectivePricing;
 }
 
 export interface BillingPricingData {

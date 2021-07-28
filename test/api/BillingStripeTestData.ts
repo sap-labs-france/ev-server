@@ -257,10 +257,17 @@ export default class StripeIntegrationTestData {
     const invoiceItem:BillingInvoiceItem = {
       description: `Stripe Integration - ${quantity} kWh * ${price} Eur`,
       transactionID: 777,
-      pricingData: {
-        quantity, // kW.h
-        amount, // total amount to bill -  not yet in cents
-        currency: 'EUR'
+      // pricingData: {
+      //   quantity, // kW.h
+      //   amount, // total amount to bill -  not yet in cents
+      //   currency: 'EUR'
+      // }
+      effectivePricing: {
+        currency: 'EUR',
+        energy: {
+          amount, // total amount to bill -  not yet in cents
+          quantity, // kW.h
+        }
       }
     };
     if (taxId) {

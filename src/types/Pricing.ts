@@ -7,14 +7,19 @@ export interface PricingModel {
 }
 
 export interface Pricing {
-  components: PricingComponent[];
+  comment?: string,
+  // components: PricingComponent[];
+  flatFee?: PricingComponent,
+  energy?: PricingComponent,
+  parkingTime?: PricingComponent,
+  chargingTime?: PricingComponent,
   restrictions?: PricingRestriction;
 }
 
 export interface PricingComponent {
-  type: PricingDimensionType, // Type of dimension
+  // type: PricingDimensionType, // Type of dimension
   price: number, // Price per unit (excluding VAT) for this tariff dimension
-  stepSize: number, // Minimum amount to be billed. This unit will be billed in this step_size blocks. For example: if type is time and step_size is 300, then time will be billed in blocks of 5 minutes, so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
+  stepSize?: number, // Minimum amount to be billed. This unit will be billed in this step_size blocks. For example: if type is time and step_size is 300, then time will be billed in blocks of 5 minutes, so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
 }
 
 export interface PricingRestriction {
@@ -24,11 +29,11 @@ export interface PricingRestriction {
   endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
   minKWh?: number, // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
   maxKWh?: number, // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
-  minPowerkW: number, // Minimum power in kW, for example 0, valid from this charging speed
-  maxPowerkW: number, // Maximum power in kW, for example 20, valid up to this charging speed
-  minDurationSecs: number, // Minimum duration in seconds, valid for a duration from x seconds
-  maxDurationSecs: number, // Maximum duration in seconds, valid for a duration up to x seconds
-  daysOfWeek: DayOfWeek[], // Which day(s) of the week this tariff is valid
+  minPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
+  maxPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
+  minDurationSecs?: number, // Minimum duration in seconds, valid for a duration from x seconds
+  maxDurationSecs?: number, // Maximum duration in seconds, valid for a duration up to x seconds
+  daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
 }
 
 export enum DayOfWeek {
@@ -41,13 +46,29 @@ export enum DayOfWeek {
   SUNDAY = 7
 }
 
-export enum PricingDimensionType {
-  ENERGY = 'E', // Defined in kWh, step_size multiplier: 1 Wh
-  FLAT = 'F', // Flat fee, no unit
-  PARKING_TIME = 'PT', // Time not charging: defined in hours, step_size multiplier: 1 second
-  TIME = 'T', // Time charging: defined in hours, step_size multiplier: 1 second
+// export enum PricingDimensionType {
+//   ENERGY = 'E', // Defined in kWh, step_size multiplier: 1 Wh
+//   FLAT = 'F', // Flat fee, no unit
+//   PARKING_TIME = 'PT', // Time not charging: defined in hours, step_size multiplier: 1 second
+//   TIME = 'T', // Time charging: defined in hours, step_size multiplier: 1 second
+// }
+
+export interface EffectivePricing {
+  // description: string,
+  currency: string,
+  // pricingSource: EffectivePricingData;
+  flatFee?: EffectivePricingData,
+  energy?: EffectivePricingData,
+  parkingTime?: EffectivePricingData,
+  chargingTime?: EffectivePricingData,
 }
 
+export interface EffectivePricingData {
+  amount: number;
+  quantity: number;
+  cumulatedAmount?: number;
+  roundedAmount?: number;
+}
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;
