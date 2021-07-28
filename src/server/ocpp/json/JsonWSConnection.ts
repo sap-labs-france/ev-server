@@ -31,6 +31,7 @@ export default class JsonWSConnection extends WSConnection {
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
+    let backendError: BackendError;
     // Check Protocol (required field of OCPP spec)
     switch (wsConnection.protocol) {
       // OCPP 1.6?
@@ -42,13 +43,22 @@ export default class JsonWSConnection extends WSConnection {
         break;
       // Not Found
       default:
-        // Error
-        throw new BackendError({
+        backendError = new BackendError({
           source: this.getChargingStationID(),
           module: MODULE_NAME,
           method: 'constructor',
-          message: `Protocol ${wsConnection.protocol} not supported`
+          message: wsConnection.protocol ?
+            `Web Socket Protocol '${wsConnection.protocol}' not supported` : 'Web Socket Protocol is mandatory'
         });
+        // Log in the right Tenants
+        void Logging.logException(
+          backendError,
+          ServerAction.WS_JSON_CONNECTION_ERROR,
+          this.getChargingStationID(),
+          MODULE_NAME, 'constructor',
+          this.getTenantID()
+        );
+        throw backendError;
     }
     this.isConnectionAlive = true;
     // Handle Socket ping
