@@ -105,7 +105,8 @@ export default class ConnectionService {
         integrationConnector = await RefundFactory.getRefundImpl(req.tenant);
         break;
     }
-    if (Utils.isNullOrUndefined(integrationConnector)) {
+    console.log(filteredRequest);
+    if (!Utils.isNullOrUndefined(integrationConnector)) {
     // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
       // Log
