@@ -1411,7 +1411,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Transaction stop successfully",
+            "description": "Transaction stopped successfully",
             "content": {
               "application/json": {
                 "example": {
