@@ -386,10 +386,10 @@ export default class EmspOCPIClient extends OCPIClient {
         if (evse.status === OCPIEvseStatus.REMOVED) {
           // Get existing charging station
           const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-            this.tenant.id, location.id, evse.uid, ['id']
+            this.tenant, location.id, evse.uid, ['id']
           );
           if (currentChargingStation) {
-            await ChargingStationStorage.deleteChargingStation(this.tenant.id, currentChargingStation.id);
+            await ChargingStationStorage.deleteChargingStation(this.tenant, currentChargingStation.id);
             await Logging.logDebug({
               tenantID: this.tenant.id,
               action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -405,8 +405,8 @@ export default class EmspOCPIClient extends OCPIClient {
         chargingStation.companyID = siteArea.site?.companyID;
         chargingStation.siteID = siteArea.siteID;
         chargingStation.siteAreaID = siteArea.id;
-        await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
-        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant.id, chargingStation.id, chargingStation.ocpiData);
+        await ChargingStationStorage.saveChargingStation(this.tenant, chargingStation);
+        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant, chargingStation.id, chargingStation.ocpiData);
         await Logging.logDebug({
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -439,16 +439,16 @@ export default class EmspOCPIClient extends OCPIClient {
     return true;
   }
 
-  public async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
+  public async remoteStartSession(chargingStation: ChargingStation, connectorID: number, tagID: string): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
-    const tag = await TagStorage.getTag(this.tenant.id, tagId, { withUser: true });
+    const tag = await TagStorage.getTag(this.tenant.id, tagID, { withUser: true });
     if (!tag || !tag.issuer || !tag.active) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
-        message: `Connector ID '${connectorId}' > OCPI Remote Start Session is not available for Tag ID '${tagId}'`,
+        message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { tag: tag }
       });
@@ -457,7 +457,7 @@ export default class EmspOCPIClient extends OCPIClient {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: chargingStation.id,
-        message: `OCPI Remote Start Session is not available for user with Tag ID '${tagId}'`,
+        message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start Session is not available for user with Tag ID '${tagID}'`,
         module: MODULE_NAME, method: 'remoteStartSession',
         detailedMessages: { user: tag.user }
       });
@@ -496,7 +496,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
       source: chargingStation.id,
-      message: `Connector ID '${connectorId}' > OCPI Remote Start session response status ${response.status}`,
+      message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start session response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStartSession',
       detailedMessages: { remoteStart, response: response.data }
     });
@@ -509,11 +509,29 @@ export default class EmspOCPIClient extends OCPIClient {
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
     // Get transaction
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
-    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
+    if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         source: transaction?.chargeBoxID,
-        message: `OCPI Remote Stop Session is not available for the Session ID '${transactionId}'`,
+        message: `Transaction ID '${transactionId}' does not exist`,
+        module: MODULE_NAME, method: 'remoteStopSession',
+        detailedMessages: { transaction }
+      });
+    }
+    if (!transaction.issuer) {
+      throw new BackendError({
+        action: ServerAction.OCPI_START_SESSION,
+        source: transaction?.chargeBoxID,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
+        module: MODULE_NAME, method: 'remoteStopSession',
+        detailedMessages: { transaction }
+      });
+    }
+    if (!transaction.ocpiData?.session) {
+      throw new BackendError({
+        action: ServerAction.OCPI_START_SESSION,
+        source: transaction?.chargeBoxID,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI Session data`,
         module: MODULE_NAME, method: 'remoteStopSession',
         detailedMessages: { transaction }
       });
@@ -536,7 +554,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
       source: transaction.chargeBoxID,
-      message: `Connector ID '${transaction.connectorId}' > OCPI Remote Stop Session ID '${transactionId}' response status ${response.status}`,
+      message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',
       detailedMessages: { response: response.data }
     });

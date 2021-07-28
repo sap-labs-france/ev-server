@@ -105,7 +105,7 @@ export default class LoggingService {
     // Add filter for Site Admins
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
       // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
-      const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
+      const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
         { siteIDs: req.user.sitesAdmin, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
       // Check if Charging Station is already filtered
       if (chargingStations.count === 0) {

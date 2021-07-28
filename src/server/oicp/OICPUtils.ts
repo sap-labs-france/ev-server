@@ -56,7 +56,7 @@ export default class OICPUtils {
       if (chargingStation.issuer && chargingStation.public) {
         const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(site, chargingStation.siteArea, chargingStation, options);
         // Update the Charging Station's OICP Data
-        await ChargingStationStorage.saveChargingStationOicpData(tenant.id, chargingStation.id, {
+        await ChargingStationStorage.saveChargingStationOicpData(tenant, chargingStation.id, {
           evses: chargingStationEvses
         });
         evses.push(...chargingStationEvses);
@@ -130,7 +130,7 @@ export default class OICPUtils {
 
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
-    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant.id, evseID);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant, evseID);
     let foundConnector: Connector;
     if (chargingStation) {
       for (const connector of chargingStation.connectors) {
@@ -178,7 +178,7 @@ export default class OICPUtils {
   public static getOICPIdentificationFromRemoteAuthorization(chargingStation: ChargingStation, connectorId: number,
       action?: ServerAction): { sessionId: OICPSessionID; identification: OICPIdentification; } {
     // Check remote auth in Charging Station
-    if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
+    if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
       const existingAuthorization = chargingStation.remoteAuthorizations.find(
         (authorization) => authorization.connectorId === connectorId && authorization.oicpIdentification);
       if (existingAuthorization) {
@@ -204,7 +204,7 @@ export default class OICPUtils {
     // Retrieve Session Id from Authorization ID
     let sessionId: OICPSessionID;
     const authorizations = await OCPPStorage.getAuthorizes(tenant, {
-      dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+      dateFrom: moment(transaction.timestamp).subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes').toDate(),
       chargeBoxID: transaction.chargeBoxID,
       tagID: transaction.tagID
     }, Constants.DB_PARAMS_MAX_LIMIT);

@@ -136,7 +136,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
     }
     // Save Auth
     await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-      tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+      tenant, chargingStation.id, chargingStation.remoteAuthorizations);
     // Start the transaction
     const result = await this.remoteStartTransaction(tenant, chargingStation, connector, authorizeRemoteStart);
     if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
@@ -180,7 +180,7 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       });
       return OICPUtils.noSuccess(session, `Transaction with OICP Transaction ID '${authorizeRemoteStop.SessionID}' is already stopped`);
     }
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
       await Logging.logError({
         tenantID: tenant.id,

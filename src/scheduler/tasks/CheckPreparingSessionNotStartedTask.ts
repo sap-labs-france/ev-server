@@ -21,7 +21,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
     if (await LockingManager.acquire(sessionNotStartedLock)) {
       try {
         // Get Charging Stations
-        const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+        const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
           'statusChangedBefore': moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate(),
           'connectorStatuses': [ChargePointStatus.PREPARING],
           withSiteArea: true

@@ -1172,7 +1172,7 @@ export default class TransactionStorage {
   }
 
   public static async getLastTransactionFromChargingStation(tenantID: string, chargeBoxID: string, connectorId: number,
-      params: { withChargingStation?: boolean; withUser?: boolean; }): Promise<Transaction> {
+      params: { withChargingStation?: boolean; withUser?: boolean; withTag: boolean; }): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getLastTransaction');
     // Check
@@ -1207,6 +1207,13 @@ export default class TransactionStorage {
       DatabaseUtils.pushUserLookupInAggregation({
         tenantID, aggregation: aggregation, localField: 'userID', foreignField: '_id',
         asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+      });
+    }
+    // Tag
+    if (params.withTag) {
+      DatabaseUtils.pushTagLookupInAggregation({
+        tenantID, aggregation: aggregation, asField: 'tag', localField: 'tagID',
+        foreignField: '_id', oneToOneCardinality: true
       });
     }
     // Rename ID
