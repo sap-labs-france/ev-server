@@ -332,7 +332,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant.id,
+    const newUsers = await UserStorage.getUsers(this.tenant,
       {
         statuses: [UserStatus.ACTIVE],
         notSynchronizedBillingData: true
@@ -507,7 +507,7 @@ export default abstract class BillingIntegration {
 
   private async _getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
-    const users = await UserStorage.getUsers(this.tenant.id,
+    const users = await UserStorage.getUsers(this.tenant,
       {
         statuses: [UserStatus.ACTIVE],
         withTestBillingData: true
@@ -529,7 +529,7 @@ export default abstract class BillingIntegration {
       });
     }
     // Let's remove the billingData field
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, null);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, null);
   }
 
   private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {

@@ -21,7 +21,7 @@ export default class SitesOwnerDynamicAuthorizationDataSource
 
   private async getSitesOwnerSiteIDs(): Promise<string[]> {
     // Get the Site IDs of the Sites for which the user is Site Owner
-    const sites = await UserStorage.getUserSites(this.tenant.id,
+    const sites = await UserStorage.getUserSites(this.tenant,
       {
         userIDs: [this.userToken.id],
         siteOwner: true

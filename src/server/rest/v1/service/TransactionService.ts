@@ -136,7 +136,7 @@ export default class TransactionService {
       transactionsToRefund.push(transaction);
     }
     // Get Transaction User
-    const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
+    const user: User = await UserStorage.getUser(req.tenant, req.user.id);
     UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
@@ -383,7 +383,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag

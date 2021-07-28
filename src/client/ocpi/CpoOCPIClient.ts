@@ -121,7 +121,7 @@ export default class CpoOCPIClient extends OCPIClient {
             let emspUser = emspUsers.get(email);
             if (!emspUser) {
               // Get User from DB
-              emspUser = await UserStorage.getUserByEmail(this.tenant.id, email);
+              emspUser = await UserStorage.getUserByEmail(this.tenant, email);
               if (emspUser) {
                 emspUsers.set(email, emspUser);
               }

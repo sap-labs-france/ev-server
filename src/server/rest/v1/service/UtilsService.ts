@@ -176,7 +176,7 @@ export default class UtilsService {
       });
     }
     // Get User
-    const user = await UserStorage.getUser(tenant.id, userID,
+    const user = await UserStorage.getUser(tenant, userID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -354,7 +354,7 @@ export default class UtilsService {
       });
     }
     // Get Users
-    let users = (await UserStorage.getUsers(tenant.id,
+    let users = (await UserStorage.getUsers(tenant,
       {
         userIDs,
         ...additionalFilters,

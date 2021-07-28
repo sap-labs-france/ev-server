@@ -43,7 +43,7 @@ export default class NotificationHandler {
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }
-    const adminUsers = await UserStorage.getUsers(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+    const adminUsers = await UserStorage.getUsers(tenant, params, Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
       return adminUsers.result;

@@ -29,7 +29,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         };
         const startTime = new Date().getTime();
         // Get total number of Users to import
-        const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant.id);
+        const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant);
         if (totalUsersToImport > 0) {
           await Logging.logInfo({
             tenantID: tenant.id,
@@ -40,11 +40,11 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         }
         do {
           // Get the imported users
-          importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
+          importedUsers = await UserStorage.getImportedUsers(tenant, { status: ImportStatus.READY }, dbParams);
           for (const importedUser of importedUsers.result) {
             try {
             // Existing Users
-              const foundUser = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
+              const foundUser = await UserStorage.getUserByEmail(tenant, importedUser.email);
               if (foundUser) {
                 // Check tag is already in use
                 if (!foundUser.issuer) {
@@ -56,9 +56,9 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
                 // Update it
                 foundUser.name = importedUser.name;
                 foundUser.firstName = importedUser.firstName;
-                await UserStorage.saveUser(tenant.id, foundUser);
+                await UserStorage.saveUser(tenant, foundUser);
                 // Remove the imported User
-                await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+                await UserStorage.deleteImportedUser(tenant, importedUser.id);
                 result.inSuccess++;
                 continue;
               }
@@ -71,20 +71,20 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               newUser.createdBy = { id: importedUser.importedBy };
               newUser.createdOn = importedUser.importedOn;
               // Save the new User
-              newUser.id = await UserStorage.saveUser(tenant.id, newUser);
+              newUser.id = await UserStorage.saveUser(tenant, newUser);
               // Role need to be set separately
-              await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
+              await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
               // Status need to be set separately
-              await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
+              await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
               // Remove the imported User
-              await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+              await UserStorage.deleteImportedUser(tenant, importedUser.id);
               result.inSuccess++;
             } catch (error) {
               importedUser.status = ImportStatus.ERROR;
               importedUser.errorDescription = error.message;
               result.inError++;
               // Update it
-              await UserStorage.saveImportedUser(tenant.id, importedUser);
+              await UserStorage.saveImportedUser(tenant, importedUser);
               // Log
               await Logging.logError({
                 tenantID: tenant.id,

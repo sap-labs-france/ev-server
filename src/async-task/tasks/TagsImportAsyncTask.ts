@@ -137,7 +137,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
 
   private async assignTag(tenant: Tenant, importedTag: ImportedTag, tag: Tag) {
     // Save user if any and get the ID to assign tag
-    const foundUser = await UserStorage.getUserByEmail(tenant.id, importedTag.email);
+    const foundUser = await UserStorage.getUserByEmail(tenant, importedTag.email);
     if (!foundUser) {
       const user = {
         name: importedTag.name,
@@ -149,9 +149,9 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         status: UserStatus.PENDING,
         role: UserRole.BASIC,
       } as User;
-      const userID = await UserStorage.saveUser(tenant.id, user);
-      await UserStorage.saveUserStatus(tenant.id, userID, user.status);
-      await UserStorage.saveUserRole(tenant.id, userID, user.role);
+      const userID = await UserStorage.saveUser(tenant, user);
+      await UserStorage.saveUserStatus(tenant, userID, user.status);
+      await UserStorage.saveUserRole(tenant, userID, user.role);
       tag.userID = userID;
     } else {
       tag.userID = foundUser.id;
