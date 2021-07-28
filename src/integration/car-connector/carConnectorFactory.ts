@@ -16,7 +16,7 @@ export default class CarConnectorFactory {
     // Check if car connector component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR)) {
       const settings = await SettingStorage.getCarConnectorSettings(tenant.id);
-      if (settings && settings.carConnector && settings.carConnector.connections) {
+      if (settings?.carConnector?.connections) {
         // Find connection
         const foundConnection = settings.carConnector.connections.find((connection) => connection.type === connectorId);
         if (foundConnection) {
@@ -31,7 +31,7 @@ export default class CarConnectorFactory {
       }
       await Logging.logDebug({
         tenantID: tenant.id,
-        action: ServerAction.ASSET,
+        action: ServerAction.CAR_CONNECTOR,
         module: MODULE_NAME, method: 'getCarConnectorImpl',
         message: 'Car connector settings are not configured'
       });

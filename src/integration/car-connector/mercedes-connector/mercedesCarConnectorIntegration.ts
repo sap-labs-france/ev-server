@@ -78,25 +78,13 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
       });
   }
 
-  public async checkConnection(userID: string): Promise<void> {
-    const connection = await this.getRefreshedConnection(userID);
-    if (!connection) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        user: userID,
-        method: 'checkConnection', action: ServerAction.CAR_CONNECTOR,
-        message: `The user with ID '${userID}' does not have a valid connection`,
-      });
-    }
-  }
-
   public async createConnection(userID: string, data: any): Promise<Connection> {
     try {
       await Logging.logDebug({
+        user: userID,
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
-        action: ServerAction.CAR_CONNECTOR, message: `Request Mercedes access token for User ID '${userID}'`
+        action: ServerAction.CAR_CONNECTOR, message: 'Request Mercedes access token'
       });
       const mercedesURL = `${this.connection.mercedesConnection.authenticationUrl}/as/token.oauth2 `;
       const response = await this.axiosInstance.post(mercedesURL,
@@ -112,9 +100,10 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
           },
         });
       await Logging.logDebug({
+        user: userID,
         tenantID: this.tenant.id,
         module: MODULE_NAME, method: 'createConnection',
-        action: ServerAction.CAR_CONNECTOR, message: `Mercedes access token granted for User ID '${userID}'`
+        action: ServerAction.CAR_CONNECTOR, message: 'Mercedes access token granted'
       });
       // Check first
       let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CONNECTOR_ID, userID);
@@ -139,9 +128,9 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        message: `Mercedes access token not granted for User ID '${userID}'`,
+        message: 'Mercedes access token not granted',
         module: MODULE_NAME,
-        method: 'GetAccessToken',
+        method: 'createConnection',
         user: userID,
         action: ServerAction.CAR_CONNECTOR,
         detailedMessages: { error: error.stack }
@@ -157,7 +146,6 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
 
   private computeValidUntilAt(response: AxiosResponse) {
     const now = new Date();
-    console.log(now.getTime() + response.data.expires_in * 1000);
     return new Date(now.getTime() + response.data.expires_in * 1000);
   }
 
@@ -207,7 +195,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        message: `Mercedes access token not refreshed (ID: '${userID}')`,
+        message: 'Mercedes access token not refreshed',
         module: MODULE_NAME,
         method: 'refreshToken',
         action: ServerAction.CAR_CONNECTOR,
@@ -222,7 +210,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     if (!connection) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        message: `The user with ID '${userID}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        message: `The user does not have a connection to connector '${CONNECTOR_ID}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',
         action: ServerAction.CAR_CONNECTOR,
