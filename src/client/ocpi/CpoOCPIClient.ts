@@ -588,7 +588,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Perfs trace
     const startTime = new Date().getTime();
-    const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
+    const transactions = await TransactionStorage.getTransactions(this.tenant, {
       issuer: true,
       ocpiCdrChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -813,7 +813,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Mark it as done (checked at least once)
     transaction.ocpiData.cdrCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
+    await TransactionStorage.saveTransactionOcpiData(this.tenant, transaction.id, transaction.ocpiData);
     // Check CDR
     const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_CHECK_CDRS);
     const response = await this.axiosInstance.get(
@@ -880,7 +880,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Mark it as done (checked at least once)
     transaction.ocpiData.sessionCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
+    await TransactionStorage.saveTransactionOcpiData(this.tenant, transaction.id, transaction.ocpiData);
     // Check Session
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpiData.session.id}`;
     const response = await this.axiosInstance.get(
