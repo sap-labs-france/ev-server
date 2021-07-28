@@ -1,4 +1,4 @@
-import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSetting, BillingSettings, BillingSettingsType, CarConnectorConnectionSetting, CarConnectorSetting, CarConnectorSettings, CarConnectorSettingsType, CryptoSetting, CryptoSettings, CryptoSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType, TechnicalSettings, UserSettings, UserSettingsType } from '../../types/Setting';
 import global, { FilterParams } from '../../types/GlobalType';
 
 import BackendError from '../../exception/BackendError';
@@ -188,6 +188,30 @@ export default class SettingStorage {
       }
     }
     return refundSettings;
+  }
+
+  public static async getCarConnectorSettings(tenantID: string): Promise<CarConnectorSettings> {
+    const carConnectorSettings = {
+      identifier: TenantComponents.CAR_CONNECTOR,
+    } as CarConnectorSettings;
+    // Get the settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.CAR_CONNECTOR },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      carConnectorSettings.id = settings.result[0].id;
+      carConnectorSettings.sensitiveData = settings.result[0].sensitiveData;
+      carConnectorSettings.backupSensitiveData = settings.result[0].backupSensitiveData;
+      // Car Connector
+      if (config.carConnector) {
+        carConnectorSettings.type = CarConnectorSettingsType.CAR_CONNECTOR;
+        carConnectorSettings.carConnector = {
+          connections: config.carConnector.connections ? config.carConnector.connections : []
+        };
+      }
+    }
+    return carConnectorSettings;
   }
 
   public static async getPricingSettings(tenantID: string, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
