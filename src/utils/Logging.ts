@@ -397,7 +397,7 @@ export default class Logging {
       tenantID: tenantID,
       action: ServerAction.HTTP_REQUEST,
       message: `Axios HTTP Request >> ${request.method.toLocaleUpperCase()} '${request.url}'`,
-      module: MODULE_NAME, method: 'interceptor',
+      module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
         request: Utils.cloneObject(request),
       }
@@ -423,7 +423,7 @@ export default class Logging {
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
-        module: MODULE_NAME, method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.stack }
       });
@@ -441,7 +441,7 @@ export default class Logging {
         tenantID,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.PERFORMANCES,
-        module: MODULE_NAME, method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         message: `${message}: ${error.message}`,
         detailedMessages: { error: error.stack }
       });
@@ -458,7 +458,7 @@ export default class Logging {
         tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
         message,
-        module: MODULE_NAME, method: 'logAxiosResponse',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,
           statusText: response.statusText,
@@ -477,18 +477,17 @@ export default class Logging {
           durationMs: executionDurationMillis,
           sizeKb: sizeOfDataKB,
           source: Constants.AXIOS_CLIENT,
-          module: MODULE_NAME, method: 'logAxiosResponse',
+          module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
           action: ServerAction.HTTP_RESPONSE,
         })
       );
     } catch (error) {
       // FIXME: Error Message: Converting circular structure to JSON
-      // Temporary FIX: Utils.cloneObject() removed
       await Logging.logSecurityDebug({
         tenantID: tenantID,
         action: ServerAction.HTTP_RESPONSE,
         message: `Axios HTTP Response - ${(executionDurationMillis > 0) ? executionDurationMillis : '?'} ms - ${(sizeOfDataKB > 0) ? sizeOfDataKB : '?'} KB << ${response.config.method.toLocaleUpperCase()}/${response.status} '${response.config.url}'`,
-        module: MODULE_NAME, method: 'interceptor',
+        module: Constants.MODULE_AXIOS, method: 'logAxiosResponse',
         detailedMessages: {
           status: response.status,
           statusText: response.statusText
@@ -503,7 +502,7 @@ export default class Logging {
       tenantID: tenantID,
       action: ServerAction.HTTP_ERROR,
       message: `Axios HTTP Error >> ${error.config?.method?.toLocaleUpperCase()}/${error.response?.status} '${error.config?.url}' - ${error.message}`,
-      module: MODULE_NAME, method: 'interceptor',
+      module: Constants.MODULE_AXIOS, method: 'interceptor',
       detailedMessages: {
         url: error.config?.url,
         status: error.response?.status,
@@ -908,11 +907,13 @@ export default class Logging {
     // Keep duration (only for one Action per Charging Station)
     // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
     Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
+    const message = `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`;
+    Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action, action,
-      message: `${direction} OCPP Request '${action}' ${direction === '>>' ? 'received' : 'sent'}`,
+      message,
       detailedMessages: { args }
     });
   }
