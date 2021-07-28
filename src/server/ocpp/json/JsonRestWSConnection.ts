@@ -37,7 +37,6 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onError(errorEvent: ErrorEvent): void {
-    // Log
     void Logging.logError({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
@@ -49,14 +48,13 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public onClose(closeEvent: CloseEvent): void {
-    // Log
     void Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
       message: `Connection has been closed, Reason: '${closeEvent.reason ? closeEvent.reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(Utils.convertToInt(closeEvent))}', Code: '${closeEvent.toString()}'`,
-      detailedMessages: { closeEvent: closeEvent }
+      detailedMessages: { closeEvent }
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);

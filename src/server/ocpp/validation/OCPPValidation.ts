@@ -117,39 +117,39 @@ export default class OCPPValidation extends SchemaValidator {
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
-    const connectorTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
+    const connectorTransactionID = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer
       meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
       // Yes: Check Transaction ID (ABB)
-      if (meterValues.transactionId !== connectorTransactionId) {
+      if (meterValues.transactionId !== connectorTransactionID) {
         // Check if valid
-        if (connectorTransactionId > 0) {
+        if (connectorTransactionID > 0) {
           // No: Log that the transaction ID will be reused
           await Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.METER_VALUES,
-            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionId}'`
+            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${connectorTransactionID}'`
           });
         }
         // Always assign, even if equals to 0
-        meterValues.transactionId = connectorTransactionId;
+        meterValues.transactionId = connectorTransactionID;
       }
     // Transaction is not provided: check if there is a transaction assigned on the connector
-    } else if (connectorTransactionId > 0) {
+    } else if (connectorTransactionID > 0) {
       // Yes: Use Connector's Transaction ID
       await Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
-        message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionId}'`
+        message: `Transaction ID is not provided but retrieved from StartTransaction '${connectorTransactionID}'`
       });
       // Override it
-      meterValues.transactionId = connectorTransactionId;
+      meterValues.transactionId = connectorTransactionID;
     }
   }
 }

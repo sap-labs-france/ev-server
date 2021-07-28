@@ -218,7 +218,7 @@ export default class MongoDBStorage {
       };
       // Set the Replica Set
       if (this.dbConfig.replicaSet) {
-        uri.options.replicaSet = Utils.isDevelopmentEnv() ? null : this.dbConfig.replicaSet;
+        uri.options.replicaSet = this.dbConfig.replicaSet;
       }
       mongoUrl = mongoUriBuilder(uri);
     }

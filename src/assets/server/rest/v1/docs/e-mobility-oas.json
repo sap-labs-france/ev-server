@@ -4419,6 +4419,11 @@
           }
         ],
         "description": "Assign sites to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],
@@ -4470,6 +4475,11 @@
           }
         ],
         "description": "Unassign sites to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],
@@ -4523,6 +4533,11 @@
           }
         ],
         "description": "Update user's mobile tokens",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],
