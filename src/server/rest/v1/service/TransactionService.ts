@@ -192,7 +192,7 @@ export default class TransactionService {
       });
     }
     // Check Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId, { withUser: true });
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId, { withUser: true, withTag: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.transactionId}' does not exist`,
       MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check Charging Station
@@ -204,7 +204,7 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_NOT_FROM_TENANT,
-        message: `The transaction ID '${transaction.id}' belongs to an external organization`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction belongs to an external organization`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         user: req.user, action: action
       });
@@ -214,7 +214,7 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.TRANSACTION_WITH_NO_OCPI_DATA,
-        message: `The transaction ID '${transaction.id}' has no OCPI or OICP session data`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} No OCPI or OICP Session data`,
         module: MODULE_NAME, method: 'handlePushTransactionCdr',
         user: req.user, action: action
       });
@@ -226,7 +226,7 @@ export default class TransactionService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.TRANSACTION_CDR_ALREADY_PUSHED,
-          message: `The CDR of the transaction ID '${transaction.id}' has already been pushed`,
+          message: `The CDR of the Transaction ID '${transaction.id}' has already been pushed`,
           module: MODULE_NAME, method: 'handlePushTransactionCdr',
           user: req.user, action: action
         });
@@ -236,7 +236,7 @@ export default class TransactionService {
       if (ocpiLock) {
         try {
           // Roaming
-          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, TransactionAction.END);
+          await OCPPUtils.processTransactionRoaming(req.tenant, transaction, chargingStation, transaction.tag, TransactionAction.END);
           // Save
           await TransactionStorage.saveTransactionOcpiData(req.user.tenantID, transaction.id, transaction.ocpiData);
           // Ok
@@ -490,7 +490,7 @@ export default class TransactionService {
         source: chargingStation.id,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped and connector has been cleaned`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has already been stopped and connector has been cleaned`,
         action: action,
       });
     } else {
@@ -513,7 +513,7 @@ export default class TransactionService {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
-          message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
+          message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction cannot be stopped`,
           module: MODULE_NAME, method: 'handleTransactionSoftStop',
           user: req.user, action: action
         });
@@ -523,7 +523,7 @@ export default class TransactionService {
         source: chargingStation.id,
         user: req.user, actionOnUser: transaction.userID,
         module: MODULE_NAME, method: 'handleTransactionSoftStop',
-        message: `${OCPPUtils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
+        message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been stopped successfully`,
         action: action,
         detailedMessages: { result }
       });

@@ -31,6 +31,7 @@ export default class JsonWSConnection extends WSConnection {
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
+    let backendError: BackendError;
     // Check Protocol (required field of OCPP spec)
     switch (wsConnection.protocol) {
       // OCPP 1.6?
@@ -42,13 +43,22 @@ export default class JsonWSConnection extends WSConnection {
         break;
       // Not Found
       default:
-        // Error
-        throw new BackendError({
+        backendError = new BackendError({
           source: this.getChargingStationID(),
           module: MODULE_NAME,
           method: 'constructor',
-          message: `Protocol ${wsConnection.protocol} not supported`
+          message: wsConnection.protocol ?
+            `Web Socket Protocol '${wsConnection.protocol}' not supported` : 'Web Socket Protocol is mandatory'
         });
+        // Log in the right Tenants
+        void Logging.logException(
+          backendError,
+          ServerAction.WS_JSON_CONNECTION_ERROR,
+          this.getChargingStationID(),
+          MODULE_NAME, 'constructor',
+          this.getTenantID()
+        );
+        throw backendError;
     }
     this.isConnectionAlive = true;
     // Handle Socket ping
@@ -148,7 +158,7 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
-    await Logging.logChargingStationServerReceiveAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     const methodName = `handle${commandName}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
@@ -158,7 +168,7 @@ export default class JsonWSConnection extends WSConnection {
       // Call it
       const result = await this.chargingStationService[methodName](this.headers, commandPayload);
       // Log
-      await Logging.logChargingStationServerRespondAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {

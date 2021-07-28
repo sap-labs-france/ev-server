@@ -136,7 +136,7 @@ export default abstract class ChargingStationVendorIntegration {
                 tenantID: tenant.id,
                 source: chargingStation.id,
                 action: ServerAction.OCPP_PARAM_UPDATE,
-                message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
+                message: `${Utils.buildConnectorInfo(connectorID)} Amperage limit set to ${connector.amperageLimit}A following an update of OCPP Parameter '${ocppParamName}'`,
                 module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
                 detailedMessages: {
                   ocppParamName, ocppParamValue, connectorID,
@@ -326,7 +326,7 @@ export default abstract class ChargingStationVendorIntegration {
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
-        message: 'Charging Station does not support charging profiles'
+        message: 'Charging Station does not support Charging Profiles'
       });
     }
     if (connectorID === 0) {
@@ -334,7 +334,7 @@ export default abstract class ChargingStationVendorIntegration {
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         module: MODULE_NAME, method: 'getCompositeSchedule',
-        message: `Cannot get the charging profiles on Connector ID '${connectorID}'`,
+        message: `${Utils.buildConnectorInfo(connectorID)} Cannot get the Charging Profiles`,
       });
     }
     // Get the OCPP Client
@@ -449,7 +449,7 @@ export default abstract class ChargingStationVendorIntegration {
             tenantID: tenant.id,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
+            message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
           });
@@ -461,7 +461,7 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenant.id,
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-        message: `Cannot retrieve the current limit on Connector ID '${connectorID}'`,
+        message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
         detailedMessages: { error: error.stack }
       });
@@ -476,7 +476,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenant.id,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
+      message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });
@@ -623,7 +623,7 @@ export default abstract class ChargingStationVendorIntegration {
               tenantID: tenant.id,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
               detailedMessages: { result }
             });
@@ -641,7 +641,7 @@ export default abstract class ChargingStationVendorIntegration {
               tenantID: tenant.id,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
               detailedMessages: { result }
             });
@@ -660,7 +660,7 @@ export default abstract class ChargingStationVendorIntegration {
               tenantID: tenant.id,
               source: chargingStation.id,
               action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+              message: `${Utils.buildConnectorInfo(connectorID)} Current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
               module: MODULE_NAME, method: 'getCurrentConnectorLimit',
               detailedMessages: { result }
             });
