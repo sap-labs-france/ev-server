@@ -16,6 +16,9 @@ export default class TransactionRouter {
     this.buildRouteTransactions();
     this.buildRouteTransaction();
     this.buildRouteTransactionConsumption();
+    this.buildRouteDeleteTransaction();
+    this.buildRouteDeleteTransactions();
+    this.buildRoutePushTransactionCDR();
     return this.router;
   }
 
@@ -29,6 +32,26 @@ export default class TransactionRouter {
     this.router.get(`/${ServerRoute.REST_TRANSACTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetTransaction.bind(this), ServerAction.TRANSACTION, req, res, next);
+    });
+  }
+
+  protected buildRouteDeleteTransactions(): void {
+    this.router.delete(`/${ServerRoute.REST_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleDeleteTransactions.bind(this), ServerAction.TRANSACTIONS_DELETE, req, res, next);
+    });
+  }
+
+  protected buildRouteDeleteTransaction(): void {
+    this.router.delete(`/${ServerRoute.REST_TRANSACTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handleDeleteTransaction.bind(this), ServerAction.TRANSACTION_DELETE, req, res, next);
+    });
+  }
+
+  protected buildRoutePushTransactionCDR(): void {
+    this.router.post(`/${ServerRoute.REST_TRANSACTION_CDR}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.transactionId = req.params.id;
+      await RouterUtils.handleServerAction(TransactionService.handlePushTransactionCdr.bind(this), ServerAction.OCPI_PUSH_CDRS, req, res, next);
     });
   }
 

@@ -892,6 +892,57 @@
             "$ref": "#/components/responses/BackendError"
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete several Transactions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction deletion result",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 42,
+                  "inError": 0
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
       }
     },
     "/api/transactions/{id}": {
@@ -969,6 +1020,93 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a Transaction",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction deletion result",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 1,
+                  "inError": 0
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}/ocpi/cdr": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Push Transaction CDR",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction CDR pushed successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "580": {
+            "description": "The transaction belongs to an external organization"
+          },
+          "581": {
+            "description": "The transaction has no OCPI or OICP session data"
+          },
+          "582": {
+            "description": "The CDR of the transaction has already been pushed"
           }
         }
       }
