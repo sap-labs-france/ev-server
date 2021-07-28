@@ -537,7 +537,7 @@ export default class OCPPUtils {
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
     transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
   }
 
   public static async rebuildTransactionConsumptions(tenant: Tenant, transaction: Transaction): Promise<number> {
@@ -665,7 +665,7 @@ export default class OCPPUtils {
     // Build extra inactivity consumption
     const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenant, transaction);
     // Save
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 

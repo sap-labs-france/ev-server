@@ -213,7 +213,7 @@ export default class OICPUtils {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant.id, authorization.authorizationId);
+          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant, authorization.authorizationId);
           // OICP SessionID not used yet
           if (!oicpTransaction) {
             sessionId = authorization.authorizationId;

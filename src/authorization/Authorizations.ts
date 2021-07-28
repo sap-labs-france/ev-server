@@ -896,7 +896,7 @@ export default class Authorizations {
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
           // Check Existing Transaction with the same Auth ID
-          const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant.id, authorization.authorizationId);
+          const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant, authorization.authorizationId);
           // OCPI Auth ID not used yet
           if (!ocpiTransaction) {
             authorizationID = authorization.authorizationId;

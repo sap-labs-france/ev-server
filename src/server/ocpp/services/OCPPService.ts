@@ -269,7 +269,7 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.UPDATE);
         // Save Transaction
-        await TransactionStorage.saveTransaction(tenant.id, transaction);
+        await TransactionStorage.saveTransaction(tenant, transaction);
         // Update Charging Station
         await this.updateChargingStationWithTransaction(tenant, chargingStation, transaction);
         // Handle End Of charge
@@ -446,7 +446,7 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
         // Save it
-        await TransactionStorage.saveTransaction(tenant.id, newTransaction);
+        await TransactionStorage.saveTransaction(tenant, newTransaction);
         // Clean up
         await this.updateChargingStationConnectorWithTransaction(tenant, newTransaction, chargingStation, user);
         // Save
@@ -565,7 +565,7 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
         // Save the transaction
-        await TransactionStorage.saveTransaction(tenant.id, transaction);
+        await TransactionStorage.saveTransaction(tenant, transaction);
         // Notify User
         this.notifyStopTransaction(tenant, chargingStation, transaction, user, alternateUser);
         // Recompute the Smart Charging Plan
@@ -834,7 +834,7 @@ export default class OCPPService {
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
-        tenant.id, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true, withTag: true });
+        tenant, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true, withTag: true });
       // Transaction completed
       if (lastTransaction?.stop) {
         // Check Inactivity
@@ -902,7 +902,7 @@ export default class OCPPService {
           await this.checkAndSendOICPTransactionCdr(tenant, lastTransaction, chargingStation, lastTransaction.tag);
         }
         // Save
-        await TransactionStorage.saveTransaction(tenant.id, lastTransaction);
+        await TransactionStorage.saveTransaction(tenant, lastTransaction);
       } else if (!Utils.isNullOrUndefined(lastTransaction)) {
         await Logging.logWarning({
           tenantID: tenant.id,
@@ -1426,7 +1426,7 @@ export default class OCPPService {
     let activeTransaction: Transaction, lastCheckedTransactionID: number;
     do {
       // Check if the charging station has already a transaction
-      activeTransaction = await TransactionStorage.getActiveTransaction(tenant.id, chargingStation.id, connectorId);
+      activeTransaction = await TransactionStorage.getActiveTransaction(tenant, chargingStation.id, connectorId);
       // Exists already?
       if (activeTransaction) {
         // Avoid infinite Loop
@@ -1445,7 +1445,7 @@ export default class OCPPService {
             message: `${Utils.buildConnectorInfo(activeTransaction.connectorId, activeTransaction.id)} Transaction with no consumption has been deleted`
           });
           // Delete
-          await TransactionStorage.deleteTransaction(tenant.id, activeTransaction.id);
+          await TransactionStorage.deleteTransaction(tenant, activeTransaction.id);
           // Clear connector
           OCPPUtils.clearChargingStationConnector(chargingStation, activeTransaction.connectorId);
         } else {
@@ -1685,7 +1685,7 @@ export default class OCPPService {
 
   private async createTransaction(tenant: Tenant, startTransaction: OCPPStartTransactionRequestExtended): Promise<Transaction> {
     return {
-      id: await TransactionStorage.findAvailableID(tenant.id),
+      id: await TransactionStorage.findAvailableID(tenant),
       issuer: true,
       chargeBoxID: startTransaction.chargeBoxID,
       tagID: startTransaction.idTag,
@@ -1985,7 +1985,7 @@ export default class OCPPService {
         detailedMessages: { headers, meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant.id, meterValues.transactionId, { withUser: true, withTag: true });
+    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true });
     if (!transaction) {
       // Try a Remote Stop the Transaction
       if (meterValues.transactionId) {
@@ -2051,7 +2051,7 @@ export default class OCPPService {
 
   private async getTransactionFromStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
       headers: OCPPHeader, stopTransaction: OCPPStopTransactionRequestExtended): Promise<Transaction> {
-    const transaction = await TransactionStorage.getTransaction(tenant.id, stopTransaction.transactionId, { withUser: true, withTag: true });
+    const transaction = await TransactionStorage.getTransaction(tenant, stopTransaction.transactionId, { withUser: true, withTag: true });
     if (!transaction) {
       throw new BackendError({
         source: chargingStation.id,

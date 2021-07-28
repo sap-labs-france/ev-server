@@ -820,7 +820,7 @@ export default class ChargingStationService {
     }
     for (const connector of chargingStation.connectors) {
       if (connector && connector.currentTransactionID) {
-        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.currentTransactionID);
+        const transaction = await TransactionStorage.getTransaction(req.tenant, connector.currentTransactionID);
         if (transaction && !transaction.stop) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -873,7 +873,7 @@ export default class ChargingStationService {
     // Set as deleted
     chargingStation.deleted = true;
     // Check if charging station has had transactions
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+    const transactions = await TransactionStorage.getTransactions(req.tenant,
       { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(transactions.result)) {
       // Delete logically
@@ -1825,7 +1825,7 @@ export default class ChargingStationService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(
-      req.user.tenantID, filteredRequest.args.transactionId, { withUser: true });
+      req.tenant, filteredRequest.args.transactionId, { withUser: true });
     UtilsService.assertObjectExists(action, transaction, `Transaction ID '${filteredRequest.args.transactionId as string}' does not exist`,
       MODULE_NAME, 'handleAction', req.user);
     // Add connector ID
@@ -1855,7 +1855,7 @@ export default class ChargingStationService {
       userID: req.user.id
     };
     // Save Transaction
-    await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+    await TransactionStorage.saveTransaction(req.tenant, transaction);
     // Ok: Execute it
     return ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
