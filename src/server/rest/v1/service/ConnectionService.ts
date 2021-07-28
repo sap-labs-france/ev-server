@@ -1,4 +1,5 @@
 import { Action, Entity } from '../../../../types/Authorization';
+import Connection, { ConnectionType } from '../../../../types/Connection';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
@@ -6,7 +7,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import CarConnectorFactory from '../../../../integration/car-connector/carConnectorFactory';
-import Connection from '../../../../types/Connection';
 import ConnectionSecurity from './security/ConnectionSecurity';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import ConnectionValidator from '../validator/ConnectionValidator';
@@ -98,14 +98,13 @@ export default class ConnectionService {
     const filteredRequest = ConnectionSecurity.filterConnectionCreateRequest(req.body);
     let integrationConnector = null;
     switch (filteredRequest.connectorId) {
-      case 'mercedes':
+      case ConnectionType.MERCEDES:
         integrationConnector = await CarConnectorFactory.getCarConnectorImpl(req.tenant, filteredRequest.connectorId);
         break;
-      case 'concur':
+      case ConnectionType.CONCUR:
         integrationConnector = await RefundFactory.getRefundImpl(req.tenant);
         break;
     }
-    console.log(filteredRequest);
     if (!Utils.isNullOrUndefined(integrationConnector)) {
     // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
