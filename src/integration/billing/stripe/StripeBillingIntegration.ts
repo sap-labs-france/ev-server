@@ -1185,15 +1185,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return null;
   }
 
-  private buildLineItemParkingTimeDescription(transaction: Transaction) {
-    const sessionID = String(transaction?.id);
-    const timeSpent = this.convertTimeSpentToString(transaction);
-    // TODO - behind a feature toggle - translate it before activating the feature
-    // TODO - handle the corresponding pricing - for now this is free!
-    const description = `Charging Session: ${sessionID} - Free parking time: ${timeSpent}`;
-    return description;
-  }
-
   private buildLineItemDescription(transaction: Transaction) {
     const chargeBox = transaction.chargeBox;
     const i18nManager = I18nManager.getInstanceForLocale(transaction.user.locale);
