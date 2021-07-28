@@ -54,7 +54,6 @@ export enum DayOfWeek {
 // }
 
 export interface EffectivePricing {
-  // description: string,
   currency: string,
   // pricingSource: EffectivePricingData;
   flatFee?: EffectivePricingData,
@@ -64,11 +63,14 @@ export interface EffectivePricing {
 }
 
 export interface EffectivePricingData {
+  itemDescription: string,
   amount: number;
   quantity: number;
   cumulatedAmount?: number;
   roundedAmount?: number;
 }
+
+// TODO - to be removed - current interface exposed by the pricing integration layer  
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;

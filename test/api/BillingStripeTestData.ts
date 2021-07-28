@@ -253,9 +253,10 @@ export default class StripeIntegrationTestData {
     assert(this.billingUser, 'Billing user cannot be null');
     const price = amount / quantity;
 
+    const itemDescription = `Stripe Integration - ${quantity} kWh * ${price} Eur`;
     // array of tax ids to apply to the line item
     const invoiceItem:BillingInvoiceItem = {
-      description: `Stripe Integration - ${quantity} kWh * ${price} Eur`,
+      description: itemDescription,
       transactionID: 777,
       // pricingData: {
       //   quantity, // kW.h
@@ -265,6 +266,7 @@ export default class StripeIntegrationTestData {
       effectivePricing: {
         currency: 'EUR',
         energy: {
+          itemDescription, 
           amount, // total amount to bill -  not yet in cents
           quantity, // kW.h
         }

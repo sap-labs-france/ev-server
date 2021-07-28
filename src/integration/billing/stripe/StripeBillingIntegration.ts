@@ -1069,7 +1069,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Destructuring transaction.stop
     const transactionID = transaction.id;
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    const description = this.buildLineItemDescription(transaction);
+    // TODO - we need a description per dimension type 
+    const itemDescription = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
     // -------------------------------------------------------------------------------
@@ -1080,11 +1081,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const taxes = this.getTaxRateIds(); // TODO - take into account SITE settings
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
-      description,
+      description: itemDescription,
       transactionID,
       effectivePricing: {
         currency,
         energy: {
+          itemDescription,
           amount,
           quantity
         }
