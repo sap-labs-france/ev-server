@@ -86,7 +86,6 @@ export interface BillingInvoiceItem {
   transactionID: number;
   // pricingData: BillingPricingData;
   effectivePricing: EffectivePricing
-  taxes?: string[];
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;

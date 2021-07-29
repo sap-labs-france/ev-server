@@ -866,19 +866,21 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private async _createStripeInvoiceItem4Dimension(customerID: string, pricingDimension: string,
       billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
-    const { effectivePricing, taxes } = billingInvoiceItem;
+    const { effectivePricing } = billingInvoiceItem;
     if (!effectivePricing[pricingDimension]?.amount || !effectivePricing[pricingDimension]?.quantity) {
       // Do not bill that dimension
       return null;
     }
     const currency = effectivePricing.currency.toLowerCase();
+    // Tax rates
+    const tax_rates = effectivePricing[pricingDimension].taxes || [];
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
       customer: customerID,
       currency,
       description: effectivePricing[pricingDimension].description,
-      tax_rates: taxes,
+      tax_rates,
       // quantity: 1, //Cannot be set separately
       amount: Utils.createDecimal(effectivePricing[pricingDimension].amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
@@ -903,7 +905,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
-    const { description, effectivePricing, taxes } = billingInvoiceItem;
+    const { description, effectivePricing } = billingInvoiceItem;
     const currency = effectivePricing.currency.toLowerCase();
     // Build stripe parameters for the item
     const parameters: Stripe.InvoiceItemCreateParams = {
@@ -911,7 +913,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       customer: customerID,
       currency,
       description,
-      tax_rates: taxes,
+      tax_rates: effectivePricing.energy?.taxes,
       // quantity: 1, //Cannot be set separately
       amount: Utils.createDecimal(effectivePricing.energy.amount).times(100).round().toNumber(), // In cents
       metadata: { ...billingInvoiceItem?.metadata }
@@ -1077,7 +1079,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Destructuring transaction.stop
     const transactionID = transaction.id;
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    // TODO - we need a description per dimension type 
+    // TODO - we need a description per dimension type
     const itemDescription = this.buildLineItemDescription(transaction);
     // -------------------------------------------------------------------------------
     // ACHTUNG - STRIPE expects the amount and prices in CENTS!
@@ -1086,7 +1088,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const amount = roundedPrice; // Total amount for the line item
     const currency = priceUnit;
     // -------------------------------------------------------------------------------
-    const taxes = this.getTaxRateIds(); // TODO - take into account SITE settings
+    // TODO - take into account SITE settings
+    // TODO - so far we use the same tax rates for all invoice items!
+    const taxes = this.getTaxRateIds();
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
       description: itemDescription,
@@ -1096,10 +1100,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         energy: {
           itemDescription,
           amount,
-          quantity
+          quantity,
+          taxes
         }
       },
-      taxes,
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,
@@ -1177,13 +1181,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string | number, prefix, suffix = null): string {
+  private buildIdemPotencyKey(uniqueId: string | number, prefix: string, suffix: string = null): string {
     if (uniqueId) {
-      if ( suffix ) {
+      if (suffix) {
         return `${prefix}_${uniqueId}_${suffix}`;
-      } else {
-        return `${prefix}_${uniqueId}`;
       }
+      return `${prefix}_${uniqueId}`;
+
     }
     return null;
   }

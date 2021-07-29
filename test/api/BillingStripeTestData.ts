@@ -255,6 +255,7 @@ export default class StripeIntegrationTestData {
 
     const itemDescription = `Stripe Integration - ${quantity} kWh * ${price} Eur`;
     // array of tax ids to apply to the line item
+    const taxes = (taxId) ? [ taxId ] : [];
     const invoiceItem:BillingInvoiceItem = {
       description: itemDescription,
       transactionID: Utils.getRandomIntSafe(),
@@ -266,15 +267,13 @@ export default class StripeIntegrationTestData {
       effectivePricing: {
         currency: 'EUR',
         energy: {
-          itemDescription, 
+          itemDescription,
           amount, // total amount to bill -  not yet in cents
           quantity, // kW.h
+          taxes // Array of taxes - cannot be null
         }
       }
     };
-    if (taxId) {
-      invoiceItem.taxes = [ taxId ];
-    }
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
     assert(billingInvoice, 'Billing invoice should not be null');

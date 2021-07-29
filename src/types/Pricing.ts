@@ -68,9 +68,12 @@ export interface EffectivePricingData {
   quantity: number;
   cumulatedAmount?: number;
   roundedAmount?: number;
+  // Each invoice item may have a different tax rate
+  // And STRIPE allows more than one for each of them, so this is an array!
+  taxes?: string[];
 }
 
-// Interface exposed by the pricing integration layer  
+// Interface exposed by the pricing integration layer
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;
