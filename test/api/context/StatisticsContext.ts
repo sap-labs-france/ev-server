@@ -93,14 +93,14 @@ export default class StatisticsContext {
    * @param transactionId The id of the transaction
    */
   public async generateStaticRefundData(transactionId: number) {
-    const transaction = await TransactionStorage.getTransaction(this.tenantContext.getTenant().id, transactionId);
+    const transaction = await TransactionStorage.getTransaction(this.tenantContext.getTenant(), transactionId);
     transaction.refundData = {
       refundId: faker.random.alphaNumeric(32),
       refundedAt: new Date(),
       reportId: faker.random.alphaNumeric(20),
       status: RefundStatus.APPROVED,
     };
-    await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
+    await TransactionStorage.saveTransaction(this.tenantContext.getTenant(), transaction);
     console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 

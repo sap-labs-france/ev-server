@@ -117,7 +117,7 @@ export default abstract class ChargingStationVendorIntegration {
         // Set
         connector.amperageLimit = limitAmpsPerConnector;
       }
-      await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+      await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
     }
     return result;
   }
@@ -146,7 +146,7 @@ export default abstract class ChargingStationVendorIntegration {
             }
           }
           // Save
-          await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+          await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
         }
       }
     }
@@ -392,7 +392,7 @@ export default abstract class ChargingStationVendorIntegration {
       // Check first matching Charging Profile
       if (chargingStation.capabilities?.supportChargingProfiles) {
         // Get the current Charging Profiles
-        const chargingProfiles = (await ChargingStationStorage.getChargingProfiles(tenant.id, {
+        const chargingProfiles = (await ChargingStationStorage.getChargingProfiles(tenant, {
           chargingStationIDs: [chargingStation.id]
         }, Constants.DB_PARAMS_MAX_LIMIT)).result;
         // Check the TX Charging Profiles from the DB
