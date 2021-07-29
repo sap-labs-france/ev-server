@@ -279,7 +279,6 @@ export default class StripeIntegrationTestData {
     const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
     // Princing/Consumption Data
     const effectivePricing: EffectivePricing = {
-      currency: 'EUR',
       energy: {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
@@ -295,6 +294,7 @@ export default class StripeIntegrationTestData {
     };
     // Invoice Item
     const invoiceItem:BillingInvoiceItem = {
+      currency: 'EUR',
       transactionID: Utils.getRandomIntSafe(),
       effectivePricing
     };

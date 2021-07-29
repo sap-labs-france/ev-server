@@ -885,7 +885,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // Do not bill that dimension
       return null;
     }
-    const currency = effectivePricing.currency.toLowerCase();
+    const currency = billingInvoiceItem.currency.toLowerCase();
     // Tax rates
     const tax_rates = effectivePricing[pricingDimension].taxes || [];
     // Build stripe parameters for the parking time
@@ -1024,10 +1024,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { transactionID, effectivePricing } = fatInvoiceItem;
+    const { transactionID, currency, effectivePricing } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       transactionID,
+      currency,
       effectivePricing
     };
     return lightInvoiceItem;
@@ -1052,8 +1053,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
+      currency,
       effectivePricing: {
-        currency,
         energy: {
           itemDescription,
           amount,

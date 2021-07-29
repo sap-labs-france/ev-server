@@ -82,9 +82,8 @@ export interface BillingInvoice {
 }
 
 export interface BillingInvoiceItem {
-  // description: string;
   transactionID: number;
-  // pricingData: BillingPricingData;
+  currency: string;
   effectivePricing: EffectivePricing
   metadata?: {
     // Just a flat list of key/value pairs!

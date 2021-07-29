@@ -7,8 +7,6 @@ export interface PricingModel {
 }
 
 export interface Pricing {
-  comment?: string,
-  // components: PricingComponent[];
   flatFee?: PricingComponent,
   energy?: PricingComponent,
   parkingTime?: PricingComponent,
@@ -54,8 +52,6 @@ export enum DayOfWeek {
 // }
 
 export interface EffectivePricing {
-  currency: string,
-  // pricingSource: EffectivePricingData;
   flatFee?: EffectivePricingData,
   energy?: EffectivePricingData,
   parkingTime?: EffectivePricingData,
