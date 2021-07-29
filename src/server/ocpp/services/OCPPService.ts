@@ -633,7 +633,7 @@ export default class OCPPService {
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagId(tenant.id, tagId);
+      user = await UserStorage.getUserByTagId(tenant, tagId);
     }
     // Already Stopped?
     if (transaction.stop) {
@@ -1657,7 +1657,7 @@ export default class OCPPService {
         transaction.carCatalogID = car?.carCatalogID;
       }
       // Clear
-      await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
+      await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
     }
   }
 

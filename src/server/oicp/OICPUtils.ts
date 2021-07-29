@@ -228,7 +228,7 @@ export default class OICPUtils {
     }
   }
 
-  public static async createOICPVirtualUser(tenantID: string): Promise<void> {
+  public static async createOICPVirtualUser(tenant: Tenant): Promise<void> {
     // Create the virtual OICP user
     const newVirtualOICPUser = UserStorage.createNewUser() as User;
     newVirtualOICPUser.email = Constants.OICP_VIRTUAL_USER_EMAIL;
@@ -238,9 +238,9 @@ export default class OICPUtils {
     newVirtualOICPUser.status = UserStatus.ACTIVE;
     newVirtualOICPUser.notificationsActive = false;
     // Save User
-    newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
+    newVirtualOICPUser.id = await UserStorage.saveUser(tenant, newVirtualOICPUser);
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
+    await UserStorage.saveUserStatus(tenant, newVirtualOICPUser.id, UserStatus.ACTIVE);
   }
 
   private static convertConnector2OICPChargingFacility(chargingStation: ChargingStation, connector: Connector): OICPChargingFacility {

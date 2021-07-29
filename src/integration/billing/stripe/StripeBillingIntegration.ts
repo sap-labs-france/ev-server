@@ -185,7 +185,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Stripe
     await this.checkConnection();
     // Make sure to get fresh data
-    user = await UserStorage.getUser(this.tenant.id, user.id);
+    user = await UserStorage.getUser(this.tenant, user.id);
     const customerID: string = user?.billingData?.customerID;
     // returns true when the customerID is properly set!
     return !!customerID;
@@ -196,7 +196,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Make sure the billing data has been provided
     if (!user.billingData) {
-      user = await UserStorage.getUser(this.tenant.id, user.id);
+      user = await UserStorage.getUser(this.tenant, user.id);
     }
     // Retrieve the STRIPE customer (if any)
     const customerID: string = user.billingData?.customerID;
@@ -322,7 +322,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     } else if (checkUserExists) {
       // Let's make sure the userID is still valid
-      const user = await UserStorage.getUser(this.tenant.id, userID);
+      const user = await UserStorage.getUser(this.tenant, userID);
       if (!user) {
         throw new BackendError({
           message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
@@ -1378,7 +1378,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     // Save the billing data
     user.billingData = billingData;
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, user.billingData);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
   }
@@ -1405,7 +1405,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     customer = await this.stripe.customers.update(customerID, updateParams);
     // Let's update the Billing Data of our customer
     user.billingData.lastChangedOn = new Date();
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, user.billingData);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
   }
