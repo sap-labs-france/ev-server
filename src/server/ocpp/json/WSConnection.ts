@@ -28,7 +28,6 @@ export default abstract class WSConnection {
   private clientIP: string | string[];
   private wsConnection: WebSocket;
   private requests: { [id: string]: OCPPRequest };
-  private validTenant: boolean;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
@@ -44,7 +43,6 @@ export default abstract class WSConnection {
       message: `WS connection opening attempts with URL: '${req.url}'`,
     });
     // Default
-    this.validTenant = false;
     this.requests = {};
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
@@ -120,7 +118,6 @@ export default abstract class WSConnection {
     try {
       // Check Tenant?
       this.tenant = await DatabaseUtils.checkTenant(this.tenantID);
-      this.validTenant = true;
     } catch (error) {
       // Custom Error
       await Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
@@ -328,11 +325,7 @@ export default abstract class WSConnection {
   }
 
   public getTenantID(): string {
-    if (this.isTenantValid()) {
-      return this.tenantID;
-    }
-    // No: go to the master tenant
-    return Constants.DEFAULT_TENANT;
+    return this.tenantID;
   }
 
   public getTenant(): Tenant {
@@ -345,10 +338,6 @@ export default abstract class WSConnection {
 
   public getID(): string {
     return `${this.getTenantID()}~${this.getChargingStationID()}`;
-  }
-
-  public isTenantValid(): boolean {
-    return this.validTenant;
   }
 
   public isWSConnectionOpen(): boolean {

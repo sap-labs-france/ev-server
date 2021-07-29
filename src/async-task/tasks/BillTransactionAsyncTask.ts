@@ -25,7 +25,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
           const lock = await LockingHelper.acquireBillUserLock(tenant.id, userID);
           if (lock) {
             try {
-              const transaction = await TransactionStorage.getTransaction(tenant.id, Number(transactionID), { withUser: true, withChargingStation: true });
+              const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), { withUser: true, withChargingStation: true });
               if (!transaction) {
                 throw new Error(`Unknown Transaction ID '${this.asyncTask.parameters.transactionID}'`);
               }
@@ -43,7 +43,7 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
               transaction.billingData.stop = billingDataStop;
               transaction.billingData.lastUpdate = new Date();
               // Save
-              await TransactionStorage.saveTransactionBillingData(tenant.id, transaction.id, transaction.billingData);
+              await TransactionStorage.saveTransactionBillingData(tenant, transaction.id, transaction.billingData);
             } finally {
               // Release the lock
               await LockingManager.release(lock);

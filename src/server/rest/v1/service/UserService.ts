@@ -39,6 +39,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './security/UtilsSecurity';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 import csvToJson from 'csvtojson/v2';
@@ -102,9 +103,9 @@ export default class UserService {
       req.tenant, req.user, user, filteredRequest.siteIDs, action);
     // Save
     if (action === ServerAction.ADD_SITES_TO_USER) {
-      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
+      await UserStorage.addSitesToUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     } else {
-      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, sites.map((site) => site.id));
+      await UserStorage.removeSitesFromUser(req.tenant, filteredRequest.userID, sites.map((site) => site.id));
     }
     // Log
     await Logging.logSecurityInfo({
@@ -127,7 +128,7 @@ export default class UserService {
     // Delete OCPI User
     if (!user.issuer) {
       // Delete User
-      await UserStorage.deleteUser(req.user.tenantID, user.id);
+      await UserStorage.deleteUser(req.tenant, user.id);
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user,
@@ -146,7 +147,7 @@ export default class UserService {
     // Delete Car
     await UserService.checkAndDeleteCar(req.tenant, req.user, user);
     // Delete User
-    await UserStorage.deleteUser(req.user.tenantID, user.id);
+    await UserStorage.deleteUser(req.tenant, user.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -167,7 +168,7 @@ export default class UserService {
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
-    const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
+    const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (userWithEmail && user.id !== userWithEmail.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -197,12 +198,12 @@ export default class UserService {
       lastChangedOn: lastChangedOn,
     };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUser(req.user.tenantID, user, true);
+    await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password
     if (filteredRequest.password) {
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id,
+      await UserStorage.saveUserPassword(req.tenant, filteredRequest.id,
         {
           password: newPasswordHashed,
           passwordWrongNbrTrials: 0,
@@ -214,17 +215,17 @@ export default class UserService {
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User's Status
       if (filteredRequest.status) {
-        await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
+        await UserStorage.saveUserStatus(req.tenant, user.id, filteredRequest.status);
       }
       // Save User's Role
       if (filteredRequest.role) {
-        await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
+        await UserStorage.saveUserRole(req.tenant, user.id, filteredRequest.role);
       }
       // Save Admin Data
       if (Utils.objectHasProperty(filteredRequest, 'plateID')) {
         const adminData: { plateID?: string; } = {};
         adminData.plateID = filteredRequest.plateID || null;
-        await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
+        await UserStorage.saveUserAdminData(req.tenant, user.id, adminData);
       }
     }
     // Update Billing
@@ -272,7 +273,7 @@ export default class UserService {
     const user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action);
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
+    await UserStorage.saveUserMobileToken(req.tenant, user.id, {
       mobileToken: filteredRequest.mobileToken,
       mobileOs: filteredRequest.mobileOS,
       mobileLastChangedOn: new Date()
@@ -310,16 +311,14 @@ export default class UserService {
     const userID = UserValidator.getInstance().validateUserGetByID(req.query).ID.toString();
     // Check and Get User
     const user = await UtilsService.checkAndGetUserAuthorization(
-      req.tenant, req.user, userID, Action.READ, action);
+      req.tenant, req.user, userID, Action.READ, action, null, null, null, false);
     // Get the user image
-    const userImage = await UserStorage.getUserImage(req.user.tenantID, user.id);
+    const userImage = await UserStorage.getUserImage(req.tenant, user.id);
     res.json(userImage);
     next();
   }
 
   public static async handleExportUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Export with tags
-    req.query['WithTag'] = 'true';
     await UtilsService.exportToCSV(req, res, 'exported-users.csv',
       UserService.getUsers.bind(this),
       UserService.convertToCSV.bind(this));
@@ -346,7 +345,7 @@ export default class UserService {
       return;
     }
     // Get Sites
-    const sites = await UserStorage.getUserSites(req.user.tenantID,
+    const sites = await UserStorage.getUserSites(req.tenant,
       {
         search: filteredRequest.Search,
         userIDs: [filteredRequest.UserID],
@@ -384,7 +383,7 @@ export default class UserService {
     const authorizationUserInErrorFilters = await AuthorizationService.checkAndGetUsersInErrorAuthorizations(
       req.tenant, req.user, filteredRequest);
     // Get users
-    const users = await UserStorage.getUsersInError(req.user.tenantID,
+    const users = await UserStorage.getUsersInError(req.tenant,
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
@@ -439,7 +438,7 @@ export default class UserService {
     };
     try {
       // Delete all previously imported users
-      await UserStorage.deleteImportedUsers(req.user.tenantID);
+      await UserStorage.deleteImportedUsers(req.tenant);
       // Get the stream
       const busboy = new Busboy({ headers: req.headers });
       req.pipe(busboy);
@@ -483,6 +482,9 @@ export default class UserService {
               // Set default value
               user.importedBy = importedBy;
               user.importedOn = importedOn;
+              user.importedData = {
+                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport)
+              };
               // Import
               const importSuccess = await UserService.processUser(action, req, user, usersToBeImported);
               if (!importSuccess) {
@@ -490,7 +492,7 @@ export default class UserService {
               }
               // Insert batched
               if (!Utils.isEmptyArray(usersToBeImported) && (usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
               }
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async (error: CSVError) => {
@@ -517,7 +519,7 @@ export default class UserService {
               connectionClosed = true;
               // Insert batched
               if (usersToBeImported.length > 0) {
-                await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
               }
               // Release the lock
               await LockingManager.release(importUsersLock);
@@ -562,7 +564,7 @@ export default class UserService {
               }
               // Insert batched
               if ((usersToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await UserService.insertUsers(req.user.tenantID, req.user, action, usersToBeImported, result);
+                await UserService.insertUsers(req.tenant, req.user, action, usersToBeImported, result);
               }
             });
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -627,7 +629,7 @@ export default class UserService {
       });
     }
     // Get the email
-    const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
+    const foundUser = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
     if (foundUser) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -648,11 +650,11 @@ export default class UserService {
       issuer: true,
     } as User;
     // Create the User
-    newUser.id = await UserStorage.saveUser(req.user.tenantID, newUser, true);
+    newUser.id = await UserStorage.saveUser(req.tenant, newUser, true);
     // Save password
     if (newUser.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(newUser.password);
-      await UserStorage.saveUserPassword(req.user.tenantID, newUser.id,
+      await UserStorage.saveUserPassword(req.tenant, newUser.id,
         {
           password: newPasswordHashed,
           passwordWrongNbrTrials: 0,
@@ -664,11 +666,11 @@ export default class UserService {
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (newUser.status) {
-        await UserStorage.saveUserStatus(req.user.tenantID, newUser.id, newUser.status);
+        await UserStorage.saveUserStatus(req.tenant, newUser.id, newUser.status);
       }
       // Save User Role
       if (newUser.role) {
-        await UserStorage.saveUserRole(req.user.tenantID, newUser.id, newUser.role);
+        await UserStorage.saveUserRole(req.tenant, newUser.id, newUser.role);
       }
       // Save Admin Data
       if (newUser.plateID || Utils.objectHasProperty(newUser, 'notificationsActive')) {
@@ -683,7 +685,7 @@ export default class UserService {
           }
         }
         // Save User Admin data
-        await UserStorage.saveUserAdminData(req.user.tenantID, newUser.id, adminData);
+        await UserStorage.saveUserAdminData(req.tenant, newUser.id, adminData);
       }
     }
     // Assign user to all sites with auto-assign flag set
@@ -693,7 +695,7 @@ export default class UserService {
     );
     if (!Utils.isEmptyArray(sites.result)) {
       const siteIDs = sites.result.map((site) => site.id);
-      await UserStorage.addSitesToUser(req.user.tenantID, newUser.id, siteIDs);
+      await UserStorage.addSitesToUser(req.tenant, newUser.id, siteIDs);
     }
     // Update Billing
     await UserService.updateUserBilling(ServerAction.USER_CREATE, req.tenant, req.user, newUser);
@@ -709,16 +711,16 @@ export default class UserService {
     next();
   }
 
-  private static async insertUsers(tenantID: string, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
+  private static async insertUsers(tenant: Tenant, user: UserToken, action: ServerAction, usersToBeImported: ImportedUser[], result: ActionsResponse): Promise<void> {
     try {
-      const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenantID, usersToBeImported);
+      const nbrInsertedUsers = await UserStorage.saveImportedUsers(tenant, usersToBeImported);
       result.inSuccess += nbrInsertedUsers;
     } catch (error) {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
       result.inError += error.writeErrors.length;
       await Logging.logError({
-        tenantID: tenantID,
+        tenantID: tenant.id,
         module: MODULE_NAME, method: 'insertUsers',
         action: action,
         user: user.id,
@@ -733,7 +735,7 @@ export default class UserService {
     let headers = null;
     // Header
     if (writeHeader) {
-      const headerArray = [
+      headers = [
         'id',
         'name',
         'firstName',
@@ -744,11 +746,10 @@ export default class UserService {
         'eulaAcceptedOn',
         'createdOn',
         'changedOn',
-        'changedBy'
-      ];
-      headers = headerArray.join(Constants.CSV_SEPARATOR);
+        'changedBy',
+      ].join(Constants.CSV_SEPARATOR);
     }
-    // Conten t
+    // Content
     const rows = users.map((user) => {
       const row = [
         user.id,
@@ -786,7 +787,7 @@ export default class UserService {
       }
     }
     // Get users
-    const users = await UserStorage.getUsers(req.user.tenantID,
+    const users = await UserStorage.getUsers(req.tenant,
       {
         search: filteredRequest.Search,
         issuer: Utils.isBoolean(filteredRequest.Issuer) || filteredRequest.Issuer ? Utils.convertToBoolean(filteredRequest.Issuer) : null,
@@ -817,6 +818,8 @@ export default class UserService {
         name: importedUser.name.toUpperCase(),
         firstName: importedUser.firstName,
         email: importedUser.email,
+        importedData: importedUser.importedData,
+        siteIDs: importedUser.siteIDs
       };
       // Validate User data
       UserValidator.getInstance().validateImportedUserCreation(newImportedUser);

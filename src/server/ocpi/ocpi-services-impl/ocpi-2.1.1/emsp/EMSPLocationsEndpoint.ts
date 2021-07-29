@@ -74,7 +74,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     }
     if (evseUID) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-        tenant.id, locationID, evseUID);
+        tenant, locationID, evseUID);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -223,7 +223,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       (chargingStationEvse) => chargingStationEvse.uid === chargingStationEvse.uid);
     if (evse.status) {
       if (evse.status === OCPIEvseStatus.REMOVED) {
-        await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
+        await ChargingStationStorage.deleteChargingStation(tenant, chargingStation.id);
         return;
       }
       foundChargingStationEvse.status = evse.status;
@@ -260,7 +260,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       chargingStation.connectors = patchedChargingStation.connectors;
       chargingStation.maximumPower = patchedChargingStation.maximumPower;
     }
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
   }
 
   private async patchEvseConnector(tenant: Tenant, chargingStation: ChargingStation, ocpiConnector: Partial<OCPIConnector>) {
@@ -289,16 +289,16 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (ocpiConnector.standard) {
       foundConnector.type = OCPIUtilsService.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
     }
-    await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+    await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
   }
 
   private async updateEvse(tenant: Tenant, evse: OCPIEvse, location: OCPILocation) {
     if (evse.status === OCPIEvseStatus.REMOVED) {
       const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-        tenant.id, location.id, evse.uid);
+        tenant, location.id, evse.uid);
       if (chargingStation) {
         // Delete
-        await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStation.id);
+        await ChargingStationStorage.deleteChargingStation(tenant, chargingStation.id);
         await Logging.logInfo({
           tenantID: tenant.id,
           action: ServerAction.OCPI_PATCH_LOCATION,
@@ -311,7 +311,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     } else {
       // Create/Update
       const chargingStation = OCPIUtilsService.convertEvseToChargingStation(evse, location);
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await Logging.logDebug({
         tenantID: tenant.id,
         action: ServerAction.OCPI_PATCH_LOCATION,
@@ -325,7 +325,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
 
   private async updateConnector(tenant: Tenant, evse: OCPIEvse, evseConnector: OCPIConnector, location: OCPILocation) {
     const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-      tenant.id, location.id, evse.uid);
+      tenant, location.id, evse.uid);
     if (!chargingStation) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -359,7 +359,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         type: OCPIUtilsService.convertOCPIConnectorType2ConnectorType(evseConnector.standard),
       });
     }
-    await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+    await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
   }
 }
 
