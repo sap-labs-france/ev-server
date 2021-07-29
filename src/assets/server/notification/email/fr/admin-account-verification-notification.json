@@ -28,7 +28,7 @@
       "url": "<%- evseUserToVerifyURL %>"
     }],
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

@@ -72,7 +72,7 @@ export default class UtilsService {
       });
     }
     // Get ChargingStation
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationID,
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -417,7 +417,7 @@ export default class UtilsService {
       });
     }
     // Get Assets
-    const assets = (await AssetStorage.getAssets(tenant.id,
+    const assets = (await AssetStorage.getAssets(tenant,
       {
         assetIDs,
         ...additionalFilters,
@@ -478,7 +478,7 @@ export default class UtilsService {
       });
     }
     // Get Charging Stations
-    const chargingStations = (await ChargingStationStorage.getChargingStations(tenant.id,
+    const chargingStations = (await ChargingStationStorage.getChargingStations(tenant,
       {
         chargingStationIDs,
         ...additionalFilters,

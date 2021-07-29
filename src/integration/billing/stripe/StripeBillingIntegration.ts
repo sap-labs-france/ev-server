@@ -455,13 +455,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant.id, Number(transactionID));
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
         transaction.billingData.stop.invoiceStatus = billingInvoice.status;
         transaction.billingData.stop.invoiceNumber = billingInvoice.number;
         transaction.billingData.lastUpdate = new Date();
         // Save
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
       } catch (error) {
         // Catch stripe errors and send the information back to the client
         await Logging.logError({
@@ -966,6 +966,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       tenantID: this.tenant.id,
       parameters: {
         transactionID: String(transaction.id),
+        userID: transaction.userID
       },
       module: MODULE_NAME,
       method: 'stopTransaction',

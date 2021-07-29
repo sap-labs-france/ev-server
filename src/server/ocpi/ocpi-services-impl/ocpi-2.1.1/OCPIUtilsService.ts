@@ -199,8 +199,8 @@ export default class OCPIUtilsService {
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
-        // Mougins
         switch (site.id) {
+          // Mougins
           case '5abeba8d4bae1457eb565e5b':
             return {
               regular_hours: [
@@ -228,6 +228,73 @@ export default class OCPIUtilsService {
                   weekday: 5,
                   period_begin: '08:00',
                   period_end: '18:00'
+                },
+              ],
+              twentyfourseven: false
+            };
+          // Caen
+          case '5abeba9e4bae1457eb565e66':
+            return {
+              regular_hours: [
+                {
+                  weekday: 1, // Monday
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 1, // Monday
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 2,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 3,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 4,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '00:00',
+                  period_end: '08:00'
+                },
+                {
+                  weekday: 5,
+                  period_begin: '18:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 6,
+                  period_begin: '00:00',
+                  period_end: '23:59'
+                },
+                {
+                  weekday: 7,
+                  period_begin: '00:00',
+                  period_end: '23:59'
                 },
               ],
               twentyfourseven: false
@@ -363,7 +430,7 @@ export default class OCPIUtilsService {
     // Build evses array
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
       { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
       [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
@@ -381,7 +448,7 @@ export default class OCPIUtilsService {
         chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
       }
       // Always update OCPI data
-      await ChargingStationStorage.saveChargingStationOcpiData(tenant.id, chargingStation.id, { evses: chargingStationEvses });
+      await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, { evses: chargingStationEvses });
       evses.push(...chargingStationEvses);
     }
     return evses;
@@ -414,7 +481,7 @@ export default class OCPIUtilsService {
     if (!session.kwh) {
       session.kwh = 0;
     }
-    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, session.id);
+    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     if (!transaction) {
       const user = await UserStorage.getUser(tenant.id, session.auth_id);
       if (!user) {
@@ -428,7 +495,7 @@ export default class OCPIUtilsService {
         });
       }
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant.id, evse.evse_id);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -523,7 +590,7 @@ export default class OCPIUtilsService {
         userID: transaction.userID
       };
     }
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
@@ -538,7 +605,7 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, cdr.id);
+    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -586,7 +653,7 @@ export default class OCPIUtilsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.cdr = cdr;
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
@@ -863,6 +930,9 @@ export default class OCPIUtilsService {
           // Mougins - South - Fastcharging
           case '5b72cef274ae30000855e458':
             return 'FR*SLF_DC_Sud';
+          // Caen
+          case '5ac678b5c0cc5e7fdd2c5ef3':
+            return 'FR*SLF_Caen';
         }
         return '';
       // Proviridis
@@ -991,7 +1061,7 @@ export default class OCPIUtilsService {
   }
 
   private static async updateConnector(tenant: Tenant, transaction: Transaction): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (chargingStation && chargingStation.connectors) {
       for (const connector of chargingStation.connectors) {
         if (connector.connectorId === transaction.connectorId && connector.currentTransactionID === 0 || connector.currentTransactionID === transaction.id) {
@@ -1016,7 +1086,7 @@ export default class OCPIUtilsService {
             connector.currentInstantWatts = 0;
             connector.currentInactivityStatus = null;
           }
-          await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+          await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
         }
       }
     }
