@@ -1432,6 +1432,241 @@
         }
       }
     },
+    "/api/transactions/action/refund": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Refund Transactions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transactionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions refund result",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "inSuccess": 42,
+                  "inError": 1
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "552": {
+            "description": "No Refund valid connection found"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/assign": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Assign Transactions to a user",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "TagID",
+            "description": "Tag ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "UserID",
+            "description": "User ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions successfully assigned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Transactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "description": "Transactions minimal price",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "description": "Pipe separated report IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions successfully exported",
+            "content": {
+              "text/csv": {
+                "example": "id,chargingStationID,connectorID,companyName,siteName,siteAreaName,userID,user,tagID,visualTagID,tagDescription,timezone,startDate,startTime,endDate,endTime,totalConsumptionkWh,totalDurationMins,totalInactivityMins,price,priceUnit\n1155141205,\"###\",1,,,,\"\",\"\",\"###\",\"###\",\"###\",\"Europe/Paris\",\"2021-07-07\",\"16:21:59\",\"2021-07-07\",\"16:22:27\",0,0.46,0.46,0,\"EUR\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
     "/api/charging-stations": {
       "get": {
         "security": [
