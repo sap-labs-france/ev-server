@@ -64,7 +64,7 @@ export default class OCPPUtils {
       });
     }
     // Get the Token
-    const token = await RegistrationTokenStorage.getRegistrationToken(tenant.id, tokenID);
+    const token = await RegistrationTokenStorage.getRegistrationToken(tenant, tokenID);
     if (!token) {
       throw new BackendError({
         source: chargingStationID,
