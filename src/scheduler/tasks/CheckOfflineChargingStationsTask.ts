@@ -27,7 +27,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
         const chargingStations = await ChargingStationStorage.getChargingStations(tenant, {
           issuer: true, withSiteArea: true, offlineSince
         }, Constants.DB_PARAMS_MAX_LIMIT);
-        if (chargingStations.count > 0) {
+        if (!Utils.isEmptyArray(chargingStations.result)) {
           for (let i = chargingStations.result.length - 1; i >= 0; i--) {
             const chargingStation = chargingStations.result[i];
             let ocppHeartbeatConfiguration: OCPPGetConfigurationCommandResult;
@@ -63,7 +63,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
           }
           // Notify users with the rest of the Charging Stations
           if (chargingStations.result.length > 0) {
-            const chargingStationIDs: string = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
+            const chargingStationIDs = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');
             // Send notification
             await NotificationHandler.sendOfflineChargingStations(
               tenant, {
