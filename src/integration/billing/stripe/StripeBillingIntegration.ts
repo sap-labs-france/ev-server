@@ -14,6 +14,7 @@ import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import { EffectivePricingData } from '../../../types/Pricing';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
@@ -857,43 +858,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async _createStripeInvoiceItems(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
-    // A stripe invoice item per dimemsion
-    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, invoiceID);
-  }
-
-  private async _createStripeInvoiceItem4Dimension(customerID: string, pricingDimension: string,
-      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
-    const { effectivePricing } = billingInvoiceItem;
-    if (!effectivePricing[pricingDimension]?.amount || !effectivePricing[pricingDimension]?.quantity) {
-      // Do not bill that dimension
-      return null;
-    }
-    const currency = effectivePricing.currency.toLowerCase();
-    // Tax rates
-    const tax_rates = effectivePricing[pricingDimension].taxes || [];
-    // Build stripe parameters for the parking time
-    const parameters: Stripe.InvoiceItemCreateParams = {
-      invoice: invoiceID,
-      customer: customerID,
-      currency,
-      description: effectivePricing[pricingDimension].description,
-      tax_rates,
-      // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(effectivePricing[pricingDimension].amount).times(100).round().toNumber(),
-      metadata: { ...billingInvoiceItem?.metadata }
-    };
-    if (!parameters.invoice) {
-      // STRIPE throws an exception when invoice is set to null.
-      delete parameters.invoice;
-    }
-    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', pricingDimension));
-    return parameters;
-  }
-
-  private _buildInvoiceItemParameters(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Stripe.InvoiceItemCreateParams {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
     -----------------------------------------------------------------------------------
@@ -905,46 +869,41 @@ export default class StripeBillingIntegration extends BillingIntegration {
     Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
-    const { description, effectivePricing } = billingInvoiceItem;
+    // A stripe invoice item per dimemsion
+    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, invoiceID);
+  }
+
+  private async _createStripeInvoiceItem4Dimension(customerID: string, pricingDimension: string,
+      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
+    const effectivePricing = billingInvoiceItem.effectivePricing;
+    // data for the current dimension (energy | parkingTime, etc)
+    const effectivePricingData: EffectivePricingData = effectivePricing[pricingDimension];
+    if (!effectivePricingData || !effectivePricingData.amount || !effectivePricingData.quantity) {
+      // Do not bill that dimension
+      return null;
+    }
     const currency = effectivePricing.currency.toLowerCase();
-    // Build stripe parameters for the item
+    // Tax rates
+    const tax_rates = effectivePricing[pricingDimension].taxes || [];
+    // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
       customer: customerID,
       currency,
-      description,
-      tax_rates: effectivePricing.energy?.taxes,
+      description: effectivePricingData.itemDescription,
+      tax_rates,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(effectivePricing.energy.amount).times(100).round().toNumber(), // In cents
+      amount: Utils.createDecimal(effectivePricing[pricingDimension].amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
-
-    // // ----------------------------------------------------------------------------------------
-    // // INVESTIGATIONS - Attempts to set both the quantity and the unit_amount
-    // // ----------------------------------------------------------------------------------------
-    // Quantity must be an Integer! - STRIPE does not support decimals
-    // const quantity = Utils.createDecimal(pricingData.quantity).round().toNumber(); // kW.h -
-    // if (quantity === 0) {
-    //   // ----------------------------------------------------------------------------------------
-    //   // The quantity was too small - let's prevent dividing by zero
-    //   // parameters.quantity = 0; // Not an option for STRIPE
-    //   // ----------------------------------------------------------------------------------------
-    //   parameters.amount = Utils.createDecimal(pricingData.amount).times(100).round().toNumber();
-    // } else {
-    //   // ----------------------------------------------------------------------------------------
-    //   // STRIPE expects either "unit_amount" in Cents - or unit_amount_decimal (with 4 decimals)
-    //   // ----------------------------------------------------------------------------------------
-    //   const unit_amount_in_cents = Utils.createDecimal(pricingData.amount).times(100).dividedBy(quantity);
-    //   // Let's use the more precise option
-    //   const unit_amount_decimal: string = unit_amount_in_cents.times(100).round().dividedBy(100).toNumber().toFixed(2);
-    //   parameters.quantity = quantity;
-    //   parameters.unit_amount_decimal = unit_amount_decimal;
-    // }
-
     if (!parameters.invoice) {
       // STRIPE throws an exception when invoice is set to null.
       delete parameters.invoice;
     }
+    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', pricingDimension));
     return parameters;
   }
 
@@ -1065,10 +1024,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { description, transactionID, effectivePricing } = fatInvoiceItem;
+    const { transactionID, effectivePricing } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
-      description,
       transactionID,
       effectivePricing
     };
@@ -1093,7 +1051,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const taxes = this.getTaxRateIds();
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {
-      description: itemDescription,
       transactionID,
       effectivePricing: {
         currency,

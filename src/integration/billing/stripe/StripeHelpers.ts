@@ -32,7 +32,6 @@ export default class StripeHelpers {
     if (billingInvoiceItem) {
       session = {
         transactionID: billingInvoiceItem.transactionID,
-        description: billingInvoiceItem.description,
         effectivePricing: billingInvoiceItem.effectivePricing,
       };
     }

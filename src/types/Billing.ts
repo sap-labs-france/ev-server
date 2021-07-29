@@ -82,7 +82,7 @@ export interface BillingInvoice {
 }
 
 export interface BillingInvoiceItem {
-  description: string;
+  // description: string;
   transactionID: number;
   // pricingData: BillingPricingData;
   effectivePricing: EffectivePricing
@@ -94,7 +94,6 @@ export interface BillingInvoiceItem {
 
 export interface BillingSessionData {
   transactionID: number;
-  description: string;
   // pricingData: BillingPricingData;
   effectivePricing: EffectivePricing;
 }

@@ -8,6 +8,7 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
+import { EffectivePricing } from '../../src/types/Pricing';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
@@ -196,10 +197,22 @@ export default class StripeIntegrationTestData {
     // The user should have no DRAFT invoices
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
-    const dynamicInvoice = await this.billInvoiceItem(1000 /* kW.h */, 4 /* EUR */, taxId);
+    const dynamicInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 1000, // kWh
+      energyAmount: 1, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
     assert(dynamicInvoice, 'Invoice should not be null');
     // Let's add an second item to the same invoice
-    const updatedInvoice = await this.billInvoiceItem(2000 /* kW.h */, 8 /* EUR */, taxId);
+    const updatedInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 2000, // kWh
+      energyAmount: 2, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
     assert(updatedInvoice, 'Invoice should not be null');
     // User should have a DRAFT invoice
     const draftInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.DRAFT);
@@ -220,9 +233,7 @@ export default class StripeIntegrationTestData {
 
   public async checkImmediateBillingWithTaxes() : Promise<void> {
     // Inputs / Expected Outputs
-    const transactionPrice = 4 /* EUR */;
     const tax20percent = 20 /* VAT 20 % */;
-    const expectedTotal = 480; /* in cents, including taxes */
     // PREREQUISITE - immediateBillingAllowed MUST BE ON!
     const taxRate: Stripe.TaxRate = await this.assignTaxRate(tax20percent);
     const taxId = taxRate.id;
@@ -230,7 +241,14 @@ export default class StripeIntegrationTestData {
     await this.checkForDraftInvoices(this.dynamicUser.id, 0);
     // Let's create an Invoice with a first Item
     const beforeInvoiceDateTime = Utils.createDecimal(new Date().getTime()).div(1000).trunc().toNumber();
-    const dynamicInvoice = await this.billInvoiceItem(500 /* kW.h */, transactionPrice /* EUR */, taxId);
+    const dynamicInvoice = await this.billInvoiceItem({
+      energyConsumptionkWh: 500, // kWh
+      energyAmount: 4, // EUR
+      partingTime: 10, // Minutes
+      parkingAmount: 5, // EUR
+      taxId
+    });
+    const expectedTotal = 1080; /* in cents, including taxes */
     assert(dynamicInvoice, 'Invoice should not be null');
     // User should have a PAID invoice
     const paidInvoices = await this.getInvoicesByState(this.dynamicUser.id, BillingInvoiceStatus.PAID);
@@ -249,30 +267,36 @@ export default class StripeIntegrationTestData {
     expect(nbDraftInvoice).to.be.eql(0);
   }
 
-  public async billInvoiceItem(quantity: number, amount: number, taxId?: string) : Promise<BillingInvoice> {
+  public async billInvoiceItem(consumptionTestData: {
+    energyConsumptionkWh: number, // kWh
+    energyAmount: number, // EUR
+    partingTime: number, // Minutes
+    parkingAmount: number // EUR
+    taxId: string
+  }) : Promise<BillingInvoice> {
     assert(this.billingUser, 'Billing user cannot be null');
-    const price = amount / quantity;
-
-    const itemDescription = `Stripe Integration - ${quantity} kWh * ${price} Eur`;
     // array of tax ids to apply to the line item
-    const taxes = (taxId) ? [ taxId ] : [];
-    const invoiceItem:BillingInvoiceItem = {
-      description: itemDescription,
-      transactionID: Utils.getRandomIntSafe(),
-      // pricingData: {
-      //   quantity, // kW.h
-      //   amount, // total amount to bill -  not yet in cents
-      //   currency: 'EUR'
-      // }
-      effectivePricing: {
-        currency: 'EUR',
-        energy: {
-          itemDescription,
-          amount, // total amount to bill -  not yet in cents
-          quantity, // kW.h
-          taxes // Array of taxes - cannot be null
-        }
+    const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
+    // Princing/Consumption Data
+    const effectivePricing: EffectivePricing = {
+      currency: 'EUR',
+      energy: {
+        itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
+        amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
+        quantity: consumptionTestData.energyConsumptionkWh, // kW.h
+        taxes // Array of taxes - cannot be null
+      },
+      parkingTime: {
+        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes * ${consumptionTestData.parkingAmount} Eur`,
+        amount: consumptionTestData.parkingAmount, // Euros
+        quantity: consumptionTestData.partingTime, // minutes
+        taxes // Array of taxes - cannot be null
       }
+    };
+    // Invoice Item
+    const invoiceItem:BillingInvoiceItem = {
+      transactionID: Utils.getRandomIntSafe(),
+      effectivePricing
     };
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
