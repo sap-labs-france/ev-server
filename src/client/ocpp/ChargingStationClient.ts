@@ -1,9 +1,12 @@
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
+import { OCPPDataTransferRequest, OCPPDataTransferResponse } from '../../types/ocpp/OCPPServer';
 
 export default abstract class ChargingStationClient {
   public abstract reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult>;
 
   public abstract clearCache(): Promise<OCPPClearCacheCommandResult>;
+
+  public abstract triggerDataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse>;
 
   public abstract getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult>;
 

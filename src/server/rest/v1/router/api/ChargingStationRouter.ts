@@ -29,6 +29,7 @@ export default class ChargingStationRouter {
     this.buildRouteChargingStationDelete();
     this.buildRouteChargingStationReset();
     this.buildRouteChargingStationClearCache();
+    this.buildRouteChargingStationTriggerDataTransfer();
     this.buildRouteChargingStationRetrieveConfiguration();
     this.buildRouteChargingStationChangeConfiguration();
     this.buildRouteChargingStationRemoteStart();
@@ -85,9 +86,9 @@ export default class ChargingStationRouter {
   }
 
   protected buildRouteChargingStationTriggerDataTransfer(): void {
-    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_DATA_TRANSFER}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_TRIGGER_DATA_TRANSFER}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.chargingStationID = req.params.id;
-      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_DATA_TRANSFER, req, res, next);
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_TRIGGER_DATA_TRANSFER, req, res, next);
     });
   }
 

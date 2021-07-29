@@ -1,5 +1,6 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPStatus, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPDataTransferRequest, OCPPDataTransferResponse } from '../../../types/ocpp/OCPPServer';
 import { OCPPIncomingRequest, OCPPMessageType, OCPPOutgoingRequest } from '../../../types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../types/Server';
 
@@ -95,6 +96,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
+  }
+
+  public async triggerDataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    return this.sendMessage(this.buildRequest(Command.TRIGGER_DATA_TRANSFER, params));
   }
 
   private async openConnection(): Promise<unknown> {

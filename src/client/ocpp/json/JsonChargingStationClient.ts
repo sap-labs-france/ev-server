@@ -1,4 +1,5 @@
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPDataTransferRequest, OCPPDataTransferResponse } from '../../../types/ocpp/OCPPServer';
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
@@ -76,6 +77,10 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
     return this.sendMessage(params, Command.UPDATE_FIRMWARE);
+  }
+
+  public async triggerDataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    return this.sendMessage(params, Command.TRIGGER_DATA_TRANSFER);
   }
 
   private async sendMessage(params: any, commandName: Command): Promise<any> {

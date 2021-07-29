@@ -1,10 +1,10 @@
 import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
-import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import global from '../../../types/GlobalType';
 import { soap } from 'strong-soap';
@@ -359,6 +359,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async triggerDataTransfer(params: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
     throw new Error('Method not implemented.');
   }
 
