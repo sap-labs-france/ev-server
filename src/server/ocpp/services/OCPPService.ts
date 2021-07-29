@@ -1596,7 +1596,7 @@ export default class OCPPService {
     // Smart Charging must be active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
         if (siteAreaLock) {
@@ -1754,7 +1754,7 @@ export default class OCPPService {
     newChargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
     // Assign to Site Area
     if (token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID, { withSite: true });
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, token.siteAreaID, { withSite: true });
       if (siteArea) {
         newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;

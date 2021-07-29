@@ -303,8 +303,8 @@ export default class ContextBuilder {
           siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
           siteAreaTemplate.voltage = siteAreaDef.voltage;
           console.log(`${buildTenant.id} (${buildTenant.name}) - Site Area '${siteAreaTemplate.name}'`);
-          const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
-          const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
+          const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant, siteAreaTemplate);
+          const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
           const relevantCS = ContextDefinition.TENANT_CHARGING_STATION_LIST.filter(
             (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
