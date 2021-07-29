@@ -530,7 +530,7 @@ export default class UtilsService {
       });
     }
     // Get SiteArea & check it exists
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, siteAreaID,
+    const siteArea = await SiteAreaStorage.getSiteArea(tenant, siteAreaID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters,

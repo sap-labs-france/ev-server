@@ -751,7 +751,7 @@ export default class Authorizations {
         foundSiteArea = false;
       } else if (!chargingStation.siteArea) {
         chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-          tenant.id, chargingStation.siteAreaID, { withSite: true });
+          tenant, chargingStation.siteAreaID, { withSite: true });
         if (!chargingStation.siteArea) {
           foundSiteArea = false;
         }

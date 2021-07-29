@@ -344,7 +344,7 @@ export default class TenantService {
     if (filteredRequest.components && filteredRequest.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&
         !filteredRequest.components.smartCharging.active && tenant.components.smartCharging.active) {
-      const siteAreas = await SiteAreaStorage.getSiteAreas(filteredRequest.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
