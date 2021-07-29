@@ -184,6 +184,7 @@ export default class UserStorage {
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'addSitesToUser', uniqueTimerID, siteIDs);
   }
 
+
   public static async saveUser(tenant: Tenant, userToSave: User, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveUser');
@@ -218,6 +219,7 @@ export default class UserStorage {
       locale: userToSave.locale,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      importedData: userToSave.importedData,
       notificationsActive: userToSave.notificationsActive,
       notifications: {
         sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
@@ -285,7 +287,9 @@ export default class UserStorage {
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy),
+      importedData: importedUserToSave.importedData,
+      siteIDs: importedUserToSave.siteIDs,
     };
     await global.database.getCollection<any>(tenant.id, 'importedusers').findOneAndUpdate(
       { _id: userMDB._id },
@@ -307,7 +311,9 @@ export default class UserStorage {
       status: importedUserToSave.status,
       errorDescription: importedUserToSave.errorDescription,
       importedOn: Utils.convertToDate(importedUserToSave.importedOn),
-      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy)
+      importedBy: DatabaseUtils.convertToObjectID(importedUserToSave.importedBy),
+      importedData: importedUserToSave.importedData,
+      siteIDs: importedUserToSave.siteIDs,
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenant.id, 'importedusers').insertMany(
@@ -708,6 +714,7 @@ export default class UserStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Count documents
+
     const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedusers').count();
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getImportedUsersCount', uniqueTimerID);

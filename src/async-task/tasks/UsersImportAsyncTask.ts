@@ -1,14 +1,17 @@
 import { ActionsResponse, ImportStatus } from '../../types/GlobalType';
-import User, { ImportedUser, UserRole, UserStatus } from '../../types/User';
 
 import AbstractAsyncTask from '../AsyncTask';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
+import ImportHelper from './ImportHelper';
+import { ImportedUser } from '../../types/User';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
@@ -18,9 +21,17 @@ const MODULE_NAME = 'UsersImportAsyncTask';
 export default class UsersImportAsyncTask extends AbstractAsyncTask {
   protected async executeAsyncTask(): Promise<void> {
     const importUsersLock = await LockingHelper.acquireImportUsersLock(this.asyncTask.tenantID);
+    const importHelper = new ImportHelper();
+    const existingSites: Map<string, Site> = new Map();
     if (importUsersLock) {
       const tenant = await TenantStorage.getTenant(this.asyncTask.tenantID);
       try {
+        if (existingSites.size === 0) {
+          const sites = await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id', 'name']);
+          for (const site of sites.result) {
+            existingSites.set(site.id, site);
+          }
+        }
         const dbParams: DbParams = { limit: Constants.IMPORT_PAGE_SIZE, skip: 0 };
         let importedUsers: DataResult<ImportedUser>;
         const result: ActionsResponse = {
@@ -80,6 +91,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await UserStorage.deleteImportedUser(tenant, importedUser.id);
               result.inSuccess++;
             } catch (error) {
+              // Mark the imported User faulty with the reason
               importedUser.status = ImportStatus.ERROR;
               importedUser.errorDescription = error.message;
               result.inError++;
@@ -89,13 +101,12 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
-                module: MODULE_NAME, method: 'processTenant',
-                message: `Error when importing User with email '${importedUser.email}': ${error.message}`,
-                detailedMessages: { user: importedUser, error: error.stack }
+                module: MODULE_NAME, method: 'executeAsyncTask',
+                message: `Cannot import User with email '${importedUser.email}': ${error.message}`,
+                detailedMessages: { importedUser, error: error.stack }
               });
             }
           }
-          // Log
           if (importedUsers.result.length > 0 && (result.inError + result.inSuccess) > 0) {
             const intermediateDurationSecs = Math.round((new Date().getTime() - startTime) / 1000);
             await Logging.logDebug({

@@ -895,7 +895,7 @@ export default class Authorizations {
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
           // Check Existing Transaction with the same Auth ID
-          const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant.id, authorization.authorizationId);
+          const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant, authorization.authorizationId);
           // OCPI Auth ID not used yet
           if (!ocpiTransaction) {
             authorizationID = authorization.authorizationId;
@@ -937,7 +937,7 @@ export default class Authorizations {
       // Update Remote Authorizations
       if (remoteAuthorizationsUpdated) {
         await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-          tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+          tenant, chargingStation.id, chargingStation.remoteAuthorizations);
       }
     }
     return authorizationID;

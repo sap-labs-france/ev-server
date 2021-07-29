@@ -127,7 +127,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
     }
     // Get transactions to calculate asset consumption of the current minute
     if (moment().diff(moment(consumptions[consumptions.length - 1].lastConsumption.timestamp), 'minutes') <= 1) {
-      const transactionResponse = await TransactionStorage.getTransactions(this.tenant.id, { siteAreaIDs:[asset.siteAreaID],
+      const transactionResponse = await TransactionStorage.getTransactions(this.tenant, { siteAreaIDs:[asset.siteAreaID],
         stop: { $exists: false } }, Constants.DB_PARAMS_MAX_LIMIT, ['currentInstantWatts', 'currentInstantWattsL1','currentInstantWattsL2','currentInstantWattsL3']);
       for (const transaction of transactionResponse.result) {
         consumptions[consumptions.length - 1].currentInstantWatts -= transaction.currentInstantWatts;
