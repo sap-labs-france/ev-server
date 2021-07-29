@@ -84,6 +84,13 @@ export default class ChargingStationRouter {
     });
   }
 
+  protected buildRouteChargingStationTriggerDataTransfer(): void {
+    this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_DATA_TRANSFER}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.body.chargingStationID = req.params.id;
+      await RouterUtils.handleServerAction(ChargingStationService.handleAction.bind(this), ServerAction.CHARGING_STATION_DATA_TRANSFER, req, res, next);
+    });
+  }
+
   protected buildRouteChargingStationRetrieveConfiguration(): void {
     this.router.put(`/${ServerRoute.REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.chargingStationID = req.params.id;
