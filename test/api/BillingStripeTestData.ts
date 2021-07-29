@@ -1,4 +1,4 @@
-import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
+import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPricingData, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
 import chai, { assert, expect } from 'chai';
@@ -8,7 +8,6 @@ import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
-import { EffectivePricing } from '../../src/types/Pricing';
 import Factory from '../factories/Factory';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
@@ -278,7 +277,7 @@ export default class StripeIntegrationTestData {
     // array of tax ids to apply to the line item
     const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
     // Princing/Consumption Data
-    const effectivePricing: EffectivePricing = {
+    const effectivePricing: BillingPricingData = {
       energy: {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
@@ -296,7 +295,7 @@ export default class StripeIntegrationTestData {
     const invoiceItem:BillingInvoiceItem = {
       currency: 'EUR',
       transactionID: Utils.getRandomIntSafe(),
-      effectivePricing
+      pricingData: effectivePricing
     };
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);

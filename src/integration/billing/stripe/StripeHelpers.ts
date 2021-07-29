@@ -32,7 +32,7 @@ export default class StripeHelpers {
     if (billingInvoiceItem) {
       session = {
         transactionID: billingInvoiceItem.transactionID,
-        effectivePricing: billingInvoiceItem.effectivePricing,
+        pricingData: billingInvoiceItem.pricingData,
       };
     }
     // Is there anything to update?

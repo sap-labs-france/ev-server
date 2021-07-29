@@ -15,7 +15,6 @@ export interface Pricing {
 }
 
 export interface PricingComponent {
-  // type: PricingDimensionType, // Type of dimension
   price: number, // Price per unit (excluding VAT) for this tariff dimension
   stepSize?: number, // Minimum amount to be billed. This unit will be billed in this step_size blocks. For example: if type is time and step_size is 300, then time will be billed in blocks of 5 minutes, so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
 }
@@ -50,24 +49,6 @@ export enum DayOfWeek {
 //   PARKING_TIME = 'PT', // Time not charging: defined in hours, step_size multiplier: 1 second
 //   TIME = 'T', // Time charging: defined in hours, step_size multiplier: 1 second
 // }
-
-export interface EffectivePricing {
-  flatFee?: EffectivePricingData,
-  energy?: EffectivePricingData,
-  parkingTime?: EffectivePricingData,
-  chargingTime?: EffectivePricingData,
-}
-
-export interface EffectivePricingData {
-  itemDescription: string,
-  amount: number;
-  quantity: number;
-  cumulatedAmount?: number;
-  roundedAmount?: number;
-  // Each invoice item may have a different tax rate
-  // And STRIPE allows more than one for each of them, so this is an array!
-  taxes?: string[];
-}
 
 // Interface exposed by the pricing integration layer
 export interface PricedConsumption {

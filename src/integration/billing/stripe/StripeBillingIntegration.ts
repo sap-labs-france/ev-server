@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData, DimensionPricingData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
@@ -14,7 +14,6 @@ import { BillingSettings } from '../../../types/Setting';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { EffectivePricingData } from '../../../types/Pricing';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import { Request } from 'express';
@@ -876,34 +875,34 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, invoiceID);
   }
 
-  private async _createStripeInvoiceItem4Dimension(customerID: string, pricingDimension: string,
+  private async _createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
       billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
-    const effectivePricing = billingInvoiceItem.effectivePricing;
+    const pricingData = billingInvoiceItem.pricingData;
     // data for the current dimension (energy | parkingTime, etc)
-    const effectivePricingData: EffectivePricingData = effectivePricing[pricingDimension];
-    if (!effectivePricingData || !effectivePricingData.amount || !effectivePricingData.quantity) {
+    const dimensionData: DimensionPricingData = pricingData[dimension];
+    if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
       // Do not bill that dimension
       return null;
     }
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Tax rates
-    const tax_rates = effectivePricing[pricingDimension].taxes || [];
+    const tax_rates = pricingData[dimension].taxes || [];
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
       customer: customerID,
       currency,
-      description: effectivePricingData.itemDescription,
+      description: dimensionData.itemDescription,
       tax_rates,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(effectivePricing[pricingDimension].amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(pricingData[dimension].amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
       // STRIPE throws an exception when invoice is set to null.
       delete parameters.invoice;
     }
-    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', pricingDimension));
+    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', dimension));
     return parameters;
   }
 
@@ -1024,12 +1023,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { transactionID, currency, effectivePricing } = fatInvoiceItem;
+    const { transactionID, currency, pricingData: effectivePricing } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      effectivePricing
+      pricingData: effectivePricing
     };
     return lightInvoiceItem;
   }
@@ -1054,7 +1053,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      effectivePricing: {
+      pricingData: {
         energy: {
           itemDescription,
           amount,
