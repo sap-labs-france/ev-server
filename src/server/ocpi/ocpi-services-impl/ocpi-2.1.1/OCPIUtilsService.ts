@@ -483,7 +483,7 @@ export default class OCPIUtilsService {
     }
     let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     if (!transaction) {
-      const user = await UserStorage.getUser(tenant.id, session.auth_id);
+      const user = await UserStorage.getUser(tenant, session.auth_id);
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -729,9 +729,9 @@ export default class OCPIUtilsService {
         locale: Utils.getLocaleFromLanguage(token.language),
       } as User;
       // Save User
-      emspUser.id = await UserStorage.saveUser(tenant.id, emspUser);
-      await UserStorage.saveUserRole(tenant.id, emspUser.id, UserRole.BASIC);
-      await UserStorage.saveUserStatus(tenant.id, emspUser.id, UserStatus.ACTIVE);
+      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
+      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
         issuer: false,

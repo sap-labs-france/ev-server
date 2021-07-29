@@ -1802,7 +1802,7 @@ export default class ChargingStationService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
         if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
+          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
         }
       }
     }

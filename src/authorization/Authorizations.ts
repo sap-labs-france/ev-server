@@ -125,12 +125,12 @@ export default class Authorizations {
     return requestedSites.filter((site) => sites.has(site));
   }
 
-  public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
+  public static async buildUserToken(tenant: Tenant, user: User, tags: Tag[]): Promise<UserToken> {
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getUserSites(tenantID, { userIDs: [user.id] },
+    const sites = (await UserStorage.getUserSites(tenant, { userIDs: [user.id] },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
@@ -147,8 +147,7 @@ export default class Authorizations {
     let activeComponents = [];
     let tenantName;
     let tenantSubdomain;
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(tenantID);
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
       tenantName = tenant.name;
       tenantSubdomain = tenant.subdomain;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
@@ -156,7 +155,7 @@ export default class Authorizations {
     }
     // Currency
     let currency = null;
-    const pricing = await SettingStorage.getPricingSettings(tenantID);
+    const pricing = await SettingStorage.getPricingSettings(tenant.id);
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
@@ -174,7 +173,7 @@ export default class Authorizations {
       locale: user.locale,
       language: Utils.getLanguageFromLocale(user.locale),
       currency: currency,
-      tenantID: tenantID,
+      tenantID: tenant.id,
       tenantName: tenantName,
       tenantSubdomain: tenantSubdomain,
       userHashID: SessionHashService.buildUserHashID(user),
@@ -208,7 +207,7 @@ export default class Authorizations {
       alternateUser = result.user;
       alternateTag = result.tag;
       // Get User and Tag that started the Transaction
-      user = await UserStorage.getUserByTagId(tenant.id, transaction.tagID);
+      user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
       tag = await TagStorage.getTag(tenant.id, transaction.tagID);
     } else {
       // Check User
@@ -790,7 +789,7 @@ export default class Authorizations {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        const user = await UserStorage.getUserByTagId(tenant.id, tagID);
+        const user = await UserStorage.getUserByTagId(tenant, tagID);
         const tag = await TagStorage.getTag(tenant.id, tagID);
         return { user, tag };
       }
@@ -947,7 +946,7 @@ export default class Authorizations {
   private static async checkAndGetAuthorizedUserFromTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tag: Tag, authAction: Action): Promise<User> {
     // Get User
-    const user = await UserStorage.getUser(tenant.id, tag.user.id);
+    const user = await UserStorage.getUser(tenant, tag.user.id);
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
@@ -962,7 +961,7 @@ export default class Authorizations {
     // Check Auth if local User
     if (user.issuer && authAction) {
       // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenant.id, user, [tag]);
+      const userToken = await Authorizations.buildUserToken(tenant, user, [tag]);
       // Authorized?
       const context: AuthorizationContext = {
         user: transaction ? transaction.userID : null,
@@ -1025,7 +1024,7 @@ export default class Authorizations {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
       // Check if user has remote authorization or the session is already running
       if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
-        return UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        return UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
       }
       // Get the client
       const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
@@ -1039,7 +1038,7 @@ export default class Authorizations {
       // Check the Tag and retrieve the authorization
       const response = await oicpClient.authorizeStart(tagID);
       if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
-        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        const virtualOICPUser = await UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
         virtualOICPUser.authorizationID = response.SessionID;
         return virtualOICPUser;
       }
