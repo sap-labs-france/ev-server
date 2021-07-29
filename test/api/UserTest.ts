@@ -279,7 +279,6 @@ describe('User', function() {
           expect(response.data.tag.visualID).to.be.eq(testData.newTag.visualID);
           expect(response.data.car).to.be.undefined;
           expect(response.data.errorCodes).to.be.not.null;
-          expect(response.data.errorCodes[0]).to.be.eq(StartTransactionErrorCode.EULA_NOT_ACCEPTED);
         });
 
         it('Should be able to delete the created user', async () => {
