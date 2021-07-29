@@ -856,14 +856,22 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
   }
 
-  private async _buildInvoiceItemParametersFor(customerID: string, pricingDimension: string, idemPotencyKey: string,
+  private async _createStripeInvoiceItems(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    // A stripe invoice item per dimemsion
+    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, invoiceID);
+  }
+
+  private async _createStripeInvoiceItem4Dimension(customerID: string, pricingDimension: string,
       billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     const { effectivePricing, taxes } = billingInvoiceItem;
-    const currency = effectivePricing.currency.toLowerCase();
-    if (!effectivePricing[pricingDimension]?.amount) {
+    if (!effectivePricing[pricingDimension]?.amount || !effectivePricing[pricingDimension]?.quantity) {
       // Do not bill that dimension
       return null;
     }
+    const currency = effectivePricing.currency.toLowerCase();
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
@@ -879,7 +887,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // STRIPE throws an exception when invoice is set to null.
       delete parameters.invoice;
     }
-    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(idemPotencyKey, pricingDimension));
+    await this._createStripeInvoiceItem(parameters, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice', pricingDimension));
     return parameters;
   }
 
@@ -1041,7 +1049,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private async _billTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     // ACHTUNG: a single transaction may generate several lines in the invoice
     const invoiceItem: BillingInvoiceItem = this.convertToBillingInvoiceItem(transaction);
-    const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem, `${transaction.id}`);
+    const billingInvoice = await this.billInvoiceItem(transaction.user, invoiceItem);
     // Send a notification to the user
     void this.sendInvoiceNotification(billingInvoice);
     return {
@@ -1109,7 +1117,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoiceItem ;
   }
 
-  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice> {
+  public async billInvoiceItem(user: User, billingInvoiceItem: BillingInvoiceItem): Promise<BillingInvoice> {
     // Let's collect the required information
     let refreshDataRequired = false;
     const userID: string = user.id;
@@ -1124,21 +1132,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
       // immediateBillingAllowed is OFF - let's add to the latest DRAFT invoice (if any)
       stripeInvoice = await this._getLatestDraftInvoiceOfTheMonth(customerID);
     }
-    if (FeatureToggles.isFeatureActive(Feature.PRINCING_NEW_MODEL)) {
-      // Let's create an invoice item per dimension
-      await this._buildInvoiceItemParametersFor(customerID, 'flatFee', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
-      await this._buildInvoiceItemParametersFor(customerID, 'chargingTime', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
-      await this._buildInvoiceItemParametersFor(customerID, 'energy', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
-      await this._buildInvoiceItemParametersFor(customerID, 'parkingTime', idemPotencyKey, billingInvoiceItem, stripeInvoice?.id);
-    } else {
-      // Let's create an invoice item
-      // When the stripeInvoice is null a pending item is created
-      const invoiceItemParameters: Stripe.InvoiceItemCreateParams = this._buildInvoiceItemParameters(customerID, billingInvoiceItem, stripeInvoice?.id);
-      await this._createStripeInvoiceItem(invoiceItemParameters, this.buildIdemPotencyKey(idemPotencyKey, 'energy'));
-    }
+    // Let's create an invoice item per dimension
+    // When the stripeInvoice is null a pending item is created
+    await this._createStripeInvoiceItems(customerID, billingInvoiceItem, stripeInvoice?.id);
     if (!stripeInvoice) {
       // Let's create a new DRAFT invoice (if none has been found)
-      stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(idemPotencyKey));
+      stripeInvoice = await this._createStripeInvoice(customerID, userID, this.buildIdemPotencyKey(billingInvoiceItem.transactionID, 'invoice'));
     } else {
       // Here an existing invoice is being reused
       refreshDataRequired = true;
@@ -1178,9 +1177,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoice;
   }
 
-  private buildIdemPotencyKey(uniqueId: string, prefix = 'invoice'): string {
+  private buildIdemPotencyKey(uniqueId: string | number, prefix, suffix = null): string {
     if (uniqueId) {
-      return `${prefix}_${uniqueId}`;
+      if ( suffix ) {
+        return `${prefix}_${uniqueId}_${suffix}`;
+      } else {
+        return `${prefix}_${uniqueId}`;
+      }
     }
     return null;
   }

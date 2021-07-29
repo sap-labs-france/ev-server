@@ -70,7 +70,7 @@ export interface EffectivePricingData {
   roundedAmount?: number;
 }
 
-// TODO - to be removed - current interface exposed by the pricing integration layer  
+// Interface exposed by the pricing integration layer  
 export interface PricedConsumption {
   amount: number;
   cumulatedAmount: number;

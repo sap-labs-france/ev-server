@@ -617,7 +617,7 @@ export default abstract class BillingIntegration {
 
   abstract getTaxes(): Promise<BillingTax[]>;
 
-  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem, idemPotencyKey?: string): Promise<BillingInvoice>;
+  abstract billInvoiceItem(user: User, billingInvoiceItems: BillingInvoiceItem): Promise<BillingInvoice>;
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
