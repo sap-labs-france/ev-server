@@ -16,5 +16,5 @@ export default abstract class CarConnectorIntegration<T extends CarConnectorSett
 
   public abstract createConnection(userID: string, data: unknown): Promise<Connection>;
 
-  public abstract getCurrentSOC(userID: string): Promise<number>;
+  public abstract getCurrentSoC(userID: string): Promise<number>;
 }

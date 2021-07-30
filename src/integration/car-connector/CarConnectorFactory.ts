@@ -1,15 +1,11 @@
 import { CarConnectorConnectionType, CarConnectorSetting } from '../../types/Setting';
 
-import CarConnectorIntegration from './carConnectorIntegration';
-import Logging from '../../utils/Logging';
-import MercedesCarConnectorIntegration from './mercedes-connector/mercedesCarConnectorIntegration';
-import { ServerAction } from '../../types/Server';
+import CarConnectorIntegration from './CarConnectorIntegration';
+import MercedesCarConnectorIntegration from './mercedes-connector/MMercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
-
-const MODULE_NAME = 'CarConnectorFactory';
 
 export default class CarConnectorFactory {
   static async getCarConnectorImpl(tenant: Tenant, connectorId: string): Promise<CarConnectorIntegration<CarConnectorSetting>> {
@@ -29,12 +25,6 @@ export default class CarConnectorFactory {
           return carConnectorIntegrationImpl;
         }
       }
-      await Logging.logDebug({
-        tenantID: tenant.id,
-        action: ServerAction.CAR_CONNECTOR,
-        module: MODULE_NAME, method: 'getCarConnectorImpl',
-        message: 'Car connector settings are not configured'
-      });
     }
     return null;
   }

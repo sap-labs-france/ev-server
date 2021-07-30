@@ -4,7 +4,7 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import BackendError from '../../../exception/BackendError';
-import CarConnectorIntegration from '../carConnectorIntegration';
+import CarConnectorIntegration from '../CarConnectorIntegration';
 import Connection from '../../../types/Connection';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
@@ -17,8 +17,6 @@ import moment from 'moment-timezone';
 import querystring from 'querystring';
 
 const MODULE_NAME = 'MercedesCarConnectorIntegration';
-const CONNECTOR_ID = CarConnectorConnectionType.MERCEDES;
-
 export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSetting> {
   private axiosInstance: AxiosInstance;
   private readonly axiosRetryConfiguration: IAxiosRetryConfig = {
@@ -106,7 +104,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         action: ServerAction.CAR_CONNECTOR, message: 'Mercedes access token granted'
       });
       // Check first
-      let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CONNECTOR_ID, userID);
+      let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CarConnectorConnectionType.MERCEDES, userID);
       if (connection) {
         // Update
         connection.data = response.data;
@@ -117,7 +115,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         connection = {
           data: response.data,
           userId: userID,
-          connectorId: CONNECTOR_ID,
+          connectorId: CarConnectorConnectionType.MERCEDES,
           createdAt: new Date(),
           validUntil: this.computeValidUntilAt(response)
         };
@@ -138,7 +136,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSOC(userID: string): Promise<number> {
+  public async getCurrentSoC(userID: string): Promise<number> {
     // To be implemented
     const connection = await this.getRefreshedConnection(userID);
     return 0;
@@ -206,11 +204,11 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
   }
 
   private async getRefreshedConnection(userID: string): Promise<Connection> {
-    let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CONNECTOR_ID, userID);
+    let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenant, CarConnectorConnectionType.MERCEDES, userID);
     if (!connection) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        message: `The user does not have a connection to connector '${CONNECTOR_ID}'`,
+        message: `The user does not have a connection to connector '${CarConnectorConnectionType.MERCEDES}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',
         action: ServerAction.CAR_CONNECTOR,
