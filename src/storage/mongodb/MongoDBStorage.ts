@@ -117,9 +117,6 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(tenantID, 'cars', [
       { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } },
     ]);
-    // Car Catalogs
-    await this.handleIndexesInCollection(tenantID, 'carcatalogimages', [
-    ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
       { fields: { issuer: 1, timestamp: 1 } },
