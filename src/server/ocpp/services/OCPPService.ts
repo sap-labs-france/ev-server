@@ -549,7 +549,7 @@ export default class OCPPService {
         const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
           tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
         // Free the connector
-        OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
         // Save Charging Station
         await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
         // Soft Stop
@@ -912,6 +912,7 @@ export default class OCPPService {
           message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
       }
     }
   }
@@ -1206,7 +1207,7 @@ export default class OCPPService {
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
-      OCPPUtils.clearChargingStationConnector(chargingStation, foundConnector.connectorId);
+      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, foundConnector.connectorId);
     }
   }
 
@@ -1447,7 +1448,7 @@ export default class OCPPService {
           // Delete
           await TransactionStorage.deleteTransaction(tenant, activeTransaction.id);
           // Clear connector
-          OCPPUtils.clearChargingStationConnector(chargingStation, activeTransaction.connectorId);
+          OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, activeTransaction.connectorId);
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({

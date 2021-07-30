@@ -380,6 +380,7 @@ export enum ServerAction {
   REMOVE_USERS_FROM_SITE = 'RemoveUsersFromSite',
 
   REFUND = 'Refund',
+  CAR_CONNECTOR = 'CarConnector',
 
   USER_READ = 'UserRead',
   USER_CREATE = 'RestUserCreate',

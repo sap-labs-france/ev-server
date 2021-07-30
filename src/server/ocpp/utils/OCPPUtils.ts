@@ -1799,7 +1799,7 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static clearChargingStationConnector(chargingStation: ChargingStation, connectorID: number): void {
+  public static clearChargingStationConnectorRuntimeData(chargingStation: ChargingStation, connectorID: number): void {
     // Cleanup connector transaction data
     const foundConnector = Utils.getConnectorFromID(chargingStation, connectorID);
     if (foundConnector) {

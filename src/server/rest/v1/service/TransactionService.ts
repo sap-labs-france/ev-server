@@ -481,7 +481,7 @@ export default class TransactionService {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
-      OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
+      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
       // Save Connectors
       await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       await Logging.logSecurityInfo({
@@ -1050,7 +1050,7 @@ export default class TransactionService {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
-            OCPPUtils.clearChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+            OCPPUtils.clearChargingStationConnectorRuntimeData(transaction.chargeBox, transaction.connectorId);
             await ChargingStationStorage.saveChargingStationConnectors(await TenantStorage.getTenant(loggedUser.tenantID),
               transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
