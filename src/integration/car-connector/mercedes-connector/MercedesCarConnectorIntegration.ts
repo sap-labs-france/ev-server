@@ -17,6 +17,7 @@ import moment from 'moment-timezone';
 import querystring from 'querystring';
 
 const MODULE_NAME = 'MercedesCarConnectorIntegration';
+
 export default class MercedesCarConnectorIntegration extends CarConnectorIntegration<CarConnectorSetting> {
   private axiosInstance: AxiosInstance;
   private readonly axiosRetryConfiguration: IAxiosRetryConfig = {

@@ -6,7 +6,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
-import CarConnectorFactory from '../../../../integration/car-connector/carConnectorFactory';
+import CarConnectorFactory from '../../../../integration/car-connector/CarConnectorFactory';
 import ConnectionSecurity from './security/ConnectionSecurity';
 import ConnectionStorage from '../../../../storage/mongodb/ConnectionStorage';
 import ConnectionValidator from '../validator/ConnectionValidator';
@@ -106,9 +106,8 @@ export default class ConnectionService {
         break;
     }
     if (!Utils.isNullOrUndefined(integrationConnector)) {
-    // Create
+      // Create
       const connection: Connection = await integrationConnector.createConnection(filteredRequest.userId, filteredRequest.data);
-      // Log
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
         module: MODULE_NAME, method: 'handleCreateConnection',
@@ -125,7 +124,6 @@ export default class ConnectionService {
         message: `No integration found for connector '${filteredRequest.connectorId}' `
       });
     }
-    // Ok
     res.status(StatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
