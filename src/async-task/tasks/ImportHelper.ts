@@ -18,7 +18,7 @@ const MODULE_NAME = 'ImportHelper';
 export default class ImportHelper {
   public async processImportedUser(tenant: Tenant, importedUser: ImportedUser, existingSites: Map<string, Site>): Promise<User> {
     // Get User
-    let user = await UserStorage.getUserByEmail(tenant.id, importedUser.email);
+    let user = await UserStorage.getUserByEmail(tenant, importedUser.email);
     // If one found lets update it else create new User
     if (user) {
       await this.updateUser(tenant, user, importedUser);
@@ -105,7 +105,7 @@ export default class ImportHelper {
     // Update it
     user.name = importedUser.name;
     user.firstName = importedUser.firstName;
-    await UserStorage.saveUser(tenant.id, user);
+    await UserStorage.saveUser(tenant, user);
   }
 
   private async createUser(tenant: Tenant, importedUser: ImportedUser): Promise<User> {
@@ -119,9 +119,9 @@ export default class ImportHelper {
     newUser.createdOn = importedUser.importedOn;
     newUser.importedData = importedUser.importedData;
     // Save the new User
-    newUser.id = await UserStorage.saveUser(tenant.id, newUser);
-    await UserStorage.saveUserRole(tenant.id, newUser.id, UserRole.BASIC);
-    await UserStorage.saveUserStatus(tenant.id, newUser.id, UserStatus.PENDING);
+    newUser.id = await UserStorage.saveUser(tenant, newUser);
+    await UserStorage.saveUserRole(tenant, newUser.id, UserRole.BASIC);
+    await UserStorage.saveUserStatus(tenant, newUser.id, UserStatus.PENDING);
     await this.sendNotifications(tenant, newUser);
     return newUser;
   }
@@ -140,7 +140,7 @@ export default class ImportHelper {
       const existingSite = existingSites.get(importedSiteID);
       if (existingSite) {
         // Assign Site
-        await UserStorage.addSiteToUser(tenant.id, user.id, importedSiteID);
+        await UserStorage.addSiteToUser(tenant, user.id, importedSiteID);
       } else {
         // Site does not exist
         await Logging.logError({
@@ -158,11 +158,11 @@ export default class ImportHelper {
     // Handle sending email for reseting password if user auto activated
     // Init Password info
     const resetHash = Utils.generateUUID();
-    await UserStorage.saveUserPassword(tenant.id, user.id, { passwordResetHash: resetHash });
+    await UserStorage.saveUserPassword(tenant, user.id, { passwordResetHash: resetHash });
     // Generate new verificationToken
     const verificationToken = Utils.generateToken(user.email);
     // Save User Verification Account
-    await UserStorage.saveUserAccountVerification(tenant.id, user.id, { verificationToken });
+    await UserStorage.saveUserAccountVerification(tenant, user.id, { verificationToken });
     // Build account verif email with reset password embeded
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(tenant.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' + user.email + '&ResetToken=' + resetHash;

@@ -72,7 +72,7 @@ export default class ChargingStationService {
     let siteArea: SiteArea = null;
     // Check the Site Area
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, { withSite: true });
+      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID, { withSite: true });
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist.`,
         MODULE_NAME, 'handleUpdateChargingStationParams', req.user);
     }
@@ -372,7 +372,7 @@ export default class ChargingStationService {
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
@@ -547,7 +547,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationValidator.getInstance().validateSmartChargingTriggerReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.SiteAreaID);
     UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.SiteAreaID}' does not exist`,
       MODULE_NAME, 'handleTriggerSmartCharging', req.user);
     // Check auth
@@ -681,7 +681,7 @@ export default class ChargingStationService {
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
@@ -793,7 +793,7 @@ export default class ChargingStationService {
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check auth
@@ -1665,7 +1665,7 @@ export default class ChargingStationService {
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
     // Check Auth
@@ -1805,7 +1805,7 @@ export default class ChargingStationService {
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
       if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
         if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.user.tenantID, user.id, filteredRequest.carID);
+          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
         }
       }
     }

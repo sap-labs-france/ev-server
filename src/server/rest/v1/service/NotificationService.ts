@@ -69,7 +69,7 @@ export default class NotificationService {
     // Save mobile number
     if (filteredRequest.mobile && user.mobile !== filteredRequest.mobile) {
       user.mobile = filteredRequest.mobile;
-      await UserStorage.saveUserMobilePhone(req.user.tenantID, user.id, { mobile: filteredRequest.mobile });
+      await UserStorage.saveUserMobilePhone(req.tenant, user.id, { mobile: filteredRequest.mobile });
     }
     // Set
     const endUserErrorNotification: EndUserErrorNotification = {

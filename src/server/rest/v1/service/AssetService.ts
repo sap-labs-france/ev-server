@@ -527,7 +527,7 @@ export default class AssetService {
     // Check Site Area
     let siteArea: SiteArea = null;
     if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleCreateAsset', req.user);
     }
@@ -585,7 +585,7 @@ export default class AssetService {
     // Check Site Area
     let siteArea: SiteArea = null;
     if (filteredRequest.siteAreaID) {
-      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleUpdateAsset', req.user);
     }
