@@ -1647,13 +1647,14 @@ export default class OCPPService {
         transaction.carID = user.lastSelectedCarID;
       } else {
         // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id']);
+        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
         if (defaultCar) {
           transaction.carID = defaultCar.id;
+          transaction.carCatalogID = defaultCar.carCatalogID;
         }
       }
       // Set Car Catalog ID
-      if (transaction.carID) {
+      if (transaction.carID && !transaction.carCatalogID) {
         const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
         transaction.carCatalogID = car?.carCatalogID;
       }
