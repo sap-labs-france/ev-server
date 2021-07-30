@@ -64,7 +64,7 @@ export default class OCPPUtils {
       });
     }
     // Get the Token
-    const token = await RegistrationTokenStorage.getRegistrationToken(tenant.id, tokenID);
+    const token = await RegistrationTokenStorage.getRegistrationToken(tenant, tokenID);
     if (!token) {
       throw new BackendError({
         source: chargingStationID,
@@ -1070,7 +1070,7 @@ export default class OCPPUtils {
         // Save Site Area max consumption
         if (siteArea) {
           siteArea.maximumPower = consumption.limitSiteAreaWatts;
-          await SiteAreaStorage.saveSiteArea(tenant.id, siteArea);
+          await SiteAreaStorage.saveSiteArea(tenant, siteArea);
         }
       }
       consumption.smartChargingActive = siteArea.smartCharging;
@@ -2188,7 +2188,7 @@ export default class OCPPUtils {
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
     const csNumberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     if (chargingStation.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
       if (siteArea.numberOfPhases === 3) {
         switch (csNumberOfPhases) {

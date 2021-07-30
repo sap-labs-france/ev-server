@@ -40,7 +40,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         };
         const startTime = new Date().getTime();
         // Get total number of Users to import
-        const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant.id);
+        const totalUsersToImport = await UserStorage.getImportedUsersCount(tenant);
         if (totalUsersToImport > 0) {
           await Logging.logInfo({
             tenantID: tenant.id,
@@ -51,13 +51,13 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
         }
         do {
           // Get the imported users
-          importedUsers = await UserStorage.getImportedUsers(tenant.id, { status: ImportStatus.READY }, dbParams);
+          importedUsers = await UserStorage.getImportedUsers(tenant, { status: ImportStatus.READY }, dbParams);
           for (const importedUser of importedUsers.result) {
             try {
               // Check & Import the User
               await importHelper.processImportedUser(tenant, importedUser, existingSites);
               // Remove the imported User either it's found or not
-              await UserStorage.deleteImportedUser(tenant.id, importedUser.id);
+              await UserStorage.deleteImportedUser(tenant, importedUser.id);
               result.inSuccess++;
             } catch (error) {
               // Mark the imported User faulty with the reason
@@ -65,7 +65,7 @@ export default class UsersImportAsyncTask extends AbstractAsyncTask {
               importedUser.errorDescription = error.message;
               result.inError++;
               // Update it
-              await UserStorage.saveImportedUser(tenant.id, importedUser);
+              await UserStorage.saveImportedUser(tenant, importedUser);
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.USERS_IMPORT,
