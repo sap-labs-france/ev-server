@@ -430,7 +430,7 @@ export default class OCPIUtilsService {
     // Build evses array
     const evses: OCPIEvse[] = [];
     // Convert charging stations to evse(s)
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
       { ...dbFilters, siteIDs: [ siteID ], public: true, issuer: true, withSiteArea: true },
       dbParams ?? Constants.DB_PARAMS_MAX_LIMIT,
       [ 'id', 'chargePoints', 'connectors', 'coordinates', 'lastSeen', 'siteAreaID', 'siteID' ]);
@@ -448,7 +448,7 @@ export default class OCPIUtilsService {
         chargingStationEvses.push(...OCPIUtilsService.convertChargingStation2MultipleEvses(tenant, chargingStation, null, options));
       }
       // Always update OCPI data
-      await ChargingStationStorage.saveChargingStationOcpiData(tenant.id, chargingStation.id, { evses: chargingStationEvses });
+      await ChargingStationStorage.saveChargingStationOcpiData(tenant, chargingStation.id, { evses: chargingStationEvses });
       evses.push(...chargingStationEvses);
     }
     return evses;
@@ -481,9 +481,9 @@ export default class OCPIUtilsService {
     if (!session.kwh) {
       session.kwh = 0;
     }
-    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, session.id);
+    let transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, session.id);
     if (!transaction) {
-      const user = await UserStorage.getUser(tenant.id, session.auth_id);
+      const user = await UserStorage.getUser(tenant, session.auth_id);
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -495,7 +495,7 @@ export default class OCPIUtilsService {
         });
       }
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant.id, evse.evse_id);
+      const chargingStation = await ChargingStationStorage.getChargingStationByOcpiEvseID(tenant, evse.evse_id);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -590,7 +590,7 @@ export default class OCPIUtilsService {
         userID: transaction.userID
       };
     }
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
@@ -605,7 +605,7 @@ export default class OCPIUtilsService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, cdr.id);
+    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, cdr.id);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -653,7 +653,7 @@ export default class OCPIUtilsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.cdr = cdr;
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     await this.updateConnector(tenant, transaction);
   }
 
@@ -729,9 +729,9 @@ export default class OCPIUtilsService {
         locale: Utils.getLocaleFromLanguage(token.language),
       } as User;
       // Save User
-      emspUser.id = await UserStorage.saveUser(tenant.id, emspUser);
-      await UserStorage.saveUserRole(tenant.id, emspUser.id, UserRole.BASIC);
-      await UserStorage.saveUserStatus(tenant.id, emspUser.id, UserStatus.ACTIVE);
+      emspUser.id = await UserStorage.saveUser(tenant, emspUser);
+      await UserStorage.saveUserRole(tenant, emspUser.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenant, emspUser.id, UserStatus.ACTIVE);
       const tagToSave = {
         id: token.uid,
         issuer: false,
@@ -1061,7 +1061,7 @@ export default class OCPIUtilsService {
   }
 
   private static async updateConnector(tenant: Tenant, transaction: Transaction): Promise<void> {
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (chargingStation && chargingStation.connectors) {
       for (const connector of chargingStation.connectors) {
         if (connector.connectorId === transaction.connectorId && connector.currentTransactionID === 0 || connector.currentTransactionID === transaction.id) {
@@ -1086,7 +1086,7 @@ export default class OCPIUtilsService {
             connector.currentInstantWatts = 0;
             connector.currentInactivityStatus = null;
           }
-          await ChargingStationStorage.saveChargingStationConnectors(tenant.id, chargingStation.id, chargingStation.connectors);
+          await ChargingStationStorage.saveChargingStationConnectors(tenant, chargingStation.id, chargingStation.connectors);
         }
       }
     }

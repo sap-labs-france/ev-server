@@ -56,7 +56,7 @@ export default class OICPUtils {
       if (chargingStation.issuer && chargingStation.public) {
         const chargingStationEvses = OICPUtils.convertChargingStation2MultipleEvses(site, chargingStation.siteArea, chargingStation, options);
         // Update the Charging Station's OICP Data
-        await ChargingStationStorage.saveChargingStationOicpData(tenant.id, chargingStation.id, {
+        await ChargingStationStorage.saveChargingStationOicpData(tenant, chargingStation.id, {
           evses: chargingStationEvses
         });
         evses.push(...chargingStationEvses);
@@ -130,7 +130,7 @@ export default class OICPUtils {
 
   public static async getChargingStationConnectorFromEvseID(tenant: Tenant, evseID: OICPEvseID): Promise<{ chargingStation: ChargingStation, connector: Connector }> {
     const evseIDComponents = RoamingUtils.getEvseIdComponents(evseID);
-    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant.id, evseID);
+    const chargingStation = await ChargingStationStorage.getChargingStationByOicpEvseID(tenant, evseID);
     let foundConnector: Connector;
     if (chargingStation) {
       for (const connector of chargingStation.connectors) {
@@ -213,7 +213,7 @@ export default class OICPUtils {
       // Get the first non used Authorization OICP ID / Session ID
       for (const authorization of authorizations.result) {
         if (authorization.authorizationId) {
-          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant.id, authorization.authorizationId);
+          const oicpTransaction = await TransactionStorage.getOICPTransactionBySessionID(tenant, authorization.authorizationId);
           // OICP SessionID not used yet
           if (!oicpTransaction) {
             sessionId = authorization.authorizationId;
@@ -228,7 +228,7 @@ export default class OICPUtils {
     }
   }
 
-  public static async createOICPVirtualUser(tenantID: string): Promise<void> {
+  public static async createOICPVirtualUser(tenant: Tenant): Promise<void> {
     // Create the virtual OICP user
     const newVirtualOICPUser = UserStorage.createNewUser() as User;
     newVirtualOICPUser.email = Constants.OICP_VIRTUAL_USER_EMAIL;
@@ -238,9 +238,9 @@ export default class OICPUtils {
     newVirtualOICPUser.status = UserStatus.ACTIVE;
     newVirtualOICPUser.notificationsActive = false;
     // Save User
-    newVirtualOICPUser.id = await UserStorage.saveUser(tenantID, newVirtualOICPUser);
+    newVirtualOICPUser.id = await UserStorage.saveUser(tenant, newVirtualOICPUser);
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, newVirtualOICPUser.id, UserStatus.ACTIVE);
+    await UserStorage.saveUserStatus(tenant, newVirtualOICPUser.id, UserStatus.ACTIVE);
   }
 
   private static convertConnector2OICPChargingFacility(chargingStation: ChargingStation, connector: Connector): OICPChargingFacility {

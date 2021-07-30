@@ -345,7 +345,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     const locationName = site.name + Constants.OCPI_SEPARATOR + location.id;
     // Handle Site Area
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
       { siteIDs: [site.id], name: locationName, issuer: false, withSite: true },
       Constants.DB_PARAMS_SINGLE_RECORD);
     let siteArea = !Utils.isEmptyArray(siteAreas.result) ? siteAreas.result[0] : null;
@@ -371,7 +371,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
-      siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
+      siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant, siteArea, false);
     }
     if (!Utils.isEmptyArray(location.evses)) {
       for (const evse of location.evses) {
@@ -386,10 +386,10 @@ export default class EmspOCPIClient extends OCPIClient {
         if (evse.status === OCPIEvseStatus.REMOVED) {
           // Get existing charging station
           const currentChargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-            this.tenant.id, location.id, evse.uid, ['id']
+            this.tenant, location.id, evse.uid, ['id']
           );
           if (currentChargingStation) {
-            await ChargingStationStorage.deleteChargingStation(this.tenant.id, currentChargingStation.id);
+            await ChargingStationStorage.deleteChargingStation(this.tenant, currentChargingStation.id);
             await Logging.logDebug({
               tenantID: this.tenant.id,
               action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -405,8 +405,8 @@ export default class EmspOCPIClient extends OCPIClient {
         chargingStation.companyID = siteArea.site?.companyID;
         chargingStation.siteID = siteArea.siteID;
         chargingStation.siteAreaID = siteArea.id;
-        await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
-        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant.id, chargingStation.id, chargingStation.ocpiData);
+        await ChargingStationStorage.saveChargingStation(this.tenant, chargingStation);
+        await ChargingStationStorage.saveChargingStationOcpiData(this.tenant, chargingStation.id, chargingStation.ocpiData);
         await Logging.logDebug({
           tenantID: this.tenant.id,
           action: ServerAction.OCPI_PULL_LOCATIONS,
@@ -508,7 +508,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.STOP_SESSION;
     // Get transaction
-    const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
+    const transaction = await TransactionStorage.getTransaction(this.tenant, transactionId);
     if (!transaction) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,

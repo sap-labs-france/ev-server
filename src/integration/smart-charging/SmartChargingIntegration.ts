@@ -142,7 +142,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       }
     }
     // Remove Charging Station from Smart Charging
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingProfile.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingProfile.chargingStationID);
     // Remember Charging Stations which were removed from Smart Charging
     this.excludedChargingStations.push(chargingStation.id);
     // Notify Admins

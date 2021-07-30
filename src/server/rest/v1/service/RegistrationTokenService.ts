@@ -27,7 +27,7 @@ export default class RegistrationTokenService {
     // Check Auth
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
       // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
       UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
         MODULE_NAME, 'handleCreateRegistrationToken', req.user);
       if (!await Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
@@ -79,7 +79,7 @@ export default class RegistrationTokenService {
       createdOn: new Date()
     };
     // Save
-    registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
+    registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     // Build OCPP URLs
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
@@ -107,13 +107,13 @@ export default class RegistrationTokenService {
       });
     }
     // Get Token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, filteredRequest.id);
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, registrationToken, `Token ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Check Site Area if it's provided
       if (filteredRequest.siteAreaID) {
-        const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+        const siteArea = await SiteAreaStorage.getSiteArea(req.tenant, filteredRequest.siteAreaID);
         UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
           MODULE_NAME, 'handleUpdateRegistrationToken', req.user);
       }
@@ -136,7 +136,7 @@ export default class RegistrationTokenService {
     registrationToken.lastChangedOn = new Date();
     registrationToken.revocationDate = null;
     // Save
-    registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
+    registrationToken.id = await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     // Build OCPP URLs
     registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
     registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
@@ -153,7 +153,7 @@ export default class RegistrationTokenService {
     const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Get Token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant, tokenID);
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
       MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Check auth
@@ -167,7 +167,7 @@ export default class RegistrationTokenService {
       });
     }
     // Delete
-    await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
+    await RegistrationTokenStorage.deleteRegistrationToken(req.tenant, tokenID);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -185,7 +185,7 @@ export default class RegistrationTokenService {
     const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
     UtilsService.assertIdIsProvided(action, tokenID, MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
     // Get Token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant, tokenID);
     UtilsService.assertObjectExists(action, registrationToken, `Registration Token ID '${tokenID}' does not exist`,
       MODULE_NAME, 'handleRevokeRegistrationToken', req.user);
     // Check auth
@@ -212,7 +212,7 @@ export default class RegistrationTokenService {
     registrationToken.revocationDate = new Date();
     registrationToken.lastChangedBy = { 'id': req.user.id };
     registrationToken.lastChangedOn = new Date();
-    await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
+    await RegistrationTokenStorage.saveRegistrationToken(req.tenant, registrationToken);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -244,7 +244,7 @@ export default class RegistrationTokenService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get the tokens
-    const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID,
+    const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.tenant,
       {
         siteAreaID: filteredRequest.SiteAreaID,
         siteIDs: Authorizations.getAuthorizedSiteAdminIDs(req.user, null),
@@ -283,7 +283,7 @@ export default class RegistrationTokenService {
       userProject = [ 'createdBy.name', 'createdBy.firstName', 'lastChangedBy.name', 'lastChangedBy.firstName' ];
     }
     // Get the token
-    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID,
+    const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.tenant,
       filteredRequest,
       [
         'id', 'status', 'description', 'createdOn', 'lastChangedOn', 'expirationDate', 'revocationDate',

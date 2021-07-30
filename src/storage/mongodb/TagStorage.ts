@@ -7,9 +7,9 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import moment from 'moment';
-import Tenant from '../../types/Tenant';
 
 const MODULE_NAME = 'TagStorage';
 
@@ -28,7 +28,8 @@ export default class TagStorage {
       default: Utils.convertToBoolean(tag.default),
       visualID: tag.visualID ?? new ObjectId().toString(),
       ocpiToken: tag.ocpiToken,
-      description: tag.description
+      description: tag.description,
+      importedData: tag.importedData
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
@@ -53,7 +54,9 @@ export default class TagStorage {
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
       importedOn: importedTagToSave.importedOn,
-      importedBy: importedTagToSave.importedBy
+      importedBy: importedTagToSave.importedBy,
+      siteIDs: importedTagToSave.siteIDs,
+      importedData: importedTagToSave.importedData
     };
     await global.database.getCollection<any>(tenant.id, 'importedtags').findOneAndUpdate(
       { _id: tagMDB._id },
@@ -77,7 +80,9 @@ export default class TagStorage {
       status: importedTagToSave.status,
       errorDescription: importedTagToSave.errorDescription,
       importedOn: importedTagToSave.importedOn,
-      importedBy: importedTagToSave.importedBy
+      importedBy: importedTagToSave.importedBy,
+      siteIDs: importedTagToSave.siteIDs,
+      importedData: importedTagToSave.importedData
     }));
     // Insert all at once
     const result = await global.database.getCollection<any>(tenant.id, 'importedtags').insertMany(
@@ -120,7 +125,7 @@ export default class TagStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Count documents
-    const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedtags').count();
+    const nbrOfDocuments = await global.database.getCollection<any>(tenant.id, 'importedtags').countDocuments();
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'getImportedTagsCount', uniqueTimerID);
     return nbrOfDocuments;

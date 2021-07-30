@@ -64,7 +64,7 @@ export default class OCPPUtils {
       });
     }
     // Get the Token
-    const token = await RegistrationTokenStorage.getRegistrationToken(tenant.id, tokenID);
+    const token = await RegistrationTokenStorage.getRegistrationToken(tenant, tokenID);
     if (!token) {
       throw new BackendError({
         source: chargingStationID,
@@ -537,7 +537,7 @@ export default class OCPPUtils {
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
     transaction.stop.roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
   }
 
   public static async rebuildTransactionConsumptions(tenant: Tenant, transaction: Transaction): Promise<number> {
@@ -564,7 +564,7 @@ export default class OCPPUtils {
       transactionSimplePricePerkWh = Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id,
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant,
       transaction.chargeBoxID, { includeDeleted: true });
     if (!chargingStation) {
       throw new BackendError({
@@ -665,7 +665,7 @@ export default class OCPPUtils {
     // Build extra inactivity consumption
     const consumptionCreated = await OCPPUtils.buildExtraConsumptionInactivity(tenant, transaction);
     // Save
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    await TransactionStorage.saveTransaction(tenant, transaction);
     return consumptions.length + (consumptionCreated ? 1 : 0);
   }
 
@@ -1056,7 +1056,7 @@ export default class OCPPUtils {
         consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
       } else {
         // Compute it for Charging Stations
-        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenant.id,
+        const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenant,
           { siteAreaIDs: [siteArea.id], withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
         for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
           if (Utils.objectHasProperty(chargingStationOfSiteArea, 'connectors')) {
@@ -1070,7 +1070,7 @@ export default class OCPPUtils {
         // Save Site Area max consumption
         if (siteArea) {
           siteArea.maximumPower = consumption.limitSiteAreaWatts;
-          await SiteAreaStorage.saveSiteArea(tenant.id, siteArea);
+          await SiteAreaStorage.saveSiteArea(tenant, siteArea);
         }
       }
       consumption.smartChargingActive = siteArea.smartCharging;
@@ -1250,7 +1250,7 @@ export default class OCPPUtils {
         sectionsUpdated.push('OCPP');
       }
       // Save
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await Logging.logInfo({
         tenantID: tenant.id,
         source: chargingStation.id,
@@ -1303,7 +1303,7 @@ export default class OCPPUtils {
       inSuccess: 0
     };
     for (const chargingStation of siteArea.chargingStations) {
-      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant.id, {
+      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenant, {
         chargingStationIDs: [chargingStation.id],
         profilePurposeType: params.profilePurposeType,
         transactionId: params.transactionId
@@ -1330,7 +1330,7 @@ export default class OCPPUtils {
 
   public static async clearAndDeleteChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile): Promise<void> {
     // Get charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingProfile.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingProfile.chargingStationID);
     // Check if Charging Profile is supported
     if (!chargingStation.capabilities?.supportChargingProfiles) {
       throw new BackendError({
@@ -1369,7 +1369,7 @@ export default class OCPPUtils {
       throw error;
     }
     // Delete from database
-    await ChargingStationStorage.deleteChargingProfile(tenant.id, chargingProfile.id);
+    await ChargingStationStorage.deleteChargingProfile(tenant, chargingProfile.id);
     await Logging.logInfo({
       tenantID: tenant.id,
       source: chargingStation.id,
@@ -1407,7 +1407,7 @@ export default class OCPPUtils {
 
   public static async setAndSaveChargingProfile(tenant: Tenant, chargingProfile: ChargingProfile): Promise<string> {
     // Get charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingProfile.chargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingProfile.chargingStationID);
     if (!chargingStation) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
@@ -1453,7 +1453,7 @@ export default class OCPPUtils {
       });
     }
     // Save
-    const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenant.id, chargingProfile);
+    const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenant, chargingProfile);
     await Logging.logInfo({
       tenantID: tenant.id,
       source: chargingStation.id,
@@ -1549,7 +1549,7 @@ export default class OCPPUtils {
     let chargingStation: ChargingStation;
     try {
       chargingStation = await ChargingStationStorage.getChargingStation(
-        ocppHeader.tenantID, ocppHeader.chargeBoxIdentity);
+        tenant, ocppHeader.chargeBoxIdentity);
       if (!chargingStation) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,
@@ -1599,7 +1599,7 @@ export default class OCPPUtils {
         timestamp: new Date()
       };
       // Get saved OCPP configuration from DB
-      const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant.id, chargingStation.id);
+      const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id);
       // Charging Station configuration not found
       if (!chargingStationOcppParameters.configuration) {
         if (ocppParametersFromDB.count === 0) {
@@ -1621,7 +1621,7 @@ export default class OCPPUtils {
         }
       }
       // Save configuration
-      await ChargingStationStorage.saveOcppParameters(tenant.id, chargingStationOcppParameters);
+      await ChargingStationStorage.saveOcppParameters(tenant, chargingStationOcppParameters);
       // Ok
       await Logging.logInfo({
         tenantID: tenant.id,
@@ -1646,7 +1646,7 @@ export default class OCPPUtils {
     let rebootRequired = false;
     // Get current OCPP parameters in DB
     let currentOcppParameters: OcppParameter[];
-    const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant.id, chargingStation.id);
+    const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenant, chargingStation.id);
     if (ocppParametersFromDB.count > 0) {
       currentOcppParameters = ocppParametersFromDB.result;
     }
@@ -2188,7 +2188,7 @@ export default class OCPPUtils {
   private static async setConnectorPhaseAssignment(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, nrOfPhases?: number): Promise<void> {
     const csNumberOfPhases = nrOfPhases ?? Utils.getNumberOfConnectedPhases(chargingStation, null, connector.connectorId);
     if (chargingStation.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       // Phase Assignment to Grid has to be handled only for Site Area with 3 phases
       if (siteArea.numberOfPhases === 3) {
         switch (csNumberOfPhases) {
