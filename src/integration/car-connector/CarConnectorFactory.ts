@@ -1,7 +1,7 @@
 import { CarConnectorConnectionType, CarConnectorSetting } from '../../types/Setting';
 
 import CarConnectorIntegration from './CarConnectorIntegration';
-import MercedesCarConnectorIntegration from './mercedes-connector/MMercedesCarConnectorIntegration';
+import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
