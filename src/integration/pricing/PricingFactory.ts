@@ -14,7 +14,7 @@ export default class PricingFactory {
     // Check if the pricing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       // Get the pricing's settings
-      const pricingSetting = await SettingStorage.getPricingSettings(tenant.id);
+      const pricingSetting = await SettingStorage.getPricingSettings(tenant);
       // Check
       if (pricingSetting) {
         let pricingIntegrationImpl;

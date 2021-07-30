@@ -508,7 +508,7 @@ export default class AuthService {
     let userStatus: UserStatus;
     // When it's user creation case we take the user settings
     if (!user.importedData) {
-      const userSettings = await SettingStorage.getUserSettings(tenant.id);
+      const userSettings = await SettingStorage.getUserSettings(tenant);
       userStatus = userSettings.user.autoActivateAccountAfterValidation ? UserStatus.ACTIVE : UserStatus.INACTIVE;
     } else {
       // When it's user import case we take checkbox param saved to db

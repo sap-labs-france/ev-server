@@ -155,7 +155,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       secretKey: null,
       publicKey: null
     };
-    await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
+    await SettingStorage.saveBillingSetting(this.tenant, newBillingsSettings);
     return newBillingsSettings;
   }
 
