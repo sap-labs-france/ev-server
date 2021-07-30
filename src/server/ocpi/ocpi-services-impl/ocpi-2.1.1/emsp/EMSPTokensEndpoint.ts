@@ -115,7 +115,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOWN_LOCATION_ERROR
       });
     }
-    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

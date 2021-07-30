@@ -208,7 +208,7 @@ export default class Authorizations {
       alternateTag = result.tag;
       // Get User and Tag that started the Transaction
       user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
-      tag = await TagStorage.getTag(tenant.id, transaction.tagID);
+      tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
       // Check User
       const result = await Authorizations.isTagIDAuthorizedOnChargingStation(
@@ -790,7 +790,7 @@ export default class Authorizations {
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
         const user = await UserStorage.getUserByTagId(tenant, tagID);
-        const tag = await TagStorage.getTag(tenant.id, tagID);
+        const tag = await TagStorage.getTag(tenant, tagID);
         return { user, tag };
       }
     }
@@ -998,7 +998,7 @@ export default class Authorizations {
       default: false
     };
     // Save
-    await TagStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
       tenant,
@@ -1047,7 +1047,7 @@ export default class Authorizations {
 
   private static async checkAndGetAuthorizedTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation, tagID: string): Promise<Tag> {
     // Get Tag
-    const tag = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tagID, { withUser: true });
     if (tag) {
       // Inactive Tag
       if (!tag.active) {

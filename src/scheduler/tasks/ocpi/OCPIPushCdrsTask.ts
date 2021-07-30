@@ -84,7 +84,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Get Tag
-                    const tag = await TagStorage.getTag(tenant.id, transaction.tagID);
+                    const tag = await TagStorage.getTag(tenant, transaction.tagID);
                     if (!tag) {
                       await Logging.logError({
                         tenantID: tenant.id,

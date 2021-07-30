@@ -1831,7 +1831,7 @@ export default class ChargingStationService {
     // Add connector ID
     filteredRequest.args.connectorId = transaction.connectorId;
     // Get default Tag
-    const tags = await TagStorage.getTags(req.tenant.id, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
+    const tags = await TagStorage.getTags(req.tenant, { userIDs: [req.user.id], active: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(tags)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
