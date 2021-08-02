@@ -26,6 +26,7 @@ import { ServerAction } from './types/Server';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import global from './types/GlobalType';
 
@@ -151,7 +152,7 @@ export default class Bootstrap {
     } catch (error) {
       // Log
       // eslint-disable-next-line no-console
-      console.error(error);
+      console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
@@ -228,7 +229,7 @@ export default class Bootstrap {
     } catch (error) {
       // Log
       // eslint-disable-next-line no-console
-      console.error(error);
+      console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
@@ -323,7 +324,7 @@ export default class Bootstrap {
     } catch (error) {
       // Log
       // eslint-disable-next-line no-console
-      console.error(error);
+      console.error(chalk.red(error));
       await Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.STARTUP,
@@ -338,6 +339,6 @@ export default class Bootstrap {
 // Start
 Bootstrap.start().catch(
   (error) => {
-    console.error(error);
+    console.error(chalk.red(error));
   }
 );
