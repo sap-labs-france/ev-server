@@ -1173,7 +1173,7 @@ export default class TransactionStorage {
   }
 
   public static async getLastTransactionFromChargingStation(tenant: Tenant, chargeBoxID: string, connectorId: number,
-      params: { withChargingStation?: boolean; withUser?: boolean; withTag: boolean; }): Promise<Transaction> {
+      params: { withChargingStation?: boolean; withUser?: boolean; withTag?: boolean; } = {}): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getLastTransaction');
     // Check
