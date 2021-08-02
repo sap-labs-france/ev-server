@@ -198,7 +198,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.STATUS_NOTIFICATION,
             module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}`,
+            message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
             detailedMessages: { headers, statusNotification }
           });
           return {};
