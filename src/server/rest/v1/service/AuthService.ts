@@ -215,7 +215,7 @@ export default class AuthService {
       description: i18nManager.translate('tags.virtualBadge'),
       default: true
     };
-    await TagStorage.saveTag(req.tenant, tag);
+    await TagStorage.saveTag(tenant, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenant, newUser.id,
       {
