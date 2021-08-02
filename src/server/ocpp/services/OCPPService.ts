@@ -874,7 +874,7 @@ export default class OCPPService {
                   module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                   action: ServerAction.EXTRA_INACTIVITY,
                   message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-                  detailedMessages: [statusNotification, connector, lastTransaction]
+                  detailedMessages: { statusNotification, connector, lastTransaction }
                 });
               }
             // No extra inactivity
@@ -886,7 +886,7 @@ export default class OCPPService {
                 module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                 action: ServerAction.EXTRA_INACTIVITY,
                 message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} No Extra Inactivity for this transaction`,
-                detailedMessages: [statusNotification, connector, lastTransaction]
+                detailedMessages: { statusNotification, connector, lastTransaction }
               });
             }
             // Flag
