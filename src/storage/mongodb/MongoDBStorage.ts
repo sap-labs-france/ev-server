@@ -28,6 +28,10 @@ export default class MongoDBStorage {
     this.migrationConfig = Configuration.getMigrationConfig();
   }
 
+  public getDatabase(): Db {
+    return this.db;
+  }
+
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
     if (!this.db) {
       throw new BackendError({
