@@ -549,7 +549,7 @@ export default class OCPPService {
         const { user, alternateUser } = await this.checkAuthorizeStopTransactionAndGetUsers(
           tenant, chargingStation, transaction, tagID, isStoppedByCentralSystem);
         // Free the connector
-        OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
         // Save Charging Station
         await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
         // Soft Stop
@@ -633,7 +633,7 @@ export default class OCPPService {
       alternateUser = authorizedUsers.alternateUser;
     } else {
       // Get the User
-      user = await UserStorage.getUserByTagId(tenant.id, tagId);
+      user = await UserStorage.getUserByTagId(tenant, tagId);
     }
     // Already Stopped?
     if (transaction.stop) {
@@ -834,7 +834,7 @@ export default class OCPPService {
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
-        tenant, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true, withTag: true });
+        tenant, chargingStation.id, connector.connectorId);
       // Transaction completed
       if (lastTransaction?.stop) {
         // Check Inactivity
@@ -863,7 +863,7 @@ export default class OCPPService {
                 lastTransaction.stop.extraInactivitySecs = 0;
               } else {
                 // Fix the Inactivity severity
-                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
                   lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
                 // Build extra inactivity consumption
                 await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
@@ -912,6 +912,7 @@ export default class OCPPService {
           message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
           detailedMessages: { statusNotification }
         });
+        OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
       }
     }
   }
@@ -1206,7 +1207,7 @@ export default class OCPPService {
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
-      OCPPUtils.clearChargingStationConnector(chargingStation, foundConnector.connectorId);
+      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, foundConnector.connectorId);
     }
   }
 
@@ -1447,7 +1448,7 @@ export default class OCPPService {
           // Delete
           await TransactionStorage.deleteTransaction(tenant, activeTransaction.id);
           // Clear connector
-          OCPPUtils.clearChargingStationConnector(chargingStation, activeTransaction.connectorId);
+          OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, activeTransaction.connectorId);
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
@@ -1596,7 +1597,7 @@ export default class OCPPService {
     // Smart Charging must be active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, chargingStation.siteAreaID);
       if (siteArea && siteArea.smartCharging) {
         const siteAreaLock = await LockingHelper.acquireSiteAreaSmartChargingLock(tenant.id, siteArea, 30);
         if (siteAreaLock) {
@@ -1646,18 +1647,19 @@ export default class OCPPService {
         transaction.carID = user.lastSelectedCarID;
       } else {
         // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id']);
+        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
         if (defaultCar) {
           transaction.carID = defaultCar.id;
+          transaction.carCatalogID = defaultCar.carCatalogID;
         }
       }
       // Set Car Catalog ID
-      if (transaction.carID) {
+      if (transaction.carID && !transaction.carCatalogID) {
         const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
         transaction.carCatalogID = car?.carCatalogID;
       }
       // Clear
-      await UserStorage.saveUserLastSelectedCarID(tenant.id, user.id, null);
+      await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
     }
   }
 
@@ -1754,7 +1756,7 @@ export default class OCPPService {
     newChargingStation.registrationStatus = RegistrationStatus.ACCEPTED;
     // Assign to Site Area
     if (token.siteAreaID) {
-      const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, token.siteAreaID, { withSite: true });
+      const siteArea = await SiteAreaStorage.getSiteArea(tenant, token.siteAreaID, { withSite: true });
       if (siteArea) {
         newChargingStation.companyID = siteArea.site?.companyID;
         newChargingStation.siteID = siteArea.siteID;

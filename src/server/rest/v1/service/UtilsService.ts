@@ -176,7 +176,7 @@ export default class UtilsService {
       });
     }
     // Get User
-    const user = await UserStorage.getUser(tenant.id, userID,
+    const user = await UserStorage.getUser(tenant, userID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -354,7 +354,7 @@ export default class UtilsService {
       });
     }
     // Get Users
-    let users = (await UserStorage.getUsers(tenant.id,
+    let users = (await UserStorage.getUsers(tenant,
       {
         userIDs,
         ...additionalFilters,
@@ -530,7 +530,7 @@ export default class UtilsService {
       });
     }
     // Get SiteArea & check it exists
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, siteAreaID,
+    const siteArea = await SiteAreaStorage.getSiteArea(tenant, siteAreaID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters,
@@ -933,13 +933,13 @@ export default class UtilsService {
     res.end();
   }
 
-  public static async exportToPDF(req: Request, res: Response, attachementName: string,
+  public static async exportToPDF(req: Request, res: Response, attachmentName: string,
       handleGetData: (req: Request) => Promise<DataResult<any>>,
       handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
-    res.attachment(attachementName);
+    res.attachment(attachmentName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
     let data = await handleGetData(req);

@@ -345,7 +345,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     const locationName = site.name + Constants.OCPI_SEPARATOR + location.id;
     // Handle Site Area
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id,
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant,
       { siteIDs: [site.id], name: locationName, issuer: false, withSite: true },
       Constants.DB_PARAMS_SINGLE_RECORD);
     let siteArea = !Utils.isEmptyArray(siteAreas.result) ? siteAreas.result[0] : null;
@@ -371,7 +371,7 @@ export default class EmspOCPIClient extends OCPIClient {
           Utils.convertToFloat(location.coordinates.latitude)
         ];
       }
-      siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
+      siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant, siteArea, false);
     }
     if (!Utils.isEmptyArray(location.evses)) {
       for (const evse of location.evses) {

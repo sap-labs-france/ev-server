@@ -508,7 +508,7 @@ export default class SiteStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete all Site Areas
-    await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, ids);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenant, ids);
     // Convert
     const cids: ObjectId[] = ids.map((id) => DatabaseUtils.convertToObjectID(id));
     // Delete Site
@@ -536,7 +536,7 @@ export default class SiteStorage {
       .toArray())
       .map((site): string => site._id.toString());
     // Delete all Site Areas
-    await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, siteIDs);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenant, siteIDs);
     // Delete Sites
     await SiteStorage.deleteSites(tenant, siteIDs);
     // Debug

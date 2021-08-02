@@ -5,6 +5,7 @@ import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 import WebSocket from 'ws';
+import chalk from 'chalk';
 
 const MODULE_NAME = 'WSClient';
 
@@ -147,7 +148,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection refused to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient connection refused to '${this.url}':`), chalk.red(error));
         }
         break;
       default:
@@ -162,7 +163,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient connection error to '${this.url}':`, error);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient connection error to '${this.url}':`), chalk.red(error));
         }
         break;
     }
@@ -197,7 +198,7 @@ export default class WSClient {
           });
         } else {
           // eslint-disable-next-line no-console
-          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`);
+          (Utils.isDevelopmentEnv() || Utils.isTestEnv()) && console.error(chalk.red(`WSClient Connection closing error to '${this.url}', Reason: '${reason ? reason : 'No reason given'}', Message: '${Utils.getWebSocketCloseEventStatusString(code)}', Code: '${code}'`));
         }
         break;
     }

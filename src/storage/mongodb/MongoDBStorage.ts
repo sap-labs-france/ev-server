@@ -12,6 +12,7 @@ import MigrationConfiguration from '../../types/configuration/MigrationConfigura
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Utils from '../../utils/Utils';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import urlencode from 'urlencode';
 
@@ -26,6 +27,10 @@ export default class MongoDBStorage {
   public constructor(dbConfig: StorageConfiguration) {
     this.dbConfig = dbConfig;
     this.migrationConfig = Configuration.getMigrationConfig();
+  }
+
+  public getDatabase(): Db {
+    return this.db;
   }
 
   public getCollection<T>(tenantID: string, collectionName: string): Collection<T> {
@@ -116,9 +121,6 @@ export default class MongoDBStorage {
     // Cars
     await this.handleIndexesInCollection(tenantID, 'cars', [
       { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } },
-    ]);
-    // Car Catalogs
-    await this.handleIndexesInCollection(tenantID, 'carcatalogimages', [
     ]);
     // Transactions
     await this.handleIndexesInCollection(tenantID, 'transactions', [
@@ -341,7 +343,7 @@ export default class MongoDBStorage {
       try {
         await this.db.createCollection(tenantCollectionName);
       } catch (error) {
-        console.error(`>>>>> Error in creating collection '${tenantCollectionName}': ${error.message as string}`);
+        console.error(chalk.red(`Error in creating collection '${tenantCollectionName}': ${error.message as string}`));
       }
     }
     // Indexes?
@@ -371,7 +373,7 @@ export default class MongoDBStorage {
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
           } catch (error) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            console.error(`>>>>> Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`);
+            console.error(chalk.red(`Error in dropping index '${databaseIndex.name}' in '${tenantCollectionName}': ${error.message}`));
           }
         }
       }
@@ -389,7 +391,7 @@ export default class MongoDBStorage {
             // eslint-disable-next-line @typescript-eslint/await-thenable
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
           } catch (error) {
-            console.error(`>>>>> Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`);
+            console.error(chalk.red(`Error in creating index '${JSON.stringify(index.fields)}' with options '${JSON.stringify(index.options)}' in '${tenantCollectionName}': ${error.message as string}`));
           }
         }
       }

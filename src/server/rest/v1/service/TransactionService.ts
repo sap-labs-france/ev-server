@@ -136,7 +136,7 @@ export default class TransactionService {
       transactionsToRefund.push(transaction);
     }
     // Get Transaction User
-    const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
+    const user: User = await UserStorage.getUser(req.tenant, req.user.id);
     UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundImpl(req.tenant);
@@ -382,7 +382,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag
@@ -481,7 +481,7 @@ export default class TransactionService {
     // Check if already stopped
     if (transaction.stop) {
       // Clear Connector
-      OCPPUtils.clearChargingStationConnector(chargingStation, transaction.connectorId);
+      OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, transaction.connectorId);
       // Save Connectors
       await ChargingStationStorage.saveChargingStationConnectors(req.tenant, chargingStation.id, chargingStation.connectors);
       await Logging.logSecurityInfo({
@@ -1050,7 +1050,7 @@ export default class TransactionService {
           // Check connector
           const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.currentTransactionID) {
-            OCPPUtils.clearChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+            OCPPUtils.clearChargingStationConnectorRuntimeData(transaction.chargeBox, transaction.connectorId);
             await ChargingStationStorage.saveChargingStationConnectors(await TenantStorage.getTenant(loggedUser.tenantID),
               transaction.chargeBox.id, transaction.chargeBox.connectors);
           }
