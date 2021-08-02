@@ -198,7 +198,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.STATUS_NOTIFICATION,
             module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector ID '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info ?? ''}'`,
+            message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}`,
             detailedMessages: { headers, statusNotification }
           });
           return {};
@@ -739,11 +739,11 @@ export default class OCPPService {
       source: chargingStation.id,
       module: MODULE_NAME, method: 'processConnectorStatusNotification',
       action: ServerAction.STATUS_NOTIFICATION,
-      message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} Status '${this.buildConnectorStatusDescription(connector)}' has been saved`,
+      message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} ${this.buildStatusNotification(statusNotification)} has been saved`,
       detailedMessages: { statusNotification, connector }
     });
     // Notify Users
-    await this.notifyStatusNotification(tenant, chargingStation, connector);
+    await this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
   }
 
   private async processSmartChargingStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
@@ -778,18 +778,6 @@ export default class OCPPService {
         await this.updateOCPIConnectorStatus(tenant, chargingStation, foundConnector);
       }
     }
-  }
-
-  private buildConnectorStatusDescription(connector: Connector): string {
-    const connectorStatusDescriptions = [];
-    connectorStatusDescriptions.push(connector.status);
-    if (connector.errorCode && connector.errorCode !== 'NoError') {
-      connectorStatusDescriptions.push(connector.errorCode);
-    }
-    if (connector.info) {
-      connectorStatusDescriptions.push(connector.info);
-    }
-    return connectorStatusDescriptions.join(' - ');
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
@@ -989,7 +977,7 @@ export default class OCPPService {
     }
   }
 
-  private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector) {
+  private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
     if (connector.status !== ChargePointStatus.AVAILABLE &&
         connector.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
@@ -1000,7 +988,7 @@ export default class OCPPService {
         source: chargingStation.id,
         action: ServerAction.STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'notifyStatusNotification',
-        message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred : '${this.buildConnectorStatusDescription(connector)}'`
+        message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred: ${this.buildStatusNotification(statusNotification)}`
       });
       // Send Notification (Async)
       NotificationHandler.sendChargingStationStatusError(
@@ -1010,7 +998,7 @@ export default class OCPPService {
         {
           chargeBoxID: chargingStation.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
-          error: this.buildConnectorStatusDescription(connector),
+          error: this.buildStatusNotification(statusNotification),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
@@ -2117,5 +2105,23 @@ export default class OCPPService {
         transaction.currentTotalDurationSecs += inactivitySecs;
       }
     }
+  }
+
+  private buildStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
+    const statusNotifications: string[] = [];
+    statusNotifications.push(`Status: '${statusNotification.status}'`);
+    if (statusNotification.errorCode && statusNotification.errorCode !== 'NoError') {
+      statusNotifications.push(`errorCode: '${statusNotification.errorCode}'`);
+    }
+    if (statusNotification.info) {
+      statusNotifications.push(`info: '${statusNotification.info}'`);
+    }
+    if (statusNotification.vendorErrorCode) {
+      statusNotifications.push(`vendorErrorCode: '${statusNotification.vendorErrorCode}'`);
+    }
+    if (statusNotification.vendorId) {
+      statusNotifications.push(`vendorId: '${statusNotification.vendorId}'`);
+    }
+    return statusNotifications.join(', ');
   }
 }
