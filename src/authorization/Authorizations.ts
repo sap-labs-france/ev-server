@@ -30,7 +30,6 @@ import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
