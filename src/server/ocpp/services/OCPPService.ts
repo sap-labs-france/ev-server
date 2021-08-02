@@ -158,7 +158,7 @@ export default class OCPPService {
         // Save Heart Beat
         await OCPPStorage.saveHeartbeat(tenant, heartbeat);
         // Log
-        await Logging.logInfo({
+        await Logging.logDebug({
           tenantID: tenant.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'handleHeartbeat',
@@ -198,7 +198,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.STATUS_NOTIFICATION,
             module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector ID '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`,
+            message: `Connector ID '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info ?? ''}'`,
             detailedMessages: { headers, statusNotification }
           });
           return {};
@@ -909,7 +909,7 @@ export default class OCPPService {
           source: chargingStation.id,
           module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
           detailedMessages: { statusNotification }
         });
         OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
