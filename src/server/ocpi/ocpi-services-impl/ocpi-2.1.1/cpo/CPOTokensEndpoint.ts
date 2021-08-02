@@ -67,7 +67,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
   }
 
   private async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (tag?.user) {
       if (!tag.user.issuer && tag.user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
         return tag.ocpiToken;
@@ -105,7 +105,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Retrieve token
-    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -175,7 +175,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     // Retrieve token
-    const tag = await TagStorage.getTag(tenant.id, tokenId, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tokenId, { withUser: true });
     if (!tag?.ocpiToken || tag?.issuer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -258,7 +258,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       });
     }
     tag.userID = tag.user.id;
-    await TagStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant, tag);
     return OCPIUtils.success();
   }
 }

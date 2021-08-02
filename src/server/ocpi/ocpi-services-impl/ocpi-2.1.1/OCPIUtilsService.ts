@@ -141,7 +141,7 @@ export default class OCPIUtilsService {
     // Result
     const tokens: OCPIToken[] = [];
     // Get all tokens
-    const tags = await TagStorage.getTags(tenant.id,
+    const tags = await TagStorage.getTags(tenant,
       { issuer: true, dateFrom, dateTo, withUsersOnly: true, withUser: true },
       { limit, skip },
       [ 'id', 'userID', 'user.deleted', 'lastChangedOn' ]);
@@ -160,7 +160,7 @@ export default class OCPIUtilsService {
     }
     let nbrOfTags = tags.count;
     if (nbrOfTags === -1) {
-      const tagsCount = await TagStorage.getTags(tenant.id,
+      const tagsCount = await TagStorage.getTags(tenant,
         { issuer: true, dateFrom, dateTo, withUsersOnly: true },
         Constants.DB_PARAMS_COUNT_ONLY);
       nbrOfTags = tagsCount.count;
@@ -703,7 +703,7 @@ export default class OCPIUtilsService {
       };
       // Save Tag
       if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant.id, tagToSave);
+        await TagStorage.saveTag(tenant, tagToSave);
       }
     } else {
       // Unknown User
@@ -743,7 +743,7 @@ export default class OCPIUtilsService {
       };
       // Save Tag
       if (!tag || JSON.stringify(tagToSave.ocpiToken) !== JSON.stringify(tag.ocpiToken)) {
-        await TagStorage.saveTag(tenant.id, tagToSave);
+        await TagStorage.saveTag(tenant, tagToSave);
       }
     }
   }

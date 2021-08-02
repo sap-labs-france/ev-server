@@ -215,7 +215,7 @@ export default class AuthService {
       description: i18nManager.translate('tags.virtualBadge'),
       default: true
     };
-    await TagStorage.saveTag(req.user.tenantID, tag);
+    await TagStorage.saveTag(req.tenant, tag);
     // Save User password
     await UserStorage.saveUserPassword(tenant, newUser.id,
       {
@@ -745,7 +745,7 @@ export default class AuthService {
     await UserStorage.saveUserPassword(tenant, user.id,
       { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
     // Get the tags (limited) to avoid an overweighted token
-    const tags = await TagStorage.getTags(tenant.id, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
+    const tags = await TagStorage.getTags(tenant, { userIDs: [user.id] }, Constants.DB_PARAMS_DEFAULT_RECORD);
     // Yes: build token
     const payload = await Authorizations.buildUserToken(tenant, user, tags.result);
     // Build token

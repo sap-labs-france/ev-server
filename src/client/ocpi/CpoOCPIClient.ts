@@ -109,7 +109,7 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const token of response.data.data as OCPIToken[]) {
         tagIDs.push(token.uid);
       }
-      const tags = await TagStorage.getTags(this.tenant.id,
+      const tags = await TagStorage.getTags(this.tenant,
         { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
       const tokens = response.data.data as OCPIToken[];
       if (!Utils.isEmptyArray(tokens)) {
