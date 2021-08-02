@@ -10,6 +10,7 @@ import MigrationTask from './MigrationTask';
 import RemoveDuplicateTagVisualIDsTask from './tasks/RemoveDuplicateTagVisualIDsTask';
 import RestoreDataIntegrityInSiteUsersTask from './tasks/RestoreDataIntegrityInSiteUsersTask';
 import { ServerAction } from '../types/Server';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import moment from 'moment';
 
@@ -142,7 +143,7 @@ export default class MigrationHandler {
         message: logMsg,
         detailedMessages: { error: error.stack }
       });
-      console.error(logMsg);
+      console.error(chalk.red(logMsg));
     }
   }
 }

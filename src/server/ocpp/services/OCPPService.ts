@@ -834,7 +834,7 @@ export default class OCPPService {
     if (statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransactionFromChargingStation(
-        tenant, chargingStation.id, connector.connectorId, { withChargingStation: true, withUser: true, withTag: true });
+        tenant, chargingStation.id, connector.connectorId);
       // Transaction completed
       if (lastTransaction?.stop) {
         // Check Inactivity
@@ -863,7 +863,7 @@ export default class OCPPService {
                 lastTransaction.stop.extraInactivitySecs = 0;
               } else {
                 // Fix the Inactivity severity
-                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(lastTransaction.chargeBox, lastTransaction.connectorId,
+                lastTransaction.stop.inactivityStatus = Utils.getInactivityStatusLevel(chargingStation, lastTransaction.connectorId,
                   lastTransaction.stop.totalInactivitySecs + lastTransaction.stop.extraInactivitySecs);
                 // Build extra inactivity consumption
                 await OCPPUtils.buildExtraConsumptionInactivity(tenant, lastTransaction);
@@ -1647,13 +1647,14 @@ export default class OCPPService {
         transaction.carID = user.lastSelectedCarID;
       } else {
         // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id']);
+        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
         if (defaultCar) {
           transaction.carID = defaultCar.id;
+          transaction.carCatalogID = defaultCar.carCatalogID;
         }
       }
       // Set Car Catalog ID
-      if (transaction.carID) {
+      if (transaction.carID && !transaction.carCatalogID) {
         const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
         transaction.carCatalogID = car?.carCatalogID;
       }
