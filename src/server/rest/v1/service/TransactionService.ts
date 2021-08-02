@@ -609,7 +609,7 @@ export default class TransactionService {
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
-        req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
+        req.tenant, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
           'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
@@ -620,7 +620,7 @@ export default class TransactionService {
       consumptions = consumptionsMDB.result;
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
-        req.user.tenantID, { transactionId: transaction.id }, [
+        req.tenant, { transactionId: transaction.id }, [
           'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
           'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
           'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',

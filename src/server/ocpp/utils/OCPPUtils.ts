@@ -186,7 +186,7 @@ export default class OCPPUtils {
     // Extra inactivity
     if (transaction.stop.extraInactivitySecs > 0) {
       // Get the last Consumption
-      const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenant.id, { transactionId: transaction.id });
+      const lastConsumption = await ConsumptionStorage.getLastTransactionConsumption(tenant, { transactionId: transaction.id });
       if (lastConsumption) {
         delete lastConsumption.id;
         // Create the extra consumption with inactivity
@@ -206,7 +206,7 @@ export default class OCPPUtils {
         lastConsumption.instantWattsL2 = 0;
         lastConsumption.instantWattsL3 = 0;
         // Save
-        await ConsumptionStorage.saveConsumption(tenant.id, lastConsumption);
+        await ConsumptionStorage.saveConsumption(tenant, lastConsumption);
         // Update the Stop transaction data
         transaction.stop.timestamp = lastConsumption.endedAt;
         transaction.stop.totalDurationSecs = Utils.createDecimal(
@@ -519,7 +519,7 @@ export default class OCPPUtils {
     const transactionSimplePricePerkWh = pricePerkWh > 0 ? pricePerkWh : Utils.roundTo(transaction.stop.price / (transaction.stop.totalConsumptionWh / 1000), 2);
     // Get the consumptions
     const consumptionDataResult = await ConsumptionStorage.getTransactionConsumptions(
-      tenant.id, { transactionId: transaction.id });
+      tenant, { transactionId: transaction.id });
     transaction.currentCumulatedPrice = 0;
     const consumptions = consumptionDataResult.result;
     for (const consumption of consumptions) {
@@ -530,9 +530,9 @@ export default class OCPPUtils {
       consumption.cumulatedAmount = transaction.currentCumulatedPrice;
     }
     // Delete consumptions
-    await ConsumptionStorage.deleteConsumptions(tenant.id, [transaction.id]);
+    await ConsumptionStorage.deleteConsumptions(tenant, [transaction.id]);
     // Save all
-    await ConsumptionStorage.saveConsumptions(tenant.id, consumptions);
+    await ConsumptionStorage.saveConsumptions(tenant, consumptions);
     // Update transaction
     transaction.roundedPrice = Utils.truncTo(transaction.price, 2);
     transaction.stop.price = transaction.currentCumulatedPrice;
@@ -646,9 +646,9 @@ export default class OCPPUtils {
         }
       }
       // Delete first all transaction's consumptions
-      await ConsumptionStorage.deleteConsumptions(tenant.id, [transaction.id]);
+      await ConsumptionStorage.deleteConsumptions(tenant, [transaction.id]);
       // Save all
-      await ConsumptionStorage.saveConsumptions(tenant.id, consumptions);
+      await ConsumptionStorage.saveConsumptions(tenant, consumptions);
       // Update the Transaction
       if (!transaction.refundData) {
         transaction.roundedPrice = Utils.truncTo(transaction.price, 2);

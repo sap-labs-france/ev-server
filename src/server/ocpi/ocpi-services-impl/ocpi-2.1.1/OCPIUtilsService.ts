@@ -1018,7 +1018,7 @@ export default class OCPIUtilsService {
         currencyCode: session.currency,
         cumulatedAmount: session.total_cost
       } as Consumption;
-      await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+      await ConsumptionStorage.saveConsumption(tenant, consumption);
     }
   }
 

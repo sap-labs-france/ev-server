@@ -258,7 +258,7 @@ export default class OCPPService {
             await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
           }
           // Save
-          await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+          await ConsumptionStorage.saveConsumption(tenant, consumption);
         }
         // Get the phases really used from Meter Values (for AC single phase charger/car)
         if (!transaction.phasesUsed &&
@@ -1282,7 +1282,7 @@ export default class OCPPService {
             connector.status === ChargePointStatus.SUSPENDED_EV) {
           // Check the last 3 consumptions
           const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-            tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
+            tenant, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
           if (consumptions.count === 3) {
             // Check the consumptions
             const noConsumption = consumptions.result.every((consumption) =>
@@ -2094,7 +2094,7 @@ export default class OCPPService {
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.STOP);
         }
         // Save Consumption
-        await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+        await ConsumptionStorage.saveConsumption(tenant, consumption);
       }
     // Check Inactivity and Consumption between the last Transaction.End and Stop Transaction
     } else if (transaction.lastConsumption) {
