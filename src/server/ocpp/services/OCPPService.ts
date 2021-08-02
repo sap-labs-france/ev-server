@@ -740,7 +740,7 @@ export default class OCPPService {
       module: MODULE_NAME, method: 'processConnectorStatusNotification',
       action: ServerAction.STATUS_NOTIFICATION,
       message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} Status '${this.buildConnectorStatusDescription(connector)}' has been saved`,
-      detailedMessages: [statusNotification, connector]
+      detailedMessages: { statusNotification, connector }
     });
     // Notify Users
     await this.notifyStatusNotification(tenant, chargingStation, connector);

@@ -458,7 +458,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
-        detailedMessages: [title, body]
+        detailedMessages: { title, body }
       });
       // Send nothing
       return Promise.resolve();
@@ -472,24 +472,24 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { priority: 'high', timeToLive: 60 * 60 * 24 }
     ).then((response) => {
       // Response is a message ID string.
-      Logging.logDebug({
+      void Logging.logDebug({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
-        detailedMessages: [message, response]
+        detailedMessages: { message, response }
       });
     }).catch((error: Error) => {
-      Logging.logError({
+      void Logging.logError({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack, message }
       });
     });
   }

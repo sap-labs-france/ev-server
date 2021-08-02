@@ -90,18 +90,13 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       'remoteStopTransactionRequest': params
     });
     if (error) {
-      // Log
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack, result, envelope }
       });
       throw error;
     }
@@ -130,11 +125,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope },
       });
       throw error;
     }
@@ -165,11 +156,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
     }
@@ -199,11 +186,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope }
       });
       return error;
     }
@@ -231,11 +214,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
     }
@@ -272,11 +251,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
     }
@@ -312,11 +287,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         module: MODULE_NAME, method: 'changeConfiguration',
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.toString()}`,
-        detailedMessages: [
-          { 'stack': error.stack },
-          { result },
-          { envelope }
-        ]
+        detailedMessages: { 'error': error.stack , result, envelope }
       });
       throw error;
     }
