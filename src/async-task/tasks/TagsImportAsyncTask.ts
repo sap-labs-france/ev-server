@@ -41,7 +41,7 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         };
         const startTime = new Date().getTime();
         // Get total number of Tags to import
-        const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant.id);
+        const totalTagsToImport = await TagStorage.getImportedTagsCount(tenant);
         if (totalTagsToImport > 0) {
           await Logging.logInfo({
             tenantID: tenant.id,
@@ -52,20 +52,20 @@ export default class TagsImportAsyncTask extends AbstractAsyncTask {
         }
         do {
           // Get the imported tags
-          importedTags = await TagStorage.getImportedTags(tenant.id, { status: ImportStatus.READY }, dbParams);
+          importedTags = await TagStorage.getImportedTags(tenant, { status: ImportStatus.READY }, dbParams);
           for (const importedTag of importedTags.result) {
             try {
               // Check & Import the Tag (+ User if present)
               await importHelper.processImportedTag(tenant, importedTag, existingSites);
               // Remove the imported Tag
-              await TagStorage.deleteImportedTag(tenant.id, importedTag.id);
+              await TagStorage.deleteImportedTag(tenant, importedTag.id);
               result.inSuccess++;
             } catch (error) {
               // Mark the imported Tag faulty with the reason
               importedTag.status = ImportStatus.ERROR;
               importedTag.errorDescription = error.message;
               result.inError++;
-              await TagStorage.saveImportedTag(tenant.id, importedTag);
+              await TagStorage.saveImportedTag(tenant, importedTag);
               await Logging.logError({
                 tenantID: tenant.id,
                 action: ServerAction.TAGS_IMPORT,
