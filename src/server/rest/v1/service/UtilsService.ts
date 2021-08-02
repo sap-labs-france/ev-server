@@ -653,13 +653,13 @@ export default class UtilsService {
 
   public static async checkAndGetTagAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
-    return UtilsService.checkAndGetTagByIDOrVisualIDAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
+    return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTag.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
   }
 
   public static async checkAndGetTagByVisualIDAuthorization(tenant: Tenant, userToken:UserToken, tagID: string, authAction: Action,
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
-    return UtilsService.checkAndGetTagByIDOrVisualIDAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
+    return UtilsService.checkAndGetTagByXXXAuthorization(tenant, userToken, tagID, TagStorage.getTagByVisualID.bind(this),
       authAction, action, entityData, additionalFilters, applyProjectFields, checkIssuer);
   }
 
@@ -1784,8 +1784,8 @@ export default class UtilsService {
     return properties;
   }
 
-  private static async checkAndGetTagByIDOrVisualIDAuthorization(tenant: Tenant, userToken:UserToken, id: string,
-      getTagByXXX: (tenantID: string, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
+  private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
+      getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'checkAndGetTagByXXXAuthorization', userToken);
@@ -1802,7 +1802,7 @@ export default class UtilsService {
       });
     }
     // Get the Tag & check it exists
-    const tag = await getTagByXXX(userToken.tenantID, id,
+    const tag = await getTagByXXX(tenant, id,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
