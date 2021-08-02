@@ -1337,7 +1337,7 @@ export default class OCPPUtils {
         source: chargingProfile.chargingStationID,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-        message: `Charging Station '${chargingStation.id}' does not support the Charging Profiles`,
+        message: 'Charging Station does not support the Charging Profiles',
       });
     }
     // Get Vendor Instance
@@ -1549,7 +1549,7 @@ export default class OCPPUtils {
     let chargingStation: ChargingStation;
     try {
       chargingStation = await ChargingStationStorage.getChargingStation(
-        tenant, ocppHeader.chargeBoxIdentity);
+        tenant, ocppHeader.chargeBoxIdentity, { withSiteArea: true });
       if (!chargingStation) {
         throw new BackendError({
           source: ocppHeader.chargeBoxIdentity,

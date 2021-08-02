@@ -82,7 +82,7 @@ export default class OCPPService {
         });
       }
       // Get Charging Station
-      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity);
+      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity, { issuer: true });
       if (!chargingStation) {
         // Create Charging Station
         chargingStation = await this.checkAndCreateChargingStation(tenant, bootNotification, headers);
@@ -1663,13 +1663,10 @@ export default class OCPPService {
     startTransaction.tagID = startTransaction.idTag;
     // Organization
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      // Set the Site Area ID
+      // Set the Organization IDs
+      startTransaction.companyID = chargingStation.companyID;
+      startTransaction.siteID = chargingStation.siteID;
       startTransaction.siteAreaID = chargingStation.siteAreaID;
-      // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
-      if (chargingStation.site) {
-        startTransaction.siteID = chargingStation.site.id;
-        startTransaction.companyID = chargingStation.site.companyID;
-      }
     }
   }
 

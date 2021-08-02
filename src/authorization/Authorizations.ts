@@ -56,11 +56,11 @@ export default class Authorizations {
   public static async canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): Promise<boolean> {
     let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      if (!chargingStation || !chargingStation.siteArea || !chargingStation.site) {
+      if (!chargingStation || !chargingStation.siteID || !chargingStation.siteAreaID) {
         return false;
       }
       context = {
-        site: chargingStation.site.id,
+        site: chargingStation.siteID,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -740,23 +740,11 @@ export default class Authorizations {
     return result;
   }
 
-  public static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
+  public static isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): boolean {
     // Org component enabled?
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      let foundSiteArea = true;
-      // Site Area -----------------------------------------------
-      if (!chargingStation.siteAreaID) {
-        foundSiteArea = false;
-      } else if (!chargingStation.siteArea) {
-        chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-          tenant, chargingStation.siteAreaID, { withSite: true });
-        if (!chargingStation.siteArea) {
-          foundSiteArea = false;
-        }
-      }
-      // Site is mandatory
-      if (!foundSiteArea) {
-        // Reject Site Not Found
+      // Check Site Area
+      if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -765,10 +753,8 @@ export default class Authorizations {
           detailedMessages: { chargingStation }
         });
       }
-      // Site -----------------------------------------------------
-      chargingStation.site = await SiteStorage.getSite(tenant, chargingStation.siteID);
-      if (!chargingStation.site) {
-        // Reject Site Not Found
+      // Check Site
+      if (!chargingStation.siteID) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -784,7 +770,7 @@ export default class Authorizations {
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<{user: User, tag?: Tag}> {
     // Check Organization
-    if (await Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
+    if (Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user

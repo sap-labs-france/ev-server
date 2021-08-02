@@ -614,7 +614,7 @@ export default class ChargingStationService {
     // Check ConnectorID
     UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorID, MODULE_NAME, 'handleGenerateQrCodeForConnector', req.user);
     // Get the Charging Station`
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.tenant, filteredRequest.ChargingStationID);
     // Found ChargingStation ?
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station ID '${filteredRequest.ChargingStationID}' does not exist`,
       MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
@@ -913,6 +913,7 @@ export default class ChargingStationService {
     // Check and Get Charging Station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.ID, action, null, {
+        withSiteArea: true,
         withLogo: true
       }, true);
     res.json(chargingStation);
@@ -1145,7 +1146,7 @@ export default class ChargingStationService {
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
-      req.tenant, req.user, filteredRequest.chargingStationID, action);
+      req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
     let result: any;
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
@@ -1794,7 +1795,7 @@ export default class ChargingStationService {
       });
     }
     // Check Charging Station
-    await Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
     // Execute it
     const result = await ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
