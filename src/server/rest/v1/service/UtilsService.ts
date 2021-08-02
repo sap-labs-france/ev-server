@@ -933,13 +933,13 @@ export default class UtilsService {
     res.end();
   }
 
-  public static async exportToPDF(req: Request, res: Response, attachementName: string,
+  public static async exportToPDF(req: Request, res: Response, attachmentName: string,
       handleGetData: (req: Request) => Promise<DataResult<any>>,
       handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
-    res.attachment(attachementName);
+    res.attachment(attachmentName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
     let data = await handleGetData(req);
