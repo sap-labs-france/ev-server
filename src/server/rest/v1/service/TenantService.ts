@@ -259,7 +259,7 @@ export default class TenantService {
       try {
         await TenantStorage.createTenantDB(filteredRequest.id);
         // Create initial settings for tenant
-        await TenantService.createInitialSettingsForTenant(filteredRequest.id);
+        await TenantService.createInitialSettingsForTenant(filteredRequest);
       } finally {
         // Release the database creation Lock
         await LockingManager.release(createDatabaseLock);
@@ -389,7 +389,7 @@ export default class TenantService {
     next();
   }
 
-  private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
+  private static async updateSettingsWithComponents(tenant: Tenant, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -418,13 +418,13 @@ export default class TenantService {
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSettings(tenant.id, newSetting);
+          await SettingStorage.saveSettings(tenant, newSetting);
         } else {
           currentSetting.content = newSettingContent;
           currentSetting.lastChangedOn = new Date();
           currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSettings(tenant.id, currentSetting);
+          await SettingStorage.saveSettings(tenant, currentSetting);
         }
       }
     }

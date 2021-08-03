@@ -322,7 +322,7 @@ describe('Smart Charging Service', function() {
 
     it('Should not connect to Smart Charging Provider with invalid URL', async () => {
       const sapSmartChargingSettings = TestData.getSmartChargingSettings();
-      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant(), sapSmartChargingSettings.password);
       sapSmartChargingSettings.optimizerUrl = '';
       await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
       const response = await testData.userService.smartChargingApi.testConnection({});
