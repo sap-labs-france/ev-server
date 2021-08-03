@@ -17,7 +17,6 @@ import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
-import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import Lock from '../../../types/Locking';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
@@ -1873,6 +1872,22 @@ export default class OCPPUtils {
       }
     }
     return false;
+  }
+
+  public static async checkBillingPrerequisites(tenant: Tenant, chargingStation: ChargingStation, user: User): Promise<void> {
+    const billingImpl = await BillingFactory.getBillingImpl(tenant);
+    if (billingImpl) {
+      const errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
+      if (errorCodes?.length > 0) {
+        throw new BackendError({
+          source: chargingStation.id,
+          message: 'Billing prerequisites are not met',
+          module: MODULE_NAME, method: 'checkBillingPrerequisites',
+          user,
+          detailedMessages: { errorCodes }
+        });
+      }
+    }
   }
 
   private static async enrichChargingStationWithTemplate(tenant: Tenant, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
