@@ -677,10 +677,10 @@ export default class Logging {
       module: exception.params.module, method: exception.params.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        stack: exception.stack,
+      detailedMessages: {
+        error: exception.stack,
         ...detailedMessages
-      }]
+      }
     });
   }
 
@@ -696,10 +696,10 @@ export default class Logging {
         module: module, method: method,
         action: action,
         message: error.message,
-        detailedMessages: [{
+        detailedMessages: {
           details: error.params.detailedMessages,
-          stack: error.stack
-        }]
+          error: error.stack
+        }
       };
     }
     return {
@@ -710,10 +710,10 @@ export default class Logging {
       module: module, method: method,
       action: action,
       message: error.message,
-      detailedMessages: [{
+      detailedMessages: {
         details: error.detailedMessages,
         stack: error.stack
-      }]
+      }
     };
   }
 

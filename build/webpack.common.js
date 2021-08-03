@@ -49,7 +49,7 @@ const config = {
     new webpack.ProgressPlugin(),
     new CopyPlugin({
       patterns: [
-        { from: 'src/assets/', to: 'assets/', globOptions: { ignore: ['**/configs/**'] } },
+        { from: 'src/assets/', to: 'assets/', globOptions: { ignore: ['**/configs*/**', '**/config-template*', '**/ups-template*', '**/cla'] } },
         { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
       ]
     })
