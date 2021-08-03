@@ -777,7 +777,7 @@ export default class BillingService {
     // Load previous settings
     const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);
-    await UtilsService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    await UtilsService.processSensitiveData(req.tenant, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;

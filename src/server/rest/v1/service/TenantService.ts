@@ -179,14 +179,14 @@ export default class TenantService {
     next();
   }
 
-  public static async createInitialSettingsForTenant(tenantID: string): Promise<void> {
-    await this.createInitialCryptoSettings(tenantID);
-    await this.createInitialUserSettings(tenantID);
+  public static async createInitialSettingsForTenant(tenant: Tenant): Promise<void> {
+    await this.createInitialCryptoSettings(tenant);
+    await this.createInitialUserSettings(tenant);
   }
 
-  public static async createInitialCryptoSettings(tenantID: string): Promise<void> {
+  public static async createInitialCryptoSettings(tenant: Tenant): Promise<void> {
     // Check for settings in db
-    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+    const keySettings = await SettingStorage.getCryptoSettings(tenant);
     // Create Crypto Key Settings
     if (!keySettings) {
       const keySettingToSave: CryptoSettings = {
@@ -198,13 +198,13 @@ export default class TenantService {
         }
       } as CryptoSettings;
       // Save Crypto Key Settings
-      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+      await SettingStorage.saveCryptoSettings(tenant, keySettingToSave);
     }
   }
 
-  public static async createInitialUserSettings(tenantID: string): Promise<void> {
+  public static async createInitialUserSettings(tenant: Tenant): Promise<void> {
     // Check for settings in db
-    const userSettings = await SettingStorage.getUserSettings(tenantID);
+    const userSettings = await SettingStorage.getUserSettings(tenant);
     // Create new user settings
     if (!userSettings) {
       const settingsToSave: UserSettings = {
@@ -215,7 +215,7 @@ export default class TenantService {
         },
         createdOn: new Date(),
       };
-      await SettingStorage.saveUserSettings(tenantID, settingsToSave);
+      await SettingStorage.saveUserSettings(tenant, settingsToSave);
     }
   }
 
@@ -393,12 +393,12 @@ export default class TenantService {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
-      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant.id, componentName);
+      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant, componentName);
       // Check if Component is active
       if (!tenant.components[componentName] || !tenant.components[componentName].active) {
         // Delete settings
         if (currentSetting) {
-          await SettingStorage.deleteSetting(tenant.id, currentSetting.id);
+          await SettingStorage.deleteSetting(tenant, currentSetting.id);
         }
         continue;
       }

@@ -11,7 +11,7 @@ export default class CarConnectorFactory {
   static async getCarConnectorImpl(tenant: Tenant, connectorId: string): Promise<CarConnectorIntegration<CarConnectorSetting>> {
     // Check if car connector component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR)) {
-      const settings = await SettingStorage.getCarConnectorSettings(tenant.id);
+      const settings = await SettingStorage.getCarConnectorSettings(tenant);
       if (settings?.carConnector?.connections) {
         // Find connection
         const foundConnection = settings.carConnector.connections.find((connection) => connection.type === connectorId);

@@ -1710,7 +1710,7 @@ export default class UtilsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
+  public static async processSensitiveData(tenant: Tenant, currentProperties: object, newProperties: object): Promise<void> {
     // Process the sensitive data (if any)
     const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
     if (sensitivePropertyNames) {
@@ -1734,14 +1734,14 @@ export default class UtilsService {
             const currentHash = Cypher.hash(currentValue);
             if (newValue !== currentHash) {
             // Yes: Encrypt
-              _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+              _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
             } else {
             // No: Put back the encrypted value
               _.set(newProperties, propertyName, currentValue);
             }
           } else {
           // Value in db is empty then encrypt
-            _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+            _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
           }
         } else {
           throw new AppError({
