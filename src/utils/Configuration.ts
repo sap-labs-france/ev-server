@@ -29,6 +29,7 @@ import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfig
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import Utils from './Utils';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import chalk from 'chalk';
@@ -428,7 +429,7 @@ export default class Configuration {
 
   private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {
     if (!Configuration.isUndefined(Configuration.getConfig()[configSectionName][key])) {
-      console.warn(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`);
+      Utils.isDevelopmentEnv() && console.warn(chalk.yellow(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`));
     }
   }
 
