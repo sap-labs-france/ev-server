@@ -58,12 +58,12 @@ export default class UserService {
       req.tenant, req.user, filteredRequest.UserID, Action.READ, action);
     // Handle Tag
     // Get the default Tag
-    let tag = await TagStorage.getDefaultUserTag(req.user.tenantID, user.id, {
+    let tag = await TagStorage.getDefaultUserTag(req.tenant, user.id, {
       issuer: true
     }, ['visualID', 'description', 'active']);
     if (!tag) {
       // Get the first active Tag
-      tag = await TagStorage.getFirstActiveUserTag(req.user.tenantID, user.id, {
+      tag = await TagStorage.getFirstActiveUserTag(req.tenant, user.id, {
         issuer: true
       }, ['visualID', 'description', 'active']);
     }
@@ -780,7 +780,7 @@ export default class UserService {
     }
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant.id, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
+      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['userID']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         const userIDs = _.uniq(tagIDs.result.map((tag) => tag.userID));
         filteredRequest.UserID = userIDs.join('|');
@@ -915,7 +915,7 @@ export default class UserService {
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
           // Get tags
-          const tags = (await TagStorage.getTags(tenant.id,
+          const tags = (await TagStorage.getTags(tenant,
             { userIDs: [user.id], withNbrTransactions: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
           for (const tag of tags) {
             await ocpiClient.pushToken({

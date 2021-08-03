@@ -183,7 +183,7 @@ export default abstract class WSConnection {
             method: 'onMessage',
             action: commandName,
             message: `Error occurred '${commandName}' with message content '${JSON.stringify(commandPayload)}'`,
-            detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
+            detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
           });
           if (!this.requests[messageId]) {
             // Error
