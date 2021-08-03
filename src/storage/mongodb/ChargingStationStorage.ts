@@ -134,11 +134,12 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStation(tenant: Tenant, id: string = Constants.UNKNOWN_STRING_ID,
-      params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[] } = {}, projectFields?: string[]): Promise<ChargingStation> {
+      params: { includeDeleted?: boolean, issuer?: boolean; siteIDs?: string[]; withSiteArea?: boolean; withSite?: boolean; } = {},
+      projectFields?: string[]): Promise<ChargingStation> {
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenant, {
       chargingStationIDs: [id],
-      withSite: true,
-      withSiteArea: true,
+      withSite: params.withSite,
+      withSiteArea: params.withSiteArea,
       includeDeleted: params.includeDeleted,
       issuer: params.issuer,
       siteIDs: params.siteIDs,

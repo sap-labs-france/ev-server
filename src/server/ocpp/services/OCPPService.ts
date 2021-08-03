@@ -82,7 +82,7 @@ export default class OCPPService {
         });
       }
       // Get Charging Station
-      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity);
+      let chargingStation = await ChargingStationStorage.getChargingStation(tenant, headers.chargeBoxIdentity, { issuer: true });
       if (!chargingStation) {
         // Create Charging Station
         chargingStation = await this.checkAndCreateChargingStation(tenant, bootNotification, headers);
@@ -158,7 +158,7 @@ export default class OCPPService {
         // Save Heart Beat
         await OCPPStorage.saveHeartbeat(tenant, heartbeat);
         // Log
-        await Logging.logInfo({
+        await Logging.logDebug({
           tenantID: tenant.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'handleHeartbeat',
@@ -198,7 +198,7 @@ export default class OCPPService {
             source: chargingStation.id,
             action: ServerAction.STATUS_NOTIFICATION,
             module: MODULE_NAME, method: 'handleStatusNotification',
-            message: `Connector ID '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`,
+            message: `Connector ID '0' > ${this.buildStatusNotification(statusNotification)}, will be ignored (Connector ID = '0')`,
             detailedMessages: { headers, statusNotification }
           });
           return {};
@@ -258,7 +258,7 @@ export default class OCPPService {
             await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.UPDATE);
           }
           // Save
-          await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+          await ConsumptionStorage.saveConsumption(tenant, consumption);
         }
         // Get the phases really used from Meter Values (for AC single phase charger/car)
         if (!transaction.phasesUsed &&
@@ -739,11 +739,11 @@ export default class OCPPService {
       source: chargingStation.id,
       module: MODULE_NAME, method: 'processConnectorStatusNotification',
       action: ServerAction.STATUS_NOTIFICATION,
-      message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} Status '${this.buildConnectorStatusDescription(connector)}' has been saved`,
-      detailedMessages: [statusNotification, connector]
+      message: `${Utils.buildConnectorInfo(statusNotification.connectorId, connector.currentTransactionID)} ${this.buildStatusNotification(statusNotification)} has been saved`,
+      detailedMessages: { statusNotification, connector }
     });
     // Notify Users
-    await this.notifyStatusNotification(tenant, chargingStation, connector);
+    await this.notifyStatusNotification(tenant, chargingStation, connector, statusNotification);
   }
 
   private async processSmartChargingStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector): Promise<void> {
@@ -778,18 +778,6 @@ export default class OCPPService {
         await this.updateOCPIConnectorStatus(tenant, chargingStation, foundConnector);
       }
     }
-  }
-
-  private buildConnectorStatusDescription(connector: Connector): string {
-    const connectorStatusDescriptions = [];
-    connectorStatusDescriptions.push(connector.status);
-    if (connector.errorCode && connector.errorCode !== 'NoError') {
-      connectorStatusDescriptions.push(connector.errorCode);
-    }
-    if (connector.info) {
-      connectorStatusDescriptions.push(connector.info);
-    }
-    return connectorStatusDescriptions.join(' - ');
   }
 
   private async checkAndGetConnectorFromStatusNotification(tenant: Tenant, chargingStation: ChargingStation,
@@ -874,7 +862,7 @@ export default class OCPPService {
                   module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                   action: ServerAction.EXTRA_INACTIVITY,
                   message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
-                  detailedMessages: [statusNotification, connector, lastTransaction]
+                  detailedMessages: { statusNotification, connector, lastTransaction }
                 });
               }
             // No extra inactivity
@@ -886,7 +874,7 @@ export default class OCPPService {
                 module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                 action: ServerAction.EXTRA_INACTIVITY,
                 message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} No Extra Inactivity for this transaction`,
-                detailedMessages: [statusNotification, connector, lastTransaction]
+                detailedMessages: { statusNotification, connector, lastTransaction }
               });
             }
             // Flag
@@ -909,7 +897,7 @@ export default class OCPPService {
           source: chargingStation.id,
           module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
-          message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' on Connector ID ${lastTransaction.connectorId ?? 'unknown'} while a transaction is ongoing, expect inconsistencies in the inactivity time computation. Ask charging station vendor to fix the firmware`,
+          message: `${Utils.buildConnectorInfo(lastTransaction.connectorId, lastTransaction.id)} Received Status Notification '${statusNotification.status}' while a transaction is ongoing`,
           detailedMessages: { statusNotification }
         });
         OCPPUtils.clearChargingStationConnectorRuntimeData(chargingStation, lastTransaction.connectorId);
@@ -989,7 +977,7 @@ export default class OCPPService {
     }
   }
 
-  private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector) {
+  private async notifyStatusNotification(tenant: Tenant, chargingStation: ChargingStation, connector: Connector, statusNotification: OCPPStatusNotificationRequestExtended) {
     // Faulted?
     if (connector.status !== ChargePointStatus.AVAILABLE &&
         connector.status !== ChargePointStatus.FINISHING && // TODO: To remove after fix of ABB bug having Finishing status with an Error Code to avoid spamming Admins
@@ -1000,7 +988,7 @@ export default class OCPPService {
         source: chargingStation.id,
         action: ServerAction.STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'notifyStatusNotification',
-        message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred : '${this.buildConnectorStatusDescription(connector)}'`
+        message: `${Utils.buildConnectorInfo(connector.connectorId)} Error occurred: ${this.buildStatusNotification(statusNotification)}`
       });
       // Send Notification (Async)
       NotificationHandler.sendChargingStationStatusError(
@@ -1010,7 +998,7 @@ export default class OCPPService {
         {
           chargeBoxID: chargingStation.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
-          error: this.buildConnectorStatusDescription(connector),
+          error: this.buildStatusNotification(statusNotification),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
           evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#inerror')
         }
@@ -1282,7 +1270,7 @@ export default class OCPPService {
             connector.status === ChargePointStatus.SUSPENDED_EV) {
           // Check the last 3 consumptions
           const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-            tenant.id, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
+            tenant, { transactionId: transaction.id }, { limit: 3, skip: 0, sort: { startedAt: -1 } });
           if (consumptions.count === 3) {
             // Check the consumptions
             const noConsumption = consumptions.result.every((consumption) =>
@@ -1675,13 +1663,10 @@ export default class OCPPService {
     startTransaction.tagID = startTransaction.idTag;
     // Organization
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      // Set the Site Area ID
+      // Set the Organization IDs
+      startTransaction.companyID = chargingStation.companyID;
+      startTransaction.siteID = chargingStation.siteID;
       startTransaction.siteAreaID = chargingStation.siteAreaID;
-      // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
-      if (chargingStation.site) {
-        startTransaction.siteID = chargingStation.site.id;
-        startTransaction.companyID = chargingStation.site.companyID;
-      }
     }
   }
 
@@ -2094,7 +2079,7 @@ export default class OCPPService {
           await OCPPUtils.processTransactionPricing(tenant, transaction, chargingStation, consumption, TransactionAction.STOP);
         }
         // Save Consumption
-        await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+        await ConsumptionStorage.saveConsumption(tenant, consumption);
       }
     // Check Inactivity and Consumption between the last Transaction.End and Stop Transaction
     } else if (transaction.lastConsumption) {
@@ -2117,5 +2102,23 @@ export default class OCPPService {
         transaction.currentTotalDurationSecs += inactivitySecs;
       }
     }
+  }
+
+  private buildStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
+    const statusNotifications: string[] = [];
+    statusNotifications.push(`Status: '${statusNotification.status}'`);
+    if (statusNotification.errorCode && statusNotification.errorCode !== 'NoError') {
+      statusNotifications.push(`errorCode: '${statusNotification.errorCode}'`);
+    }
+    if (statusNotification.info) {
+      statusNotifications.push(`info: '${statusNotification.info}'`);
+    }
+    if (statusNotification.vendorErrorCode) {
+      statusNotifications.push(`vendorErrorCode: '${statusNotification.vendorErrorCode}'`);
+    }
+    if (statusNotification.vendorId) {
+      statusNotifications.push(`vendorId: '${statusNotification.vendorId}'`);
+    }
+    return statusNotifications.join(', ');
   }
 }

@@ -30,7 +30,6 @@ import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -57,11 +56,11 @@ export default class Authorizations {
   public static async canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): Promise<boolean> {
     let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      if (!chargingStation || !chargingStation.siteArea || !chargingStation.site) {
+      if (!chargingStation || !chargingStation.siteID || !chargingStation.siteAreaID) {
         return false;
       }
       context = {
-        site: chargingStation.site.id,
+        site: chargingStation.siteID,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -208,7 +207,7 @@ export default class Authorizations {
       alternateTag = result.tag;
       // Get User and Tag that started the Transaction
       user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
-      tag = await TagStorage.getTag(tenant.id, transaction.tagID);
+      tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
       // Check User
       const result = await Authorizations.isTagIDAuthorizedOnChargingStation(
@@ -741,23 +740,11 @@ export default class Authorizations {
     return result;
   }
 
-  public static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
+  public static isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): boolean {
     // Org component enabled?
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      let foundSiteArea = true;
-      // Site Area -----------------------------------------------
-      if (!chargingStation.siteAreaID) {
-        foundSiteArea = false;
-      } else if (!chargingStation.siteArea) {
-        chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-          tenant, chargingStation.siteAreaID, { withSite: true });
-        if (!chargingStation.siteArea) {
-          foundSiteArea = false;
-        }
-      }
-      // Site is mandatory
-      if (!foundSiteArea) {
-        // Reject Site Not Found
+      // Check Site Area
+      if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -766,10 +753,8 @@ export default class Authorizations {
           detailedMessages: { chargingStation }
         });
       }
-      // Site -----------------------------------------------------
-      chargingStation.site = await SiteStorage.getSite(tenant, chargingStation.siteID);
-      if (!chargingStation.site) {
-        // Reject Site Not Found
+      // Check Site
+      if (!chargingStation.siteID) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -785,12 +770,12 @@ export default class Authorizations {
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<{user: User, tag?: Tag}> {
     // Check Organization
-    if (await Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
+    if (Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
         const user = await UserStorage.getUserByTagId(tenant, tagID);
-        const tag = await TagStorage.getTag(tenant.id, tagID);
+        const tag = await TagStorage.getTag(tenant, tagID);
         return { user, tag };
       }
     }
@@ -998,7 +983,7 @@ export default class Authorizations {
       default: false
     };
     // Save
-    await TagStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
       tenant,
@@ -1047,7 +1032,7 @@ export default class Authorizations {
 
   private static async checkAndGetAuthorizedTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation, tagID: string): Promise<Tag> {
     // Get Tag
-    const tag = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tagID, { withUser: true });
     if (tag) {
       // Inactive Tag
       if (!tag.active) {

@@ -35,7 +35,7 @@ export default class TransactionStorage {
     await global.database.getCollection<any>(tenant.id, 'metervalues')
       .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
-    await ConsumptionStorage.deleteConsumptions(tenant.id, transactionsIDs);
+    await ConsumptionStorage.deleteConsumptions(tenant, transactionsIDs);
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteTransaction', uniqueTimerID, { transactionsIDs });
     return result.deletedCount;
