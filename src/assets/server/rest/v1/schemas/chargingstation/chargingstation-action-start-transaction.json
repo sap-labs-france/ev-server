@@ -1,0 +1,37 @@
+{
+  "title": "Charging Station Action Request for Start Transaction (endpoint)",
+  "type": "object",
+  "properties": {
+    "chargingStationID": {
+      "$ref": "chargingstation.json#/definitions/id"
+    },
+    "carID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "userID": {
+      "$ref": "common.json#/definitions/id"
+    },
+    "args": {
+      "type": "object",
+      "properties": {
+        "connectorId": {
+          "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+        },
+        "tagID": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "visualTagID": {
+          "type": "string",
+          "sanitize": "mongo"
+        }
+      }
+    },
+    "chargePointID": {
+      "$ref": "common.json#/definitions/id"
+    }
+  },
+  "required": [
+    "chargingStationID"
+  ]
+}

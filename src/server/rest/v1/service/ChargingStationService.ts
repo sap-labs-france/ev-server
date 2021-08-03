@@ -1141,7 +1141,7 @@ export default class ChargingStationService {
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice('RestChargingStation'.length) as Command;
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
+    let filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
@@ -1154,6 +1154,7 @@ export default class ChargingStationService {
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get the Charging Plans
