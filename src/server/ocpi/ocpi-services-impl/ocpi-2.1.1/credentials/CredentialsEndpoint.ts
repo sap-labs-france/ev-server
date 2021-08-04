@@ -172,7 +172,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           versionFound = true;
           ocpiEndpoint.version = version.version;
           ocpiEndpoint.versionUrl = version.url;
-
           // Log correct OCPI service found
           await Logging.logDebug({
             tenantID: tenant.id,
