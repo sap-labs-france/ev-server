@@ -53,6 +53,11 @@ export interface OCPIVersion {
   url: string;
 }
 
+export interface OCPIPingResult {
+  statusCode: number;
+  statusText: string;
+}
+
 export interface OCPIUnregisterResult {
   statusCode: number;
   statusText: string;

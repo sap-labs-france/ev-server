@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
-import OCPIEndpoint, { OCPIEndpointVersions, OCPIRegisterResult, OCPIUnregisterResult, OCPIVersion } from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpoint, { OCPIEndpointVersions, OCPIPingResult, OCPIRegisterResult, OCPIUnregisterResult, OCPIVersion } from '../../types/ocpi/OCPIEndpoint';
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 import AxiosFactory from '../../utils/AxiosFactory';
@@ -40,8 +40,8 @@ export default abstract class OCPIClient {
     this.role = role.toLowerCase();
   }
 
-  public async ping(): Promise<any> {
-    const pingResult: any = {};
+  public async ping(): Promise<OCPIPingResult> {
+    const pingResult = {} as OCPIPingResult;
     // Try to access base Url (GET .../versions)
     // Access versions API
     try {
@@ -60,7 +60,7 @@ export default abstract class OCPIClient {
         pingResult.statusText = response.statusText;
       }
     } catch (error) {
-      pingResult.message = error.message;
+      pingResult.statusText = error.message;
       pingResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
     return pingResult;
