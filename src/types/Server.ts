@@ -152,6 +152,7 @@ export enum ServerAction {
   OCPI_RESERVE_NOW = 'OcpiReserveNow',
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
+  OCPI_GET_ENDPOINT_VERSIONS = 'OcpiGetEndpointVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
   OCPI_GET_TOKEN = 'OcpiGetToken',
   OCPI_GET_TARIFF = 'OcpiGetTariff',

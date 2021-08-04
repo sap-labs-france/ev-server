@@ -218,7 +218,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Set available endpoints
-      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertEndpoints(response.data.data);
+      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
