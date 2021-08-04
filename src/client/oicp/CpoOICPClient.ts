@@ -296,7 +296,7 @@ export default class CpoOICPClient extends OICPClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.oicpEndpoint.lastPatchJobResult = {
@@ -431,7 +431,7 @@ export default class CpoOICPClient extends OICPClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.oicpEndpoint.lastPatchJobResult = {

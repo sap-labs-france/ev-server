@@ -138,8 +138,8 @@ export interface OcpiBusinessDetails {
     thumbnail: string;
     category: string;
     type: string;
-    width: string;
-    height: string;
+    width: number;
+    height: number;
   };
 }
 
