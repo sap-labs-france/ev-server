@@ -457,7 +457,7 @@ export enum ServerRoute {
 
   REST_CHARGING_STATIONS_RESET = 'charging-stations/:id/reset',
   REST_CHARGING_STATIONS_CACHE_CLEAR = 'charging-stations/:id/cache/clear',
-  REST_CHARGING_STATIONS_TRIGGER_DATA_TRANSFER = 'charging-stations/:id/dataTransfer',
+  REST_CHARGING_STATIONS_TRIGGER_DATA_TRANSFER = 'charging-stations/:id/data/transfer',
   REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'charging-stations/:id/configuration/retrieve',
   REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'charging-stations/:id/configuration',
   REST_CHARGING_STATIONS_REMOTE_START = 'charging-stations/:id/remote/start',
