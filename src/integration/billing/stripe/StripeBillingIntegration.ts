@@ -1023,12 +1023,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private shrinkInvoiceItem(fatInvoiceItem: BillingInvoiceItem): BillingInvoiceItem {
     // The initial invoice item includes redundant transaction data
-    const { transactionID, currency, pricingData: effectivePricing } = fatInvoiceItem;
+    const { transactionID, currency, pricingData } = fatInvoiceItem;
     // Let's return only essential information
     const lightInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData: effectivePricing
+      pricingData
     };
     return lightInvoiceItem;
   }

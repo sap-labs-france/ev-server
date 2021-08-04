@@ -92,15 +92,8 @@ export interface BillingInvoiceItem {
 
 export interface BillingSessionData {
   transactionID: number;
-  // pricingData: BillingPricingData;
   pricingData: BillingPricingData;
 }
-
-// export interface BillingPricingData {
-//   quantity: number;
-//   amount: number;
-//   currency: string;
-// }
 
 export enum BillingInvoiceStatus {
   PAID = 'paid',
