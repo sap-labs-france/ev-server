@@ -25,15 +25,6 @@ const config = {
   resolve: {
     extensions: ['.ts', '.tsx', '.json']
   },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: [/node_modules/]
-      }
-    ]
-  },
   plugins: [
     new WebpackShellPluginNext({
       onBuildStart: {

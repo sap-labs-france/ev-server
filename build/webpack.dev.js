@@ -6,6 +6,20 @@ const config = {
   optimization: {
     nodeEnv: 'development-build'
   },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: [{
+          loader: 'ts-loader',
+          options: {
+              configFile: "tsconfig.json"
+          }
+        }],
+        exclude: [/node_modules/]
+      }
+    ]
+  },
   plugins: [
     new CircularDependencyPlugin({
       // exclude detection of files based on a RegExp

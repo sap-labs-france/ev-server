@@ -15,7 +15,7 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
   status?: string;
   version?: string;
   businessDetails?: OcpiBusinessDetails;
-  availableEndpoints?: OCPIEndpoint[];
+  availableEndpoints?: OCPIAvailableEndpoints;
   versionUrl?: string;
   lastPatchJobOn?: Date;
   lastPatchJobResult?: {
@@ -26,4 +26,44 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
     chargeBoxIDsInSuccess?: string[];
     tokenIDsInFailure?: string[];
   };
+}
+
+export interface OCPIAvailableEndpoints {
+  credentials: string;
+  locations: string;
+  tokens: string;
+  commands: string;
+  sessions: string;
+  cdrs: string;
+  tariffs: string;
+}
+
+export interface OCPIEndpointVersions {
+  version: string;
+  endpoints: OCPIEndpointVersion[];
+}
+
+export interface OCPIEndpointVersion {
+  identifier: string;
+  url: string;
+}
+
+export interface OCPIVersion {
+  version: string;
+  url: string;
+}
+
+export interface OCPIPingResult {
+  statusCode: number;
+  statusText: string;
+}
+
+export interface OCPIUnregisterResult {
+  statusCode: number;
+  statusText: string;
+}
+
+export interface OCPIRegisterResult {
+  statusCode: number;
+  statusText: string;
 }
