@@ -90,7 +90,7 @@ export default class UserStorage {
   }
 
   public static async getUserByTagId(tenant: Tenant, tagID: string = Constants.UNKNOWN_STRING_ID): Promise<User> {
-    const tagMDB = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
+    const tagMDB = await TagStorage.getTag(tenant, tagID, { withUser: true });
     return tagMDB ? tagMDB.user : null;
   }
 
