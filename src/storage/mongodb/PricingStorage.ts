@@ -13,7 +13,7 @@ const MODULE_NAME = 'PricingStorage';
 
 export default class PricingStorage {
 
-  public static async savePricing(tenant: Tenant, pricing: Pricing): Promise<void> {
+  public static async savePricing(tenant: Tenant, pricing: Pricing): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'savePricing');
     // Check Tenant
@@ -32,6 +32,7 @@ export default class PricingStorage {
       { upsert: true, returnDocument: 'after' });
     // Debug
     await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricing', uniqueTimerID, pricingMDB);
+    return pricingMDB._id.toString();
   }
 
   public static async deletePricing(tenant: Tenant, pricingID: string): Promise<void> {

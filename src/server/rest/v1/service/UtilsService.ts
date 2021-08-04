@@ -25,6 +25,8 @@ import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
+import Pricing from '../../../../types/Pricing';
+import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -104,6 +106,48 @@ export default class UtilsService {
       });
     }
     return chargingStation;
+  }
+
+  public static async checkAndGetPricingAuthorization(tenant: Tenant, userToken: UserToken, pricingID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Pricing> {
+  // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, pricingID, MODULE_NAME, 'checkAndGetPricingAuthorization', userToken);
+    // Get dynamic auth
+    const authorizationFilter = await AuthorizationService.checkAndGetPricingAuthorizations(
+      tenant, userToken, { ID: pricingID }, authAction, entityData);
+    if (!authorizationFilter.authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetPricingAuthorization',
+        value: pricingID
+      });
+    }
+    // Get Pricing
+    const pricing = await PricingStorage.getPricing(tenant, pricingID,
+      {
+        ...additionalFilters,
+        ...authorizationFilter.filters
+      },
+      applyProjectFields ? authorizationFilter.projectFields : null
+    );
+    UtilsService.assertObjectExists(action, pricing, `Pricing ID '${pricingID}' does not exist`,
+      MODULE_NAME, 'checkAndGetPricingAuthorization', userToken);
+    // Add actions
+    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricing, authorizationFilter);
+    // Check
+    const authorized = AuthorizationService.canPerformAction(pricing, authAction);
+    if (!authorized) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.FORBIDDEN,
+        user: userToken,
+        action: authAction, entity: Entity.COMPANY,
+        module: MODULE_NAME, method: 'checkAndGetPricingAuthorization',
+        value: pricingID
+      });
+    }
+    return pricing;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -1281,6 +1325,27 @@ export default class UtilsService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
         module: MODULE_NAME, method: 'checkIfCompanyValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfPricingValid(pricing: Partial<Pricing>, req: Request): void {
+    if (req.method !== 'POST' && !pricing.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pricing ID is mandatory',
+        module: MODULE_NAME, method: 'checkIfPricingValid',
+        user: req.user.id
+      });
+    }
+    if (!pricing.pricingDefinitions) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pricing Definition is mandatory',
+        module: MODULE_NAME, method: 'checkIfPricingValid',
         user: req.user.id
       });
     }
