@@ -225,11 +225,11 @@ export default abstract class OCPIClient {
   }
 
   protected getEndpointUrl(service: string, action: ServerAction): string {
-    if (this.ocpiEndpoint.availableEndpoints) {
+    if (this.ocpiEndpoint.availableEndpoints && this.ocpiEndpoint.availableEndpoints[service]) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
     throw new BackendError({
-      action, message: `No endpoint URL defined for service ${service}`,
+      action, message: `No endpoint URL defined for service '${service}'`,
       module: MODULE_NAME, method: 'getEndpointUrl',
     });
   }
