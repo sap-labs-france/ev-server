@@ -316,7 +316,7 @@ export default class TransactionService {
       });
     }
     // Get the user
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
@@ -386,7 +386,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.UserID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get the tag
-    const tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.TagID);
+    const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
       MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     if (!user.issuer) {
@@ -609,7 +609,7 @@ export default class TransactionService {
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
       const consumptionsMDB = await ConsumptionStorage.getTransactionConsumptions(
-        req.user.tenantID, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
+        req.tenant, { transactionId: transaction.id }, Constants.DB_PARAMS_MAX_LIMIT, [
           'startedAt', 'endedAt', 'cumulatedConsumptionWh', 'cumulatedConsumptionAmps', 'cumulatedAmount',
           'stateOfCharge', 'limitWatts', 'limitAmps',
           'instantVoltsDC', 'instantVolts', 'instantVoltsL1', 'instantVoltsL2', 'instantVoltsL3',
@@ -620,7 +620,7 @@ export default class TransactionService {
       consumptions = consumptionsMDB.result;
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(
-        req.user.tenantID, { transactionId: transaction.id }, [
+        req.tenant, { transactionId: transaction.id }, [
           'consumptions.startedAt', 'consumptions.cumulatedConsumptionWh', 'consumptions.cumulatedConsumptionAmps', 'consumptions.cumulatedAmount',
           'consumptions.stateOfCharge', 'consumptions.limitWatts', 'consumptions.limitAmps', 'consumptions.startedAt', 'consumptions.endedAt',
           'consumptions.instantVoltsDC', 'consumptions.instantVolts', 'consumptions.instantVoltsL1', 'consumptions.instantVoltsL2', 'consumptions.instantVoltsL3',
@@ -1129,7 +1129,7 @@ export default class TransactionService {
     }
     // Get Tag IDs from Visual IDs
     if (filteredRequest.VisualTagID) {
-      const tagIDs = await TagStorage.getTags(req.tenant.id, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
+      const tagIDs = await TagStorage.getTags(req.tenant, { visualIDs: filteredRequest.VisualTagID.split('|') }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
       if (!Utils.isEmptyArray(tagIDs.result)) {
         filteredRequest.TagID = tagIDs.result.map((tag) => tag.id).join('|');
       }
