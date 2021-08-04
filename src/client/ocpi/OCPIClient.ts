@@ -69,26 +69,8 @@ export default abstract class OCPIClient {
   public async unregister(): Promise<OCPIUnregisterResult> {
     const unregisterResult = {} as OCPIUnregisterResult;
     try {
-      // Get available version.
-      const ocpiVersions = await this.getVersions();
-      // Loop through versions and pick the same one
-      let versionFound = false;
-      for (const ocpiVersion of ocpiVersions) {
-        if (ocpiVersion.version === '2.1.1') {
-          versionFound = true;
-          this.ocpiEndpoint.version = ocpiVersion.version;
-          this.ocpiEndpoint.versionUrl = ocpiVersion.url;
-          break;
-        }
-      }
-      // If not found trigger exception
-      if (!versionFound) {
-        throw new BackendError({
-          action: ServerAction.OCPI_PUSH_TOKENS,
-          message: 'OCPI Endpoint version 2.1.1 not found',
-          module: MODULE_NAME, method: 'constructor',
-        });
-      }
+      // Check versions
+      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
       // Delete credentials
       await this.deleteCredentials();
       // Save endpoint
@@ -110,26 +92,8 @@ export default abstract class OCPIClient {
   public async register(): Promise<OCPIRegisterResult> {
     const registerResult = {} as OCPIRegisterResult;
     try {
-      // Get available version.
-      const ocpiVersions = await this.getVersions();
-      // Loop through versions and pick the same one
-      let versionFound = false;
-      for (const ocpiVersion of ocpiVersions) {
-        if (ocpiVersion.version === '2.1.1') {
-          versionFound = true;
-          this.ocpiEndpoint.version = ocpiVersion.version;
-          this.ocpiEndpoint.versionUrl = ocpiVersion.url;
-          break;
-        }
-      }
-      // If not found trigger exception
-      if (!versionFound) {
-        throw new BackendError({
-          action: ServerAction.OCPI_REGISTER,
-          message: 'OCPI Endpoint version 2.1.1 not found',
-          module: MODULE_NAME, method: 'register',
-        });
-      }
+      // Check versions
+      await this.getAndCheckVersions(ServerAction.OCPI_UNREGISTER);
       // Try to read services
       const endpointVersions = await this.getEndpointVersions();
       // Set available endpoints
@@ -272,5 +236,28 @@ export default abstract class OCPIClient {
 
   protected getLocalEndpointUrl(service: string): string {
     return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
+  }
+
+  private async getAndCheckVersions(action: ServerAction) {
+    // Get available version.
+    const ocpiVersions = await this.getVersions();
+    // Loop through versions and pick the same one
+    let versionFound = false;
+    for (const ocpiVersion of ocpiVersions) {
+      if (ocpiVersion.version === '2.1.1') {
+        versionFound = true;
+        this.ocpiEndpoint.version = ocpiVersion.version;
+        this.ocpiEndpoint.versionUrl = ocpiVersion.url;
+        break;
+      }
+    }
+    // If not found trigger exception
+    if (!versionFound) {
+      throw new BackendError({
+        action,
+        message: 'OCPI Endpoint version 2.1.1 not found',
+        module: MODULE_NAME, method: 'constructor',
+      });
+    }
   }
 }
