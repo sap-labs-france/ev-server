@@ -209,7 +209,7 @@ export default class CpoOICPClient extends OICPClient {
           let currentChargingStationSkip = 0;
           do {
             // Get all charging stations from tenant
-            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant,
               { siteIDs: [site.id], public: true, withSiteArea: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
             if (!Utils.isEmptyArray(chargingStations)) {
               // Convert (public) charging stations to OICP EVSEs
@@ -357,7 +357,7 @@ export default class CpoOICPClient extends OICPClient {
           let currentChargingStationSkip = 0;
           do {
             // Get all charging stations from tenant
-            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant.id,
+            chargingStations = (await ChargingStationStorage.getChargingStations(this.tenant,
               { siteIDs: [site.id], public: true, withSiteArea: true }, { skip: currentChargingStationSkip, limit: Constants.DB_RECORD_COUNT_DEFAULT })).result;
             if (!Utils.isEmptyArray(chargingStations)) {
               // Convert (public) charging stations to OICP EVSE Statuses

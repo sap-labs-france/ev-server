@@ -187,7 +187,7 @@ const config = convict({
     autoReconnectMaxRetries: {
       doc: 'WebSocket client re-connection max retries.',
       format: 'int',
-      default: 10,
+      default: 0,
     },
     autoReconnectTimeout: {
       doc: 'WebSocket client re-connection timeout.',
@@ -246,6 +246,11 @@ const config = convict({
       doc: 'pool size',
       format: Number,
       default: 20
+    },
+    replicaSet: {
+      doc: 'replica set name',
+      format: String,
+      default: 'rs0'
     },
     monitorDBChange: {
       doc: 'monitor changes',

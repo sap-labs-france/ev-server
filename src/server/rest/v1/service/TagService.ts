@@ -34,6 +34,7 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../../types/UserToken';
 import UserValidator from '../validator/UserValidator';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './security/UtilsSecurity';
 import UtilsService from './UtilsService';
 import csvToJson from 'csvtojson/v2';
 
@@ -92,7 +93,7 @@ export default class TagService {
       });
     }
     // Check Tag with ID
-    let tag = await TagStorage.getTag(req.user.tenantID, filteredRequest.id.toUpperCase());
+    let tag = await TagStorage.getTag(req.tenant, filteredRequest.id.toUpperCase());
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -104,7 +105,7 @@ export default class TagService {
       });
     }
     // Check Tag with Visual ID
-    tag = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
+    tag = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
     if (tag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -116,7 +117,7 @@ export default class TagService {
       });
     }
     // Check if Tag has been already used
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+    const transactions = await TransactionStorage.getTransactions(req.tenant,
       { tagIDs: [filteredRequest.id.toUpperCase()], hasUserID: true }, Constants.DB_PARAMS_SINGLE_RECORD, ['id']);
     if (!Utils.isEmptyArray(transactions.result)) {
       throw new AppError({
@@ -134,10 +135,10 @@ export default class TagService {
     // Default tag?
     if (filteredRequest.default) {
       // Clear
-      await TagStorage.clearDefaultUserTag(req.user.tenantID, filteredRequest.userID);
+      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
     // Check if another one is the default
     } else {
-      const defaultTag = await TagStorage.getDefaultUserTag(req.user.tenantID, filteredRequest.userID, {
+      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
         issuer: true,
       });
       // No default tag: Force default
@@ -158,7 +159,7 @@ export default class TagService {
       visualID: filteredRequest.visualID
     } as Tag;
     // Save
-    await TagStorage.saveTag(req.user.tenantID, newTag);
+    await TagStorage.saveTag(req.tenant, newTag);
     // OCPI
     await TagService.updateTagOCPI(action, req.tenant, req.user, newTag);
     await Logging.logSecurityInfo({
@@ -186,7 +187,7 @@ export default class TagService {
       Action.READ, ServerAction.TAG_UPDATE);
     // Check visualID uniqueness
     if (tag.visualID !== filteredRequest.visualID) {
-      const tagVisualID = await TagStorage.getTagByVisualID(req.user.tenantID, filteredRequest.visualID);
+      const tagVisualID = await TagStorage.getTagByVisualID(req.tenant, filteredRequest.visualID);
       if (tagVisualID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -217,12 +218,12 @@ export default class TagService {
     }
     // Clear User's default Tag
     if (filteredRequest.default && !formerTagUserID && (tag.default !== filteredRequest.default)) {
-      await TagStorage.clearDefaultUserTag(req.user.tenantID, filteredRequest.userID);
+      await TagStorage.clearDefaultUserTag(req.tenant, filteredRequest.userID);
     }
     // Check default Tag existence
     if (!filteredRequest.default) {
       // Check if another one is the default
-      const defaultTag = await TagStorage.getDefaultUserTag(req.user.tenantID, filteredRequest.userID, {
+      const defaultTag = await TagStorage.getDefaultUserTag(req.tenant, filteredRequest.userID, {
         issuer: true,
       });
       // Force default Tag
@@ -239,7 +240,7 @@ export default class TagService {
     tag.lastChangedBy = { id: req.user.id };
     tag.lastChangedOn = new Date();
     // Save
-    await TagStorage.saveTag(req.user.tenantID, tag);
+    await TagStorage.saveTag(req.tenant, tag);
     // Ensure former User has a default Tag
     if (formerTagUserID && formerTagDefault) {
       await TagService.setDefaultTagForUser(req.tenant, formerTagUserID);
@@ -292,7 +293,7 @@ export default class TagService {
         inError: 0
       };
       // Delete all previously imported tags
-      await TagStorage.deleteImportedTags(req.user.tenantID);
+      await TagStorage.deleteImportedTags(req.tenant);
       // Get the stream
       const busboy = new Busboy({ headers: req.headers });
       req.pipe(busboy);
@@ -336,6 +337,10 @@ export default class TagService {
               // Set default value
               tag.importedBy = importedBy;
               tag.importedOn = importedOn;
+              tag.importedData = {
+                'autoActivateUserAtImport' : UtilsSecurity.filterBoolean(req.headers.autoactivateuseratimport),
+                'autoActivateTagAtImport' :  UtilsSecurity.filterBoolean(req.headers.autoactivatetagatimport)
+              };
               // Import
               const importSuccess = await TagService.processTag(action, req, tag, tagsToBeImported);
               if (!importSuccess) {
@@ -343,7 +348,7 @@ export default class TagService {
               }
               // Insert batched
               if (!Utils.isEmptyArray(tagsToBeImported) && (tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+                await TagService.insertTags(req.tenant, req.user, action, tagsToBeImported, result);
               }
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
             }, async (error: CSVError) => {
@@ -370,7 +375,7 @@ export default class TagService {
               connectionClosed = true;
               // Insert batched
               if (tagsToBeImported.length > 0) {
-                await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+                await TagService.insertTags(req.tenant, req.user, action, tagsToBeImported, result);
               }
               // Release the lock
               await LockingManager.release(importTagsLock);
@@ -415,7 +420,7 @@ export default class TagService {
               }
               // Insert batched
               if ((tagsToBeImported.length % Constants.IMPORT_BATCH_INSERT_SIZE) === 0) {
-                await TagService.insertTags(req.user.tenantID, req.user, action, tagsToBeImported, result);
+                await TagService.insertTags(req.tenant, req.user, action, tagsToBeImported, result);
               }
             });
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -480,16 +485,16 @@ export default class TagService {
       TagService.convertToCSV.bind(this));
   }
 
-  private static async insertTags(tenantID: string, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
+  private static async insertTags(tenant: Tenant, user: UserToken, action: ServerAction, tagsToBeImported: ImportedTag[], result: ActionsResponse): Promise<void> {
     try {
-      const nbrInsertedTags = await TagStorage.saveImportedTags(tenantID, tagsToBeImported);
+      const nbrInsertedTags = await TagStorage.saveImportedTags(tenant, tagsToBeImported);
       result.inSuccess += nbrInsertedTags;
     } catch (error) {
       // Handle dup keys
       result.inSuccess += error.result.nInserted;
       result.inError += error.writeErrors.length;
       await Logging.logError({
-        tenantID: tenantID,
+        tenantID: tenant.id,
         module: MODULE_NAME, method: 'insertTags',
         action: action,
         user: user.id,
@@ -514,7 +519,7 @@ export default class TagService {
         // Delete OCPI
         await TagService.checkAndDeleteTagOCPI(tenant, loggedUser, tag);
         // Delete the Tag
-        await TagStorage.deleteTag(loggedUser.tenantID, tag.id);
+        await TagStorage.deleteTag(tenant, tag.id);
         result.inSuccess++;
         // Ensure User has a default Tag
         if (tag.default) {
@@ -544,15 +549,15 @@ export default class TagService {
 
   private static async setDefaultTagForUser(tenant: Tenant, userID: string) {
     // Clear default User's Tags
-    await TagStorage.clearDefaultUserTag(tenant.id, userID);
+    await TagStorage.clearDefaultUserTag(tenant, userID);
     // Make the first active User's Tag
-    const firstActiveTag = await TagStorage.getFirstActiveUserTag(tenant.id, userID, {
+    const firstActiveTag = await TagStorage.getFirstActiveUserTag(tenant, userID, {
       issuer: true,
     });
     // Set it default
     if (firstActiveTag) {
       firstActiveTag.default = true;
-      await TagStorage.saveTag(tenant.id, firstActiveTag);
+      await TagStorage.saveTag(tenant, firstActiveTag);
     }
   }
 
@@ -594,7 +599,7 @@ export default class TagService {
       return Constants.DB_EMPTY_DATA_RESULT;
     }
     // Get the tags
-    const tags = await TagStorage.getTags(req.user.tenantID,
+    const tags = await TagStorage.getTags(req.tenant,
       {
         search: filteredRequest.Search,
         issuer: filteredRequest.Issuer,
@@ -622,32 +627,39 @@ export default class TagService {
       const newImportedTag: ImportedTag = {
         id: importedTag.id.toUpperCase(),
         visualID: importedTag.visualID,
-        description: importedTag.description ? importedTag.description : `Tag ID '${importedTag.id}'`
+        description: importedTag.description ? importedTag.description : `Tag ID '${importedTag.id}'`,
+        importedData: importedTag.importedData
       };
-      if (importedTag.name && importedTag.firstName && importedTag.email) {
-        newImportedTag.name = importedTag.name.toUpperCase();
-        newImportedTag.firstName = importedTag.firstName;
-        newImportedTag.email = importedTag.email;
-      }
       // Validate Tag data
       TagValidator.getInstance().validateImportedTagCreation(newImportedTag);
       // Set properties
       newImportedTag.importedBy = importedTag.importedBy;
       newImportedTag.importedOn = importedTag.importedOn;
       newImportedTag.status = ImportStatus.READY;
-      try {
-        UserValidator.getInstance().validateImportedUserCreation(newImportedTag as ImportedUser);
-      } catch (error) {
-        await Logging.logWarning({
-          tenantID: req.user.tenantID,
-          module: MODULE_NAME, method: 'processTag',
-          action: action,
-          message: `User cannot be imported tag ${newImportedTag.id}`,
-          detailedMessages: { tag: newImportedTag, error: error.stack }
-        });
+      let tagToImport = newImportedTag;
+      // handle user part
+      if (importedTag.name && importedTag.firstName && importedTag.email) {
+        const newImportedUser: ImportedUser = {
+          name: importedTag.name.toUpperCase(),
+          firstName: importedTag.firstName,
+          email: importedTag.email,
+          siteIDs: importedTag.siteIDs
+        };
+        try {
+          UserValidator.getInstance().validateImportedUserCreation(newImportedUser);
+          tagToImport = { ...tagToImport, ...newImportedUser as ImportedTag };
+        } catch (error) {
+          await Logging.logWarning({
+            tenantID: req.user.tenantID,
+            module: MODULE_NAME, method: 'processTag',
+            action: action,
+            message: `User cannot be imported with tag ${newImportedTag.id}`,
+            detailedMessages: { tag: newImportedTag, error: error.message, stack: error.stack }
+          });
+        }
       }
       // Save it later on
-      tagsToBeImported.push(newImportedTag);
+      tagsToBeImported.push(tagToImport);
       return true;
     } catch (error) {
       await Logging.logError({

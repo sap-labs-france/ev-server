@@ -1,10 +1,10 @@
 import { Action, AuthorizationContext, AuthorizationResult, Entity } from '../types/Authorization';
+import ChargingStation, { Connector } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
-import ChargingStation from '../types/ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -15,6 +15,7 @@ import NotificationHandler from '../notification/NotificationHandler';
 import OCPIClientFactory from '../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../types/ocpi/OCPIRole';
 import OCPIUtils from '../server/ocpi/OCPIUtils';
+import OCPPStorage from '../storage/mongodb/OCPPStorage';
 import { OICPAuthorizationStatus } from '../types/oicp/OICPAuthentication';
 import OICPClientFactory from '../client/oicp/OICPClientFactory';
 import { OICPDefaultTagId } from '../types/oicp/OICPIdentification';
@@ -29,11 +30,12 @@ import Tag from '../types/Tag';
 import TagStorage from '../storage/mongodb/TagStorage';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
+import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'Authorizations';
 
@@ -54,11 +56,11 @@ export default class Authorizations {
   public static async canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation): Promise<boolean> {
     let context: AuthorizationContext;
     if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
-      if (!chargingStation || !chargingStation.siteArea || !chargingStation.site) {
+      if (!chargingStation || !chargingStation.siteID || !chargingStation.siteAreaID) {
         return false;
       }
       context = {
-        site: chargingStation.site.id,
+        site: chargingStation.siteID,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -122,12 +124,12 @@ export default class Authorizations {
     return requestedSites.filter((site) => sites.has(site));
   }
 
-  public static async buildUserToken(tenantID: string, user: User, tags: Tag[]): Promise<UserToken> {
+  public static async buildUserToken(tenant: Tenant, user: User, tags: Tag[]): Promise<UserToken> {
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
     // Get User's site
-    const sites = (await UserStorage.getUserSites(tenantID, { userIDs: [user.id] },
+    const sites = (await UserStorage.getUserSites(tenant, { userIDs: [user.id] },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
     for (const siteUser of sites) {
       if (!Authorizations.isAdmin(user)) {
@@ -144,8 +146,7 @@ export default class Authorizations {
     let activeComponents = [];
     let tenantName;
     let tenantSubdomain;
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(tenantID);
+    if (tenant.id !== Constants.DEFAULT_TENANT) {
       tenantName = tenant.name;
       tenantSubdomain = tenant.subdomain;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
@@ -153,7 +154,7 @@ export default class Authorizations {
     }
     // Currency
     let currency = null;
-    const pricing = await SettingStorage.getPricingSettings(tenantID);
+    const pricing = await SettingStorage.getPricingSettings(tenant.id);
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
@@ -171,7 +172,7 @@ export default class Authorizations {
       locale: user.locale,
       language: Utils.getLanguageFromLocale(user.locale),
       currency: currency,
-      tenantID: tenantID,
+      tenantID: tenant.id,
       tenantName: tenantName,
       tenantSubdomain: tenantSubdomain,
       userHashID: SessionHashService.buildUserHashID(user),
@@ -185,29 +186,36 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
-      tagID: string, action: ServerAction, authAction: Action): Promise<User> {
-    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenant, chargingStation, null, tagID, action, authAction);
+      tagID: string, action: ServerAction, authAction: Action): Promise<{user: User, tag?: Tag}> {
+    return Authorizations.isTagIDAuthorizedOnChargingStation(tenant, chargingStation, null, tagID, action, authAction);
   }
 
   public static async isAuthorizedToStartTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      tagID: string, action: ServerAction, authAction?: Action): Promise<User> {
-    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenant, chargingStation, null, tagID, action, authAction);
+      tagID: string, transaction: Transaction, action: ServerAction, authAction?: Action): Promise<{user: User, tag?: Tag}> {
+    return Authorizations.isTagIDAuthorizedOnChargingStation(tenant, chargingStation, transaction, tagID, action, authAction);
   }
 
   public static async isAuthorizedToStopTransaction(tenant: Tenant, chargingStation: ChargingStation,
-      transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action): Promise<{ user: User; alternateUser: User }> {
-    let user: User, alternateUser: User;
+      transaction: Transaction, tagID: string, action: ServerAction, authAction?: Action): Promise<{ user: User; tag: Tag; alternateUser: User; alternateTag; }> {
+    let user: User, alternateUser: User, tag: Tag, alternateTag: Tag;
     // Check if same user
     if (tagID !== transaction.tagID) {
-      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(
+      // Check alternate User
+      const result = await Authorizations.isTagIDAuthorizedOnChargingStation(
         tenant, chargingStation, transaction, tagID, action, authAction);
-      user = await UserStorage.getUserByTagId(tenant.id, transaction.tagID);
+      alternateUser = result.user;
+      alternateTag = result.tag;
+      // Get User and Tag that started the Transaction
+      user = await UserStorage.getUserByTagId(tenant, transaction.tagID);
+      tag = await TagStorage.getTag(tenant, transaction.tagID);
     } else {
-      // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+      // Check User
+      const result = await Authorizations.isTagIDAuthorizedOnChargingStation(
         tenant, chargingStation, transaction, transaction.tagID, action, authAction);
+      user = result.user;
+      tag = result.tag;
     }
-    return { user, alternateUser };
+    return { user, tag, alternateUser, alternateTag };
   }
 
   public static async canListLoggings(loggedUser: UserToken): Promise<boolean> {
@@ -732,23 +740,11 @@ export default class Authorizations {
     return result;
   }
 
-  public static async isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): Promise<boolean> {
+  public static isChargingStationValidInOrganization(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation): boolean {
     // Org component enabled?
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
-      let foundSiteArea = true;
-      // Site Area -----------------------------------------------
-      if (!chargingStation.siteAreaID) {
-        foundSiteArea = false;
-      } else if (!chargingStation.siteArea) {
-        chargingStation.siteArea = await SiteAreaStorage.getSiteArea(
-          tenant.id, chargingStation.siteAreaID, { withSite: true });
-        if (!chargingStation.siteArea) {
-          foundSiteArea = false;
-        }
-      }
-      // Site is mandatory
-      if (!foundSiteArea) {
-        // Reject Site Not Found
+      // Check Site Area
+      if (!chargingStation.siteAreaID || !chargingStation.siteArea) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -757,10 +753,8 @@ export default class Authorizations {
           detailedMessages: { chargingStation }
         });
       }
-      // Site -----------------------------------------------------
-      chargingStation.site = await SiteStorage.getSite(tenant, chargingStation.siteID);
-      if (!chargingStation.site) {
-        // Reject Site Not Found
+      // Check Site
+      if (!chargingStation.siteID) {
         throw new BackendError({
           source: chargingStation.id,
           action: action,
@@ -774,13 +768,15 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenant: Tenant, chargingStation: ChargingStation,
-      transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<User> {
+      transaction: Transaction, tagID: string, action: ServerAction, authAction: Action): Promise<{user: User, tag?: Tag}> {
     // Check Organization
-    if (await Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
+    if (Authorizations.isChargingStationValidInOrganization(action, tenant, chargingStation)) {
       // Access Control is disabled?
       if (!chargingStation.siteArea.accessControl) {
         // No ACL: Always try to get the user
-        return UserStorage.getUserByTagId(tenant.id, tagID);
+        const user = await UserStorage.getUserByTagId(tenant, tagID);
+        const tag = await TagStorage.getTag(tenant, tagID);
+        return { user, tag };
       }
     }
     // Get Authorized Tag
@@ -789,7 +785,7 @@ export default class Authorizations {
       // Check OICP first
       const user = await this.checkAndGetOICPAuthorizedUser(action, tenant, transaction, tagID);
       if (user) {
-        return user;
+        return { user };
       }
       // Create the Tag as inactive and abort
       await this.createInactiveTagAndAbortAction(action, tenant, tagID, chargingStation);
@@ -800,7 +796,7 @@ export default class Authorizations {
     if (user && !user.issuer) {
       await this.checkOCPIAuthorizedUser(action, tenant, chargingStation, transaction, tag, user, authAction);
     }
-    return user;
+    return { user, tag };
   }
 
   private static async checkOCPIAuthorizedUser(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
@@ -833,52 +829,109 @@ export default class Authorizations {
       });
     }
     // Request Authorization
-    if (authAction === Action.AUTHORIZE) {
-      const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-      if (!ocpiClient) {
-        throw new BackendError({
-          user: user, action,
-          module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
-          message: 'OCPI component requires at least one CPO endpoint to authorize users'
-        });
-      }
-      // Transaction can be nullified to assess the authorization at a higher level than connectors, default connector ID value to 1 then
-      const transactionConnector = transaction?.connectorId ?
-        Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
-      // Check Remote Authorization on Charging Station
-      if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
-        for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
-          // Check validity
-          if (remoteAuthorization.tagId === tag.ocpiToken.uid &&
-              OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
-            await Logging.logDebug({
-              source: chargingStation.id,
-              tenantID: tenant.id, action,
-              message: `Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
-              module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
-              detailedMessages: { response: remoteAuthorization }
-            });
-            user.authorizationID = remoteAuthorization.id;
+    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+    if (!ocpiClient) {
+      throw new BackendError({
+        user: user, action,
+        module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+        message: 'OCPI component requires at least one CPO endpoint to authorize users'
+      });
+    }
+    // When no Transaction is provided, default connector is 1
+    const connector = transaction?.connectorId ?
+      Utils.getConnectorFromID(chargingStation, transaction.connectorId) : Utils.getConnectorFromID(chargingStation, 1);
+    switch (authAction) {
+      // OCPP Authorize
+      case Action.AUTHORIZE:
+        // Check IOP Remote Authorization on Charging Station
+        user.authorizationID = await Authorizations.checkAndGetOCPIAuthorizationIDFromIOPRemoteStartTransaction(
+          action, tenant, chargingStation, connector, tag, transaction);
+        // Not found: Request one from OCPI IOP
+        if (!user.authorizationID) {
+          user.authorizationID = await ocpiClient.authorizeToken(
+            tag.ocpiToken, chargingStation, connector);
+        }
+        break;
+      // OCPP Start Transaction
+      case Action.START_TRANSACTION:
+        // Retrieve Authorization ID
+        user.authorizationID = await Authorizations.checkAndGetOCPIAuthorizationIDFromOCPPAuthorize(
+          tenant, transaction);
+        // Not found: Request one from OCPI IOP
+        if (!user.authorizationID) {
+          user.authorizationID = await ocpiClient.authorizeToken(
+            tag.ocpiToken, chargingStation, connector);
+        }
+        break;
+    }
+  }
+
+  private static async checkAndGetOCPIAuthorizationIDFromOCPPAuthorize(tenant: Tenant, transaction: Transaction) {
+    let authorizationID: string;
+    // Get the latest Authorization
+    const authorizations = await OCPPStorage.getAuthorizes(tenant, {
+      dateFrom: moment(transaction.timestamp).subtract(Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes').toDate(),
+      chargeBoxID: transaction.chargeBoxID,
+      tagID: transaction.tagID
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Found ID?
+    if (!Utils.isEmptyArray(authorizations.result)) {
+      // Get the first non used Authorization OCPI ID
+      for (const authorization of authorizations.result) {
+        if (authorization.authorizationId) {
+          // Check Existing Transaction with the same Auth ID
+          const ocpiTransaction = await TransactionStorage.getOCPITransactionByAuthorizationID(tenant, authorization.authorizationId);
+          // OCPI Auth ID not used yet
+          if (!ocpiTransaction) {
+            authorizationID = authorization.authorizationId;
             break;
           }
         }
-        // Clean up the remote auth
-        if (!user.authorizationID) {
-          chargingStation.remoteAuthorizations = [];
-          await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-            tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+      }
+    }
+    return authorizationID;
+  }
+
+  private static async checkAndGetOCPIAuthorizationIDFromIOPRemoteStartTransaction(action: ServerAction, tenant: Tenant,
+      chargingStation: ChargingStation, connector: Connector, tag: Tag, transaction: Transaction): Promise<string> {
+    let authorizationID: string;
+    if (!Utils.isEmptyArray(chargingStation.remoteAuthorizations)) {
+      let remoteAuthorizationsUpdated = false;
+      for (let i = chargingStation.remoteAuthorizations.length; i >= 0; i--) {
+        const remoteAuthorization = chargingStation.remoteAuthorizations[i];
+        // Check validity
+        if (OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+          // Check Tag ID
+          if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
+            await Logging.logDebug({
+              source: chargingStation.id,
+              tenantID: tenant.id, action,
+              message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
+              module: MODULE_NAME, method: 'checkOCPIAuthorizedUser',
+              detailedMessages: { remoteAuthorization }
+            });
+            authorizationID = remoteAuthorization.id;
+            break;
+          }
+        } else {
+          // Expired: Remove it
+          chargingStation.remoteAuthorizations.splice(i, 1);
+          remoteAuthorizationsUpdated = true;
         }
       }
-      // Retrieve Auth token from OCPI
-      user.authorizationID = await ocpiClient.authorizeToken(
-        tag.ocpiToken, chargingStation, transactionConnector);
+      // Update Remote Authorizations
+      if (remoteAuthorizationsUpdated) {
+        await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
+          tenant, chargingStation.id, chargingStation.remoteAuthorizations);
+      }
     }
+    return authorizationID;
   }
 
   private static async checkAndGetAuthorizedUserFromTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation,
       transaction: Transaction, tag: Tag, authAction: Action): Promise<User> {
     // Get User
-    const user = await UserStorage.getUser(tenant.id, tag.user.id);
+    const user = await UserStorage.getUser(tenant, tag.user.id);
     // User status
     if (user.status !== UserStatus.ACTIVE) {
       throw new BackendError({
@@ -893,7 +946,7 @@ export default class Authorizations {
     // Check Auth if local User
     if (user.issuer && authAction) {
       // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenant.id, user, [tag]);
+      const userToken = await Authorizations.buildUserToken(tenant, user, [tag]);
       // Authorized?
       const context: AuthorizationContext = {
         user: transaction ? transaction.userID : null,
@@ -930,7 +983,7 @@ export default class Authorizations {
       default: false
     };
     // Save
-    await TagStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
       tenant,
@@ -956,7 +1009,7 @@ export default class Authorizations {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OICP)) {
       // Check if user has remote authorization or the session is already running
       if (tagID === OICPDefaultTagId.RemoteIdentification || transaction?.oicpData?.session?.id) {
-        return UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        return UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
       }
       // Get the client
       const oicpClient = await OICPClientFactory.getAvailableOicpClient(tenant, OICPRole.CPO) as CpoOICPClient;
@@ -970,7 +1023,7 @@ export default class Authorizations {
       // Check the Tag and retrieve the authorization
       const response = await oicpClient.authorizeStart(tagID);
       if (response?.AuthorizationStatus === OICPAuthorizationStatus.Authorized) {
-        const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+        const virtualOICPUser = await UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
         virtualOICPUser.authorizationID = response.SessionID;
         return virtualOICPUser;
       }
@@ -979,7 +1032,7 @@ export default class Authorizations {
 
   private static async checkAndGetAuthorizedTag(action: ServerAction, tenant: Tenant, chargingStation: ChargingStation, tagID: string): Promise<Tag> {
     // Get Tag
-    const tag = await TagStorage.getTag(tenant.id, tagID, { withUser: true });
+    const tag = await TagStorage.getTag(tenant, tagID, { withUser: true });
     if (tag) {
       // Inactive Tag
       if (!tag.active) {

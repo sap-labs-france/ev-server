@@ -8,3 +8,8 @@ export default interface Connection {
   updatedAt?: Date;
   validUntil?: Date;
 }
+
+export enum ConnectionType {
+  MERCEDES = 'mercedes',
+  CONCUR = 'concur'
+}

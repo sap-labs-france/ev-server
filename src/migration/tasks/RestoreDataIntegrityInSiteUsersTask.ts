@@ -28,7 +28,7 @@ export default class RestoreDataIntegrityInSiteUsersTask extends MigrationTask {
       // Get all the Sites
       const sites = (await SiteStorage.getSites(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id'])).result;
       // Get all the Users
-      const users = (await UserStorage.getUsers(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id'])).result;
+      const users = (await UserStorage.getUsers(tenant, {}, Constants.DB_PARAMS_MAX_LIMIT, ['id'])).result;
       for (const siteUser of siteUsers) {
         let toBeDeleted = true;
         if (siteUser.siteID && siteUser.userID) {

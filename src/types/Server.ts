@@ -261,6 +261,7 @@ export enum ServerAction {
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
   VERIFICATION_EMAIL = 'VerificationEmail',
+  VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
   EMAIL_SERVER_ERROR = 'EmailServerError',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
@@ -270,6 +271,7 @@ export enum ServerAction {
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
+  USER_CREATE_PASSWORD = 'UserCreatePassword',
   ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
@@ -378,6 +380,7 @@ export enum ServerAction {
   REMOVE_USERS_FROM_SITE = 'RemoveUsersFromSite',
 
   REFUND = 'Refund',
+  CAR_CONNECTOR = 'CarConnector',
 
   USER_READ = 'UserRead',
   USER_CREATE = 'RestUserCreate',
@@ -487,7 +490,14 @@ export enum ServerRoute {
 
   REST_TRANSACTIONS = 'transactions',
   REST_TRANSACTION = 'transactions/:id',
+  REST_TRANSACTIONS_EXPORT = 'transactions/action/export',
+  REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
+  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/action/export',
   REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
+  REST_TRANSACTION_CONSUMPTIONS_REBUILD = 'transactions/:id/consumptions/rebuild',
+  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/stop/soft',
+  REST_TRANSACTIONS_REFUND = 'transactions/action/refund',
+  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',

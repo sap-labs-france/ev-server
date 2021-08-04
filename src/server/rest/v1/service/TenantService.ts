@@ -270,25 +270,27 @@ export default class TenantService {
     tenantUser.name = filteredRequest.name;
     tenantUser.firstName = 'Admin';
     tenantUser.email = filteredRequest.email;
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.id);
     // Save User
-    tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
+    tenantUser.id = await UserStorage.saveUser(tenant, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, UserRole.ADMIN);
+    await UserStorage.saveUserRole(tenant, tenantUser.id, UserRole.ADMIN);
     // Save User Status
-    await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
+    await UserStorage.saveUserStatus(tenant, tenantUser.id, tenantUser.status);
     // Save User Account Verification
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
+    await UserStorage.saveUserAccountVerification(tenant, tenantUser.id, { verificationToken });
     const resetHash = Utils.generateUUID();
     // Init Password info
-    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
+    await UserStorage.saveUserPassword(tenant, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      await TenantStorage.getTenant(filteredRequest.id),
+      tenant,
       Utils.generateUUID(),
       tenantUser,
       {
@@ -344,7 +346,7 @@ export default class TenantService {
     if (filteredRequest.components && filteredRequest.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&
         !filteredRequest.components.smartCharging.active && tenant.components.smartCharging.active) {
-      const siteAreas = await SiteAreaStorage.getSiteAreas(filteredRequest.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -432,17 +434,17 @@ export default class TenantService {
     // OICP
     if (tenant.components && tenant.components.oicp) {
       // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+      const virtualOICPUser = await UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
       // Activate or deactivate virtual user depending on the oicp component status
       if (tenant.components.oicp.active) {
         // Create OICP user
         if (!virtualOICPUser) {
-          await OICPUtils.createOICPVirtualUser(tenant.id);
+          await OICPUtils.createOICPVirtualUser(tenant);
         }
       } else if (virtualOICPUser) {
         // Clean up user
         if (virtualOICPUser) {
-          await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
+          await UserStorage.deleteUser(tenant, virtualOICPUser.id);
         }
         // Delete Endpoints if component is inactive
         const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);

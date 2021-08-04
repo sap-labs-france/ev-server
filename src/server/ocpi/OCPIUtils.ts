@@ -129,6 +129,7 @@ export default class OCPIUtils {
   }
 
   public static isAuthorizationValid(authorizationDate: Date): boolean {
-    return authorizationDate && moment(authorizationDate).isAfter(moment().subtract(2, 'minutes'));
+    return authorizationDate && moment(authorizationDate).isAfter(moment().subtract(
+      Constants.ROAMING_AUTHORIZATION_TIMEOUT_MINS, 'minutes'));
   }
 }

@@ -5,10 +5,10 @@ import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ObjectId } from 'mongodb';
 import Tenant from '../../types/Tenant';
+import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -393,7 +393,7 @@ export default class DatabaseUtils {
     return userID;
   }
 
-  public static async checkTenant(tenantID: string): Promise<void> {
+  public static async checkTenant(tenantID: string): Promise<Tenant> {
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -413,9 +413,7 @@ export default class DatabaseUtils {
         });
       }
       // Get the Tenant
-      const tenant = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOne({
-        '_id': DatabaseUtils.convertToObjectID(tenantID)
-      });
+      const tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -424,6 +422,7 @@ export default class DatabaseUtils {
           message: `Invalid Tenant ID '${tenantID}'`
         });
       }
+      return tenant;
     }
   }
 
