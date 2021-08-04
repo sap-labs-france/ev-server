@@ -17,6 +17,7 @@ import { ServerAction } from '../../types/Server';
 import { ServerUtils } from '../ServerUtils';
 import UserToken from '../../types/UserToken';
 import Utils from '../../utils/Utils';
+import chalk from 'chalk';
 import cluster from 'cluster';
 import http from 'http';
 import jwtAuth from 'socketio-jwt-auth';
@@ -99,7 +100,7 @@ export default class CentralRestServer {
       });
       const userToken: UserToken = socket.request['user'];
       if (!userToken || !userToken['logged_in']) {
-        CentralRestServer.centralSystemRestConfig.debug && console.error('SocketIO client is trying to connect without token from ' + socket.handshake.headers['origin']);
+        CentralRestServer.centralSystemRestConfig.debug && console.error(chalk.red('SocketIO client is trying to connect without token from ' + socket.handshake.headers['origin']));
         await Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'startSocketIO',
@@ -126,7 +127,7 @@ export default class CentralRestServer {
             detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         } catch (error) {
-          CentralRestServer.centralSystemRestConfig.debug && console.error(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`);
+          CentralRestServer.centralSystemRestConfig.debug && console.error(chalk.red(`${userToken.tenantName ? userToken.tenantName : userToken.tenantID} - ${Utils.buildUserFullName(userToken, false)} - SocketIO error when trying to join a room: ${error}`));
           await Logging.logError({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',

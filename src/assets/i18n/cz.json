@@ -3,8 +3,6 @@
       "generatedUser":"Generovat uživatele pro '{{email}}'",
       "chargingAtSiteArea":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {startTime} - spotřeba energie: {{totalConsumption}} kWh v {{siteAreaName}}",
       "chargingAtChargeBox":"Nabíjecí relace: {{sessionID}} - počáteční datum: {{startDate}} v {{startTime}} - spotřeba energie: {{totalConsumption}} kWh nabíjecí stanice {{chargeBoxID}}",
-      "chargingStopSiteArea":"Nabíjení {{totalConsumption}} kWh v sekci parkoviště {{siteAreaName}} (ukončeno v {{stopTime}})",
-      "chargingStopChargeBox":"Nabíjení {{totalConsumption}} kWh na nabíjecí stanici {{chargeBoxID}} (ukončeno v {{stopTime}})"
    },
    "chargers":{
       "chargeBoxSN":"Nabíjecí stojan S/N",

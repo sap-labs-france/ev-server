@@ -78,7 +78,7 @@ export default class AssetGetConsumptionTask extends SchedulerTask {
                     smartChargingActive: siteAreaLimitConsumption.smartChargingActive,
                   };
                   // Save Consumption
-                  await ConsumptionStorage.saveConsumption(tenant.id, consumptionToSave);
+                  await ConsumptionStorage.saveConsumption(tenant, consumptionToSave);
                   // Set Consumption to Asset
                   this.assignAssetConsumption(asset, consumption);
                 }

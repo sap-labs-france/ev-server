@@ -78,7 +78,7 @@ export default class AssetService {
       });
     }
     // Get the ConsumptionValues
-    const consumptions = await ConsumptionStorage.getAssetConsumptions(req.user.tenantID, {
+    const consumptions = await ConsumptionStorage.getAssetConsumptions(req.tenant, {
       assetID: filteredRequest.AssetID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
@@ -167,7 +167,7 @@ export default class AssetService {
     // Add site limitation
     await OCPPUtils.addSiteLimitationToConsumption(req.tenant, asset.siteArea, consumptionToSave);
     // Save consumption
-    await ConsumptionStorage.saveConsumption(req.user.tenantID, consumptionToSave);
+    await ConsumptionStorage.saveConsumption(req.tenant, consumptionToSave);
     // Assign to asset
     asset.currentConsumptionWh = filteredRequest.consumptionWh;
     asset.currentInstantAmps = filteredRequest.instantAmps;

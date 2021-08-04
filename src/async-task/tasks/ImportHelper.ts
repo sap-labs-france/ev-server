@@ -33,10 +33,10 @@ export default class ImportHelper {
 
   public async processImportedTag(tenant: Tenant, importedTag: ImportedTag, existingSites: Map<string, Site>): Promise<Tag> {
     // Get Tag
-    let tag = await TagStorage.getTag(tenant.id, importedTag.id, { withNbrTransactions: true });
+    let tag = await TagStorage.getTag(tenant, importedTag.id, { withNbrTransactions: true });
     // Try to get Tag with Visual ID
     if (!tag && importedTag.visualID) {
-      tag = await TagStorage.getTagByVisualID(tenant.id, importedTag.visualID, { withNbrTransactions: true });
+      tag = await TagStorage.getTagByVisualID(tenant, importedTag.visualID, { withNbrTransactions: true });
     }
     // If one found lets update it else create new tag
     if (tag) {
@@ -51,11 +51,11 @@ export default class ImportHelper {
       // Assign
       tag.userID = user.id;
       // Make this Tag default
-      await TagStorage.clearDefaultUserTag(tenant.id, user.id);
+      await TagStorage.clearDefaultUserTag(tenant, user.id);
       tag.default = true;
     }
     // Save the new Tag
-    await TagStorage.saveTag(tenant.id, tag);
+    await TagStorage.saveTag(tenant, tag);
     return tag;
   }
 

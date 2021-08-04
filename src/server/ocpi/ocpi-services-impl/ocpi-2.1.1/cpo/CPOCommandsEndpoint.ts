@@ -92,7 +92,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
     }
     const localToken = await TagStorage.getTag(
-      tenant.id, startSession.token.uid, { withUser: true });
+      tenant, startSession.token.uid, { withUser: true });
     if (!localToken?.active || !localToken.ocpiToken?.valid) {
       await Logging.logError({
         tenantID: tenant.id,

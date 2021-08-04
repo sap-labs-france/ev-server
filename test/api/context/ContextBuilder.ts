@@ -154,7 +154,7 @@ export default class ContextBuilder {
     if (ContextDefinition.TENANT_USER_LIST[0].tags) {
       for (const tag of ContextDefinition.TENANT_USER_LIST[0].tags) {
         tag.userID = ContextDefinition.TENANT_USER_LIST[0].id;
-        await TagStorage.saveTag(buildTenant.id, tag);
+        await TagStorage.saveTag(buildTenant, tag);
       }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant, ContextDefinition.TENANT_USER_LIST[0].id);
@@ -242,7 +242,7 @@ export default class ContextBuilder {
       if (userDef.tags) {
         for (const tag of userDef.tags) {
           tag.userID = user.id;
-          await TagStorage.saveTag(buildTenant.id, tag);
+          await TagStorage.saveTag(buildTenant, tag);
         }
       }
       const userModel = await UserStorage.getUser(buildTenant, user.id);
@@ -257,7 +257,7 @@ export default class ContextBuilder {
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
-    tagList = (await TagStorage.getTags(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    tagList = (await TagStorage.getTags(buildTenant, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
     newTenantContext.addTags(tagList);
     // Check if Organization is active
     if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&

@@ -189,7 +189,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
                 message: `${commandPayload.toString()}`,
-                detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
+                detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
               });
               // Resolve with error message
               this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, commandName, commandPayload, errorDetails] });
@@ -207,7 +207,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',
               message: 'Received unknown message',
-              detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
+              detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
             });
           }
         } catch (error) {

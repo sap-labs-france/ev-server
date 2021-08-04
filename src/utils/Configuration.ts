@@ -29,8 +29,10 @@ import OICPEndpointConfiguration from '../types/configuration/OICPEndpointConfig
 import OICPServiceConfiguration from '../types/configuration/OICPServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import Utils from './Utils';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
+import chalk from 'chalk';
 import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
@@ -316,7 +318,7 @@ export default class Configuration {
         if (!Configuration.isUndefined(mongoDBServiceCredentials['uri'])) {
           storageConfig.uri = mongoDBServiceCredentials['uri'];
         } else {
-          console.error('Connection URI not found in MongoDB Atlas User Provided Service');
+          console.error(chalk.red('Connection URI not found in MongoDB Atlas User Provided Service'));
         }
       }
     }
@@ -427,7 +429,7 @@ export default class Configuration {
 
   private static deprecateConfigurationKey(key: string, configSectionName: string, logMsgToAppend = '') {
     if (!Configuration.isUndefined(Configuration.getConfig()[configSectionName][key])) {
-      console.warn(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`);
+      Utils.isDevelopmentEnv() && console.warn(chalk.yellow(`Deprecated configuration key '${key}' usage in section '${configSectionName}'${logMsgToAppend && '. ' + logMsgToAppend}`));
     }
   }
 
@@ -439,10 +441,10 @@ export default class Configuration {
       return credentials[key];
     }
     if (Configuration.isNullOrUndefined(credentials)) {
-      console.error(`Credentials '${upsName}' User Provided Service not found or bound to the application in CF space`);
+      console.error(chalk.red(`Credentials '${upsName}' User Provided Service not found or bound to the application in CF space`));
     }
     if (!Configuration.isNullOrUndefined(credentials) && Configuration.isUndefined(credentials[key])) {
-      console.error(`Credential key ${key} not found in '${upsName}' User Provided Service in CF space`);
+      console.error(chalk.red(`Credential key ${key} not found in '${upsName}' User Provided Service in CF space`));
     }
   }
 

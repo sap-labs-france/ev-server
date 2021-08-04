@@ -12,8 +12,8 @@ export default class Constants {
   public static readonly CSV_SEPARATOR = ',';
   public static readonly CR_LF = '\r\n';
 
-  public static readonly PERF_MAX_DATA_VOLUME_KB = 128;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 500;
+  public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
 

@@ -233,20 +233,14 @@ export default class EMailNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'sendEmail',
         actionOnUser: user,
         message: `Email Sent: '${rfc2047.decode(messageSent.header.subject)}'`,
-        detailedMessages: [
-          {
-            email: {
-              from: rfc2047.decode(messageSent.header.from.toString()),
-              to: rfc2047.decode(messageSent.header.to.toString()),
-              subject: rfc2047.decode(messageSent.header.subject)
-            },
-          }, {
-            content: email.html
-          }
-        ]
+        detailedMessages: {
+          from: rfc2047.decode(messageSent.header.from.toString()),
+          to: rfc2047.decode(messageSent.header.to.toString()),
+          subject: rfc2047.decode(messageSent.header.subject),
+          content: email.html
+        }
       });
     } catch (error) {
-      // Log
       try {
         await Logging.logError({
           tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
@@ -255,17 +249,13 @@ export default class EMailNotificationTask implements NotificationTask {
           module: MODULE_NAME, method: 'sendEmail',
           message: `Error Sending Email (${rfc2047.decode(messageToSend.header.from.toString())}): '${rfc2047.decode(messageToSend.header.subject)}'`,
           actionOnUser: user,
-          detailedMessages: [
-            {
-              email: {
-                from: rfc2047.decode(messageToSend.header.from.toString()),
-                to: rfc2047.decode(messageToSend.header.to.toString()),
-                subject: rfc2047.decode(messageToSend.header.subject)
-              },
-            },
-            { error: error.stack },
-            { content: email.html }
-          ]
+          detailedMessages: {
+            from: rfc2047.decode(messageToSend.header.from.toString()),
+            to: rfc2047.decode(messageToSend.header.to.toString()),
+            subject: rfc2047.decode(messageToSend.header.subject),
+            error: error.stack,
+            content: email.html
+          }
         });
       // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
       // eslint-disable-next-line no-empty
