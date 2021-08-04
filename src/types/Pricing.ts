@@ -3,7 +3,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Pricing extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
-  contextId: string;
+  contextID: string; // id of the entity the pricing definition belongs to!
   pricingDefinitions: PricingDefinition[];
 }
 
