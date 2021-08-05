@@ -1482,7 +1482,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Stripe Prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1495,7 +1495,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Billing setting prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1512,9 +1512,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
-        message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+        message: 'User prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
       });
       // TODO - return a more precise error code when payment method has expired
