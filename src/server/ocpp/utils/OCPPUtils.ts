@@ -1874,7 +1874,7 @@ export default class OCPPUtils {
     return false;
   }
 
-  public static async checkBillingPrerequisites(tenant: Tenant, chargingStation: ChargingStation, user: User): Promise<void> {
+  public static async checkBillingPrerequisites(tenant: Tenant, action: ServerAction, chargingStation: ChargingStation, user: User): Promise<void> {
     if (!user.issuer) {
       // Roaming - do not check for payment methods
       return;
@@ -1882,12 +1882,12 @@ export default class OCPPUtils {
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
       const errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
-      if (errorCodes?.length > 0) {
+      if (!Utils.isEmptyArray(errorCodes)) {
         throw new BackendError({
+          user, action,
           source: chargingStation.id,
           message: 'Billing prerequisites are not met',
           module: MODULE_NAME, method: 'checkBillingPrerequisites',
-          user,
           detailedMessages: { errorCodes }
         });
       }
