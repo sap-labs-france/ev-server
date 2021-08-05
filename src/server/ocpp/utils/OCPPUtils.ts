@@ -1875,6 +1875,10 @@ export default class OCPPUtils {
   }
 
   public static async checkBillingPrerequisites(tenant: Tenant, chargingStation: ChargingStation, user: User): Promise<void> {
+    if (!user.issuer) {
+      // Roaming - do not check for payment methods
+      return;
+    }
     const billingImpl = await BillingFactory.getBillingImpl(tenant);
     if (billingImpl) {
       const errorCodes = await billingImpl.precheckStartTransactionPrerequisites(user);
