@@ -25,6 +25,7 @@ import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { filter } from 'lodash';
 
 const MODULE_NAME = 'TenantService';
 
@@ -83,12 +84,15 @@ export default class TenantService {
     let tenantLogo: TenantLogo;
     // Get the logo using ID
     if (filteredRequest.ID) {
-      tenantLogo = await TenantStorage.getTenantLogo(filteredRequest.ID);
+      const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+      if (tenant) {
+        tenantLogo = await TenantStorage.getTenantLogo(tenant);
+      }
     // Get the logo using Subdomain
     } else if (filteredRequest.Subdomain) {
       const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.Subdomain, ['id']);
       if (tenant) {
-        tenantLogo = await TenantStorage.getTenantLogo(tenant.id);
+        tenantLogo = await TenantStorage.getTenantLogo(tenant);
       }
     }
     if (tenantLogo?.logo) {
