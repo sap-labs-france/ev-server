@@ -154,7 +154,7 @@ export default class Authorizations {
     }
     // Currency
     let currency = null;
-    const pricing = await SettingStorage.getPricingSettings(tenant.id);
+    const pricing = await SettingStorage.getPricingSettings(tenant);
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }

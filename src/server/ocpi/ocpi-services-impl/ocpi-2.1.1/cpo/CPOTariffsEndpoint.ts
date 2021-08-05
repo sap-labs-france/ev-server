@@ -69,7 +69,7 @@ export default class CPOTariffsEndpoint extends AbstractEndpoint {
     let tariff: OCPITariff;
     if (tenant.components?.pricing?.active) {
       // Get simple pricing settings
-      const pricingSettings = await SettingStorage.getPricingSettings(tenant.id, limit, skip, dateFrom, dateTo);
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant, limit, skip, dateFrom, dateTo);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
         tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
         if (tariff.currency && tariff.elements[0].price_components[0].price > 0) {

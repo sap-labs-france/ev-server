@@ -396,7 +396,7 @@ export default class OCPIUtilsService {
     // Credential
     const credential = {} as OCPICredential;
     // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getOCPISettings(tenant.id);
+    const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
     // Define version url
     credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
     // Check if available
@@ -797,7 +797,7 @@ export default class OCPIUtilsService {
   }
 
   private static async getOperatorBusinessDetails(tenant: Tenant): Promise<OCPIBusinessDetails> {
-    return (await SettingStorage.getOCPISettings(tenant.id)).ocpi.businessDetails;
+    return (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,
