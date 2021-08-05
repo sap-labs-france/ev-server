@@ -339,7 +339,7 @@ export default class ConsumptionStorage {
     // Convert instant watts / amps to absolute value
     aggregation.push({
       $addFields: {
-        endedAt: '$allInOne.startedAt'
+        endedAt: '$startedAt'
       }
     });
     aggregation.push({
