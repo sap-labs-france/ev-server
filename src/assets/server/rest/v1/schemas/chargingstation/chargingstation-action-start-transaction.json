@@ -18,10 +18,12 @@
           "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
         },
         "tagID": {
-          "$ref": "tag.json#/definitions/visualID"
+          "type": "string",
+          "sanitize": "mongo"
         },
         "visualTagID": {
-          "$ref": "tag.json#/definitions/visualID"
+          "type": "string",
+          "sanitize": "mongo"
         }
       }
     },
