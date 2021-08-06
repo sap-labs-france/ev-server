@@ -312,6 +312,8 @@ export default class OCPPService {
         // Check
         const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
           authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+        // Check Billing Prerequisites
+        await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.AUTHORIZE, chargingStation, user);
         // Enrich
         this.enrichAuthorize(user, chargingStation, headers, authorize);
         // Save

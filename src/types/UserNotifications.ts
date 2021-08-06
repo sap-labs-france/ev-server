@@ -201,7 +201,6 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
   chargeBoxID: string;
   badgeID: string;
   evseDashboardURL: string;
-  evseDashboardTagURL: string;
 }
 
 export interface TransactionStartedNotification extends BaseNotification {

@@ -95,7 +95,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant.id, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
+            'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
           },
         });
       await Logging.logDebug({
@@ -175,7 +175,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant.id, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
+            'Authorization': `Basic ${Buffer.from(this.connection.mercedesConnection.clientId + ':' + await Cypher.decrypt(this.tenant, this.connection.mercedesConnection.clientSecret)).toString('base64')}`
           }
         });
       await Logging.logDebug({

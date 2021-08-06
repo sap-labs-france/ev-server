@@ -8,31 +8,32 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectId } from 'mongodb';
+import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SettingStorage';
 
 export default class SettingStorage {
-  public static async getSetting(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<SettingDB> {
-    const settingMDB = await SettingStorage.getSettings(tenantID,
+  public static async getSetting(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields?: string[]): Promise<SettingDB> {
+    const settingMDB = await SettingStorage.getSettings(tenant,
       { settingID: id },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return settingMDB.count === 1 ? settingMDB.result[0] : null;
   }
 
-  public static async getSettingByIdentifier(tenantID: string, identifier: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SettingDB> {
-    const settingsMDB = await SettingStorage.getSettings(tenantID,
+  public static async getSettingByIdentifier(tenant: Tenant, identifier: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<SettingDB> {
+    const settingsMDB = await SettingStorage.getSettings(tenant,
       { identifier: identifier },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return settingsMDB.count === 1 ? settingsMDB.result[0] : null;
   }
 
-  public static async saveSettings(tenantID: string, settingToSave: Partial<SettingDB>): Promise<string> {
+  public static async saveSettings(tenant: Tenant, settingToSave: Partial<SettingDB>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'saveSetting');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'saveSetting');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Check if ID is provided
     if (!settingToSave.id && !settingToSave.identifier) {
       // ID must be provided!
@@ -60,22 +61,22 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(
+    await global.database.getCollection<SettingDB>(tenant.id, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'saveSetting', uniqueTimerID, settingMDB);
     // Create
     return settingFilter._id.toString();
   }
 
-  public static async getOCPISettings(tenantID: string): Promise<RoamingSettings> {
+  public static async getOCPISettings(tenant: Tenant): Promise<RoamingSettings> {
     const ocpiSettings = {
       identifier: TenantComponents.OCPI,
     } as RoamingSettings;
     // Get the Ocpi settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.OCPI },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -92,12 +93,12 @@ export default class SettingStorage {
     return ocpiSettings;
   }
 
-  public static async getOICPSettings(tenantID: string): Promise<RoamingSettings> {
+  public static async getOICPSettings(tenant: Tenant): Promise<RoamingSettings> {
     const oicpSettings = {
       identifier: TenantComponents.OICP,
     } as RoamingSettings;
     // Get the oicp settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.OICP }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenant, { identifier: TenantComponents.OICP }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       // ID
@@ -111,12 +112,12 @@ export default class SettingStorage {
     return oicpSettings;
   }
 
-  public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
+  public static async getAnalyticsSettings(tenant: Tenant): Promise<AnalyticsSettings> {
     const analyticsSettings = {
       identifier: TenantComponents.ANALYTICS,
     } as AnalyticsSettings;
     // Get the analytics settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.ANALYTICS },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -136,12 +137,12 @@ export default class SettingStorage {
     return analyticsSettings;
   }
 
-  public static async getAssetsSettings(tenantID: string): Promise<AssetSettings> {
+  public static async getAssetsSettings(tenant: Tenant): Promise<AssetSettings> {
     const assetSettings = {
       identifier: TenantComponents.ASSET,
     } as AssetSettings;
     // Get the settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.ASSET },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -160,11 +161,11 @@ export default class SettingStorage {
     return assetSettings;
   }
 
-  public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
+  public static async getRefundSettings(tenant: Tenant): Promise<RefundSettings> {
     const refundSettings = {
       identifier: TenantComponents.REFUND
     } as RefundSettings;
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.REFUND },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -190,12 +191,12 @@ export default class SettingStorage {
     return refundSettings;
   }
 
-  public static async getCarConnectorSettings(tenantID: string): Promise<CarConnectorSettings> {
+  public static async getCarConnectorSettings(tenant: Tenant): Promise<CarConnectorSettings> {
     const carConnectorSettings = {
       identifier: TenantComponents.CAR_CONNECTOR,
     } as CarConnectorSettings;
     // Get the settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.CAR_CONNECTOR },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -214,12 +215,12 @@ export default class SettingStorage {
     return carConnectorSettings;
   }
 
-  public static async getPricingSettings(tenantID: string, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
+  public static async getPricingSettings(tenant: Tenant, limit?: number, skip?: number, dateFrom?: Date, dateTo?: Date): Promise<PricingSettings> {
     const pricingSettings = {
       identifier: TenantComponents.PRICING,
     } as PricingSettings;
     // Get the Pricing settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.PRICING, dateFrom: dateFrom, dateTo: dateTo },
       { limit, skip });
     // Get the currency
@@ -252,12 +253,12 @@ export default class SettingStorage {
     return pricingSettings;
   }
 
-  public static async getSmartChargingSettings(tenantID: string): Promise<SmartChargingSettings> {
+  public static async getSmartChargingSettings(tenant: Tenant): Promise<SmartChargingSettings> {
     const smartChargingSettings = {
       identifier: TenantComponents.SMART_CHARGING,
     } as SmartChargingSettings;
     // Get the Smart Charging settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TenantComponents.SMART_CHARGING },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Get the currency
@@ -283,9 +284,9 @@ export default class SettingStorage {
     return smartChargingSettings;
   }
 
-  public static async getCryptoSettings(tenantID: string): Promise<CryptoSettings> {
+  public static async getCryptoSettings(tenant: Tenant): Promise<CryptoSettings> {
     // Get the Crypto Key settings
-    const settings = await SettingStorage.getSettings(tenantID,
+    const settings = await SettingStorage.getSettings(tenant,
       { identifier: TechnicalSettings.CRYPTO },
       Constants.DB_PARAMS_MAX_LIMIT);
     if (settings.count > 0) {
@@ -315,10 +316,10 @@ export default class SettingStorage {
     }
   }
 
-  public static async getUserSettings(tenantID: string): Promise<UserSettings> {
+  public static async getUserSettings(tenant: Tenant): Promise<UserSettings> {
     let userSettings: UserSettings;
     // Get the user settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: TechnicalSettings.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const settings = await SettingStorage.getSettings(tenant, { identifier: TechnicalSettings.USER }, Constants.DB_PARAMS_SINGLE_RECORD);
     if (settings.count > 0) {
       userSettings = {
         id: settings.result[0].id,
@@ -330,13 +331,13 @@ export default class SettingStorage {
     return userSettings;
   }
 
-  public static async getSettings(tenantID: string,
+  public static async getSettings(tenant: Tenant,
       params: {identifier?: string; settingID?: string, dateFrom?: Date, dateTo?: Date},
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'getSettings');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getSettings');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -362,11 +363,11 @@ export default class SettingStorage {
       });
     }
     // Count Records
-    const settingsCountMDB = await global.database.getCollection<any>(tenantID, 'settings')
+    const settingsCountMDB = await global.database.getCollection<any>(tenant.id, 'settings')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Rename ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
@@ -387,13 +388,13 @@ export default class SettingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const settingsMDB = await global.database.getCollection<SettingDB>(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<SettingDB>(tenant.id, 'settings')
       .aggregate(aggregation, {
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'getSettings', uniqueTimerID, settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -401,19 +402,19 @@ export default class SettingStorage {
     };
   }
 
-  public static async deleteSetting(tenantID: string, id: string): Promise<void> {
+  public static async deleteSetting(tenant: Tenant, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(tenantID, MODULE_NAME, 'deleteSetting');
+    const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'deleteSetting');
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Delete Component
-    await global.database.getCollection<any>(tenantID, 'settings')
+    await global.database.getCollection<any>(tenant.id, 'settings')
       .findOneAndDelete({ '_id': DatabaseUtils.convertToObjectID(id) });
     // Debug
-    await Logging.traceEnd(tenantID, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'deleteSetting', uniqueTimerID, { id });
   }
 
-  public static async saveUserSettings(tenantID: string, userSettingToSave: UserSettings): Promise<void> {
+  public static async saveUserSettings(tenant: Tenant, userSettingToSave: UserSettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
       id: userSettingToSave.id,
@@ -425,10 +426,10 @@ export default class SettingStorage {
       },
     } as SettingDB;
     // Save
-    await SettingStorage.saveSettings(tenantID, settingsToSave);
+    await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
-  public static async saveCryptoSettings(tenantID: string, cryptoSettingsToSave: CryptoSettings): Promise<void> {
+  public static async saveCryptoSettings(tenant: Tenant, cryptoSettingsToSave: CryptoSettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
       id: cryptoSettingsToSave.id,
@@ -440,12 +441,12 @@ export default class SettingStorage {
       },
     } as SettingDB;
     // Save
-    await SettingStorage.saveSettings(tenantID, settingsToSave);
+    await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
-  public static async getBillingSetting(tenantID: string): Promise<BillingSettings> {
+  public static async getBillingSetting(tenant: Tenant): Promise<BillingSettings> {
     // Get BILLING Settings by Identifier
-    const setting = await SettingStorage.getSettingByIdentifier(tenantID, TenantComponents.BILLING);
+    const setting = await SettingStorage.getSettingByIdentifier(tenant, TenantComponents.BILLING);
     if (setting) {
       const { id, backupSensitiveData, category } = setting;
       const { createdBy, createdOn, lastChangedBy, lastChangedOn } = setting;
@@ -485,7 +486,7 @@ export default class SettingStorage {
     return null;
   }
 
-  public static async saveBillingSetting(tenantID: string, billingSettings: BillingSettings): Promise<string> {
+  public static async saveBillingSetting(tenant: Tenant, billingSettings: BillingSettings): Promise<string> {
     const { id, identifier, sensitiveData, backupSensitiveData, category } = billingSettings;
     const { createdBy, createdOn, lastChangedBy, lastChangedOn } = billingSettings;
     const { type, billing, stripe } = billingSettings;
@@ -501,6 +502,6 @@ export default class SettingStorage {
       setting.sensitiveData = [ 'content.stripe.secretKey' ];
       setting.content.stripe = stripe;
     }
-    return SettingStorage.saveSettings(tenantID, setting);
+    return SettingStorage.saveSettings(tenant, setting);
   }
 }

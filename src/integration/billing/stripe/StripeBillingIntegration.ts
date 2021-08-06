@@ -58,7 +58,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Initialize Stripe
     if (!this.stripe) {
       try {
-        const secretKey = await Cypher.decrypt(this.tenant.id, this.settings.stripe.secretKey);
+        const secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
         this.stripe = new Stripe(secretKey, {
           apiVersion: '2020-08-27',
         });
@@ -126,7 +126,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Make sure the STRIPE account is not live
     let secretKey: string, publicKey: string;
     try {
-      secretKey = await Cypher.decrypt(this.tenant.id, this.settings.stripe.secretKey);
+      secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
       publicKey = this.settings.stripe.publicKey;
     } catch (error) {
       // Ignore error
@@ -155,7 +155,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       secretKey: null,
       publicKey: null
     };
-    await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
+    await SettingStorage.saveBillingSetting(this.tenant, newBillingsSettings);
     return newBillingsSettings;
   }
 
@@ -1482,7 +1482,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Stripe Prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1495,7 +1495,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Billing setting prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1512,9 +1512,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
-        message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+        message: 'User prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
       });
       // TODO - return a more precise error code when payment method has expired

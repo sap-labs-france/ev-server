@@ -716,7 +716,7 @@ export default class CpoOCPIClient extends OCPIClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
