@@ -20,7 +20,7 @@ export default class AssetFactory {
     // Check if component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ASSET)) {
       // Get the Asset's settings
-      const settings = await SettingStorage.getAssetsSettings(tenant.id);
+      const settings = await SettingStorage.getAssetsSettings(tenant);
       if (settings && settings.asset && settings.asset.connections) {
         // Find connection
         const foundConnection = settings.asset.connections.find((connection) => connection.id === connectionID);

@@ -13,7 +13,7 @@ export default class SmartChargingFactory {
     // Check if the pricing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get the Smart Charging's settings
-      const smartChargingSetting = await SettingStorage.getSmartChargingSettings(tenant.id);
+      const smartChargingSetting = await SettingStorage.getSmartChargingSettings(tenant);
       if (smartChargingSetting) {
         let smartChargingIntegrationImpl = null;
         switch (smartChargingSetting.type) {

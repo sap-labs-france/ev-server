@@ -82,7 +82,7 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenant.id, this.settings);
+    await SettingStorage.saveBillingSetting(this.tenant, this.settings);
     // Result
     return actionsDone;
   }

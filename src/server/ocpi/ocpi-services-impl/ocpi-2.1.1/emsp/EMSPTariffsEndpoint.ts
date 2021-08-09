@@ -53,7 +53,7 @@ export default class EMSPTariffsEndpoint extends AbstractEndpoint {
     let tariff: OCPITariff = {} as OCPITariff;
     if (tenant.components?.pricing?.active) {
       // Get simple pricing settings
-      const pricingSettings = await SettingStorage.getPricingSettings(tenant.id);
+      const pricingSettings = await SettingStorage.getPricingSettings(tenant);
       if (pricingSettings.type === PricingSettingsType.SIMPLE && pricingSettings.simple) {
         tariff = OCPIUtilsService.convertSimplePricingSetting2OCPITariff(pricingSettings.simple);
       } else {
