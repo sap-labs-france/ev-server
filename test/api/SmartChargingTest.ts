@@ -52,7 +52,7 @@ class TestData {
 
   public static async setSmartChargingValidCredentials(testData): Promise<void> {
     const sapSmartChargingSettings = TestData.getSmartChargingSettings();
-    sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+    sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant(), sapSmartChargingSettings.password);
     await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
     aCBufferFactor = 1 + sapSmartChargingSettings.limitBufferAC / 100,
     dCBufferFactor = 1 + sapSmartChargingSettings.limitBufferDC / 100,
@@ -322,7 +322,7 @@ describe('Smart Charging Service', function() {
 
     it('Should not connect to Smart Charging Provider with invalid URL', async () => {
       const sapSmartChargingSettings = TestData.getSmartChargingSettings();
-      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant().id, sapSmartChargingSettings.password);
+      sapSmartChargingSettings.password = await Cypher.encrypt(testData.tenantContext.getTenant(), sapSmartChargingSettings.password);
       sapSmartChargingSettings.optimizerUrl = '';
       await TestData.saveSmartChargingSettings(testData, sapSmartChargingSettings);
       const response = await testData.userService.smartChargingApi.testConnection({});
@@ -478,7 +478,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(24 * 3 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -494,7 +494,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(13 * 3 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -531,7 +531,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
       });
 
 
@@ -610,9 +610,9 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit96);
         TestData.validateChargingProfile(chargingProfiles[2], transaction2);
         expect(chargingProfiles[2].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[2].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[1].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[2].chargingStationID);
       });
 
       it('Test for sticky limit - 1 three phased and 2 single phased cars charging and one car on a single phased station with no consumption on two cars', async () => {
@@ -787,7 +787,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(16 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -803,7 +803,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(20 * aCBufferFactor, 3)
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
       });
 
       it('Test for sticky limit with different buffer value - two cars charging with lower site area limit', async () => {
@@ -871,8 +871,8 @@ describe('Smart Charging Service', function() {
         expect(chargingProfiles[0].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset(limit32);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[1].chargingStationID);
       });
 
       it('Test for sticky limit - two cars charging with no consumption on one car', async () => {
@@ -1058,7 +1058,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(40000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
           },
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[0]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[0]);
         TestData.validateChargingProfile(chargingProfiles[1], transaction1);
         expect(chargingProfiles[1].profile.chargingSchedule.chargingSchedulePeriod).containSubset([
           {
@@ -1074,7 +1074,7 @@ describe('Smart Charging Service', function() {
             'limit': Utils.roundTo(30000 / Voltage.VOLTAGE_230 / 3 * dCBufferFactor, 3) * 3
           }
         ]);
-        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant().id, chargingProfiles[1]);
+        await ChargingStationStorage.saveChargingProfile(testData.tenantContext.getTenant(), chargingProfiles[1]);
       });
 
       it('Test for sticky limit with different buffer value - two cars charging with lower site area limit', async () => {
@@ -1181,8 +1181,8 @@ describe('Smart Charging Service', function() {
             'limit': 327
           },
         ]);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[0].chargingStationID);
-        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant().id, chargingProfiles[1].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[0].chargingStationID);
+        await ChargingStationStorage.deleteChargingProfiles(testData.tenantContext.getTenant(), chargingProfiles[1].chargingStationID);
       });
     });
   });

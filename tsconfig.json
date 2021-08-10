@@ -48,7 +48,7 @@
     // "paths": {},                           /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
     "typeRoots": [
       "./node_modules/@types",
-      "./build/types/"
+      "./types/"
     ],                                        /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */
     // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
@@ -68,7 +68,7 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "include": [
-    "build/types/**/*.ts",
+    "types/**/*.ts",
     "src/**/*.ts",
     "test/**/*.ts"
   ]

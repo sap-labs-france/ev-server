@@ -538,7 +538,7 @@ export default class Utils {
     return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
-  public static getBackupConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+  public static getLastSeenConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.backupConnectors) {
       return null;
     }

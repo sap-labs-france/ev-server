@@ -58,7 +58,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Initialize Stripe
     if (!this.stripe) {
       try {
-        const secretKey = await Cypher.decrypt(this.tenant.id, this.settings.stripe.secretKey);
+        const secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
         this.stripe = new Stripe(secretKey, {
           apiVersion: '2020-08-27',
         });
@@ -126,7 +126,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Make sure the STRIPE account is not live
     let secretKey: string, publicKey: string;
     try {
-      secretKey = await Cypher.decrypt(this.tenant.id, this.settings.stripe.secretKey);
+      secretKey = await Cypher.decrypt(this.tenant, this.settings.stripe.secretKey);
       publicKey = this.settings.stripe.publicKey;
     } catch (error) {
       // Ignore error
@@ -155,7 +155,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       secretKey: null,
       publicKey: null
     };
-    await SettingStorage.saveBillingSetting(this.tenant.id, newBillingsSettings);
+    await SettingStorage.saveBillingSetting(this.tenant, newBillingsSettings);
     return newBillingsSettings;
   }
 
@@ -185,7 +185,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // Check Stripe
     await this.checkConnection();
     // Make sure to get fresh data
-    user = await UserStorage.getUser(this.tenant.id, user.id);
+    user = await UserStorage.getUser(this.tenant, user.id);
     const customerID: string = user?.billingData?.customerID;
     // returns true when the customerID is properly set!
     return !!customerID;
@@ -196,7 +196,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await this.checkConnection();
     // Make sure the billing data has been provided
     if (!user.billingData) {
-      user = await UserStorage.getUser(this.tenant.id, user.id);
+      user = await UserStorage.getUser(this.tenant, user.id);
     }
     // Retrieve the STRIPE customer (if any)
     const customerID: string = user.billingData?.customerID;
@@ -322,7 +322,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       });
     } else if (checkUserExists) {
       // Let's make sure the userID is still valid
-      const user = await UserStorage.getUser(this.tenant.id, userID);
+      const user = await UserStorage.getUser(this.tenant, userID);
       if (!user) {
         throw new BackendError({
           message: `Unexpected situation - the e-Mobility user does not exist - ${userID}`,
@@ -455,13 +455,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant.id, Number(transactionID));
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
         transaction.billingData.stop.invoiceStatus = billingInvoice.status;
         transaction.billingData.stop.invoiceNumber = billingInvoice.number;
         transaction.billingData.lastUpdate = new Date();
         // Save
-        await TransactionStorage.saveTransactionBillingData(this.tenant.id, transaction.id, transaction.billingData);
+        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
       } catch (error) {
         // Catch stripe errors and send the information back to the client
         await Logging.logError({
@@ -1378,7 +1378,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     };
     // Save the billing data
     user.billingData = billingData;
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, user.billingData);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
   }
@@ -1405,7 +1405,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     customer = await this.stripe.customers.update(customerID, updateParams);
     // Let's update the Billing Data of our customer
     user.billingData.lastChangedOn = new Date();
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, user.billingData);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, user.billingData);
     // Let's return the corresponding Billing User
     return this.convertToBillingUser(customer, user);
   }
@@ -1482,7 +1482,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Stripe Prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1495,7 +1495,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
         message: 'Billing setting prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
@@ -1512,9 +1512,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: this.tenant.id,
-        action: ServerAction.BILLING_TRANSACTION,
+        user, action: ServerAction.BILLING,
         module: MODULE_NAME, method: 'precheckStartTransactionPrerequisites',
-        message: `User prerequisites to start a transaction are not met -  user: ${user.id}`,
+        message: 'User prerequisites to start a transaction are not met',
         detailedMessages: { error: error.stack }
       });
       // TODO - return a more precise error code when payment method has expired

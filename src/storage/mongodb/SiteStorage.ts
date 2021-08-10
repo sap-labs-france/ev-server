@@ -469,7 +469,7 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         if (params.withOnlyChargingStations || params.withAvailableChargingStations) {
         // Get the chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id,
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenant,
             { siteIDs: [siteMDB.id], includeDeleted: false, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
           // Skip site with no charging stations if asked
           if (params.withOnlyChargingStations && chargingStations.count === 0) {
@@ -508,7 +508,7 @@ export default class SiteStorage {
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
     // Delete all Site Areas
-    await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, ids);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenant, ids);
     // Convert
     const cids: ObjectId[] = ids.map((id) => DatabaseUtils.convertToObjectID(id));
     // Delete Site
@@ -536,7 +536,7 @@ export default class SiteStorage {
       .toArray())
       .map((site): string => site._id.toString());
     // Delete all Site Areas
-    await SiteAreaStorage.deleteSiteAreasFromSites(tenant.id, siteIDs);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenant, siteIDs);
     // Delete Sites
     await SiteStorage.deleteSites(tenant, siteIDs);
     // Debug

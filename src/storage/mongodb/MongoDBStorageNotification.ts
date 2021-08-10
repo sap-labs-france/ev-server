@@ -45,7 +45,7 @@ export default class MongoDBStorageNotification {
   }
 
   static handleDBInvalidChange(tenantID: string, collection: string, change: Event): void {
-    const message = `Invalid change received on collection ${tenantID}.${collection}`;
+    const message = `Invalid change received from DB on collection '${tenantID}.${collection}'`;
     void Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
@@ -70,9 +70,13 @@ export default class MongoDBStorageNotification {
 
   async start(): Promise<void> {
     if (this.dbConfig.monitorDBChange) {
+      // Register to listen to DB Changes
       const dbChangeStream = global.database.watch(this.defaultWatchPipeline, this.defaultWatchOptions);
+      // Handle DB Changes
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
+        // Get Action (create, uodate...)
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
+        // Get Tenant ID and Collection Name
         let tenantID, collection, documentID;
         if (change.ns && change.ns.coll) {
           const namespaces = change.ns.coll.split('.');
@@ -81,15 +85,17 @@ export default class MongoDBStorageNotification {
             collection = namespaces[1];
           }
         }
+        // Get Document Key
         if (change.documentKey && change.documentKey._id) {
           documentID = change.documentKey._id.toString();
         }
         this.handleCollectionChange(tenantID, collection, documentID, action, change);
       });
+      // Handle DB Errors
       dbChangeStream.on('error', (error: Error) => {
         MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
-      const message = `The monitoring on database '${this.dbConfig.implementation}' is enabled`;
+      const message = `The monitoring on database '${global.database.getDatabase().databaseName}' is enabled`;
       await Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',

@@ -25,15 +25,6 @@ const config = {
   resolve: {
     extensions: ['.ts', '.tsx', '.json']
   },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: [/node_modules/]
-      }
-    ]
-  },
   plugins: [
     new WebpackShellPluginNext({
       onBuildStart: {
@@ -49,7 +40,7 @@ const config = {
     new webpack.ProgressPlugin(),
     new CopyPlugin({
       patterns: [
-        { from: 'src/assets/', to: 'assets/', globOptions: { ignore: ['**/configs/**'] } },
+        { from: 'src/assets/', to: 'assets/' },
         { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
       ]
     })

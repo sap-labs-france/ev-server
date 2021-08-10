@@ -20,6 +20,7 @@ import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../../types/TenantComponents';
+import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';
@@ -42,9 +43,9 @@ export default class SiteAreaService {
       req.tenant, req.user, siteArea, filteredRequest.assetIDs, action);
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, siteArea, assets.map((asset) => asset.id));
+      await SiteAreaStorage.addAssetsToSiteArea(req.tenant, siteArea, assets.map((asset) => asset.id));
     } else {
-      await SiteAreaStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
+      await SiteAreaStorage.removeAssetsFromSiteArea(req.tenant, filteredRequest.siteAreaID, assets.map((asset) => asset.id));
     }
     // Log
     await Logging.logSecurityInfo({
@@ -95,10 +96,10 @@ export default class SiteAreaService {
     // Save
     if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
       await SiteAreaStorage.addChargingStationsToSiteArea(
-        req.user.tenantID, siteArea, chargingStations.map((chargingStation) => chargingStation.id));
+        req.tenant, siteArea, chargingStations.map((chargingStation) => chargingStation.id));
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(
-        req.user.tenantID, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
+        req.tenant, filteredRequest.siteAreaID, chargingStations.map((chargingStation) => chargingStation.id));
     }
     // Log
     await Logging.logSecurityInfo({
@@ -124,7 +125,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, siteAreaID, Action.DELETE, action);
     // Delete
-    await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
+    await SiteAreaStorage.deleteSiteArea(req.tenant, siteArea.id);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -163,7 +164,8 @@ export default class SiteAreaService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteAreaImage', req.user);
     // Get it
-    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(filteredRequest.TenantID, filteredRequest.ID);
+    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(
+      await TenantStorage.getTenant(filteredRequest.TenantID), filteredRequest.ID);
     // Return
     if (siteAreaImage?.image) {
       let header = 'image';
@@ -196,7 +198,7 @@ export default class SiteAreaService {
       return;
     }
     // Get the SiteAreas
-    const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
+    const siteAreas = await SiteAreaStorage.getSiteAreas(req.tenant,
       {
         issuer: filteredRequest.Issuer,
         search: filteredRequest.Search,
@@ -257,7 +259,7 @@ export default class SiteAreaService {
     const siteArea = await UtilsService.checkAndGetSiteAreaAuthorization(
       req.tenant, req.user, filteredRequest.SiteAreaID, Action.READ, action);
     // Get the ConsumptionValues
-    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
+    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.tenant, {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
@@ -300,7 +302,7 @@ export default class SiteAreaService {
       createdOn: new Date()
     } as SiteArea;
     // Save
-    newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
+    newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.tenant, newSiteArea, true);
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
@@ -367,7 +369,7 @@ export default class SiteAreaService {
     siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Save
-    await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
+    await SiteAreaStorage.saveSiteArea(req.tenant, siteArea, Utils.objectHasProperty(filteredRequest, 'image'));
     // Retrigger Smart Charging
     if (filteredRequest.smartCharging) {
       // FIXME: the lock acquisition can wait for 30s before timeout and the whole code execution timeout at 3s

@@ -92,7 +92,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
     }
     const localToken = await TagStorage.getTag(
-      tenant.id, startSession.token.uid, { withUser: true });
+      tenant, startSession.token.uid, { withUser: true });
     if (!localToken?.active || !localToken.ocpiToken?.valid) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -108,7 +108,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStationByOcpiLocationUid(
-      tenant.id, startSession.location_id, startSession.evse_uid);
+      tenant, startSession.location_id, startSession.evse_uid);
     if (!chargingStation) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -188,7 +188,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     // Save Auth
     await ChargingStationStorage.saveChargingStationRemoteAuthorizations(
-      tenant.id, chargingStation.id, chargingStation.remoteAuthorizations);
+      tenant, chargingStation.id, chargingStation.remoteAuthorizations);
     // Called Async as the response to the eMSP is sent asynchronously and this request has to finish before the command returns
     void this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint).catch(() => { });
     // Ok
@@ -208,7 +208,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, stopSession.session_id);
+    const transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, stopSession.session_id);
     if (!transaction) {
       await Logging.logError({
         tenantID: tenant.id,
@@ -241,7 +241,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       });
       return this.buildOCPIResponse(OCPICommandResponseType.REJECTED);
     }
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
     if (!chargingStation) {
       await Logging.logError({
         tenantID: tenant.id,

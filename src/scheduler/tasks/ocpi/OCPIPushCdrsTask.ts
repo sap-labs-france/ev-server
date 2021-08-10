@@ -53,7 +53,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                 if (ocpiTransactionLock) {
                   try {
                     // Get Transaction
-                    const transaction = await TransactionStorage.getTransaction(tenant.id, transactionMDB._id, { withUser: true });
+                    const transaction = await TransactionStorage.getTransaction(tenant, transactionMDB._id, { withUser: true });
                     if (!transaction) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -73,7 +73,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Get Charging Station
-                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+                    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, transaction.chargeBoxID);
                     if (!chargingStation) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -84,7 +84,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                       continue;
                     }
                     // Get Tag
-                    const tag = await TagStorage.getTag(tenant.id, transaction.tagID);
+                    const tag = await TagStorage.getTag(tenant, transaction.tagID);
                     if (!tag) {
                       await Logging.logError({
                         tenantID: tenant.id,
@@ -97,7 +97,7 @@ export default class OCPIPushCdrsTask extends SchedulerTask {
                     // Roaming
                     await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, tag, TransactionAction.END);
                     // Save
-                    await TransactionStorage.saveTransactionOcpiData(tenant.id, transaction.id, transaction.ocpiData);
+                    await TransactionStorage.saveTransactionOcpiData(tenant, transaction.id, transaction.ocpiData);
                     // Ok
                     await Logging.logInfo({
                       tenantID: tenant.id,

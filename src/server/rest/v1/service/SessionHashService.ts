@@ -30,7 +30,7 @@ export default class SessionHashService {
         tenant = await TenantStorage.getTenant(tenantID);
       }
       // Get User
-      const user = await UserStorage.getUser(tenantID, userID);
+      const user = await UserStorage.getUser(tenant, userID);
       // User or Tenant no longer exists
       if (!tenant || !user) {
         return true;

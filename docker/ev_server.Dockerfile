@@ -16,6 +16,7 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY LICENSE NOTICE ./
 COPY src ./src
+COPY types ./types
 COPY build ./build
 COPY *.json ./
 COPY docker/config.json ./src/assets/config.json

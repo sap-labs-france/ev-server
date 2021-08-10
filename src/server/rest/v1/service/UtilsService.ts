@@ -72,7 +72,7 @@ export default class UtilsService {
       });
     }
     // Get ChargingStation
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationID,
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant, chargingStationID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -176,7 +176,7 @@ export default class UtilsService {
       });
     }
     // Get User
-    const user = await UserStorage.getUser(tenant.id, userID,
+    const user = await UserStorage.getUser(tenant, userID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
@@ -354,7 +354,7 @@ export default class UtilsService {
       });
     }
     // Get Users
-    let users = (await UserStorage.getUsers(tenant.id,
+    let users = (await UserStorage.getUsers(tenant,
       {
         userIDs,
         ...additionalFilters,
@@ -478,7 +478,7 @@ export default class UtilsService {
       });
     }
     // Get Charging Stations
-    const chargingStations = (await ChargingStationStorage.getChargingStations(tenant.id,
+    const chargingStations = (await ChargingStationStorage.getChargingStations(tenant,
       {
         chargingStationIDs,
         ...additionalFilters,
@@ -530,7 +530,7 @@ export default class UtilsService {
       });
     }
     // Get SiteArea & check it exists
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, siteAreaID,
+    const siteArea = await SiteAreaStorage.getSiteArea(tenant, siteAreaID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters,
@@ -933,13 +933,13 @@ export default class UtilsService {
     res.end();
   }
 
-  public static async exportToPDF(req: Request, res: Response, attachementName: string,
+  public static async exportToPDF(req: Request, res: Response, attachmentName: string,
       handleGetData: (req: Request) => Promise<DataResult<any>>,
       handleConvertToPDF: (req: Request, pdfDocument: PDFKit.PDFDocument, data: any[]) => Promise<string>): Promise<void> {
     // Override
     req.query.Limit = Constants.EXPORT_PDF_PAGE_SIZE.toString();
     // Set the attachment name
-    res.attachment(attachementName);
+    res.attachment(attachmentName);
     // Get the total number of Logs
     req.query.OnlyRecordCount = 'true';
     let data = await handleGetData(req);
@@ -1710,7 +1710,7 @@ export default class UtilsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  public static async processSensitiveData(tenantID: string, currentProperties: object, newProperties: object): Promise<void> {
+  public static async processSensitiveData(tenant: Tenant, currentProperties: object, newProperties: object): Promise<void> {
     // Process the sensitive data (if any)
     const sensitivePropertyNames: string [] = _.get(currentProperties, 'sensitiveData');
     if (sensitivePropertyNames) {
@@ -1734,14 +1734,14 @@ export default class UtilsService {
             const currentHash = Cypher.hash(currentValue);
             if (newValue !== currentHash) {
             // Yes: Encrypt
-              _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+              _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
             } else {
             // No: Put back the encrypted value
               _.set(newProperties, propertyName, currentValue);
             }
           } else {
           // Value in db is empty then encrypt
-            _.set(newProperties, propertyName, await Cypher.encrypt(tenantID, newValue));
+            _.set(newProperties, propertyName, await Cypher.encrypt(tenant, newValue));
           }
         } else {
           throw new AppError({
@@ -1785,7 +1785,7 @@ export default class UtilsService {
   }
 
   private static async checkAndGetTagByXXXAuthorization(tenant: Tenant, userToken:UserToken, id: string,
-      getTagByXXX: (tenantID: string, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
+      getTagByXXX: (tenant: Tenant, id: string, params: any, projectedFileds: string[]) => Promise<Tag>, authAction: Action,
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Tag> {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'checkAndGetTagByXXXAuthorization', userToken);
@@ -1802,7 +1802,7 @@ export default class UtilsService {
       });
     }
     // Get the Tag & check it exists
-    const tag = await getTagByXXX(userToken.tenantID, id,
+    const tag = await getTagByXXX(tenant, id,
       {
         ...additionalFilters,
         ...authorizationFilter.filters

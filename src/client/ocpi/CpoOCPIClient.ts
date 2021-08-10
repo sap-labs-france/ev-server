@@ -109,7 +109,7 @@ export default class CpoOCPIClient extends OCPIClient {
       for (const token of response.data.data as OCPIToken[]) {
         tagIDs.push(token.uid);
       }
-      const tags = await TagStorage.getTags(this.tenant.id,
+      const tags = await TagStorage.getTags(this.tenant,
         { tagIDs: tagIDs }, Constants.DB_PARAMS_MAX_LIMIT);
       const tokens = response.data.data as OCPIToken[];
       if (!Utils.isEmptyArray(tokens)) {
@@ -121,7 +121,7 @@ export default class CpoOCPIClient extends OCPIClient {
             let emspUser = emspUsers.get(email);
             if (!emspUser) {
               // Get User from DB
-              emspUser = await UserStorage.getUserByEmail(this.tenant.id, email);
+              emspUser = await UserStorage.getUserByEmail(this.tenant, email);
               if (emspUser) {
                 emspUsers.set(email, emspUser);
               }
@@ -285,7 +285,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice > 0 ? transaction.currentCumulatedPrice : 0;
     transaction.ocpiData.session.currency = this.settings.currency;
     transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
-    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant, transaction);
     // Send OCPI information
     const session: Partial<OCPISession> = {
       kwh: transaction.ocpiData.session.kwh,
@@ -338,7 +338,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
     transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
-    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await this.buildChargingPeriods(this.tenant, transaction);
     // Call IOP
     const response = await this.axiosInstance.put(
       tokensUrl,
@@ -391,7 +391,7 @@ export default class CpoOCPIClient extends OCPIClient {
       auth_method: transaction.ocpiData.session.auth_method,
       location: transaction.ocpiData.session.location,
       total_cost: transaction.stop.roundedPrice > 0 ? transaction.stop.roundedPrice : 0,
-      charging_periods: await this.buildChargingPeriods(this.tenant.id, transaction),
+      charging_periods: await this.buildChargingPeriods(this.tenant, transaction),
       last_updated: transaction.stop.timestamp
     };
     // Call IOP
@@ -488,7 +488,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Perfs trace
     const startTime = new Date().getTime();
-    const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
+    const transactions = await TransactionStorage.getTransactions(this.tenant, {
       issuer: true,
       ocpiSessionChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -588,7 +588,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     // Perfs trace
     const startTime = new Date().getTime();
-    const transactions = await TransactionStorage.getTransactions(this.tenant.id, {
+    const transactions = await TransactionStorage.getTransactions(this.tenant, {
       issuer: true,
       ocpiCdrChecked: false
     }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -716,7 +716,7 @@ export default class CpoOCPIClient extends OCPIClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -813,7 +813,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Mark it as done (checked at least once)
     transaction.ocpiData.cdrCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
+    await TransactionStorage.saveTransactionOcpiData(this.tenant, transaction.id, transaction.ocpiData);
     // Check CDR
     const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_CHECK_CDRS);
     const response = await this.axiosInstance.get(
@@ -880,7 +880,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Mark it as done (checked at least once)
     transaction.ocpiData.sessionCheckedOn = new Date();
-    await TransactionStorage.saveTransactionOcpiData(this.tenant.id, transaction.id, transaction.ocpiData);
+    await TransactionStorage.saveTransactionOcpiData(this.tenant, transaction.id, transaction.ocpiData);
     // Check Session
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpiData.session.id}`;
     const response = await this.axiosInstance.get(
@@ -959,13 +959,13 @@ export default class CpoOCPIClient extends OCPIClient {
     return result;
   }
 
-  private async buildChargingPeriods(tenantID: string, transaction: Transaction): Promise<OCPIChargingPeriod[]> {
+  private async buildChargingPeriods(tenant: Tenant, transaction: Transaction): Promise<OCPIChargingPeriod[]> {
     if (!transaction || !transaction.timestamp) {
       return [];
     }
     const chargingPeriods: OCPIChargingPeriod[] = [];
     const consumptions = await ConsumptionStorage.getTransactionConsumptions(
-      tenantID, { transactionId: transaction.id });
+      tenant, { transactionId: transaction.id });
     if (consumptions.result) {
       // Build based on consumptions
       for (const consumption of consumptions.result) {

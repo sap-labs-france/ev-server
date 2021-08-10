@@ -12,8 +12,8 @@ export default class Constants {
   public static readonly CSV_SEPARATOR = ',';
   public static readonly CR_LF = '\r\n';
 
-  public static readonly PERF_MAX_DATA_VOLUME_KB = 128;
-  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 500;
+  public static readonly PERF_MAX_DATA_VOLUME_KB = 512;
+  public static readonly PERF_MAX_RESPONSE_TIME_MILLIS = 1000;
 
   public static readonly AXIOS_DEFAULT_TIMEOUT = 60000;
 
@@ -313,7 +313,7 @@ export default class Constants {
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
+    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer',
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({
