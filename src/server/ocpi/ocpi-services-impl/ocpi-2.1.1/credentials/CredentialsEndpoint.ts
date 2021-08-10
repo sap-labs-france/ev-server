@@ -172,7 +172,6 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           versionFound = true;
           ocpiEndpoint.version = version.version;
           ocpiEndpoint.versionUrl = version.url;
-
           // Log correct OCPI service found
           await Logging.logDebug({
             tenantID: tenant.id,
@@ -218,7 +217,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         });
       }
       // Set available endpoints
-      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertEndpoints(response.data.data);
+      ocpiEndpoint.availableEndpoints = OCPIUtilsService.convertAvailableEndpoints(response.data.data);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

@@ -154,7 +154,7 @@ export default class Authorizations {
     }
     // Currency
     let currency = null;
-    const pricing = await SettingStorage.getPricingSettings(tenant.id);
+    const pricing = await SettingStorage.getPricingSettings(tenant);
     if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
       currency = pricing.simple.currency;
     }
@@ -788,7 +788,7 @@ export default class Authorizations {
         return { user };
       }
       // Create the Tag as inactive and abort
-      await this.createInactiveTagAndAbortAction(action, tenant, tagID, chargingStation);
+      this.notifyUnknownBadgeHasBeenUsedAndAbort(action, tenant, tagID, chargingStation);
     }
     // Get Authorized User
     const user = await this.checkAndGetAuthorizedUserFromTag(action, tenant, chargingStation, transaction, tag, authAction);
@@ -972,7 +972,7 @@ export default class Authorizations {
     return user;
   }
 
-  private static async createInactiveTagAndAbortAction(
+  private static notifyUnknownBadgeHasBeenUsedAndAbort(
       action: ServerAction, tenant: Tenant, tagID: string, chargingStation: ChargingStation) {
     const tag: Tag = {
       id: tagID,
@@ -982,8 +982,6 @@ export default class Authorizations {
       createdOn: new Date(),
       default: false
     };
-    // Save
-    await TagStorage.saveTag(tenant, tag);
     // Notify (Async)
     NotificationHandler.sendUnknownUserBadged(
       tenant,
@@ -993,14 +991,13 @@ export default class Authorizations {
         chargeBoxID: chargingStation.id,
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-        evseDashboardTagURL: Utils.buildEvseTagURL(tenant.subdomain, tag)
       }
     ).catch(() => { });
     throw new BackendError({
       source: chargingStation.id,
       action: action,
-      module: MODULE_NAME, method: 'createAndGetInactiveTag',
-      message: `Tag ID '${tagID}' is unknown and has been created successfully as an inactive Tag`,
+      module: MODULE_NAME, method: 'notifyUnknownBadgeHasBeenUsedAndAbort',
+      message: `Tag ID '${tagID}' is unknown`,
       detailedMessages: { tag }
     });
   }

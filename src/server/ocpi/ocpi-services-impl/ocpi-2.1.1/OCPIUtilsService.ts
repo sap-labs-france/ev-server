@@ -3,6 +3,7 @@ import * as CountriesList from 'countries-list';
 import ChargingStation, { ChargePoint, Connector, ConnectorType, CurrentType, Voltage } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType, OCPIVoltage } from '../../../../types/ocpi/OCPIConnector';
+import OCPIEndpoint, { OCPIAvailableEndpoints, OCPIEndpointVersions } from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocation, OCPILocationOptions, OCPILocationType, OCPIOpeningTimes } from '../../../../types/ocpi/OCPILocation';
 import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPITariff, OCPITariffDimensionType } from '../../../../types/ocpi/OCPITariff';
@@ -25,7 +26,6 @@ import Logging from '../../../../utils/Logging';
 import { OCPIBusinessDetails } from '../../../../types/ocpi/OCPIBusinessDetails';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPICredential from '../../../../types/ocpi/OCPICredential';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
@@ -382,7 +382,7 @@ export default class OCPIUtilsService {
   }
 
   public static convertSimplePricingSetting2OCPITariff(simplePricingSetting: SimplePricingSetting): OCPITariff {
-    let tariff: OCPITariff;
+    const tariff = {} as OCPITariff;
     tariff.id = '1';
     tariff.currency = simplePricingSetting.currency;
     tariff.elements[0].price_components[0].type = OCPITariffDimensionType.TIME;
@@ -394,9 +394,9 @@ export default class OCPIUtilsService {
 
   public static async buildOCPICredentialObject(tenant: Tenant, token: string, role: string, versionUrl?: string): Promise<OCPICredential> {
     // Credential
-    const credential: OCPICredential = {} as OCPICredential;
+    const credential = {} as OCPICredential;
     // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getOCPISettings(tenant.id);
+    const ocpiSetting = await SettingStorage.getOCPISettings(tenant);
     // Define version url
     credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
     // Check if available
@@ -411,18 +411,17 @@ export default class OCPIUtilsService {
       }
       credential.business_details = ocpiSetting.ocpi.businessDetails;
     }
-    // Return credential object
     return credential;
   }
 
-  public static convertEndpoints(endpointsEntity: any): OCPIEndpoint[] {
-    const endpoints: OCPIEndpoint[] = [];
-    if (endpointsEntity && endpointsEntity.endpoints) {
-      for (const endpoint of endpointsEntity.endpoints) {
-        endpoints[endpoint.identifier] = endpoint.url;
+  public static convertAvailableEndpoints(endpointURLs: OCPIEndpointVersions): OCPIAvailableEndpoints {
+    const availableEndpoints = {} as OCPIAvailableEndpoints;
+    if (!Utils.isEmptyArray(endpointURLs.endpoints)) {
+      for (const endpoint of endpointURLs.endpoints) {
+        availableEndpoints[endpoint.identifier] = endpoint.url;
       }
     }
-    return endpoints;
+    return availableEndpoints;
   }
 
   public static async getEvsesFromSite(tenant: Tenant, siteID: string,
@@ -798,7 +797,7 @@ export default class OCPIUtilsService {
   }
 
   private static async getOperatorBusinessDetails(tenant: Tenant): Promise<OCPIBusinessDetails> {
-    return (await SettingStorage.getOCPISettings(tenant.id)).ocpi.businessDetails;
+    return (await SettingStorage.getOCPISettings(tenant)).ocpi.businessDetails;
   }
 
   private static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation,

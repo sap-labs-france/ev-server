@@ -170,7 +170,7 @@ export default class IothinkAssetIntegration extends AssetIntegration<AssetSetti
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.iothinkConnection.user);
-    params.append('password', await Cypher.decrypt(this.tenant.id, this.connection.iothinkConnection.password));
+    params.append('password', await Cypher.decrypt(this.tenant, this.connection.iothinkConnection.password));
     return params;
   }
 
