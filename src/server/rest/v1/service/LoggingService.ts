@@ -103,27 +103,7 @@ export default class LoggingService {
     // Filter
     const filteredRequest = LoggingSecurity.filterLogsRequest(req.query);
     // Add filter for Site Admins
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
-      const chargingStations = await ChargingStationStorage.getChargingStations(req.tenant,
-        { siteIDs: req.user.sitesAdmin, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT);
-      // Check if Charging Station is already filtered
-      if (chargingStations.count === 0) {
-        filteredRequest.Source = '';
-      } else if (filteredRequest.Source && filteredRequest.Source.length > 0) {
-        // Filter only Site Admin Chargers
-        const sources = [];
-        for (const chargingStation of chargingStations.result) {
-          if (filteredRequest.Source.includes(chargingStation.id)) {
-            sources.push(chargingStation.id);
-          }
-        }
-        filteredRequest.Source = sources.join('|');
-      } else {
-        // Add all Site Admin Chargers in filter
-        filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id).join('|');
-      }
-    }
+
     // Get logs
     const loggings = await LoggingStorage.getLogs(req.user.tenantID, {
       search: filteredRequest.Search,
@@ -133,6 +113,7 @@ export default class LoggingService {
       hosts: filteredRequest.Host ? filteredRequest.Host.split('|') : null,
       levels: filteredRequest.Level ? filteredRequest.Level.split('|') : null,
       type: filteredRequest.Type,
+      siteIDs: req.user.sites,
       sources: filteredRequest.Source ? filteredRequest.Source.split('|') : null,
       actions: filteredRequest.Action ? filteredRequest.Action.split('|') : null,
     }, {

@@ -59,6 +59,7 @@ export default class LoggingStorage {
       userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,
       actionOnUserID: DatabaseUtils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
+      siteID: logToSave.siteID,
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : Utils.getHostname(),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
@@ -85,7 +86,7 @@ export default class LoggingStorage {
   }
 
   public static async getLogs(tenantID: string, params: {
-    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; sitesIDs?: string[]; type?: string; actions?: string[];
+    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; siteIDs?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
@@ -119,13 +120,13 @@ export default class LoggingStorage {
       filters.level = { $in: params.levels };
     }
     // Filter on site ID
-    if (params.sitesIDs && params.sitesIDs.length > 0) {
-      filters.siteID = { $in: params.sitesIDs };
+    if (params.siteIDs && params.siteIDs.length > 0) {
+      filters.siteID = { $in: params.siteIDs };
     }
     // Filter on charging Stations
-    // if (params.sources && params.sources.length > 0) {
-    //  filters.source = { $in: params.sources };
-    // }
+    if (params.sources && params.sources.length > 0) {
+      filters.source = { $in: params.sources };
+    }
     // Type
     if (params.type) {
       filters.type = params.type;
