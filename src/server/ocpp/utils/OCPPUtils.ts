@@ -1270,6 +1270,7 @@ export default class OCPPUtils {
   public static async applyTemplateOcppParametersToChargingStation(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPPChangeConfigurationCommandResult> {
     await Logging.logDebug({
       tenantID: tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'applyTemplateOcppParametersToChargingStation',
@@ -1586,6 +1587,7 @@ export default class OCPPUtils {
       const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(tenant, chargingStation, {});
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
@@ -2126,6 +2128,7 @@ export default class OCPPUtils {
       }
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',

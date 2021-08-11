@@ -85,7 +85,7 @@ export default class LoggingStorage {
   }
 
   public static async getLogs(tenantID: string, params: {
-    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
+    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; sitesIDs?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
@@ -118,10 +118,14 @@ export default class LoggingStorage {
     if (params.levels && params.levels.length > 0) {
       filters.level = { $in: params.levels };
     }
-    // Filter on charging Stations
-    if (params.sources && params.sources.length > 0) {
-      filters.source = { $in: params.sources };
+    // Filter on site ID
+    if (params.sitesIDs && params.sitesIDs.length > 0) {
+      filters.siteID = { $in: params.sitesIDs };
     }
+    // Filter on charging Stations
+    // if (params.sources && params.sources.length > 0) {
+    //  filters.source = { $in: params.sources };
+    // }
     // Type
     if (params.type) {
       filters.type = params.type;

@@ -83,6 +83,7 @@ export default class CpoOICPClient extends OICPClient {
     await Logging.logDebug({
       tenantID: this.tenant.id,
       user: transaction.user,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Start OICP Session ID '${transaction.id}'`,

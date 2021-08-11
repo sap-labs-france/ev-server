@@ -89,6 +89,7 @@ export default abstract class ChargingStationVendorIntegration {
     try {
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Set Power limitation via OCPP on ${chargePoint.ocppParamForPowerLimitation} key to ${ocppLimitAmpValue} value`,
