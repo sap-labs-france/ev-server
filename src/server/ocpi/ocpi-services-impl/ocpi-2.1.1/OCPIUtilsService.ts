@@ -771,6 +771,10 @@ export default class OCPIUtilsService {
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
+      case ConnectorType.DOMESTIC:
+        type = OCPIConnectorType.DOMESTIC_E;
+        format = OCPIConnectorFormat.SOCKET;
+        break;
     }
     return {
       id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
