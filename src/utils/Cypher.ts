@@ -6,6 +6,7 @@ import Constants from './Constants';
 import { LockEntity } from '../types/Locking';
 import LockingManager from '../locking/LockingManager';
 import SettingStorage from '../storage/mongodb/SettingStorage';
+import Tenant from '../types/Tenant';
 import { TransformOptions } from 'stream';
 import Utils from './Utils';
 import _ from 'lodash';
@@ -17,9 +18,9 @@ interface CipherOptions extends TransformOptions {
 }
 
 export default class Cypher {
-  public static async encrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
+  public static async encrypt(tenant: Tenant, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
     if (!cryptoSetting) {
-      cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
+      cryptoSetting = (await Cypher.getCryptoSettings(tenant)).crypto;
     }
     const algo = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
     const iv = crypto.randomBytes(Cypher.getIVLength(algo));
@@ -36,7 +37,7 @@ export default class Cypher {
     return iv.toString('hex') + ':' + encryptedData.toString('hex');
   }
 
-  public static async decrypt(tenantID: string, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
+  public static async decrypt(tenant: Tenant, data: string, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<string> {
     const [ivStr, encryptedDataStr, authTagStr] = data.split(':');
     const iv = Buffer.from(ivStr, 'hex');
     const encryptedData = Buffer.from(encryptedDataStr, 'hex');
@@ -45,7 +46,7 @@ export default class Cypher {
       authTag = Buffer.from(authTagStr, 'hex');
     }
     if (!cryptoSetting) {
-      cryptoSetting = (await Cypher.getCryptoSettings(tenantID)).crypto;
+      cryptoSetting = (await Cypher.getCryptoSettings(tenant)).crypto;
     }
     const algo: string | CipherGCMTypes = useFormerKey ? Utils.buildCryptoAlgorithm(cryptoSetting.formerKeyProperties) : Utils.buildCryptoAlgorithm(cryptoSetting.keyProperties);
     const key = useFormerKey ? Buffer.from(cryptoSetting.formerKey) : Buffer.from(cryptoSetting.key);
@@ -78,7 +79,7 @@ export default class Cypher {
     }
   }
 
-  public static async encryptSensitiveDataInJSON(tenantID: string, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
+  public static async encryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -96,13 +97,13 @@ export default class Cypher {
         const value = _.get(data, property);
         // If the value is undefined, null or empty then do nothing and skip to the next property
         if (value && value.length > 0) {
-          _.set(data, property, await Cypher.encrypt(tenantID, value, useFormerKey, cryptoSetting));
+          _.set(data, property, await Cypher.encrypt(tenant, value, useFormerKey, cryptoSetting));
         }
       }
     }
   }
 
-  public static async decryptSensitiveDataInJSON(tenantID: string, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
+  public static async decryptSensitiveDataInJSON(tenant: Tenant, data: Record<string, any>, useFormerKey = false, cryptoSetting?: CryptoSetting): Promise<void> {
     if (typeof data !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -118,7 +119,7 @@ export default class Cypher {
           const value = _.get(data, property);
           // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
-            _.set(data, property, await Cypher.decrypt(tenantID, value, useFormerKey, cryptoSetting));
+            _.set(data, property, await Cypher.decrypt(tenant, value, useFormerKey, cryptoSetting));
           }
         }
       }
@@ -158,25 +159,25 @@ export default class Cypher {
   }
 
   // This method will be reused in a Scheduler task that resumes migration
-  public static async handleCryptoSettingsChange(tenantID: string): Promise<void> {
-    const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
+  public static async handleCryptoSettingsChange(tenant: Tenant): Promise<void> {
+    const createDatabaseLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.DATABASE, 'migrate-settings-sensitive-data');
     if (await LockingManager.acquire(createDatabaseLock)) {
       try {
         // Get the crypto key
-        const cryptoSettings = await Cypher.getCryptoSettings(tenantID);
+        const cryptoSettings = await Cypher.getCryptoSettings(tenant);
         // Migrate Settings
-        await Cypher.migrateSettings(tenantID, cryptoSettings.crypto);
+        await Cypher.migrateSettings(tenant, cryptoSettings.crypto);
         // Cleanup
-        await Cypher.cleanupBackupSensitiveData(tenantID);
+        await Cypher.cleanupBackupSensitiveData(tenant);
         // Flag the migration as done
         cryptoSettings.crypto.migrationToBeDone = false;
-        await Cypher.saveCryptoSetting(tenantID, cryptoSettings);
+        await Cypher.saveCryptoSetting(tenant, cryptoSettings);
       } catch (err) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'handleCryptoSettingsChange',
-          message: `Sensitive Data migration for tenant with ID: ${tenantID} failed.`
+          message: `Sensitive Data migration for tenant with ID: ${tenant.id} failed.`
         });
       } finally {
         // Release the database Lock
@@ -187,12 +188,12 @@ export default class Cypher {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'handleCryptoSettingsChange',
-        message: `Sensitive Data migration is in progress for tenant with ID: ${tenantID}.`
+        message: `Sensitive Data migration is in progress for tenant with ID: ${tenant.id}.`
       });
     }
   }
 
-  public static async saveCryptoSetting(tenantID: string, cryptoSettingToSave: CryptoSettings): Promise<void> {
+  public static async saveCryptoSetting(tenant: Tenant, cryptoSettingToSave: CryptoSettings): Promise<void> {
     // Build internal structure
     const settingsToSave = {
       id: cryptoSettingToSave.id,
@@ -203,25 +204,25 @@ export default class Cypher {
       },
     } as SettingDB;
     // Save
-    await SettingStorage.saveSettings(tenantID, settingsToSave);
+    await SettingStorage.saveSettings(tenant, settingsToSave);
   }
 
-  private static async getCryptoSettings(tenantID: string): Promise<CryptoSettings> {
-    const cryptoSettings = await SettingStorage.getCryptoSettings(tenantID);
+  private static async getCryptoSettings(tenant: Tenant): Promise<CryptoSettings> {
+    const cryptoSettings = await SettingStorage.getCryptoSettings(tenant);
     if (!cryptoSettings || !cryptoSettings.crypto) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME,
         method: 'getCryptoSetting',
-        message: `Tenant ID '${tenantID}' does not have crypto settings.`
+        message: `Tenant ID '${tenant.id}' does not have crypto settings.`
       });
     }
     return cryptoSettings;
   }
 
-  private static async getSettingsWithSensitiveData(tenantID: string): Promise<SettingDB[]> {
+  private static async getSettingsWithSensitiveData(tenant: Tenant): Promise<SettingDB[]> {
     // Get all settings per tenant
-    const settings = await SettingStorage.getSettings(tenantID, {},
+    const settings = await SettingStorage.getSettings(tenant, {},
       Constants.DB_PARAMS_MAX_LIMIT);
     // Filter settings with sensitiveData
     return settings.result.filter((value: SettingDB) => {
@@ -231,8 +232,8 @@ export default class Cypher {
     });
   }
 
-  private static async migrateSettings(tenantID: string, cryptoSetting: CryptoSetting): Promise<void> {
-    const settingsToMigrate = await Cypher.getSettingsWithSensitiveData(tenantID);
+  private static async migrateSettings(tenant: Tenant, cryptoSetting: CryptoSetting): Promise<void> {
+    const settingsToMigrate = await Cypher.getSettingsWithSensitiveData(tenant);
     // If tenant has settings with sensitive data, migrate them
     if (!Utils.isEmptyArray(settingsToMigrate)) {
       // Migrate
@@ -242,11 +243,11 @@ export default class Cypher {
           // Save former sensitive data in setting
           settingToMigrate.backupSensitiveData = Cypher.prepareBackupSensitiveData(settingToMigrate);
           // Decrypt sensitive data with former key and key properties
-          await Cypher.decryptSensitiveDataInJSON(tenantID, settingToMigrate, true, cryptoSetting);
+          await Cypher.decryptSensitiveDataInJSON(tenant, settingToMigrate, true, cryptoSetting);
           // Encrypt sensitive data with new key and key properties
-          await Cypher.encryptSensitiveDataInJSON(tenantID, settingToMigrate, false, cryptoSetting);
+          await Cypher.encryptSensitiveDataInJSON(tenant, settingToMigrate, false, cryptoSetting);
           // Save setting with sensitive data encrypted with new key
-          await SettingStorage.saveSettings(tenantID, settingToMigrate);
+          await SettingStorage.saveSettings(tenant, settingToMigrate);
         }
       }
     }
@@ -290,16 +291,16 @@ export default class Cypher {
     return {};
   }
 
-  private static async cleanupBackupSensitiveData(tenantID: string): Promise<void> {
+  private static async cleanupBackupSensitiveData(tenant: Tenant): Promise<void> {
     // Cleanup former encrypted data
-    const settingsToCleanup = await Cypher.getSettingsWithSensitiveData(tenantID);
+    const settingsToCleanup = await Cypher.getSettingsWithSensitiveData(tenant);
     // If tenant has settings with sensitive data, clean them
     if (!Utils.isEmptyArray(settingsToCleanup)) {
       // Cleanup
       for (const setting of settingsToCleanup) {
         if (Utils.objectHasProperty(setting, 'backupSensitiveData')) {
           delete setting.backupSensitiveData;
-          await SettingStorage.saveSettings(tenantID, setting);
+          await SettingStorage.saveSettings(tenant, setting);
         }
       }
     }

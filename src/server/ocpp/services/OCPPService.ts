@@ -312,6 +312,8 @@ export default class OCPPService {
         // Check
         const { user } = await Authorizations.isAuthorizedOnChargingStation(tenant, chargingStation,
           authorize.idTag, ServerAction.AUTHORIZE, Action.AUTHORIZE);
+        // Check Billing Prerequisites
+        await OCPPUtils.checkBillingPrerequisites(tenant, ServerAction.AUTHORIZE, chargingStation, user);
         // Enrich
         this.enrichAuthorize(user, chargingStation, headers, authorize);
         // Save
@@ -469,6 +471,12 @@ export default class OCPPService {
             status: OCPPAuthorizationStatus.ACCEPTED
           }
         };
+      } catch (error) {
+        // Cleanup ongoing Transaction
+        await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
+        // Save
+        await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
+        throw error;
       } finally {
         // Release lock
         await LockingManager.release(chargingStationLock);
@@ -785,7 +793,7 @@ export default class OCPPService {
     let foundConnector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
       // Check backup first
-      foundConnector = Utils.getBackupConnectorFromID(chargingStation, statusNotification.connectorId);
+      foundConnector = Utils.getLastSeenConnectorFromID(chargingStation, statusNotification.connectorId);
       if (foundConnector) {
         // Append the backup connector
         chargingStation.connectors.push(foundConnector);

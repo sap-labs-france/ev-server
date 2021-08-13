@@ -222,26 +222,26 @@ export default class OCPIEndpointService {
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getOcpiClient(req.tenant, filteredRequest);
     // Try to ping
-    const pingResult = await ocpiClient.ping();
+    const result = await ocpiClient.ping();
     // Check ping result
-    if (pingResult.statusCode === StatusCodes.OK) {
+    if (result.statusCode === StatusCodes.OK) {
       await Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
         action,
-        detailedMessages: { pingResult }
+        detailedMessages: { result }
       });
     } else {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         action,
-        errorCode: pingResult.statusCode,
-        message: pingResult.statusText,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${result.statusText} (${result.statusCode})`,
       });
     }
-    res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -771,8 +771,8 @@ export default class OCPIEndpointService {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         action,
-        errorCode: result.statusCode,
-        message: result.statusText,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${result.statusText} (${result.statusCode})`,
       });
     }
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
@@ -827,8 +827,8 @@ export default class OCPIEndpointService {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         action,
-        errorCode: result.statusCode,
-        message: result.statusText,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `${result.statusText} (${result.statusCode})`,
       });
     }
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
