@@ -83,7 +83,7 @@ export default class OCPIUtils {
     if (connector.chargePointID) {
       const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
       if (chargePoint && chargePoint.cannotChargeInParallel) {
-        return `${chargingStation.id}*${connector.connectorId}`;
+        return `${chargingStation.id}*${chargePoint.chargePointID}`;
       }
     }
     return `${chargingStation.id}*${connector.connectorId}`;
