@@ -79,6 +79,13 @@ export default class OCPIUtils {
   }
 
   public static buildEvseUID(chargingStation: ChargingStation, connector: Connector): string {
+    // connectors are grouped in the same evse when the connectors cannot charge in parallel
+    if (connector.chargePointID) {
+      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+      if (chargePoint && chargePoint.cannotChargeInParallel) {
+        return `${chargingStation.id}*${connector.connectorId}`;
+      }
+    }
     return `${chargingStation.id}*${connector.connectorId}`;
   }
 
