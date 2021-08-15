@@ -636,7 +636,7 @@ export default abstract class BillingIntegration {
   abstract setupPaymentIntent(user: User, invoice: BillingInvoice, paymentMethodID: string): Promise<BillingOperationResult>;
 
   // BELOW USELESS FOR NOW
-  abstract updateInvoice(paymentIntent: any): void;
+  // abstract updateInvoice(paymentIntent: any): void;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
