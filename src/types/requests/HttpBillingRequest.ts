@@ -24,6 +24,13 @@ export interface HttpSetupPaymentMethod {
   paymentMethodId?: string;
 }
 
+// TODO: to be verified depending on what we decide to use
+export interface HttpSetupPaymentIntent {
+  userID: string;
+  invoiceID: string;
+  paymentMethodID?: string;
+}
+
 export interface HttpPaymentMethods {
   userID: string;
 }

@@ -25,6 +25,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import { cursorTo } from 'readline';
 import moment from 'moment';
 
 const MODULE_NAME = 'StripeBillingIntegration';
@@ -416,9 +417,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return true;
   }
 
-  public async chargeInvoice(billingInvoice: BillingInvoice): Promise<BillingInvoice> {
+  // Modifications working for one time payment as long as we don't need 3DS verification
+  public async chargeInvoice(billingInvoice: BillingInvoice, parameter?: Stripe.InvoicePayParams): Promise<BillingInvoice> {
     await this.checkConnection();
-    const operationResult = await this.chargeStripeInvoice(billingInvoice.invoiceID);
+    const operationResult = await this.chargeStripeInvoice(billingInvoice.invoiceID, parameter);
     if (!operationResult?.succeeded && operationResult?.error) {
       if (StripeHelpers.isResourceMissingError(operationResult.error)) {
         await StripeHelpers.updateInvoiceAdditionalData(this.tenant, billingInvoice, operationResult);
@@ -475,7 +477,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }));
   }
 
-  private async chargeStripeInvoice(invoiceID: string): Promise<StripeChargeOperationResult> {
+  // Modifications working to .pay() an invoice one shot as long as we don't need 3DS verification
+  private async chargeStripeInvoice(invoiceID: string, parameter?: Stripe.InvoicePayParams): Promise<StripeChargeOperationResult> {
     try {
       // Fetch the invoice from stripe (do NOT TRUST the local copy)
       let stripeInvoice: Stripe.Invoice = await this.stripe.invoices.retrieve(invoiceID);
@@ -489,7 +492,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         if (stripeInvoice.status === BillingInvoiceStatus.OPEN
           || stripeInvoice.status === BillingInvoiceStatus.UNCOLLECTIBLE) {
           // Set the payment options
-          const paymentOptions: Stripe.InvoicePayParams = {};
+          const paymentOptions: Stripe.InvoicePayParams = parameter;
           stripeInvoice = await this.stripe.invoices.pay(invoiceID, paymentOptions);
         }
       }
@@ -505,7 +508,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  public async setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult> {
+  // Modifications working to .pay() an invoice one shot as long as we don't need 3DS verification
+  public async setupPaymentMethod(user: User, paymentMethodId: string, oneTimePayment?: boolean): Promise<BillingOperationResult> {
     // Check Stripe
     await this.checkConnection();
     // Check billing data consistency
@@ -532,8 +536,47 @@ export default class StripeBillingIntegration extends BillingIntegration {
       billingOperationResult = await this._createSetupIntent(user, customerID);
     } else {
       // Attach payment method to the stripe customer
-      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId);
+      // Modifications to know in which case of the attach we are - allows not to set payment method to default
+      billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId, oneTimePayment);
     }
+    return billingOperationResult;
+  }
+
+  // BELOW USELESS we cannot use PAYMENT intent to .pay()
+  public async setupPaymentIntent(user: User, invoice: BillingInvoice, paymentMethodID: string): Promise<BillingOperationResult> {
+    // Check Stripe
+    await this.checkConnection();
+    // Check billing data consistency
+    let customerID = user?.billingData?.customerID;
+    if (!customerID) {
+      // User Sync is now made implicitly - LAZY mode
+      const billingUser = await this.synchronizeUser(user);
+      customerID = billingUser?.billingData?.customerID;
+    }
+    // User should now exist
+    if (!customerID) {
+      throw new BackendError({
+        message: `User is not known in Stripe: '${user.id}' - (${user.email})`,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'setupPaymentMethod',
+        action: ServerAction.BILLING_SETUP_PAYMENT_METHOD
+      });
+    }
+    // Let's do it!
+    const billingOperationResult: BillingOperationResult = await this._createPaymentIntent(user, customerID, invoice, paymentMethodID);
+    if (!billingOperationResult.error) {
+    // associate payment intent to the invoice sounds not possible....
+    }
+
+    // Below not working as we cannot do anything once we have the payment intent to .pay()
+    // if (!paymentMethodId) {
+    //   // Let's create a setupIntent for the stripe customer
+    //   billingOperationResult = await this._createPaymentIntent(user, customerID, invoice);
+    // } else {
+    //   // Attach payment method to the stripe customer
+    //   billingOperationResult = await this._attachPaymentMethod(user, customerID, paymentMethodId, oneTimePayment);
+    // }
     return billingOperationResult;
   }
 
@@ -607,7 +650,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
+  // Modifications working for one time payment as long as we don't need 3DS verification
+  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string, oneTimePayment?: boolean): Promise<BillingOperationResult> {
     try {
       // Attach payment method to the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
@@ -629,10 +673,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
       });
-      // Set this payment method as the default
-      await this.stripe.customers.update(customerID, {
-        invoice_settings: { default_payment_method: paymentMethodId }
-      });
+      if (!oneTimePayment) {
+        // Set this payment method as the default if we're not in the one time payment scenario
+        await this.stripe.customers.update(customerID, {
+          invoice_settings: { default_payment_method: paymentMethodId }
+        });
+      }
       await Logging.logInfo({
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
@@ -652,6 +698,48 @@ export default class StripeBillingIntegration extends BillingIntegration {
         action: ServerAction.BILLING_SETUP_PAYMENT_METHOD,
         actionOnUser: user,
         module: MODULE_NAME, method: '_attachPaymentMethod',
+        message: `Stripe operation failed - ${error?.message as string}`
+      });
+      return {
+        succeeded: false,
+        error
+      };
+    }
+  }
+
+  // BELOW USELESS as we cannot .pay() with paymentintent
+  private async _createPaymentIntent(user: User, customerID: string, invoice: BillingInvoice, paymentMethodID: string): Promise<BillingOperationResult> {
+    try {
+      // Let's create a paymentIntent for the stripe customer
+      const paymentIntent: Stripe.PaymentIntent = await this.stripe.paymentIntents.create({
+        amount: invoice.amount,
+        currency: invoice.currency,
+        payment_method_types: ['card'],
+        customer: customerID,
+        confirm: true,
+        setup_future_usage: 'on_session',
+        payment_method: paymentMethodID,
+      });
+      await Logging.logInfo({
+        tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SETUP_PAYMENT_INTENT,
+        module: MODULE_NAME, method: '_createPaymentIntent',
+        message: `Setup intent has been created - customer '${customerID}' - (${user.email})`
+      });
+      // Send some feedback
+      return {
+        succeeded: true,
+        // internalData: paymentIntent.id
+        internalData: paymentIntent
+      };
+    } catch (error) {
+      // catch stripe errors and send the information back to the client
+      await Logging.logError({
+        tenantID: this.tenant.id,
+        action: ServerAction.BILLING_SETUP_PAYMENT_INTENT,
+        actionOnUser: user,
+        module: MODULE_NAME, method: '_createPaymentIntent',
         message: `Stripe operation failed - ${error?.message as string}`
       });
       return {

@@ -139,6 +139,10 @@ export enum Action {
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
+  // TODO: to be verified depending on what we decide to use
+  BILLING_SETUP_PAYMENT_INTENT = 'BillingSetupPaymentIntent',
+  BILLING_INVOICE_PAYMENT = 'BillingInvoicePayment',
+  PAY_BILLING_INVOICE = 'PayBillingInvoice',
   BILLING_CHARGE_INVOICE = 'BillingChargeInvoice',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_BILLING_TEST_DATA = 'ClearBillingTestData',

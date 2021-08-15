@@ -36,6 +36,9 @@ export default class BillingRouter {
     this.buildRouteBillingInvoices();
     this.buildRouteBillingInvoice();
     this.buildRouteBillingInvoiceDownload();
+    this.buildRouteBillingInvoicePayment();
+    this.buildRouteBillingPaymentIntentSetup();
+    // this.buildRouteBillingSetupInvoicePayment();
     return this.router;
   }
 
@@ -85,6 +88,26 @@ export default class BillingRouter {
       // STRIPE prerequisite - ask for a setup intent first!
       req.body.userID = req.params.userID;
       void RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentMethod.bind(this), ServerAction.BILLING_SETUP_PAYMENT_METHOD, req, res, next);
+    });
+  }
+
+  // Modifications working for one time payment as long as we don't need 3DS verification
+  protected buildRouteBillingInvoicePayment(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_INVOICE_PAYMENT}`, (req: Request, res: Response, next: NextFunction) => {
+      // STRIPE prerequisite - ask for a payment intent first!
+      req.body.userID = req.params.userID;
+      req.body.invoiceId = req.params.invoiceID;
+      req.body.paymentMethodId = req.params.paymentMethodID;
+      void RouterUtils.handleServerAction(BillingService.handleBillingInvoicePayment.bind(this), ServerAction.BILLING_INVOICE_PAYMENT, req, res, next);
+    });
+  }
+
+  // BELOW USELESS as we cannot .pay() with paymentintent
+  protected buildRouteBillingPaymentIntentSetup(): void {
+    this.router.post(`/${ServerRoute.REST_BILLING_PAYMENT_INTENT_SETUP}`, (req: Request, res: Response, next: NextFunction) => {
+      // STRIPE prerequisite - ask for a payment intent first!
+      req.body.userID = req.params.userID;
+      void RouterUtils.handleServerAction(BillingService.handleBillingSetupPaymentIntent.bind(this), ServerAction.BILLING_INVOICE_PAYMENT, req, res, next);
     });
   }
 
