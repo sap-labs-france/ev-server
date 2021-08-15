@@ -1875,7 +1875,7 @@ export default class OCPPUtils {
   }
 
   public static async checkBillingPrerequisites(tenant: Tenant, action: ServerAction, chargingStation: ChargingStation, user: User): Promise<void> {
-    if (!user.issuer) {
+    if (!user?.issuer) {
       // Roaming - do not check for payment methods
       return;
     }
