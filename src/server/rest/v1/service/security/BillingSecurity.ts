@@ -1,4 +1,4 @@
-import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
+import { HttpBillingInvoiceRequest, HttpBillingRequest, HttpBillingWebHookRequest, HttpDeletePaymentMethod, HttpPaymentMethods, HttpSetupPaymentIntent, HttpSetupPaymentMethod } from '../../../../../types/requests/HttpBillingRequest';
 import { HttpCreateTransactionInvoiceRequest, HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../../types/requests/HttpUserRequest';
 
 import Utils from '../../../../../utils/Utils';
@@ -88,6 +88,15 @@ export default class BillingSecurity {
     return {
       userID: sanitize(requestBody.userID),
       paymentMethodId: sanitize(requestBody.paymentMethodId),
+    };
+  }
+
+  // TODO: to be verified depending on what we decide to use
+  static filterInvoicePaymentRequest(requestQuery: any): HttpSetupPaymentIntent {
+    return {
+      userID: sanitize(requestQuery.userID),
+      invoiceID: sanitize(requestQuery.invoiceID),
+      paymentMethodID: sanitize(requestQuery.paymentMethodID)
     };
   }
 }

@@ -14,6 +14,7 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import { Stripe } from 'stripe';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
@@ -621,13 +622,21 @@ export default abstract class BillingIntegration {
 
   abstract downloadInvoiceDocument(invoice: BillingInvoice): Promise<Buffer>;
 
-  abstract chargeInvoice(invoice: BillingInvoice): Promise<BillingInvoice>;
+  // Modifications working for one time payment as long as we don't need 3DS verification
+  abstract chargeInvoice(invoice: BillingInvoice, parameter?: Stripe.InvoicePayParams): Promise<BillingInvoice>;
 
   abstract consumeBillingEvent(req: Request): Promise<boolean>;
 
-  abstract setupPaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
+  // Modifications working for one time payment as long as we don't need 3DS verification
+  abstract setupPaymentMethod(user: User, paymentMethodId: string, oneTimePayment?: boolean): Promise<BillingOperationResult>;
 
   abstract getPaymentMethods(user: User): Promise<BillingPaymentMethod[]>;
+
+  // BELOW USELESS FOR NOW
+  abstract setupPaymentIntent(user: User, invoice: BillingInvoice, paymentMethodID: string): Promise<BillingOperationResult>;
+
+  // BELOW USELESS FOR NOW
+  abstract updateInvoice(paymentIntent: any): void;
 
   abstract deletePaymentMethod(user: User, paymentMethodId: string): Promise<BillingOperationResult>;
 
