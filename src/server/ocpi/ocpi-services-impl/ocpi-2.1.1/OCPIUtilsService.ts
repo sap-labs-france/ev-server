@@ -771,6 +771,10 @@ export default class OCPIUtilsService {
         type = OCPIConnectorType.IEC_62196_T2_COMBO;
         format = OCPIConnectorFormat.CABLE;
         break;
+      case ConnectorType.DOMESTIC:
+        type = OCPIConnectorType.DOMESTIC_E;
+        format = OCPIConnectorFormat.SOCKET;
+        break;
     }
     return {
       id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, connector.connectorId),
@@ -849,9 +853,9 @@ export default class OCPIUtilsService {
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
     // Build evse
     const evse: OCPIEvse = {
-      // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
-      uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1 } as Connector),
-      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, 1),
+      // Evse uid must contains the chargePoint.id
+      uid: OCPIUtils.buildEvseUID(chargingStation, connectors[0]),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, chargePoint.chargePointID),
       location_id: chargingStation.siteID,
       status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
