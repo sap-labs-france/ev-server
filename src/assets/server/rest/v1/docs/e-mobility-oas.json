@@ -1114,7 +1114,7 @@
         }
       }
     },
-    "/api/transactions/{id}/ocpi/cdr/export": {
+    "/api/transactions/{id}/ocpi/cdr/action/export": {
       "get": {
         "security": [
           {
@@ -1397,7 +1397,7 @@
       }
     },
     "/api/transactions/{id}/stop/soft": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1487,6 +1487,134 @@
           },
           "552": {
             "description": "No Refund valid connection found"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/refund/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Transactions to refund",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "description": "Transactions minimal price",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "description": "Pipe separated report IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Exported Transactions to refund",
+            "content": {
+              "text/csv": {
+                "example": "id,chargingStationID,connectorID,companyName,siteName,siteAreaName,userID,user,tagID,visualTagID,tagDescription,timezone,startDate,startTime,endDate,endTime,totalConsumptionkWh,totalDurationMins,totalInactivityMins,price,priceUnit\n123456789,\"###\",2,,,,\"\",\"\",\"###\",,\"\",\"Europe/Paris\",\"2021-07-07\",\"10:08:25\",\"2021-07-07\",\"10:08:32\",0,0.11,0.11,0,\"EUR\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
           }
         }
       }
@@ -1591,7 +1719,7 @@
       }
     },
     "/api/transactions/action/assign": {
-      "post": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
