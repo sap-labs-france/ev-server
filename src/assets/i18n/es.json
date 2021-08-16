@@ -5,55 +5,55 @@
     "chargingAtChargeBox": "Sesión de carga: {{sessionID}} - Fecha de inicio: {{startDate}} a las {{startTime}} - Consumo de energía: {{totalConsumption}} kWh en la estación de recarga {{chargeBoxID}}"
   },
   "chargers": {
-    "chargeBoxSN": "Charge Box S/N",
-    "chargePointSN": "Charge Point S/N",
-    "chargingStation": "Charging Station",
-    "connector": "Connector",
+    "chargeBoxSN": "Número de serie de la estación de carga",
+    "chargePointSN": "Punto de carga",
+    "chargingStation": "Estación de carga",
+    "connector": "Conector",
     "firmwareVersion": "Firmware Version",
-    "lastReboot": "Last Reboot",
-    "lastSeen": "Last Seen",
-    "maxPower": "Maximum Power (Watt)",
-    "model": "Model",
-    "numberOfConnectors": "Number of Connectors",
-    "ocppProtocol": "OCPP Protocol",
-    "ocppVersion": "OCPP Version",
-    "powerLimitUnit": "Power Limit Unit",
-    "timezone": "Charging Station Timezone",
-    "vendor": "Vendor"
+    "lastReboot": "Última puesta en marcha",
+    "lastSeen": "Última conexión",
+    "maxPower": "Máximo poder (Watt)",
+    "model": "Modelo",
+    "numberOfConnectors": "Número de conectores",
+    "ocppProtocol": "Protocolo OCPP",
+    "ocppVersion": "Versión OCPP",
+    "powerLimitUnit": "Unidad de līmite de poder",
+    "timezone": "Huso horario de la estación de carga",
+    "vendor": "Provedor"
   },
   "general": {
-    "changedBy": "Changed By",
-    "changedOn": "Changed On",
-    "createdOn": "Created On",
-    "date": "Date",
-    "endDate": "End Date",
-    "endTime": "End Time",
-    "invalidDate": "Invalid Date",
-    "invalidTime": "Invalid Time",
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "month": "Month",
-    "name": "Name",
-    "price": "Price",
-    "priceUnit": "Price Unit",
-    "site": "Site",
-    "siteArea": "Site Area",
-    "startDate": "Start Date",
-    "startTime": "Start Time",
-    "time": "Time",
-    "value": "Value",
-    "year": "Year"
+    "changedBy": "Modificado por",
+    "changedOn": "Fecha de modificación",
+    "createdOn": "Fecha de creación",
+    "date": "Fecha",
+    "endDate": "Fecha de término",
+    "endTime": "Hora de término",
+    "invalidDate": "Fecha inválida",
+    "invalidTime": "Hora inválida",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "month": "Mes",
+    "name": "Nombre",
+    "price": "Precio",
+    "priceUnit": "Precio unitario",
+    "site": "Sitio",
+    "siteArea": "Zona del sitio",
+    "startDate": "Fecha de inicio",
+    "startTime": "Hora de inicio",
+    "time": "Hora",
+    "value": "Valor",
+    "year": "Año"
   },
   "loggings": {
-    "action": "Action",
-    "host": "Host",
-    "level": "Level",
-    "message": "Message",
-    "method": "Method",
-    "module": "Module",
-    "process": "Process",
-    "source": "Source",
-    "type": "Type"
+    "action": "Acción",
+    "host": "Servidor",
+    "level": "Nivel",
+    "message": "Mensaje",
+    "method": "Método",
+    "module": "Módulo",
+    "process": "Proceso",
+    "source": "Fuente",
+    "type": "Tipo"
   },
   "notifications": {
     "sessionNotStarted": {
@@ -66,19 +66,19 @@
     },
     "ocpiPatchChargingStationsStatusesError": {
       "title": "Estatus de envío de itinerancia",
-      "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros "
+      "body": "La transferencia a la plataforma de itinerancia de los estatus de la estación de carga ha fallado en la ubicación '{{location}}' en la organización '{{tenantName}}', verifique los registros"
     },
     "oicpPatchChargingStationsStatusesError": {
-      "title": "Hubject Send Statuses",
-      "body": "The transfer to the Hubject roaming platform of the charging station's statuses has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject - Envío de estatus",
+      "body": "La actualización de las estaciones de carga hacia Hubject a fallado en la organización '{{tenantName}}', verifique los registros"
     },
     "oicpPatchChargingStationsError": {
-      "title": "Hubject Send Charging Stations",
-      "body": "The transfer to the Hubject roaming platform of the charging station's data has failed in organization '{{tenantName}}', check the logs"
+      "title": "Hubject - Envío de estación de carga",
+      "body": "La transferencia de información de la estación de carga a la plataforma de itinerancia de Hubject ha fallado en la organización '{{tenantName}}', verifique los registros"
     },
     "smtpError": {
       "title": "Error del servidor de correo electrónico",
-      "body": "Del servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
+      "body": "El servidor de correo electrónico principal ha fallado en la organización '{{tenantName}}', verifique la configuración"
     },
     "optimalChargeReached": {
       "title": "Carga óptima alcanzada",
@@ -98,11 +98,11 @@
     },
     "unknownUserBadged": {
       "title": "Usuario desconocido",
-      "body": "Un usuario desconocido se ha conectado a '{{chargeBoxID}}' con el badge ID '{{badgeID}}' en la organización '{{tenantName}}'"
+      "body": "Un usuario desconocido se ha conectado a '{{chargeBoxID}}' con la insignia ID '{{badgeID}}' en la organización '{{tenantName}}'"
     },
     "chargingStationRegistered": {
       "title": "Estación de carga conectada",
-      "body": "La estación de carga '{{chargeBoxID}}' se ha conectado al servidor central en la organización'{{tenantName}}'"
+      "body": "La estación de carga '{{chargeBoxID}}' se ha conectado al servidor central en la organización '{{tenantName}}'"
     },
     "userAccountStatusChanged": {
       "title": "Cuenta {{status}}",
@@ -131,56 +131,56 @@
       "body": "No ha sido posible sincronizar {{nbrInvoicesInError}} facturas con el servicio del proveedor de facturación de la organización '{{tenantName}}'"
     },
     "billingPeriodicOperationFailed": {
-      "title": "Periodic Billing Operations",
-      "body": "Failed to process {{nbrInvoicesInError}} invoice(s). Organization '{{tenantName}}'"
+      "title": "Operaciones periódicas de facturación",
+      "body": "El processo de facturación de {{nbrInvoicesInError}} factura(s) ha fallado. Organización '{{tenantName}}'"
     },
     "computeAndApplyChargingProfilesFailed": {
-      "title": "Charging Profiles failed",
-      "body": "Unable to set charging profiles for '{{chargeBoxID}}' on site area '{{siteAreaName}}' in organization '{{tenantName}}'"
+      "title": "Fallo en cambio de perfiles",
+      "body": "Imposible aplicar los prefiles de carga para la estación '{{chargeBoxID}}' en la zona '{{siteAreaName}}' en la organización '{{tenantName}}'"
     },
     "billingNewInvoicePaid": {
-      "title": "New invoice paid",
-      "body": "Your invoice ({{invoiceNumber}}) amounting {{amount}} has been paid and is now available"
+      "title": "Nueva factura pagada",
+      "body": "Su factura ({{invoiceNumber}}) importe {{amount}} ha sido pagada y está disponible"
     },
     "billingNewInvoiceOpen": {
-      "title": "New invoice to pay",
-      "body": "A new invoice ({{invoiceNumber}}) amounting {{amount}} is now available. Please check your email to finalize the payment"
+      "title": "Nueva factura a pagar",
+      "body": "u factura ({{invoiceNumber}}) importe {{amount}} está disponible. Revise su correo para finalizar la operación"
     },
     "endUserErrorNotification": {
       "title": "Un usuario ha reportado un error",
       "body": "'{{userName}}' reportó: '{{errorTitle}}' - '{{errorDescription}}' en la organización '{{tenantName}}'"
     },
     "accountVerificationNotification": {
-      "title": "Account verified",
-      "bodyVerified": "Your account has been verified with success. An administrator will check and activate your account.",
-      "bodyVerifiedAndActivated": "Your account has been verified and activated with success."
+      "title": "Cuenta verificada",
+      "bodyVerified": "Su cuenta ha sido verificada con éxito. Un administrador revisará y activará su cuenta",
+      "bodyVerifiedAndActivated": "Su cuenta ha sido vericada y activada con éxito"
     }
   },
   "siteArea": "Zona",
   "statistics": {
-    "consumption": "Consumption (kW.h)",
-    "inactivity": "Inactivity (Hours)",
-    "numberOfSessions": "Number of Sessions",
-    "usage": "Usage (Hours)"
+    "consumption": "Consumo (kW.h)",
+    "inactivity": "Inactividad (horas)",
+    "numberOfSessions": "Número de sesiones",
+    "usage": "Uso (horas)"
   },
   "tags": {
-    "id": "Badge ID",
-    "description": "Badge Description",
-    "virtualBadge": "Virtual Badge"
+    "id": "Insignia ID",
+    "description": "Descripción",
+    "virtualBadge": "Insignia virtual"
   },
   "transactions": {
-    "totalConsumption": "Total Consumption (kW.h)",
-    "totalDuration": "Total Duration (Mins)",
-    "totalInactivity": "Total Inactivity (Mins)"
+    "totalConsumption": "Consumo total (kW.h)",
+    "totalDuration": "Duración total (min)",
+    "totalInactivity": "Inactividad total (min)"
   },
   "users": {
-    "email": "Email",
-    "eulaAcceptedOn": "EULA Accepted On",
-    "firstName": "First Name",
+    "email": "Correo electrónico",
+    "eulaAcceptedOn": "EULA aceptadas en",
+    "firstName": "Nombre",
     "id": "ID",
-    "role": "Role",
-    "status": "Status",
-    "user": "User",
-    "userID": "User ID"
+    "role": "Rol",
+    "status": "Estatus",
+    "user": "Usuario",
+    "userID": "Usuario ID"
   }
 }
