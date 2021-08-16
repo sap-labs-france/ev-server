@@ -43,7 +43,7 @@ export default class RemoveDuplicateTagVisualIDsTask extends MigrationTask {
       // Make the Tag IDs unique
       for (const tag of tags) {
         // Get dup Tags
-        const duplicateTags = await TagStorage.getTags(tenant.id, {
+        const duplicateTags = await TagStorage.getTags(tenant, {
           visualIDs: [tag._id],
         }, Constants.DB_PARAMS_MAX_LIMIT, ['id']);
         // Update the Visual IDs

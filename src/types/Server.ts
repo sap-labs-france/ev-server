@@ -124,6 +124,7 @@ export enum ServerAction {
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
+  OCPI_UNREGISTER = 'OcpiUnregister',
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
   OCPI_COMMAND = 'OcpiCommand',
   OCPI_PUT_TOKEN = 'OcpiPutToken',
@@ -152,6 +153,7 @@ export enum ServerAction {
   OCPI_RESERVE_NOW = 'OcpiReserveNow',
   OCPI_UNLOCK_CONNECTOR = 'OcpiUnlockConnector',
   OCPI_GET_VERSIONS = 'OcpiGetVersions',
+  OCPI_GET_ENDPOINT_VERSIONS = 'OcpiGetEndpointVersions',
   OCPI_GET_LOCATIONS = 'OcpiGetLocations',
   OCPI_GET_TOKEN = 'OcpiGetToken',
   OCPI_GET_TARIFF = 'OcpiGetTariff',
@@ -261,6 +263,7 @@ export enum ServerAction {
   UNKNOWN_USER_BADGED = 'UnknownUserBadged',
   TRANSACTION_STARTED = 'TransactionStarted',
   VERIFICATION_EMAIL = 'VerificationEmail',
+  VERIFICATION_EMAIL_USER_IMPORT = 'VerificationEmailUserImport',
   EMAIL_SERVER_ERROR = 'EmailServerError',
   PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
   PATCH_EVSE_ERROR = 'PatchEVSEError',
@@ -270,6 +273,7 @@ export enum ServerAction {
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
   BILLING_INVOICE_SYNCHRONIZATION_FAILED = 'BillingInvoiceSynchronizationFailed',
   USER_ACCOUNT_VERIFICATION = 'UserAccountVerification',
+  USER_CREATE_PASSWORD = 'UserCreatePassword',
   ADMIN_ACCOUNT_VERIFICATION = 'AdminAccountVerificationNotification',
 
   CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
@@ -378,6 +382,7 @@ export enum ServerAction {
   REMOVE_USERS_FROM_SITE = 'RemoveUsersFromSite',
 
   REFUND = 'Refund',
+  CAR_CONNECTOR = 'CarConnector',
 
   USER_READ = 'UserRead',
   USER_CREATE = 'RestUserCreate',

@@ -22,6 +22,9 @@
     "SortFields": {
       "$ref": "common.json#/definitions/sortFields"
     },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
     "Skip": {
       "$ref": "common.json#/definitions/skip"
     },
@@ -30,6 +33,10 @@
     },
     "ProjectFields": {
       "$ref": "common.json#/definitions/projectFields"
+    },
+    "WithUser": {
+      "type": "boolean",
+      "sanitize": "mongo"
     }
   },
   "required": []

@@ -104,6 +104,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   billingData?: TransactionBillingData;
   refundData?: TransactionRefundData;
   migrationTag?: string;
+  authorizationID?: string;
 }
 
 export interface TransactionOcpiData {

@@ -1,8 +1,6 @@
 import User, { UserStatus } from './User';
 
-import { BillingInvoice } from './Billing';
 import ChargingStation from './ChargingStation';
-import Decimal from 'decimal.js';
 import NotificationTask from '../notification/NotificationTask';
 import { SMTPError } from 'emailjs';
 
@@ -180,6 +178,7 @@ export interface NewRegisteredUserNotification extends BaseNotification {
 
 export interface VerificationEmailNotification extends BaseNotification {
   user: User;
+  tenantName?: string;
   evseDashboardURL: string;
   evseDashboardVerifyEmailURL: string;
 }
@@ -202,7 +201,6 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
   chargeBoxID: string;
   badgeID: string;
   evseDashboardURL: string;
-  evseDashboardTagURL: string;
 }
 
 export interface TransactionStartedNotification extends BaseNotification {
@@ -344,4 +342,11 @@ export interface AdminAccountVerificationNotification extends BaseNotification {
   user: User;
   evseDashboardURL: string;
   evseUserToVerifyURL: string;
+}
+
+export interface UserCreatePassword extends BaseNotification {
+  user: User;
+  tenantName: string;
+  evseDashboardURL: string;
+  evseDashboardCreatePasswordURL: string;
 }

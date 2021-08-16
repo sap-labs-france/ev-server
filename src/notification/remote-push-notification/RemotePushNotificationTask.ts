@@ -274,6 +274,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
+  public async sendVerificationEmailUserImport(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Nothing to send
+    return Promise.resolve();
+  }
+
   public async sendSmtpError(data: SmtpErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     const i18nManager = I18nManager.getInstanceForLocale(user.locale);
@@ -434,6 +439,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
+  public async sendUserCreatePassword(): Promise<void> {
+    // Nothing to send
+    return Promise.resolve();
+  }
+
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType,
       title: string, body: string, user: User, data?: Record<string, string>, severity?: NotificationSeverity): Promise<void> {
     // Checks
@@ -441,14 +451,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
       return Promise.resolve();
     }
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
-      await Logging.logWarning({
+      await Logging.logDebug({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
-        detailedMessages: [title, body]
+        detailedMessages: { title, body }
       });
       // Send nothing
       return Promise.resolve();
@@ -462,24 +472,24 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { priority: 'high', timeToLive: 60 * 60 * 24 }
     ).then((response) => {
       // Response is a message ID string.
-      Logging.logDebug({
+      void Logging.logDebug({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
-        detailedMessages: [message, response]
+        detailedMessages: { message, response }
       });
     }).catch((error: Error) => {
-      Logging.logError({
+      void Logging.logError({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
-        detailedMessages: { error: error.stack }
+        detailedMessages: { error: error.stack, message }
       });
     });
   }

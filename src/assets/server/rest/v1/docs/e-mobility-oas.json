@@ -1074,20 +1074,11 @@
           }
         ],
         "description": "Push Transaction CDR",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "transactionId": {
-                    "type": "number"
-                  }
-                }
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/transactionID"
           }
-        },
+        ],
         "tags": [
           "Transactions"
         ],
@@ -1423,7 +1414,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Transaction stop successfully",
+            "description": "Transaction stopped successfully",
             "content": {
               "application/json": {
                 "example": {
@@ -1474,7 +1465,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Transaction stop successfully",
+            "description": "Transactions refund result",
             "content": {
               "application/json": {
                 "example": {
@@ -4970,6 +4961,11 @@
           }
         ],
         "description": "Assign sites to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],
@@ -5021,6 +5017,11 @@
           }
         ],
         "description": "Unassign sites to a user",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],
@@ -5074,6 +5075,11 @@
           }
         ],
         "description": "Update user's mobile tokens",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/userID"
+          }
+        ],
         "tags": [
           "Users"
         ],

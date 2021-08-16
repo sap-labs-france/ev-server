@@ -343,9 +343,12 @@ export default class OCPPCommonTests {
   }
 
   public async testChargingStationRegistrationWithInvalidToken() {
-    const response = await this.chargingStationContext.sendBootNotification();
-    expect(response).not.to.be.null;
-    expect(response.status).eq(OCPPStatus.REJECTED);
+    try {
+      await this.chargingStationContext.sendBootNotification();
+      fail('BootNotification should fail');
+    } catch (error) {
+      expect(error).to.be.not.null;
+    }
   }
 
   public async testChargingStationRegistrationWithInvalidIdentifier() {

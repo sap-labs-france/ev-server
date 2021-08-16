@@ -35,11 +35,11 @@ export default class SettingService {
       });
     }
     // Get
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
+    const setting = await SettingStorage.getSetting(req.tenant, settingID);
     UtilsService.assertObjectExists(action, setting, `Tenant ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleDeleteSetting', req.user);
     // Delete
-    await SettingStorage.deleteSetting(req.user.tenantID, settingID);
+    await SettingStorage.deleteSetting(req.tenant, settingID);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -68,7 +68,7 @@ export default class SettingService {
       });
     }
     // Get it
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
+    const setting = await SettingStorage.getSetting(req.tenant, settingID);
     UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleGetSetting', req.user);
     // Process the sensitive data if any
@@ -98,7 +98,7 @@ export default class SettingService {
       });
     }
     // Get it
-    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, settingID);
+    const setting = await SettingStorage.getSettingByIdentifier(req.tenant, settingID);
     UtilsService.assertObjectExists(action, setting, `Setting ID '${settingID}' does not exist`,
       MODULE_NAME, 'handleGetSettingByIdentifier', req.user);
     // Process the sensitive data if any
@@ -126,7 +126,7 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
     // Get the all settings identifier
-    const settings = await SettingStorage.getSettings(req.user.tenantID,
+    const settings = await SettingStorage.getSettings(req.tenant,
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields });
     // Process the sensitive data if any
@@ -156,12 +156,12 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
     // Process the sensitive data if any
-    await Cypher.encryptSensitiveDataInJSON(req.user.tenantID, filteredRequest);
+    await Cypher.encryptSensitiveDataInJSON(req.tenant, filteredRequest);
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
     // Save Setting
-    filteredRequest.id = await SettingStorage.saveSettings(req.user.tenantID, filteredRequest);
+    filteredRequest.id = await SettingStorage.saveSettings(req.tenant, filteredRequest);
     // Log
     await Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -190,7 +190,7 @@ export default class SettingService {
       });
     }
     // Get Setting
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
+    const setting = await SettingStorage.getSetting(req.tenant, settingUpdate.id);
     UtilsService.assertObjectExists(action, setting, `Setting ID '${settingUpdate.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
@@ -217,14 +217,14 @@ export default class SettingService {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
+              _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
             } else {
               // No: Put back the encrypted value
               _.set(settingUpdate, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(settingUpdate, property, await Cypher.encrypt(req.user.tenantID, valueInRequest));
+            _.set(settingUpdate, property, await Cypher.encrypt(req.tenant, valueInRequest));
           }
         }
       }
@@ -287,11 +287,11 @@ export default class SettingService {
       }
     }
     // Update Setting
-    settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
+    settingUpdate.id = await SettingStorage.saveSettings(req.tenant, settingUpdate);
     // Crypto Setting handling
     if (settingUpdate.identifier === TechnicalSettings.CRYPTO) {
       if (settingUpdate.content.crypto.migrationToBeDone) {
-        await Cypher.handleCryptoSettingsChange(req.user.tenantID);
+        await Cypher.handleCryptoSettingsChange(req.tenant);
       }
     }
     // Log

@@ -42,6 +42,14 @@ import validator from 'validator';
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
+  public static buildConnectorInfo(connectorID: number, transactionID?: number): string {
+    let connectorInfo = `Connector ID '${connectorID}' >`;
+    if (transactionID > 0) {
+      connectorInfo += ` Transaction ID '${transactionID}' >`;
+    }
+    return connectorInfo;
+  }
+
   public static getConnectorsFromChargePoint(chargingStation: ChargingStation, chargePoint: ChargePoint): Connector[] {
     const connectors: Connector[] = [];
     if (!chargingStation || !chargePoint || Utils.isEmptyArray(chargePoint.connectorIDs)) {
@@ -530,7 +538,7 @@ export default class Utils {
     return chargingStation.connectors.find((connector) => connector && (connector.connectorId === connectorID));
   }
 
-  public static getBackupConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
+  public static getLastSeenConnectorFromID(chargingStation: ChargingStation, connectorID: number): Connector {
     if (!chargingStation.backupConnectors) {
       return null;
     }
@@ -1452,6 +1460,10 @@ export default class Utils {
     // ioThink
     if (url.includes('kheiron')) {
       return PerformanceRecordGroup.IOTHINK;
+    }
+    // Lacroix
+    if (url.includes('esoflink')) {
+      return PerformanceRecordGroup.LACROIX;
     }
     // EV Database
     if (url.includes('ev-database')) {

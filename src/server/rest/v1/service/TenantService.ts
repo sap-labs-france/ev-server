@@ -25,6 +25,7 @@ import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { filter } from 'lodash';
 
 const MODULE_NAME = 'TenantService';
 
@@ -83,12 +84,15 @@ export default class TenantService {
     let tenantLogo: TenantLogo;
     // Get the logo using ID
     if (filteredRequest.ID) {
-      tenantLogo = await TenantStorage.getTenantLogo(filteredRequest.ID);
+      const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+      if (tenant) {
+        tenantLogo = await TenantStorage.getTenantLogo(tenant);
+      }
     // Get the logo using Subdomain
     } else if (filteredRequest.Subdomain) {
       const tenant = await TenantStorage.getTenantBySubdomain(filteredRequest.Subdomain, ['id']);
       if (tenant) {
-        tenantLogo = await TenantStorage.getTenantLogo(tenant.id);
+        tenantLogo = await TenantStorage.getTenantLogo(tenant);
       }
     }
     if (tenantLogo?.logo) {
@@ -179,14 +183,14 @@ export default class TenantService {
     next();
   }
 
-  public static async createInitialSettingsForTenant(tenantID: string): Promise<void> {
-    await this.createInitialCryptoSettings(tenantID);
-    await this.createInitialUserSettings(tenantID);
+  public static async createInitialSettingsForTenant(tenant: Tenant): Promise<void> {
+    await this.createInitialCryptoSettings(tenant);
+    await this.createInitialUserSettings(tenant);
   }
 
-  public static async createInitialCryptoSettings(tenantID: string): Promise<void> {
+  public static async createInitialCryptoSettings(tenant: Tenant): Promise<void> {
     // Check for settings in db
-    const keySettings = await SettingStorage.getCryptoSettings(tenantID);
+    const keySettings = await SettingStorage.getCryptoSettings(tenant);
     // Create Crypto Key Settings
     if (!keySettings) {
       const keySettingToSave: CryptoSettings = {
@@ -198,13 +202,13 @@ export default class TenantService {
         }
       } as CryptoSettings;
       // Save Crypto Key Settings
-      await SettingStorage.saveCryptoSettings(tenantID, keySettingToSave);
+      await SettingStorage.saveCryptoSettings(tenant, keySettingToSave);
     }
   }
 
-  public static async createInitialUserSettings(tenantID: string): Promise<void> {
+  public static async createInitialUserSettings(tenant: Tenant): Promise<void> {
     // Check for settings in db
-    const userSettings = await SettingStorage.getUserSettings(tenantID);
+    const userSettings = await SettingStorage.getUserSettings(tenant);
     // Create new user settings
     if (!userSettings) {
       const settingsToSave: UserSettings = {
@@ -215,7 +219,7 @@ export default class TenantService {
         },
         createdOn: new Date(),
       };
-      await SettingStorage.saveUserSettings(tenantID, settingsToSave);
+      await SettingStorage.saveUserSettings(tenant, settingsToSave);
     }
   }
 
@@ -259,7 +263,7 @@ export default class TenantService {
       try {
         await TenantStorage.createTenantDB(filteredRequest.id);
         // Create initial settings for tenant
-        await TenantService.createInitialSettingsForTenant(filteredRequest.id);
+        await TenantService.createInitialSettingsForTenant(filteredRequest);
       } finally {
         // Release the database creation Lock
         await LockingManager.release(createDatabaseLock);
@@ -270,25 +274,27 @@ export default class TenantService {
     tenantUser.name = filteredRequest.name;
     tenantUser.firstName = 'Admin';
     tenantUser.email = filteredRequest.email;
+    // Get Tenant
+    const tenant = await TenantStorage.getTenant(filteredRequest.id);
     // Save User
-    tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
+    tenantUser.id = await UserStorage.saveUser(tenant, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, UserRole.ADMIN);
+    await UserStorage.saveUserRole(tenant, tenantUser.id, UserRole.ADMIN);
     // Save User Status
-    await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
+    await UserStorage.saveUserStatus(tenant, tenantUser.id, tenantUser.status);
     // Save User Account Verification
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
+    await UserStorage.saveUserAccountVerification(tenant, tenantUser.id, { verificationToken });
     const resetHash = Utils.generateUUID();
     // Init Password info
-    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
+    await UserStorage.saveUserPassword(tenant, tenantUser.id, { passwordResetHash: resetHash });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      await TenantStorage.getTenant(filteredRequest.id),
+      tenant,
       Utils.generateUUID(),
       tenantUser,
       {
@@ -344,7 +350,7 @@ export default class TenantService {
     if (filteredRequest.components && filteredRequest.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&
         !filteredRequest.components.smartCharging.active && tenant.components.smartCharging.active) {
-      const siteAreas = await SiteAreaStorage.getSiteAreas(filteredRequest.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -387,16 +393,16 @@ export default class TenantService {
     next();
   }
 
-  private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
+  private static async updateSettingsWithComponents(tenant: Tenant, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
-      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant.id, componentName);
+      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant, componentName);
       // Check if Component is active
       if (!tenant.components[componentName] || !tenant.components[componentName].active) {
         // Delete settings
         if (currentSetting) {
-          await SettingStorage.deleteSetting(tenant.id, currentSetting.id);
+          await SettingStorage.deleteSetting(tenant, currentSetting.id);
         }
         continue;
       }
@@ -416,13 +422,13 @@ export default class TenantService {
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSettings(tenant.id, newSetting);
+          await SettingStorage.saveSettings(tenant, newSetting);
         } else {
           currentSetting.content = newSettingContent;
           currentSetting.lastChangedOn = new Date();
           currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSettings(tenant.id, currentSetting);
+          await SettingStorage.saveSettings(tenant, currentSetting);
         }
       }
     }
@@ -432,17 +438,17 @@ export default class TenantService {
     // OICP
     if (tenant.components && tenant.components.oicp) {
       // Virtual user needed for unknown roaming user
-      const virtualOICPUser = await UserStorage.getUserByEmail(tenant.id, Constants.OICP_VIRTUAL_USER_EMAIL);
+      const virtualOICPUser = await UserStorage.getUserByEmail(tenant, Constants.OICP_VIRTUAL_USER_EMAIL);
       // Activate or deactivate virtual user depending on the oicp component status
       if (tenant.components.oicp.active) {
         // Create OICP user
         if (!virtualOICPUser) {
-          await OICPUtils.createOICPVirtualUser(tenant.id);
+          await OICPUtils.createOICPVirtualUser(tenant);
         }
       } else if (virtualOICPUser) {
         // Clean up user
         if (virtualOICPUser) {
-          await UserStorage.deleteUser(tenant.id, virtualOICPUser.id);
+          await UserStorage.deleteUser(tenant, virtualOICPUser.id);
         }
         // Delete Endpoints if component is inactive
         const oicpEndpoints = await OICPEndpointStorage.getOicpEndpoints(tenant, { role: OICPRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);

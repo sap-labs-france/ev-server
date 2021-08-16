@@ -16,7 +16,7 @@ export default class BillingFactory {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
         Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       // Get the billing's settings
-      const settings = await SettingStorage.getBillingSetting(tenant.id);
+      const settings = await SettingStorage.getBillingSetting(tenant);
       if (settings) {
         let billingIntegrationImpl = null;
         switch (settings.type) {

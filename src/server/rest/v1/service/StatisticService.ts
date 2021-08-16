@@ -39,7 +39,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
-      req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
+      req.tenant, filter, StatsGroupBy.CONSUMPTION);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
@@ -69,7 +69,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
-      req.user.tenantID, filter, StatsGroupBy.USAGE);
+      req.tenant, filter, StatsGroupBy.USAGE);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
@@ -99,7 +99,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
-      req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
+      req.tenant, filter, StatsGroupBy.INACTIVITY);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
@@ -129,7 +129,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
-      req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
+      req.tenant, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
@@ -159,7 +159,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getChargingStationStats(
-      req.user.tenantID, filter, StatsGroupBy.PRICING);
+      req.tenant, filter, StatsGroupBy.PRICING);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.CHARGING_STATION);
@@ -189,7 +189,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
-      req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
+      req.tenant, filter, StatsGroupBy.CONSUMPTION);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
@@ -219,7 +219,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
-      req.user.tenantID, filter, StatsGroupBy.USAGE);
+      req.tenant, filter, StatsGroupBy.USAGE);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
@@ -249,7 +249,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
-      req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
+      req.tenant, filter, StatsGroupBy.INACTIVITY);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
@@ -279,7 +279,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
-      req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
+      req.tenant, filter, StatsGroupBy.TRANSACTIONS);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
@@ -309,7 +309,7 @@ export default class StatisticService {
     const filter = StatisticService.buildFilter(filteredRequest, req.user);
     // Get Stats
     const transactionStats = await StatisticsStorage.getUserStats(
-      req.user.tenantID, filter, StatsGroupBy.PRICING);
+      req.tenant, filter, StatsGroupBy.PRICING);
     // Convert
     const transactions = StatisticService.convertToGraphData(
       transactionStats, StatsDataCategory.USER);
@@ -361,9 +361,9 @@ export default class StatisticService {
     // Query data
     let transactionStats: ChargingStationStats[] | UserStats[];
     if (filteredRequest.DataCategory === StatsDataCategory.CHARGING_STATION) {
-      transactionStats = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, groupBy);
+      transactionStats = await StatisticsStorage.getChargingStationStats(req.tenant, filter, groupBy);
     } else {
-      transactionStats = await StatisticsStorage.getUserStats(req.user.tenantID, filter, groupBy);
+      transactionStats = await StatisticsStorage.getUserStats(req.tenant, filter, groupBy);
     }
     // Set the attachement name
     res.attachment('exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv');
@@ -412,8 +412,13 @@ export default class StatisticService {
     }
     // User
     if (Authorizations.isBasic(loggedUser)) {
-      // Only for current user
-      filter.userIDs = [loggedUser.id];
+      if (Authorizations.isSiteAdmin(loggedUser)) {
+        // Only for current sites
+        filter.siteIDs = loggedUser.sitesAdmin;
+      } else {
+        // Only for current user
+        filter.userIDs = [loggedUser.id];
+      }
     } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserIDs) {
       filter.userIDs = filteredRequest.UserIDs;
     }

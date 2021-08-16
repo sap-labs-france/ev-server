@@ -16,7 +16,7 @@ export default class RefundFactory {
   static async getRefundImpl(tenant: Tenant): Promise<RefundIntegration<RefundSetting>> {
     // Check if refund component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
-      const setting = await SettingStorage.getRefundSettings(tenant.id);
+      const setting = await SettingStorage.getRefundSettings(tenant);
       // Check
       if (setting) {
         let refundIntegrationImpl = null;

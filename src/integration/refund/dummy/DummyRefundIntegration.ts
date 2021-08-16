@@ -19,7 +19,7 @@ export default class DummyRefundIntegration extends RefundIntegration<RefundSett
     return false;
   }
 
-  public async updateRefundStatus(id: string, transaction: Transaction): Promise<RefundStatus> {
+  public async updateRefundStatus(tenant: Tenant, transaction: Transaction): Promise<RefundStatus> {
     return null;
   }
 
