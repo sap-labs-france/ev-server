@@ -105,6 +105,7 @@ export default class JsonWSConnection extends WSConnection {
       this.initialized = true;
       await Logging.logInfo({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
@@ -127,6 +128,7 @@ export default class JsonWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',

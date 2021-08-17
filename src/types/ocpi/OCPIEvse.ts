@@ -12,6 +12,7 @@ export interface OCPIEvse {
     longitude: string;
   };
   last_updated: Date;
+  siteID?: string;
   chargeBoxId?: string;
 }
 

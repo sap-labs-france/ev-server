@@ -439,7 +439,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const results: any[] = [];
     for (const connector of chargingStation.connectors) {
       const result = await this.patchEVSEStatus(
-        chargingStation.id, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector),
+        chargingStation.id, chargingStation.siteID, chargingStation.siteID, OCPIUtils.buildEvseUID(chargingStation, connector),
         status ?? OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
       results.push(result.data);
     }
@@ -479,7 +479,7 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'patchChargingStationStatus',
       });
     }
-    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID,
+    await this.patchEVSEStatus(chargingStation.id, chargingStation.siteID, chargingStation.siteID,
       OCPIUtils.buildEvseUID(chargingStation, connector), OCPIUtilsService.convertStatus2OCPIStatus(connector.status));
   }
 
@@ -684,7 +684,7 @@ export default class CpoOCPIClient extends OCPIClient {
               // Process it if not empty
               if (location.id && evse?.uid) {
                 try {
-                  await this.patchEVSEStatus(evse.chargeBoxId, location.id, evse.uid, evse.status);
+                  await this.patchEVSEStatus(evse.chargeBoxId, evse.siteID, location.id, evse.uid, evse.status);
                   result.success++;
                 } catch (error) {
                   result.failure++;
@@ -768,7 +768,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  private async patchEVSEStatus(chargingStationID: string, locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<AxiosResponse<any>> {
+  private async patchEVSEStatus(chargingStationID: string, siteID: string, locationId: string, evseUID: string, newStatus: OCPIEvseStatus): Promise<AxiosResponse<any>> {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new BackendError({
@@ -799,6 +799,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: siteID,
       source: chargingStationID,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: `OCPI Charging Station ID '${evseUID}' has been patched successfully to '${newStatus}'`,
