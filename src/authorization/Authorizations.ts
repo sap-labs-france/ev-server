@@ -991,6 +991,7 @@ export default class Authorizations {
       Utils.generateUUID(),
       chargingStation,
       {
+        siteID: chargingStation.siteID,
         chargeBoxID: chargingStation.id,
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),

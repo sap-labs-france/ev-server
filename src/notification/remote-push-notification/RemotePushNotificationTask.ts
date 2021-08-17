@@ -68,6 +68,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
+      siteID: data.siteID,
       connectorId: data.connectorId
     },
     severity
@@ -84,6 +85,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
       chargeBoxID: data.chargeBoxID,
+      siteID: data.siteID,
     },
     severity
     );
@@ -122,6 +124,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
       transactionId: data.transactionId.toString(),
+      siteID: data.siteID,
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
     },
@@ -139,6 +142,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_CHARGE, title, body, user, {
       transactionId: data.transactionId.toString(),
+      siteID: data.siteID,
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
     },
@@ -156,6 +160,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.END_OF_SESSION, title, body, user, {
       transactionId: data.transactionId.toString(),
+      siteID: data.siteID,
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
     },
@@ -195,6 +200,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
+      siteID: data.siteID,
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
     },
@@ -211,7 +217,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+      siteID: data.siteID,
+      chargeBoxID: data.chargeBoxID,
     },
     severity
     );
@@ -245,6 +252,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, badgeID: data.badgeID, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.UNKNOWN_USER_BADGED, title, body, user, {
+      siteID: data.siteID,
       chargeBoxID: data.chargeBoxID,
       badgeID: data.badgeID
     },
@@ -262,6 +270,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_STARTED, title, body, user, {
       'transactionId': data.transactionId.toString(),
+      'siteID': data.siteID,
       'chargeBoxID': data.chargeBoxID,
       'connectorId': data.connectorId
     },
@@ -453,6 +462,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: (data && Utils.objectHasProperty(data, 'siteID') ? data['siteID'] : null),
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
@@ -474,6 +484,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Response is a message ID string.
       void Logging.logDebug({
         tenantID: tenant.id,
+        siteID: (data && Utils.objectHasProperty(data, 'siteID') ? data['siteID'] : null),
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
@@ -484,6 +495,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error: Error) => {
       void Logging.logError({
         tenantID: tenant.id,
+        siteID: (data && Utils.objectHasProperty(data, 'siteID') ? data['siteID'] : null),
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',

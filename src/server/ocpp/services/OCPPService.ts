@@ -1019,6 +1019,7 @@ export default class OCPPService {
         Utils.generateUUID(),
         chargingStation,
         {
+          siteID: chargingStation.siteID,
           chargeBoxID: chargingStation.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
           error: this.buildStatusNotification(statusNotification),
@@ -1236,6 +1237,7 @@ export default class OCPPService {
         {
           user: transaction.user,
           transactionId: transaction.id,
+          siteID: transaction.siteID,
           chargeBoxID: chargingStation.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
@@ -1260,6 +1262,7 @@ export default class OCPPService {
         chargingStation,
         {
           user: transaction.user,
+          siteID: chargingStation.siteID,
           chargeBoxID: chargingStation.id,
           transactionId: transaction.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
@@ -1517,6 +1520,7 @@ export default class OCPPService {
         {
           'user': user,
           'transactionId': transaction.id,
+          'siteID': chargingStation.siteID,
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
@@ -1562,6 +1566,7 @@ export default class OCPPService {
           user: user,
           alternateUser: (alternateUser ? alternateUser : null),
           transactionId: transaction.id,
+          siteID: chargingStation.siteID,
           chargeBoxID: chargingStation.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
@@ -1584,6 +1589,7 @@ export default class OCPPService {
             user: user,
             alternateUser: (alternateUser ? alternateUser : null),
             transactionId: transaction.id,
+            siteID: chargingStation.siteID,
             chargeBoxID: chargingStation.id,
             connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
             tagId: transaction.tagID,
@@ -1875,6 +1881,7 @@ export default class OCPPService {
       Utils.generateUUID(),
       chargingStation,
       {
+        siteID: chargingStation.siteID,
         chargeBoxID: chargingStation.id,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
         evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
