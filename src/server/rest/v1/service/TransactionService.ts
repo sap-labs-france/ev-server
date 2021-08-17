@@ -305,16 +305,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    if (!filteredRequest.TagID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount',
-        user: req.user, action: action
-      });
-    }
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUnassignedCountReq(req.query);
     // Get the user
     const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
