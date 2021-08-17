@@ -21,6 +21,7 @@ export default abstract class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
   private chargingStationID: string;
+  private siteID: string;
   private tenantID: string;
   private tenant: Tenant;
   private token: string;
@@ -318,6 +319,11 @@ export default abstract class WSConnection {
         setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
+  }
+
+  public getSiteID(): string {
+    // TODO fetch site id based on charging station
+    return this.siteID;
   }
 
   public getChargingStationID(): string {

@@ -12,6 +12,7 @@ const MODULE_NAME = 'JsonChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
   private chargingStationID: string;
+  private siteID: string; // TODO fetch site id based on charging station
   private tenantID: string;
   private wsConnection: JsonWSConnection;
 
@@ -80,11 +81,13 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   private async sendMessage(params: any, commandName: Command): Promise<any> {
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID,
+      this.chargingStationID, this.siteID, `ChargingStation${commandName}` as ServerAction, params);
     // Execute
     const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, commandName);
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID,
+      this.chargingStationID, this.siteID, `ChargingStation${commandName}` as ServerAction, result);
     return result;
   }
 }
