@@ -29,7 +29,6 @@ import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -904,7 +903,7 @@ export default class TransactionService {
     }
     const filter: any = {};
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {
@@ -922,7 +921,7 @@ export default class TransactionService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
       projectFields
     );
