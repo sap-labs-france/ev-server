@@ -1253,6 +1253,7 @@ export default class NotificationHandler {
       // User
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: extraParams.chargingStation?.siteID,
         source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
@@ -1263,6 +1264,7 @@ export default class NotificationHandler {
       // Admin
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: extraParams.chargingStation?.siteID,
         source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
