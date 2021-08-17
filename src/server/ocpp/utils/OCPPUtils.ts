@@ -1326,7 +1326,7 @@ export default class OCPPUtils {
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
-            siteID: chargingProfile.chargingStation.siteID,
+            siteID: chargingProfile.chargingStation?.siteID,
             source: chargingProfile.chargingStationID,
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
