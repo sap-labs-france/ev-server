@@ -1264,7 +1264,7 @@ export default class NotificationHandler {
       // Admin
       await Logging.logDebug({
         tenantID: tenant.id,
-        siteID: (extraParams.chargingStation ? extraParams.chargingStation.siteID : null),
+        siteID: extraParams.chargingStation?.siteID,
         source: (extraParams.chargingStation ? extraParams.chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
