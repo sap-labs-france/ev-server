@@ -61,7 +61,7 @@ export default class StripeIntegrationTestData {
     );
     assert(userData && userData.id, 'response should not be null');
     // Let's get the newly created user
-    this.dynamicUser = await UserStorage.getUser(this.getTenantID(), userData.id);
+    this.dynamicUser = await UserStorage.getUser(this.getTenant(), userData.id);
   }
 
   public async forceBillingSettings(immediateBilling: boolean): Promise<void> {
@@ -75,7 +75,7 @@ export default class StripeIntegrationTestData {
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<void> {
     const billingSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
-    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenant(), billingSettings.stripe.secretKey);
     this.billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
     assert(this.billingImpl, 'Billing implementation should not be null');
   }
@@ -311,7 +311,7 @@ export default class StripeIntegrationTestData {
   public async checkNoUsersWithTestData() : Promise<void> {
     // const response = await this.adminUserService.userApi.readAll({ withTestBillingData: true }, { limit: 1, skip: 0 });
     // assert(response?.data?.result.length === 0, 'There should be no users with test billing data anymore');
-    const response = await UserStorage.getUsers(this.getTenantID(), {
+    const response = await UserStorage.getUsers(this.getTenant(), {
       withTestBillingData: true
     }, {
       limit: 1,
@@ -362,14 +362,14 @@ export default class StripeIntegrationTestData {
     );
     assert(userData && userData.id, 'response should not be null');
     // Let's get the newly created user
-    const testUser = await UserStorage.getUser(this.getTenantID(), userData.id);
+    const testUser = await UserStorage.getUser(this.getTenant(), userData.id);
     expect(testUser.billingData).not.to.be.null;
     const corruptedBillingData: BillingUserData = {
       ...testUser.billingData,
       customerID: 'cus_corrupted_data'
     };
     // Let's update the billing data with an inconsistent customer ID
-    await UserStorage.saveUserBillingData(this.getTenantID(), testUser.id, corruptedBillingData);
+    await UserStorage.saveUserBillingData(this.getTenant(), testUser.id, corruptedBillingData);
     // Let's now try to repair the user data.
     const billingUser: BillingUser = await this.billingImpl.forceSynchronizeUser(user);
     expect(corruptedBillingData.customerID).to.not.be.eq(billingUser.billingData.customerID);

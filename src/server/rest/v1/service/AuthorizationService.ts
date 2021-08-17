@@ -171,14 +171,14 @@ export default class AuthorizationService {
     // Not an Admin?
     if (userToken.role !== UserRole.ADMIN) {
       // Get Site IDs for which user is admin from db
-      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
+      const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
       // Check Site
       if (!Utils.isEmptyArray(siteAdminSiteIDs) && siteAdminSiteIDs.includes(siteArea.siteID)) {
         // Site Authorized, now check Assets
         if (!Utils.isEmptyArray(filteredRequest.assetIDs)) {
           let foundInvalidAssetID = false;
           // Get Asset IDs already assigned to the site
-          const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant.id, siteArea.siteID);
+          const assetIDs = await AuthorizationService.getAssignedAssetIDs(tenant, siteArea.siteID);
           // Check if any of the Assets we want to unassign are missing
           for (const assetID of filteredRequest.assetIDs) {
             switch (action) {
@@ -580,9 +580,9 @@ export default class AuthorizationService {
     return authorizationFilters;
   }
 
-  public static async getSiteAdminSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+  public static async getSiteAdminSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Admin
-    const userSites = await UserStorage.getUserSites(tenantID,
+    const userSites = await UserStorage.getUserSites(tenant,
       {
         userIDs: [userToken.id],
         siteAdmin: true
@@ -592,9 +592,9 @@ export default class AuthorizationService {
     return userSites.result.map((userSite) => userSite.siteID);
   }
 
-  private static async getSiteOwnerSiteIDs(tenantID: string, userToken: UserToken): Promise<string[]> {
+  private static async getSiteOwnerSiteIDs(tenant: Tenant, userToken: UserToken): Promise<string[]> {
     // Get the Sites where the user is Site Owner
-    const userSites = await UserStorage.getUserSites(tenantID,
+    const userSites = await UserStorage.getUserSites(tenant,
       {
         userIDs: [userToken.id],
         siteOwner: true
@@ -616,9 +616,9 @@ export default class AuthorizationService {
     return sites.result.map((site) => site.id);
   }
 
-  private static async getAssignedAssetIDs(tenantID: string, siteID: string): Promise<string[]> {
+  private static async getAssignedAssetIDs(tenant: Tenant, siteID: string): Promise<string[]> {
     // Get the Assets assigned to the Site
-    const assets = await AssetStorage.getAssets(tenantID,
+    const assets = await AssetStorage.getAssets(tenant,
       {
         siteIDs: [siteID],
         // TODO: Uncomment when the bug will be fixed: https://github.com/sap-labs-france/ev-dashboard/issues/2266
@@ -660,8 +660,8 @@ export default class AuthorizationService {
     if (userToken.role !== UserRole.ADMIN && userToken.role !== UserRole.SUPER_ADMIN) {
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get Site IDs from Site Admin & Site Owner flag
-        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant.id, userToken);
-        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant.id, userToken);
+        const siteAdminSiteIDs = await AuthorizationService.getSiteAdminSiteIDs(tenant, userToken);
+        const siteOwnerSiteIDs = await AuthorizationService.getSiteOwnerSiteIDs(tenant, userToken);
         const allSites = _.uniq([...siteAdminSiteIDs, ...siteOwnerSiteIDs]);
         if (!Utils.isEmptyArray(allSites)) {
           // Force the filters

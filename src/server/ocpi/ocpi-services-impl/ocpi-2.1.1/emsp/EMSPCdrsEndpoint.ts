@@ -48,7 +48,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant.id, id);
+    const transaction: Transaction = await TransactionStorage.getOCPITransactionBySessionID(tenant, id);
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

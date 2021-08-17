@@ -82,7 +82,7 @@ export default abstract class BillingIntegration {
     );
     // Update last synchronization
     this.settings.billing.usersLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSetting(this.tenant.id, this.settings);
+    await SettingStorage.saveBillingSetting(this.tenant, this.settings);
     // Result
     return actionsDone;
   }
@@ -332,7 +332,7 @@ export default abstract class BillingIntegration {
   }
 
   private async _getUsersWithNoBillingData(): Promise<User[]> {
-    const newUsers = await UserStorage.getUsers(this.tenant.id,
+    const newUsers = await UserStorage.getUsers(this.tenant,
       {
         statuses: [UserStatus.ACTIVE],
         notSynchronizedBillingData: true
@@ -450,7 +450,7 @@ export default abstract class BillingIntegration {
     await Promise.all(billingInvoice.sessions.map(async (session) => {
       const transactionID = session.transactionID;
       try {
-        const transaction = await TransactionStorage.getTransaction(this.tenant.id, Number(transactionID));
+        const transaction = await TransactionStorage.getTransaction(this.tenant, Number(transactionID));
         // Update Billing Data
         const stop: BillingDataTransactionStop = {
           status: BillingStatus.UNBILLED,
@@ -464,7 +464,7 @@ export default abstract class BillingIntegration {
           stop
         };
         // Save to clear billing data
-        await TransactionStorage.saveTransaction(this.tenant.id, transaction);
+        await TransactionStorage.saveTransactionBillingData(this.tenant, transaction.id, transaction.billingData);
       } catch (error) {
         await Logging.logError({
           tenantID: this.tenant.id,
@@ -507,7 +507,7 @@ export default abstract class BillingIntegration {
 
   private async _getUsersWithTestBillingData(): Promise<User[]> {
     // Get the users where billingData.liveMode is set to false
-    const users = await UserStorage.getUsers(this.tenant.id,
+    const users = await UserStorage.getUsers(this.tenant,
       {
         statuses: [UserStatus.ACTIVE],
         withTestBillingData: true
@@ -529,7 +529,7 @@ export default abstract class BillingIntegration {
       });
     }
     // Let's remove the billingData field
-    await UserStorage.saveUserBillingData(this.tenant.id, user.id, null);
+    await UserStorage.saveUserBillingData(this.tenant, user.id, null);
   }
 
   private isInvoiceOutOfPeriodicOperationScope(invoice: BillingInvoice): boolean {

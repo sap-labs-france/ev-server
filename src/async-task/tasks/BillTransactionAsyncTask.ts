@@ -21,10 +21,11 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
         if (billingImpl) {
           // Get the Transaction to bill
           const transactionID: string = this.asyncTask.parameters.transactionID;
-          const transactionLock = await LockingHelper.acquireBillTransactionLock(tenant.id, Number(transactionID));
-          if (transactionLock) {
+          const userID: string = this.asyncTask.parameters.userID;
+          const lock = await LockingHelper.acquireBillUserLock(tenant.id, userID);
+          if (lock) {
             try {
-              const transaction = await TransactionStorage.getTransaction(tenant.id, Number(transactionID), { withUser: true, withChargingStation: true });
+              const transaction = await TransactionStorage.getTransaction(tenant, Number(transactionID), { withUser: true, withChargingStation: true });
               if (!transaction) {
                 throw new Error(`Unknown Transaction ID '${this.asyncTask.parameters.transactionID}'`);
               }
@@ -42,11 +43,13 @@ export default class BillTransactionAsyncTask extends AbstractAsyncTask {
               transaction.billingData.stop = billingDataStop;
               transaction.billingData.lastUpdate = new Date();
               // Save
-              await TransactionStorage.saveTransaction(tenant.id, transaction);
+              await TransactionStorage.saveTransactionBillingData(tenant, transaction.id, transaction.billingData);
             } finally {
               // Release the lock
-              await LockingManager.release(transactionLock);
+              await LockingManager.release(lock);
             }
+          } else {
+            throw new Error(`Unexpected situation - concurrent billing - transaction ID: '${this.asyncTask.parameters.transactionID}' - user: ${this.asyncTask.parameters.userID}`);
           }
         }
       } catch (error) {

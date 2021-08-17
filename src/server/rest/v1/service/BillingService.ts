@@ -204,7 +204,7 @@ export default class BillingService {
       });
     }
     // Get user
-    const userToSynchronize = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    const userToSynchronize = await UserStorage.getUser(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, userToSynchronize, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the lock
@@ -257,7 +257,7 @@ export default class BillingService {
       });
     }
     // Get user
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.id);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Get the User lock
@@ -407,7 +407,7 @@ export default class BillingService {
     let user: User;
     if (!Authorizations.isAdmin(req.user)) {
       // Get the User
-      user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+      user = await UserStorage.getUser(req.tenant, req.user.id);
       UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
@@ -477,7 +477,7 @@ export default class BillingService {
     }
     const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    const user = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Get the Invoice lock
@@ -536,7 +536,7 @@ export default class BillingService {
       });
     }
     // Get user - ACHTUNG user !== req.user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleSetupPaymentMethod', req.user);
     // Invoke the billing implementation
@@ -576,7 +576,7 @@ export default class BillingService {
       });
     }
     // Get user - ACHTUNG user !== req.user
-    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
       MODULE_NAME, 'handleBillingGetPaymentMethods', req.user);
     // Invoke the billing implementation
@@ -624,7 +624,7 @@ export default class BillingService {
       });
     }
     const userID = filteredRequest.userID;
-    const user: User = await UserStorage.getUser(req.user.tenantID, userID);
+    const user: User = await UserStorage.getUser(req.tenant, userID);
     UtilsService.assertObjectExists(action, user, `User ID '${userID}' does not exist`,
       MODULE_NAME, 'handleBillingDeletePaymentMethod', req.user);
     // Invoke the billing implementation
@@ -751,7 +751,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingSetting',
       });
     }
-    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
+    const billingSettings: BillingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleGetBillingSetting', req.user);
     UtilsService.hashSensitiveData(req.user.tenantID, billingSettings);
     // Ok
@@ -775,9 +775,9 @@ export default class BillingService {
     // Check
     const newBillingProperties = BillingValidator.getInstance().validateUpdateBillingSetting({ ...req.params, ...req.body });
     // Load previous settings
-    const billingSettings = await SettingStorage.getBillingSetting(req.user.tenantID);
+    const billingSettings = await SettingStorage.getBillingSetting(req.tenant);
     UtilsService.assertObjectExists(action, billingSettings, 'Failed to load billing settings', MODULE_NAME, 'handleUpdateBillingSetting', req.user);
-    await UtilsService.processSensitiveData(req.user.tenantID, billingSettings, newBillingProperties);
+    await UtilsService.processSensitiveData(req.tenant, billingSettings, newBillingProperties);
     // Billing properties to preserve
     const { usersLastSynchronizedOn } = billingSettings.billing;
     const previousTransactionBillingState = !!billingSettings.billing.isTransactionBillingActivated;
@@ -836,7 +836,7 @@ export default class BillingService {
     billingSettings.lastChangedBy = { 'id': req.user.id };
     billingSettings.lastChangedOn = new Date();
     // Let's save the new settings
-    await SettingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+    await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     // Post-process the activation of the billing feature
     if (postponeTransactionBillingActivation) {
       // Check
@@ -844,7 +844,7 @@ export default class BillingService {
       // Well - everything was Ok, activation is possible
       billingSettings.billing.isTransactionBillingActivated = true;
       // Save it again now that we are sure
-      await SettingStorage.saveBillingSetting(req.user.tenantID, billingSettings);
+      await SettingStorage.saveBillingSetting(req.tenant, billingSettings);
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
