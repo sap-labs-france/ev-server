@@ -423,7 +423,6 @@ export enum ServerAction {
   BILLING_DOWNLOAD_INVOICE = 'BillingDownloadInvoice',
   BILLING_NEW_INVOICE = 'BillingNewInvoice',
   BILLING_SETUP_PAYMENT_METHOD = 'BillingSetupPaymentMethod',
-  BILLING_SETUP_PAYMENT_INTENT = 'BillingSetupPaymentIntent',
   BILLING_INVOICE_PAYMENT = 'BillingInvoicePayment',
   BILLING_PAYMENT_METHODS = 'BillingPaymentMethods',
   BILLING_DELETE_PAYMENT_METHOD = 'BillingDeletePaymentMethod',
@@ -528,9 +527,7 @@ export enum ServerRoute {
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
-  // TODO: to be verified depending on what we decide to use
   REST_BILLING_INVOICE_PAYMENT = 'users/:userID/pay/:invoiceID/:paymentMethodID',
-  REST_BILLING_PAYMENT_INTENT_SETUP = 'users/:userID/paymentIntent/:invoiceID',
 
   // BILLING URLs for Non-CRUD Operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHOD_SETUP = 'users/:userID/payment-methods/setup',

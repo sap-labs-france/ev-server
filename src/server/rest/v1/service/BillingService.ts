@@ -7,7 +7,6 @@ import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import Authorizations from '../../../../authorization/Authorizations';
 import BillingFactory from '../../../../integration/billing/BillingFactory';
-import BillingRouter from '../router/api/BillingRouter';
 import BillingSecurity from './security/BillingSecurity';
 import { BillingSettings } from '../../../../types/Setting';
 import BillingStorage from '../../../../storage/mongodb/BillingStorage';
@@ -25,8 +24,6 @@ import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
-import responseHelper from '../../../../helpers/responseHelper';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'BillingService';
 
@@ -411,6 +408,7 @@ export default class BillingService {
     if (!Authorizations.isAdmin(req.user)) {
       // Get the User
       user = await UserStorage.getUser(req.tenant, req.user.id);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       UtilsService.assertObjectExists(action, user, `User ID '${req.user.id}' does not exist`,
         MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     }
@@ -544,7 +542,7 @@ export default class BillingService {
       MODULE_NAME, 'handleSetupPaymentMethod', req.user);
     // Invoke the billing implementation
     const paymentMethodId: string = filteredRequest.paymentMethodId;
-    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId, sanitize(!!req.query.pay));
+    const operationResult: BillingOperationResult = await billingImpl.setupPaymentMethod(user, paymentMethodId);
     if (operationResult) {
       console.log(operationResult);
     }
@@ -552,8 +550,6 @@ export default class BillingService {
     next();
   }
 
-  // BELOW not wroking as we cannot .pay() with paymentintent
-  // setup payment intent then try to charge invoice = pay
   public static async handleBillingInvoicePayment(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
@@ -590,69 +586,7 @@ export default class BillingService {
     // Invoke the billing implementation
     const paymentMethodID: string = filteredRequest.paymentMethodID;
     // setup payment intent
-    const tutu = await billingImpl.setupPaymentIntent(user, billingInvoice, paymentMethodID);
-    // Pay invoice
-    const resp = await billingImpl.chargeInvoice(billingInvoice, { payment_method : paymentMethodID });
-    const operationResult: BillingOperationResult = {
-      succeeded : resp.status === BillingInvoiceStatus.PAID,
-      internalData: resp
-    };
-    if (operationResult) {
-      console.log(operationResult);
-    }
-    res.json(operationResult);
-    next();
-  }
-
-  // Another not working try
-  // the same as above without charging invoice
-  public static async handleBillingSetupPaymentIntent(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_INVOICE_PAYMENT, Entity.BILLING, MODULE_NAME, 'handleBillingInvoicePayment');
-    // Filter
-    const filteredRequest = BillingSecurity.filterInvoicePaymentRequest(req.body);
-    if (!await Authorizations.canCreatePaymentIntent(req.user, filteredRequest.userID)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.FORBIDDEN,
-        user: req.user,
-        action: Action.CREATE, entity: Entity.PAYMENT_METHOD,
-        module: MODULE_NAME, method: 'handleBillingInvoicePayment'
-      });
-    }
-    // Get the billing impl
-    const billingImpl = await BillingFactory.getBillingImpl(req.tenant);
-    if (!billingImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleBillingInvoicePayment',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get user - ACHTUNG user !== req.user
-    const user: User = await UserStorage.getUser(req.tenant, filteredRequest.userID);
-    UtilsService.assertObjectExists(action, user, `User ID '${filteredRequest.userID}' does not exist`,
-      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    const invoice: BillingInvoice = await BillingStorage.getInvoice(req.tenant, filteredRequest.invoiceID);
-    UtilsService.assertObjectExists(action, invoice, `Invoice ID '${filteredRequest.invoiceID}' does not exist`,
-      MODULE_NAME, 'handleBillingInvoicePayment', req.user);
-    // Invoke the billing implementation
-    const paymentMethodId: string = filteredRequest.paymentMethodID;
-    // // if (paymentMethodId) {
-    // const billingInvoice = await billingImpl.chargeInvoice(invoice, { payment_method : paymentMethodId });
-    // const operationResult: BillingOperationResult = {
-    //   succeeded: false,
-    //   internalData: billingInvoice
-    // };
-    // // } else {
-    const operationResult: BillingOperationResult = {
-      succeeded : false,
-      internalData : await billingImpl.setupPaymentIntent(user, invoice, paymentMethodId)
-    };
-    // }
+    const operationResult = await billingImpl.attemptInvoicePayment(user, billingInvoice, paymentMethodID);
     if (operationResult) {
       console.log(operationResult);
     }
@@ -752,7 +686,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDownloadInvoice(action: ServerAction, req: Request, res: Response): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.DOWNLOAD, Entity.BILLING, MODULE_NAME, 'handleDownloadInvoice');
