@@ -8,7 +8,6 @@ import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { HTTPAuthError } from '../../../../types/HTTPError';
 import { Log } from '../../../../types/Log';
-import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
 import LoggingValidator from '../validator/LoggingValidator';
 import { ServerAction } from '../../../../types/Server';
@@ -34,7 +33,7 @@ export default class LoggingService {
 
   public static async handleGetLog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = LoggingSecurity.filterLogRequest(req.query);
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingGetReq(req.query);
     // Check auth
     if (!await Authorizations.canReadLog(req.user)) {
       throw new AppAuthError({
@@ -139,7 +138,7 @@ export default class LoggingService {
     }, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
-      sort: filteredRequest.SortFields,
+      sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
       onlyRecordCount: filteredRequest.OnlyRecordCount
     }, [
       'id', 'level', 'timestamp', 'type', 'source', 'host', 'process', 'action', 'message',
