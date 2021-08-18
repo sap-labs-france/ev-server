@@ -524,7 +524,7 @@ export enum ServerRoute {
   REST_TENANT = 'tenants/:id',
 
   REST_CONNECTIONS = 'connections',
-  REST_CONNECTION = 'connection/:id',
+  REST_CONNECTION = 'connections/:id',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',

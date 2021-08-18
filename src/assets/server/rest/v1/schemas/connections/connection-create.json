@@ -7,7 +7,7 @@
       "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
     },
     "userId": {
-      "type": "user.json#/definitions/id"
+      "$ref": "user.json#/definitions/id"
     },
     "data": {
       "type": "object",
