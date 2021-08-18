@@ -30,6 +30,7 @@ export default class CompanyRouter {
 
   protected buildRouteCompany(): void {
     this.router.get(`/${ServerRoute.REST_COMPANY}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleGetCompany.bind(this), ServerAction.COMPANY, req, res, next);
     });
   }
@@ -42,18 +43,21 @@ export default class CompanyRouter {
 
   protected buildRouteUpdateCompany(): void {
     this.router.put(`/${ServerRoute.REST_COMPANY}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleUpdateCompany.bind(this), ServerAction.COMPANY_UPDATE, req, res, next);
     });
   }
 
   protected buildRouteDeleteCompany(): void {
     this.router.delete(`/${ServerRoute.REST_COMPANY}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleDeleteCompany.bind(this), ServerAction.COMPANY_DELETE, req, res, next);
     });
   }
 
   protected buildRouteGetCompanyLogo(): void {
     this.router.get(`/${ServerRoute.REST_COMPANY_LOGO}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(CompanyService.handleGetCompanyLogo.bind(this), ServerAction.COMPANY_LOGO, req, res, next);
     });
   }
