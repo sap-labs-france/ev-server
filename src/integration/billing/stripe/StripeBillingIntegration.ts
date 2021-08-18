@@ -492,7 +492,8 @@ export default class StripeBillingIntegration extends BillingIntegration {
           let paymentOptions: Stripe.InvoicePayParams = {};
           if (paymentMethodId) {
             paymentOptions = {
-              payment_method: paymentMethodId
+              // payment_method: paymentMethodId,
+              paid_out_of_band: true // Payment was successful - just mark the invoice as being paid
             };
           }
           // Let's attempt the payment
@@ -711,7 +712,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
         currency: invoice.currency,
         payment_method_types: ['card'],
         customer: customerID,
-        setup_future_usage: 'off_session', // TODO - we should get rid of it!
+        // setup_future_usage: 'off_session', // TODO - we should get rid of it!
         // confirm: true,
         // payment_method: paymentMethodID,
       });
