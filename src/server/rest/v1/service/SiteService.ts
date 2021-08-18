@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
 import AuthorizationService from './AuthorizationService';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -16,6 +17,7 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { filter } from 'lodash';
 
 const MODULE_NAME = 'SiteService';
 
@@ -392,6 +394,19 @@ export default class SiteService {
     site.name = filteredRequest.name;
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
+      if (!filteredRequest.public) {
+        const publicChargingStations = (await ChargingStationStorage.getChargingStations(req.tenant,
+          { siteIDs: [site.id], public: true, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
+        if (!Utils.isEmptyArray(publicChargingStations)) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Cannot set site to public as charging stations in site are public',
+            module: MODULE_NAME, method: 'handleUpdateSite',
+            user: req.user,
+          });
+        }
+      }
       site.public = filteredRequest.public;
     }
     if (Utils.objectHasProperty(filteredRequest, 'autoUserSiteAssignment')) {
