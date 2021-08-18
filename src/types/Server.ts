@@ -523,6 +523,10 @@ export enum ServerRoute {
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
 
+  REST_LOGGINGS = 'loggings',
+  REST_LOGGING = 'loggings/:id',
+  REST_LOGGINGS_EXPORT = 'loggings/action/export',
+
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',
   REST_BILLING_PAYMENT_METHOD = 'users/:userID/payment-methods/:paymentMethodID',
