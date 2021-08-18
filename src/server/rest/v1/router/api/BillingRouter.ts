@@ -92,7 +92,6 @@ export default class BillingRouter {
     });
   }
 
-  // Modifications working for one time payment as long as we don't need 3DS verification
   protected buildRouteBillingInvoicePayment(): void {
     this.router.post(`/${ServerRoute.REST_BILLING_INVOICE_PAYMENT}`, (req: Request, res: Response, next: NextFunction) => {
       // STRIPE prerequisite - ask for a payment intent first!

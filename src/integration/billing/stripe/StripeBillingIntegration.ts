@@ -649,7 +649,6 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  // Modifications working for one time payment as long as we don't need 3DS verification
   private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string, oneTimePayment?: boolean): Promise<BillingOperationResult> {
     try {
       // Attach payment method to the stripe customer

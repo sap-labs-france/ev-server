@@ -667,13 +667,6 @@ export default class Authorizations {
       { user: userID, owner: loggedUser.id });
   }
 
-  // TODO: change authorization !!!
-  // DOES NOT WORK as even with creating the paymentintent it does not allow to .pay() when 3DS verification needed
-  public static async canCreatePaymentIntent(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.PAY_BILLING_INVOICE,
-      { user: userID, owner: loggedUser.id });
-  }
-
   public static async canCheckAssetConnection(loggedUser: UserToken): Promise<boolean> {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CHECK_CONNECTION);
   }
