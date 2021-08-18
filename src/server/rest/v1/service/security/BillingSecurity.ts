@@ -91,7 +91,6 @@ export default class BillingSecurity {
     };
   }
 
-  // TODO: to be verified depending on what we decide to use
   static filterInvoicePaymentRequest(requestQuery: any): HttpSetupPaymentIntent {
     return {
       userID: sanitize(requestQuery.userID),
