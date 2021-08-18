@@ -560,7 +560,7 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: req.user,
-        action: Action.PAY_BILLING_INVOICE, entity: Entity.INVOICE,
+        action: Action.PAY, entity: Entity.INVOICE,
         module: MODULE_NAME, method: 'handleBillingInvoicePayment'
       });
     }

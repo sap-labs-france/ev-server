@@ -663,7 +663,7 @@ export default class Authorizations {
   }
 
   public static async canPayInvoice(loggedUser: UserToken, userID: string): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.PAY_BILLING_INVOICE,
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICE, Action.PAY,
       { user: userID, owner: loggedUser.id });
   }
 
