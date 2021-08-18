@@ -27,6 +27,7 @@ export default class LoggingRouter {
 
   protected buildRouteLogging(): void {
     this.router.get(`/${ServerRoute.REST_LOGGING}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(LoggingService.handleGetLog.bind(this), ServerAction.LOGGING, req, res, next);
     });
   }

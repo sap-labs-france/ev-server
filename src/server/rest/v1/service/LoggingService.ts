@@ -10,6 +10,7 @@ import { HTTPAuthError } from '../../../../types/HTTPError';
 import { Log } from '../../../../types/Log';
 import LoggingSecurity from './security/LoggingSecurity';
 import LoggingStorage from '../../../../storage/mongodb/LoggingStorage';
+import LoggingValidator from '../validator/LoggingValidator';
 import { ServerAction } from '../../../../types/Server';
 import TenantComponents from '../../../../types/TenantComponents';
 import Utils from '../../../../utils/Utils';
@@ -101,7 +102,7 @@ export default class LoggingService {
       });
     }
     // Filter
-    const filteredRequest = LoggingSecurity.filterLogsRequest(req.query);
+    const filteredRequest = LoggingValidator.getInstance().validateLoggingsGetReq(req.query);
     // Add filter for Site Admins
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
       // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
