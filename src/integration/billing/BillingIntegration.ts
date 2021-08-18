@@ -14,7 +14,6 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import { Request } from 'express';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import { Stripe } from 'stripe';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
