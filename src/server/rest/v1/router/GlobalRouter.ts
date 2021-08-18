@@ -5,6 +5,7 @@ import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
+import ConnectionRouter from './api/ConnectionRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -38,13 +39,14 @@ export default class GlobalRouter {
       AuthService.authenticate(),
       AuthService.checkSessionHash.bind(this),
       [
-        new ChargingStationRouter().buildRoutes(),
         new AssetRouter().buildRoutes(),
+        new BillingRouter().buildRoutes(),
+        new ChargingStationRouter().buildRoutes(),
+        new ConnectionRouter().buildRoutes(),
         new TagRouter().buildRoutes(),
         new TenantRouter().buildRoutes(),
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
       ]);
   }
 
