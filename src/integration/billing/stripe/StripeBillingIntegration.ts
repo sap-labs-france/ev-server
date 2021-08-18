@@ -649,7 +649,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     }
   }
 
-  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string, oneTimePayment?: boolean): Promise<BillingOperationResult> {
+  private async _attachPaymentMethod(user: User, customerID: string, paymentMethodId: string): Promise<BillingOperationResult> {
     try {
       // Attach payment method to the stripe customer
       const paymentMethod: Stripe.PaymentMethod = await this.stripe.paymentMethods.attach(paymentMethodId, {
@@ -671,12 +671,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
         module: MODULE_NAME, method: '_attachPaymentMethod',
         message: `Payment method ${paymentMethodId} has been attached - customer '${customerID}' - (${user.email})`
       });
-      if (!oneTimePayment) {
-        // Set this payment method as the default if we're not in the one time payment scenario
-        await this.stripe.customers.update(customerID, {
-          invoice_settings: { default_payment_method: paymentMethodId }
-        });
-      }
+      // Set this payment method as the default
+      await this.stripe.customers.update(customerID, {
+        invoice_settings: { default_payment_method: paymentMethodId }
+      });
       await Logging.logInfo({
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
