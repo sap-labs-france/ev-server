@@ -5,6 +5,7 @@ import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
+import PricingRouter from './api/PricingRouter';
 import { StatusCodes } from 'http-status-codes';
 import SwaggerRouter from './doc/SwaggerRouter';
 import TagRouter from './api/TagRouter';
@@ -45,6 +46,7 @@ export default class GlobalRouter {
         new TransactionRouter().buildRoutes(),
         new UserRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
+        new PricingRouter().buildRoutes(),
       ]);
   }
 
