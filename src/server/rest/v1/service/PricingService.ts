@@ -147,6 +147,8 @@ export default class PricingService {
     const pricingModel = await UtilsService.checkAndGetPricingModelAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as PricingModel);
     // Update
+    pricingModel.contextID = filteredRequest.contextID;
+    pricingModel.pricingDefinitions = filteredRequest.pricingDefinitions;
     pricingModel.lastChangedBy = { 'id': req.user.id };
     pricingModel.lastChangedOn = new Date();
     // Update Pricing

@@ -119,7 +119,7 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.COMPANY,
+        action: authAction, entity: Entity.PRICING_MODEL,
         module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
         value: pricingModelID
       });
@@ -142,7 +142,7 @@ export default class UtilsService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
-        action: authAction, entity: Entity.COMPANY,
+        action: authAction, entity: Entity.PRICING_MODEL,
         module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
         value: pricingModelID
       });

@@ -1,6 +1,7 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPricingData, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
+import PricingModel, { PricingDefinition, PricingDimension, PricingRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -9,7 +10,6 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
-import PricingModel from '../../src/types/Pricing';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import Tenant from '../../src/types/Tenant';
@@ -432,19 +432,54 @@ export default class StripeIntegrationTestData {
   }
 
   public async checkPricingModel(): Promise<void> {
-    const pricingModel: Partial<PricingModel> = {
+    const initialPricingModel: Partial<PricingModel> = {
       contextID: null, // a pricing model for the tenant
       pricingDefinitions: []
     };
-    let response = await this.adminUserService.pricingApi.createPricingModel(pricingModel);
+    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
     assert(response?.data?.id, 'The ID should not be null');
 
     const pricingModelId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
-    assert(response?.data?.status === 'Success', 'The operation should succeed');
     assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-
+    const parkingPrice: PricingDimension = {
+      price: 0.75,
+      active: true
+    };
+    const lowConsumptionRestrictions: PricingRestriction = {
+      maxPowerkW: 40000,
+    };
+    const tariff1: PricingDefinition = {
+      name: 'Tesla Tariff',
+      description: 'Tesla Tariff for low EVSE',
+      restrictions: lowConsumptionRestrictions,
+      dimensions: {
+        chargingTime: parkingPrice,
+        // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
+        parkingTime: parkingPrice,
+      }
+    };
+    const fastChargerRestrictions: PricingRestriction = {
+      minPowerkW: 40000
+    };
+    const price4TheEnergy: PricingDimension = {
+      price: 0.35,
+      active: true
+    };
+    const tariff2: PricingDefinition = {
+      name: 'Tesla Tariff',
+      description: 'Tesla Tariff for fast chargers',
+      restrictions: fastChargerRestrictions,
+      dimensions: {
+        // chargingTime: parkingPrice, // parking time is free while charging
+        energy: price4TheEnergy,
+        parkingTime: parkingPrice, // Parking time is not free when not charging
+      }
+    };
+    const pricingModel = response?.data;
+    pricingModel.pricingDefinitions = [tariff1, tariff2];
+    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
-
 }
