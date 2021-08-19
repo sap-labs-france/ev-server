@@ -551,7 +551,7 @@ export enum ServerRoute {
 
   // PRICING URLs for CRUD operations
   REST_PRICING_MODELS = 'pricing-models',
-  REST_PRICING_MODEL = 'pricing-models/:pricingModelID'
+  REST_PRICING_MODEL = 'pricing-models/:id'
 }
 
 export enum ServerProtocol {

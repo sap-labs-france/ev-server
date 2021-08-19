@@ -108,31 +108,31 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  public static async checkAndGetPricingModelAuthorization(tenant: Tenant, userToken: UserToken, pricingID: string, authAction: Action,
+  public static async checkAndGetPricingModelAuthorization(tenant: Tenant, userToken: UserToken, pricingModelID: string, authAction: Action,
       action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<PricingModel> {
   // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, pricingID, MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, pricingModelID, MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetPricingModelAuthorizations(
-      tenant, userToken, { ID: pricingID }, authAction, entityData);
+      tenant, userToken, { ID: pricingModelID }, authAction, entityData);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
-        value: pricingID
+        value: pricingModelID
       });
     }
     // Get Pricing
-    const pricingModel = await PricingStorage.getPricingModel(tenant, pricingID,
+    const pricingModel = await PricingStorage.getPricingModel(tenant, pricingModelID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    UtilsService.assertObjectExists(action, pricingModel, `Pricing ID '${pricingID}' does not exist`,
+    UtilsService.assertObjectExists(action, pricingModel, `Pricing Model ID '${pricingModelID}' does not exist`,
       MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
     // Add actions
     await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingModel, authorizationFilter);
@@ -144,7 +144,7 @@ export default class UtilsService {
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
         module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
-        value: pricingID
+        value: pricingModelID
       });
     }
     return pricingModel;

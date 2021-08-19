@@ -20,7 +20,7 @@ export default class PricingService {
 
   public static async handleDeletePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeletePricingModel');
     // Filter
     const pricingModelID = PricingSecurity.filterPricingModelRequestByID(req.query);
@@ -46,10 +46,10 @@ export default class PricingService {
 
   public static async handleGetPricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetPricingModel');
     // Filter
-    const filteredRequest = PricingSecurity.filterPricingRequest(req.query);
+    const filteredRequest = PricingSecurity.filterPricingModelRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetPricingModel', req.user);
     // Check and Get Pricing
     const pricing = await UtilsService.checkAndGetPricingModelAuthorization(
@@ -62,7 +62,7 @@ export default class PricingService {
 
   public static async handleGetPricingModels(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.LIST, Entity.PRICING_MODELS, MODULE_NAME, 'handleGetPricingModels');
     // Filter
     const filteredRequest = PricingSecurity.filterPricingModelsRequest(req.query);
@@ -96,7 +96,7 @@ export default class PricingService {
 
   public static async handleCreatePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreatePricingModel');
     // Filter
     const filteredRequest = PricingSecurity.filterPricingModelCreateRequest(req.body);
@@ -137,7 +137,7 @@ export default class PricingService {
 
   public static async handleUpdatePricingModel(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdatePricingModel');
     // Filter
     const filteredRequest = PricingSecurity.filterPricingModelUpdateRequest(req.body);

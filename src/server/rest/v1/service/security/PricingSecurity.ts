@@ -10,7 +10,7 @@ export default class PricingSecurity {
     return sanitize(request.ID);
   }
 
-  public static filterPricingRequest(request: any): HttpPricingModelRequest {
+  public static filterPricingModelRequest(request: any): HttpPricingModelRequest {
     return {
       ID: sanitize(request.ID)
     };

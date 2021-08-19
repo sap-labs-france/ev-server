@@ -436,8 +436,15 @@ export default class StripeIntegrationTestData {
       contextID: null, // a pricing model for the tenant
       pricingDefinitions: []
     };
-    const response = await this.adminUserService.pricingApi.createPricingModel(pricingModel);
+    let response = await this.adminUserService.pricingApi.createPricingModel(pricingModel);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingModelId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
+
   }
 
 }
