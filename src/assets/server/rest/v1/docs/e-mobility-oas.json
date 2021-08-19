@@ -5840,7 +5840,7 @@
           {
             "in": "query",
             "name": "Action",
-            "description": "Log action",
+            "description": "Pipe separated log actions",
             "schema": {
               "type": "string"
             }
@@ -5968,6 +5968,9 @@
           },
           "500": {
             "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
           }
         }
       }
@@ -6027,7 +6030,7 @@
           {
             "in": "query",
             "name": "Action",
-            "description": "Log action",
+            "description": "Pipe separated log actions",
             "schema": {
               "type": "string"
             }
