@@ -1,10 +1,10 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpPricingRequest extends HttpByIDRequest {
+export interface HttpPricingModelRequest extends HttpByIDRequest {
   ID: string;
 }
 
-export interface HttpPricingsRequest extends HttpDatabaseRequest {
+export interface HttpPricingModelsRequest extends HttpDatabaseRequest {
   Search?: string;
 }

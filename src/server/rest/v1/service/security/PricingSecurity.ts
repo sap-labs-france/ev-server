@@ -1,47 +1,47 @@
-import { HttpPricingRequest, HttpPricingsRequest } from '../../../../../types/requests/HttpPricingRequest';
+import { HttpPricingModelRequest, HttpPricingModelsRequest } from '../../../../../types/requests/HttpPricingRequest';
 
-import Pricing from '../../../../../types/Pricing';
+import PricingModel from '../../../../../types/Pricing';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
 export default class PricingSecurity {
 
-  public static filterPricingRequestByID(request: any): string {
+  public static filterPricingModelRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterPricingRequest(request: any): HttpPricingRequest {
+  public static filterPricingRequest(request: any): HttpPricingModelRequest {
     return {
       ID: sanitize(request.ID)
     };
   }
 
-  public static filterPricingsRequest(request: any): HttpPricingsRequest {
-    const filteredRequest: HttpPricingsRequest = {
+  public static filterPricingModelsRequest(request: any): HttpPricingModelsRequest {
+    const filteredRequest: HttpPricingModelsRequest = {
       Search: sanitize(request.Search),
-    } as HttpPricingsRequest;
+    } as HttpPricingModelsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterPricingUpdateRequest(request: any): Partial<Pricing> {
-    const filteredRequest = PricingSecurity._filterPricingRequest(request);
+  static filterPricingModelUpdateRequest(request: any): Partial<PricingModel> {
+    const filteredRequest = PricingSecurity._filterPricingModelRequest(request);
     return {
       id: sanitize(request.id),
       ...filteredRequest
     };
   }
 
-  public static filterPricingCreateRequest(request: any): Partial<Pricing> {
-    return PricingSecurity._filterPricingRequest(request);
+  public static filterPricingModelCreateRequest(request: any): Partial<PricingModel> {
+    return PricingSecurity._filterPricingModelRequest(request);
   }
 
-  public static _filterPricingRequest(request: any): Partial<Pricing> {
+  public static _filterPricingModelRequest(request: any): Partial<PricingModel> {
     const filteredRequest = {
       name: sanitize(request.name),
       address: UtilsSecurity.filterAddressRequest(request.address)
-    } as Partial<Pricing>;
+    } as Partial<PricingModel>;
     return filteredRequest;
   }
 }

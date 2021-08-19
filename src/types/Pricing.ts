@@ -1,7 +1,7 @@
 import { AuthorizationActions } from './Authorization';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
-export default interface Pricing extends CreatedUpdatedProps, AuthorizationActions {
+export default interface PricingModel extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
   contextID: string; // id of the entity the pricing definition belongs to!
   pricingDefinitions: PricingDefinition[];

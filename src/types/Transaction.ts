@@ -8,7 +8,7 @@ import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
-import Pricing from './Pricing';
+import PricingModel from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -82,7 +82,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   roundedPrice?: number;
   priceUnit?: string;
   pricingSource?: string;
-  pricing?: Pricing,
+  pricing?: PricingModel,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;

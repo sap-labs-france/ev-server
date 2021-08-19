@@ -25,7 +25,7 @@ import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OICPEndpoint from '../../../../types/oicp/OICPEndpoint';
 import PDFDocument from 'pdfkit';
-import Pricing from '../../../../types/Pricing';
+import PricingModel from '../../../../types/Pricing';
 import PricingStorage from '../../../../storage/mongodb/PricingStorage';
 import { ServerAction } from '../../../../types/Server';
 import Site from '../../../../types/Site';
@@ -108,46 +108,46 @@ export default class UtilsService {
     return chargingStation;
   }
 
-  public static async checkAndGetPricingAuthorization(tenant: Tenant, userToken: UserToken, pricingID: string, authAction: Action,
-      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<Pricing> {
+  public static async checkAndGetPricingModelAuthorization(tenant: Tenant, userToken: UserToken, pricingID: string, authAction: Action,
+      action: ServerAction, entityData?: EntityDataType, additionalFilters: Record<string, any> = {}, applyProjectFields = false, checkIssuer = true): Promise<PricingModel> {
   // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, pricingID, MODULE_NAME, 'checkAndGetPricingAuthorization', userToken);
+    UtilsService.assertIdIsProvided(action, pricingID, MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
     // Get dynamic auth
-    const authorizationFilter = await AuthorizationService.checkAndGetPricingAuthorizations(
+    const authorizationFilter = await AuthorizationService.checkAndGetPricingModelAuthorizations(
       tenant, userToken, { ID: pricingID }, authAction, entityData);
     if (!authorizationFilter.authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'checkAndGetPricingAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
         value: pricingID
       });
     }
     // Get Pricing
-    const pricing = await PricingStorage.getPricing(tenant, pricingID,
+    const pricingModel = await PricingStorage.getPricingModel(tenant, pricingID,
       {
         ...additionalFilters,
         ...authorizationFilter.filters
       },
       applyProjectFields ? authorizationFilter.projectFields : null
     );
-    UtilsService.assertObjectExists(action, pricing, `Pricing ID '${pricingID}' does not exist`,
-      MODULE_NAME, 'checkAndGetPricingAuthorization', userToken);
+    UtilsService.assertObjectExists(action, pricingModel, `Pricing ID '${pricingID}' does not exist`,
+      MODULE_NAME, 'checkAndGetPricingModelAuthorization', userToken);
     // Add actions
-    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricing, authorizationFilter);
+    await AuthorizationService.addPricingAuthorizations(tenant, userToken, pricingModel, authorizationFilter);
     // Check
-    const authorized = AuthorizationService.canPerformAction(pricing, authAction);
+    const authorized = AuthorizationService.canPerformAction(pricingModel, authAction);
     if (!authorized) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.FORBIDDEN,
         user: userToken,
         action: authAction, entity: Entity.COMPANY,
-        module: MODULE_NAME, method: 'checkAndGetPricingAuthorization',
+        module: MODULE_NAME, method: 'checkAndGetPricingModelAuthorization',
         value: pricingID
       });
     }
-    return pricing;
+    return pricingModel;
   }
 
   public static async checkAndGetCompanyAuthorization(tenant: Tenant, userToken: UserToken, companyID: string, authAction: Action,
@@ -1330,7 +1330,7 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfPricingValid(pricing: Partial<Pricing>, req: Request): void {
+  public static checkIfPricingValid(pricing: Partial<PricingModel>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

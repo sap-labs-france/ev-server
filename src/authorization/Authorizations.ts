@@ -612,12 +612,12 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTIONS, Action.LIST);
   }
 
-  public static async canReadPricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.READ);
+  public static async canReadPricingModel(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_MODEL, Action.READ);
   }
 
-  public static async canUpdatePricing(loggedUser: UserToken): Promise<boolean> {
-    return Authorizations.canPerformAction(loggedUser, Entity.PRICING, Action.UPDATE);
+  public static async canUpdatePricingModel(loggedUser: UserToken): Promise<boolean> {
+    return Authorizations.canPerformAction(loggedUser, Entity.PRICING_MODEL, Action.UPDATE);
   }
 
   public static async canClearBillingTestData(loggedUser: UserToken): Promise<boolean> {
