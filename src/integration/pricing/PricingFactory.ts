@@ -1,5 +1,7 @@
+import FeatureToggles, { Feature } from '../../utils/FeatureToggles';
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
 
+import BuiltInPricingIntegration from './simple-pricing/BuiltInPricingIntegration';
 import ConvergentChargingPricingIntegration from './export/convergent-charging';
 import DummyPricingIntegration from './dummy/DummyPricingIntegration';
 import PricingIntegration from './PricingIntegration';
@@ -27,7 +29,13 @@ export default class PricingFactory {
           // Simple Pricing
           case PricingSettingsType.SIMPLE:
             // Simple Pricing implementation
-            pricingIntegrationImpl = new SimplePricingIntegration(tenant, pricingSetting.simple);
+            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+              pricingIntegrationImpl = new SimplePricingIntegration(tenant, pricingSetting.simple);
+            } else {
+              // TODO - to be clarified - feature hidden behind a feature toggle for now!
+              // Do we need a dedicated PricingSettingsType?
+              pricingIntegrationImpl = new BuiltInPricingIntegration(tenant, pricingSetting.simple);
+            }
             break;
           default:
             pricingIntegrationImpl = null;
