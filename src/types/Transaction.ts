@@ -1,6 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
+import PricingModel, { ResolvedPricingModel } from './Pricing';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
@@ -8,7 +9,6 @@ import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
 import { OICPChargeDetailRecord } from './oicp/OICPChargeDetailRecord';
 import { OICPSession } from './oicp/OICPSession';
-import PricingModel from './Pricing';
 import Site from './Site';
 import SiteArea from './SiteArea';
 import Tag from './Tag';
@@ -82,7 +82,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   roundedPrice?: number;
   priceUnit?: string;
   pricingSource?: string;
-  pricingModel?: PricingModel,
+  pricingModel?: ResolvedPricingModel,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;

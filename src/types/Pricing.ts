@@ -7,6 +7,11 @@ export default interface PricingModel extends CreatedUpdatedProps, Authorization
   pricingDefinitions: PricingDefinition[];
 }
 
+export interface ResolvedPricingModel {
+  // Put there only the information that is to be kept with the Transaction
+  pricingDefinitions: PricingDefinition[];
+}
+
 export interface PricingDefinition {
   name: string, // Short marketing name - e.g.: BLUE Tariff,
   description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
@@ -56,6 +61,10 @@ export interface PricedConsumption {
   roundedAmount: number;
   currencyCode: string;
   pricingSource: PricingSource;
+}
+
+export interface BuiltInPricedConsumption extends PricedConsumption {
+  pricingModel: ResolvedPricingModel
 }
 
 export enum PricingSource {
