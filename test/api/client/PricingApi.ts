@@ -22,7 +22,7 @@ export default class PricingApi extends CrudApi {
     return super.update(data, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODEL, { id: data.id }));
   }
 
-  public async createPricingModel(data: PricingModel) {
+  public async createPricingModel(data: Partial<PricingModel>) {
     return super.create(data, this.buildRestEndpointUrl(ServerRoute.REST_PRICING_MODELS));
   }
 

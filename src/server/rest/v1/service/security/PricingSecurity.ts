@@ -39,8 +39,9 @@ export default class PricingSecurity {
 
   public static _filterPricingModelRequest(request: any): Partial<PricingModel> {
     const filteredRequest = {
-      name: sanitize(request.name),
-      address: UtilsSecurity.filterAddressRequest(request.address)
+      contextID: sanitize(request.contextID),
+      // TODO - not yet sanitized properly
+      pricingDefinitions: sanitize(request.pricingDefinitions)
     } as Partial<PricingModel>;
     return filteredRequest;
   }

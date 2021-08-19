@@ -101,7 +101,7 @@ export default class PricingService {
     // Filter
     const filteredRequest = PricingSecurity.filterPricingModelCreateRequest(req.body);
     // Check
-    UtilsService.checkIfPricingValid(filteredRequest, req);
+    UtilsService.checkIfPricingModelValid(filteredRequest, req);
     // Get dynamic auth
     const authorizationFilter = await AuthorizationService.checkAndGetPricingModelAuthorizations(
       req.tenant, req.user, {}, Action.CREATE, filteredRequest as PricingModel);
@@ -142,7 +142,7 @@ export default class PricingService {
     // Filter
     const filteredRequest = PricingSecurity.filterPricingModelUpdateRequest(req.body);
     // Check Mandatory fields
-    UtilsService.checkIfPricingValid(filteredRequest, req);
+    UtilsService.checkIfPricingModelValid(filteredRequest, req);
     // Check and Get Pricing
     const pricingModel = await UtilsService.checkAndGetPricingModelAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest as PricingModel);

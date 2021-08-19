@@ -9,6 +9,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
+import PricingModel from '../../src/types/Pricing';
 import Stripe from 'stripe';
 import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import Tenant from '../../src/types/Tenant';
@@ -26,7 +27,6 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export default class StripeIntegrationTestData {
-
   // Tenant: utbilling
   public tenantContext: TenantContext;
   // User Service for action requiring admin permissions (e.g.: set/reset stripe settings)
@@ -430,4 +430,14 @@ export default class StripeIntegrationTestData {
       assert(response?.data?.error, 'error should not be null');
     }
   }
+
+  public async checkPricingModel(): Promise<void> {
+    const pricingModel: Partial<PricingModel> = {
+      contextID: null, // a pricing model for the tenant
+      pricingDefinitions: []
+    };
+    const response = await this.adminUserService.pricingApi.createPricingModel(pricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+  }
+
 }

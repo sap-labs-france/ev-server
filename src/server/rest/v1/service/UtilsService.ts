@@ -1330,13 +1330,13 @@ export default class UtilsService {
     }
   }
 
-  public static checkIfPricingValid(pricing: Partial<PricingModel>, req: Request): void {
+  public static checkIfPricingModelValid(pricing: Partial<PricingModel>, req: Request): void {
     if (req.method !== 'POST' && !pricing.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Pricing ID is mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingValid',
+        module: MODULE_NAME, method: 'checkIfPricingModelValid',
         user: req.user.id
       });
     }
@@ -1345,7 +1345,7 @@ export default class UtilsService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Pricing Definition is mandatory',
-        module: MODULE_NAME, method: 'checkIfPricingValid',
+        module: MODULE_NAME, method: 'checkIfPricingModelValid',
         user: req.user.id
       });
     }

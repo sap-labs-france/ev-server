@@ -210,6 +210,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.LOGGINGS, action: Action.LIST },
       { resource: Entity.LOGGING, action: Action.READ },
       { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE] },
+      { resource: Entity.PRICING_MODEL, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE] },
       { resource: Entity.BILLING, action: [Action.CHECK_CONNECTION, Action.CLEAR_BILLING_TEST_DATA] },
       { resource: Entity.TAXES, action: [Action.LIST] },
       // ---------------------------------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { ObjectId } from 'mongodb';
 import PricingModel from '../../types/Pricing';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -18,21 +19,21 @@ export default class PricingStorage {
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'savePricingModel');
     // Check Tenant
     DatabaseUtils.checkTenantObject(tenant);
-    const pricingMDB = {
-      _id: pricing.id,
+    const pricingModelMDB = {
+      _id: pricing.id ? DatabaseUtils.convertToObjectID(pricing.id) : new ObjectId(),
       contextID: DatabaseUtils.convertToObjectID(pricing.contextID),
-      pricingDefinitions: pricing.pricingDefinitions,
+      pricingDefinitions: pricing.pricingDefinitions, // TODO - check here some data consistency
     };
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(pricingMDB, pricing);
+    DatabaseUtils.addLastChangedCreatedProps(pricingModelMDB, pricing);
     // Save
     await global.database.getCollection<any>(tenant.id, 'pricingmodels').findOneAndUpdate(
-      { '_id': pricing.id },
-      { $set: pricingMDB },
+      { '_id': pricingModelMDB._id },
+      { $set: pricingModelMDB },
       { upsert: true, returnDocument: 'after' });
     // Debug
-    await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricingModel', uniqueTimerID, pricingMDB);
-    return pricingMDB._id.toString();
+    await Logging.traceEnd(tenant.id, MODULE_NAME, 'savePricingModel', uniqueTimerID, pricingModelMDB);
+    return pricingModelMDB._id.toString();
   }
 
   public static async deletePricingModel(tenant: Tenant, pricingID: string): Promise<void> {
