@@ -8,6 +8,8 @@ export default interface PricingModel extends CreatedUpdatedProps, Authorization
 }
 
 export interface PricingDefinition {
+  name: string, // Short marketing name - e.g.: BLUE Tariff,
+  description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
   restrictions?: PricingRestriction; // To be clarified! - These restrictions are so far common to all dimensions
   dimensions: {
     flatFee?: PricingDimension, // Flat fee, no unit
