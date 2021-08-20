@@ -15,7 +15,7 @@ export default class PricingFactory {
   static async getPricingImpl(tenant: Tenant): Promise<PricingIntegration<PricingSetting>> {
     // Check if the pricing is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      // Get the pricing's settings
+      // Get the pricing settings
       const pricingSetting = await SettingStorage.getPricingSettings(tenant);
       // Check
       if (pricingSetting) {

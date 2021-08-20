@@ -1,7 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
-import PricingModel, { ResolvedPricingModel } from './Pricing';
+import PricingModel, { PricingConsumptionData, ResolvedPricingModel } from './Pricing';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';
@@ -83,6 +83,7 @@ export default interface Transaction extends AbstractCurrentConsumption {
   priceUnit?: string;
   pricingSource?: string;
   pricingModel?: ResolvedPricingModel,
+  pricingConsumptionData?: PricingConsumptionData,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;

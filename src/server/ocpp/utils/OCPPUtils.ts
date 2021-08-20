@@ -1,5 +1,4 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
-import { BuiltInPricedConsumption, PricedConsumption } from '../../../types/Pricing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
@@ -30,6 +29,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OICPClientFactory from '../../../client/oicp/OICPClientFactory';
 import { OICPRole } from '../../../types/oicp/OICPRole';
 import OICPUtils from '../../oicp/OICPUtils';
+import { PricedConsumption } from '../../../types/Pricing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import { PricingSettingsType } from '../../../types/Setting';
 import RegistrationToken from '../../../types/RegistrationToken';
@@ -254,7 +254,8 @@ export default class OCPPUtils {
             transaction.pricingSource = pricedConsumption.pricingSource;
             transaction.currentCumulatedPrice = pricedConsumption.amount;
             if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              transaction.pricingModel = (pricedConsumption as BuiltInPricedConsumption)?.pricingModel;
+              // TODO - To be clarified - check for the PricingSource instead?
+              transaction.pricingModel = pricedConsumption.pricingModel;
             }
           }
           break;
@@ -284,6 +285,10 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
+            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
+              // TODO - To be clarified - check for the PricingSource instead?
+              transaction.pricingConsumptionData = pricedConsumption.pricingConsumptionData;
+            }
           }
           break;
       }

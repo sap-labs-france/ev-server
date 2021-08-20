@@ -70,6 +70,7 @@ export default class TransactionStorage {
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
       pricingModel: transactionToSave.pricingModel,
+      pricingConsumptionData: transactionToSave.pricingConsumptionData,
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,

@@ -1,6 +1,6 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData, DimensionPricingData } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
@@ -16,6 +16,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { PricingDimensionData } from '../../../types/Pricing';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -879,7 +880,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     const pricingData = billingInvoiceItem.pricingData;
     // data for the current dimension (energy | parkingTime, etc)
-    const dimensionData: DimensionPricingData = pricingData[dimension];
+    const dimensionData: PricingDimensionData = pricingData[dimension];
     if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
       // Do not bill that dimension
       return null;

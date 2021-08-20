@@ -1,13 +1,17 @@
-import { BuiltInPricedConsumption, PricedConsumption, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
+import { PricedConsumption, PricingSource } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
+import PricingEngine from '../PricingEngine';
 import PricingIntegration from '../PricingIntegration';
-import PricingStorage from '../../../storage/mongodb/PricingStorage';
 import { SimplePricingSetting } from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
+// --------------------------------------------------------------------------------------------------
+// TODO - POC - BuiltInPricingIntegration is hidden behind a feature toggle
+// This concrete implementation of the PricingIntegration still relies on the SimplePricingSettings
+// --------------------------------------------------------------------------------------------------
 export default class BuiltInPricingIntegration extends PricingIntegration<SimplePricingSetting> {
   constructor(tenant: Tenant, readonly settings: SimplePricingSetting) {
     super(tenant, settings);
@@ -15,12 +19,8 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    const pricingModel = await this.resolvePricingContext(transaction);
-    const builtInPricedConsumption: BuiltInPricedConsumption = {
-      ...pricedConsumption,
-      pricingModel
-    };
-    return Promise.resolve(builtInPricedConsumption);
+    pricedConsumption.pricingModel = await PricingEngine.resolvePricingContext(this.tenant, transaction);
+    return Promise.resolve(pricedConsumption);
   }
 
   public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
@@ -28,7 +28,9 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+    const pricedConsumption = await this.computePrice(transaction, consumptionData);
+    pricedConsumption.pricingConsumptionData = await PricingEngine.priceFinalConsumption(this.tenant, transaction);
+    return Promise.resolve(pricedConsumption);
   }
 
   private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
@@ -49,35 +51,5 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
       cumulatedAmount: transaction.currentCumulatedPrice ? Utils.createDecimal(transaction.currentCumulatedPrice).plus(amount).toNumber() : amount
     };
     return Promise.resolve(pricedConsumption);
-  }
-
-  private async resolvePricingContext(transaction: Transaction): Promise<ResolvedPricingModel> {
-    // -----------------------------------------------------------------------------------------
-    // TODO - We need to find the pricing model to apply by resolving the hierarchy of contexts
-    // that may override (or extend) the pricing definitions.
-    // Forseen hierarchy is:
-    // - Tenant/Organization
-    // - Company
-    // - Site
-    // - Site Area
-    // - Charging Station
-    // - User Group
-    // - User
-    // Of course, the date has an impact as well
-    // -----------------------------------------------------------------------------------------
-    // First implementation:
-    // - we only have a single pricing model which is defined for the tenant
-    // - we simply get the latest created one
-    // -----------------------------------------------------------------------------------------
-    let pricingModel: ResolvedPricingModel = null;
-    const pricingModelResults = await PricingStorage.getPricingModels(this.tenant, {}, { limit: 1, skip: 0, sort: { createdOn: -1 } });
-    if (pricingModelResults.count > 0) {
-      const { pricingDefinitions } = pricingModelResults.result[0];
-      pricingModel = {
-        pricingDefinitions
-      };
-    }
-    // TODO - No pricing definition? => Throw an exception ?
-    return Promise.resolve(pricingModel);
   }
 }

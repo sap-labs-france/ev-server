@@ -61,10 +61,8 @@ export interface PricedConsumption {
   roundedAmount: number;
   currencyCode: string;
   pricingSource: PricingSource;
-}
-
-export interface BuiltInPricedConsumption extends PricedConsumption {
-  pricingModel: ResolvedPricingModel
+  pricingModel?: ResolvedPricingModel
+  pricingConsumptionData?: PricingConsumptionData
 }
 
 export enum PricingSource {
@@ -72,3 +70,20 @@ export enum PricingSource {
   CONVERGENT_CHARGING = 'convergentCharging',
   OCPI = 'ocpi',
 }
+
+export interface PricingConsumptionData {
+  flatFee?: PricingDimensionData,
+  energy?: PricingDimensionData,
+  parkingTime?: PricingDimensionData,
+  chargingTime?: PricingDimensionData,
+}
+
+export interface PricingDimensionData {
+  amount: number;
+  quantity: number;
+  // The item description is generated while billing the transaction
+  itemDescription?: string,
+  // Each dimension have a different tax rate
+  taxes?: string[];
+}
+

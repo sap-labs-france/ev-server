@@ -1,4 +1,5 @@
 import { ActionsResponse } from './GlobalType';
+import { PricingConsumptionData } from './Pricing';
 import User from './User';
 
 export interface TransactionBillingData {
@@ -83,7 +84,7 @@ export interface BillingInvoice {
 export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
-  pricingData: BillingPricingData
+  pricingData: PricingConsumptionData
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
@@ -92,7 +93,7 @@ export interface BillingInvoiceItem {
 
 export interface BillingSessionData {
   transactionID: number;
-  pricingData: BillingPricingData;
+  pricingData: PricingConsumptionData;
 }
 
 export enum BillingInvoiceStatus {
@@ -148,20 +149,3 @@ export interface BillingAdditionalData {
   lastError?: BillingError,
 }
 
-export interface BillingPricingData {
-  flatFee?: DimensionPricingData,
-  energy?: DimensionPricingData,
-  parkingTime?: DimensionPricingData,
-  chargingTime?: DimensionPricingData,
-}
-
-export interface DimensionPricingData {
-  itemDescription: string,
-  amount: number;
-  quantity: number;
-  cumulatedAmount?: number;
-  roundedAmount?: number;
-  // Each invoice item may have a different tax rate
-  // And STRIPE allows more than one for each of them, so this is an array!
-  taxes?: string[];
-}
