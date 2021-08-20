@@ -276,8 +276,8 @@ export default class StripeIntegrationTestData {
     assert(this.billingUser, 'Billing user cannot be null');
     // array of tax ids to apply to the line item
     const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
-    // Princing/Consumption Data
-    const billingPrincingData: BillingPricingData = {
+    // Pricing/Consumption Data
+    const billingPricingData: BillingPricingData = {
       energy: {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
@@ -295,7 +295,7 @@ export default class StripeIntegrationTestData {
     const invoiceItem:BillingInvoiceItem = {
       currency: 'EUR',
       transactionID: Utils.getRandomIntSafe(),
-      pricingData: billingPrincingData
+      pricingData: billingPricingData
     };
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);

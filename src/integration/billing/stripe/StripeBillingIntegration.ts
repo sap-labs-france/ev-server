@@ -868,7 +868,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     Stripe alternative - 'unit_amount_decimal' in Cents, with 2 decimals, as a string!
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
-    // A stripe invoice item per dimemsion
+    // A stripe invoice item per dimension
     await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, invoiceID);
     await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, invoiceID);
     await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, invoiceID);
