@@ -451,8 +451,8 @@ export default class StripeIntegrationTestData {
       maxPowerkW: 40000,
     };
     const tariff1: PricingDefinition = {
-      name: 'Tesla Tariff',
-      description: 'Tesla Tariff for low EVSE',
+      name: 'BLUE Tariff',
+      description: 'Tariff for low EVSE',
       restrictions: lowConsumptionRestrictions,
       dimensions: {
         chargingTime: parkingPrice,
@@ -468,8 +468,8 @@ export default class StripeIntegrationTestData {
       active: true
     };
     const tariff2: PricingDefinition = {
-      name: 'Tesla Tariff',
-      description: 'Tesla Tariff for fast chargers',
+      name: 'GREEN Tariff',
+      description: 'Tariff for fast chargers',
       restrictions: fastChargerRestrictions,
       dimensions: {
         // chargingTime: parkingPrice, // parking time is free while charging

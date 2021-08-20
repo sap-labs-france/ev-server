@@ -2,6 +2,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
+import { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
@@ -16,7 +17,6 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
-import { PricingDimensionData } from '../../../types/Pricing';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -1035,20 +1035,76 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    // Destructuring transaction.stop
+
+    if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL) && transaction.pricingModel) {
+      // Built-in Pricing
+      return this._convertPricingDataToBillingInvoiceItem(transaction);
+    }
+    // Simple Pricing - Do it the old way!
+    return this._convertToBillingInvoiceItem(transaction);
+
+  }
+
+  private _convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
+    if (!transaction.pricingConsumptionData) {
+      throw new Error('Unexpected situation - no pricing data!');
+    }
     const transactionID = transaction.id;
+    const currency = transaction.stop.priceUnit;
+    const pricingData: PricingConsumptionData = this._enrichTransactionPricingData(transaction);
+    const billingInvoiceItem: BillingInvoiceItem = {
+      transactionID,
+      currency,
+      pricingData,
+      metadata: {
+        // Let's keep track of the initial data for troubleshooting purposes
+        tenantID: this.tenant.id,
+        transactionID: transaction.id,
+        userID: transaction.userID,
+        begin: transaction.timestamp?.valueOf(),
+      }
+    };
+    // Returns a item representing the complete charging session (energy + parking information)
+    return billingInvoiceItem ;
+  }
+
+  private _enrichTransactionPricingData(transaction: Transaction) : PricingConsumptionData {
+    const pricingConsumptionData: PricingConsumptionData = Object.freeze(transaction.pricingConsumptionData);
+    // -------------------------------------------------------------------------------
+    // TODO - so far we use the same tax rates for all invoice items!
+    // -------------------------------------------------------------------------------
+    const taxes = this.getTaxRateIds();
+    // -------------------------------------------------------------------------------
+    // Enrich the consumption data with information required for billing it
+    // -------------------------------------------------------------------------------
+    if (pricingConsumptionData.flatFee) {
+      pricingConsumptionData.flatFee.itemDescription += ' - Flat Fee'; // TODO! - generate proper description
+      pricingConsumptionData.flatFee.taxes = taxes;
+    }
+    if (pricingConsumptionData.energy) {
+      pricingConsumptionData.energy.itemDescription = this.buildLineItemDescription(transaction);
+      pricingConsumptionData.energy.taxes = taxes;
+    }
+    if (pricingConsumptionData.chargingTime) {
+      pricingConsumptionData.chargingTime.itemDescription += ' - Charging Time'; // TODO! - generate proper description
+      pricingConsumptionData.chargingTime.taxes = taxes;
+    }
+    if (pricingConsumptionData.parkingTime) {
+      pricingConsumptionData.parkingTime.itemDescription += ' - Parking Time'; // TODO! - generate proper description
+      pricingConsumptionData.parkingTime.taxes = taxes;
+    }
+    return pricingConsumptionData;
+  }
+
+  private _convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
+    // Destructuring transaction.stop
     const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
-    // TODO - we need a description per dimension type
+    const transactionID = transaction.id;
     const itemDescription = this.buildLineItemDescription(transaction);
-    // -------------------------------------------------------------------------------
-    // ACHTUNG - STRIPE expects the amount and prices in CENTS!
-    // -------------------------------------------------------------------------------
     const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     const amount = roundedPrice; // Total amount for the line item
     const currency = priceUnit;
     // -------------------------------------------------------------------------------
-    // TODO - take into account SITE settings
-    // TODO - so far we use the same tax rates for all invoice items!
     const taxes = this.getTaxRateIds();
     // Build a billing invoice item based on the transaction
     const billingInvoiceItem: BillingInvoiceItem = {

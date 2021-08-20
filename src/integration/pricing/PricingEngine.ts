@@ -74,44 +74,29 @@ export default class PricingEngine {
 
   private static priceFlatFeeConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    const quantity = 1;
+    const quantity = 1; // To be clarified - Flat Fee is billing billed once per sessions
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'flatFee', quantity);
     return pricingDimensionData;
   }
 
   private static priceEnergyConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    const totalConsumptionWh = transaction.currentTotalConsumptionWh;
-    if (transaction.pricingModel) {
-      // Apply the new Pricing Engine
-      const quantity = Utils.createDecimal(consumptionData.cumulatedConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
-      pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'energy', quantity);
-    } else {
-      // -------------------------------------------------------------------------------
-      // Let's do it the old way - using the Simple Pricing logic
-      // -------------------------------------------------------------------------------
-      const quantity = Utils.createDecimal(totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
-      const roundedPrice = Utils.truncTo(transaction.currentCumulatedPrice, 2);
-      const amount = roundedPrice; // Total amount for the line item
-      // TODO - POC - take the pricingModel into consideration
-      // Build the consumption data for each dimension
-      pricingDimensionData = {
-        amount,
-        quantity
-      };
-    }
+    const quantity = Utils.createDecimal(consumptionData?.cumulatedConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
+    pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'energy', quantity);
     return pricingDimensionData;
   }
 
   private static priceParkingTimeConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'parkingTime', consumptionData.totalDurationSecs);
+    const hours = Utils.createDecimal(consumptionData?.totalDurationSecs).dividedBy(3600).toNumber();
+    pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'parkingTime', hours);
     return pricingDimensionData;
   }
 
   private static priceChargingTimeConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'chargingTime', consumptionData.totalInactivitySecs);
+    const hours = Utils.createDecimal(consumptionData?.totalInactivitySecs).dividedBy(60).toNumber();
+    pricingDimensionData = PricingEngine.PriceDimensionConsumption(transaction.pricingModel, 'chargingTime', hours);
     return pricingDimensionData;
   }
 
@@ -128,6 +113,8 @@ export default class PricingEngine {
       if (dimensionToPrice) {
         pricingDimensionData = PricingEngine.applyPricingDefinition(dimensionToPrice, quantity);
         if (pricingDimensionData) {
+          // TODO - clarify where to show the actual tariff name
+          pricingDimensionData.itemDescription = activePricingDefinition.name;
           break;
         }
       }
@@ -140,6 +127,9 @@ export default class PricingEngine {
     if (pricingDimension?.active) {
       return pricingDefinition;
     }
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // TODO - check for pricing restriction and power thresholds
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     return null;
   }
 
