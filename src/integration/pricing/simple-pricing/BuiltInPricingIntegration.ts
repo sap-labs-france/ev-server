@@ -29,7 +29,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    pricedConsumption.pricingConsumptionData = await PricingEngine.priceFinalConsumption(this.tenant, transaction);
+    pricedConsumption.pricingConsumptionData = await PricingEngine.priceFinalConsumption(this.tenant, transaction, consumptionData);
     return Promise.resolve(pricedConsumption);
   }
 
