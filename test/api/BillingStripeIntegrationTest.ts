@@ -23,14 +23,14 @@ describe('Billing Stripe Service', function() {
       await testData.initialize();
     });
 
-    describe('Initialization Pricing Model', () => {
+    xdescribe('Initialization Pricing Model', () => {
       before(async () => {
       });
 
       after(async () => {
       });
 
-      it('check CRUD operations on a Pricing Model', async () => {
+      xit('check CRUD operations on a Pricing Model', async () => {
         await testData.checkPricingModel();
       });
     });

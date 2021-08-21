@@ -13,7 +13,6 @@ import Utils from '../../utils/Utils';
 export default class PricingEngine {
 
   static async resolvePricingContext(tenant: Tenant, transaction: Transaction): Promise<ResolvedPricingModel> {
-
     // -----------------------------------------------------------------------------------------
     // TODO - We need to find the pricing model to apply by resolving the hierarchy of contexts
     // that may override (or extend) the pricing definitions.
@@ -104,14 +103,14 @@ export default class PricingEngine {
     // Search for the first pricing definition matching the current dimension type and the pricing restrictions if any!
     const activePricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
       // We search for a pricing definition where the current dimension exists
-      PricingEngine.checkPricingRestrictions(pricingDefinition, dimensionType)
+      PricingEngine.checkPricingDimensionRestrictions(pricingDefinition, dimensionType)
     );
     // Iterate throw the list of pricing definitions where the current dimension makes sense
     let pricingDimensionData: PricingDimensionData = null;
     for (const activePricingDefinition of activePricingDefinitions) {
       const dimensionToPrice = activePricingDefinition.dimensions[dimensionType];
       if (dimensionToPrice) {
-        pricingDimensionData = PricingEngine.applyPricingDefinition(dimensionToPrice, quantity);
+        pricingDimensionData = PricingEngine.priceDimension(dimensionToPrice, quantity);
         if (pricingDimensionData) {
           // TODO - clarify where to show the actual tariff name
           pricingDimensionData.itemDescription = activePricingDefinition.name;
@@ -122,18 +121,15 @@ export default class PricingEngine {
     return pricingDimensionData;
   }
 
-  static checkPricingRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
+  static checkPricingDimensionRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
     const pricingDimension: PricingDimension = pricingDefinition.dimensions[dimensionType];
     if (pricingDimension?.active) {
       return pricingDefinition;
     }
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // TODO - check for pricing restriction and power thresholds
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     return null;
   }
 
-  static applyPricingDefinition(pricingDimension: PricingDimension, quantity: number): PricingDimensionData {
+  static priceDimension(pricingDimension: PricingDimension, quantity: number): PricingDimensionData {
 
     let amount: number;
     if (pricingDimension.stepSize) {
