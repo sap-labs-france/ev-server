@@ -198,8 +198,7 @@ export default class MongoDBStorage {
   }
 
   public async start(): Promise<void> {
-    // Log
-    console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
+    console.log(`Connecting to '${this.dbConfig.implementation}'  ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`);
     // Build EVSE URL
     let mongoUrl: string;
     // URI provided?
@@ -225,6 +224,7 @@ export default class MongoDBStorage {
       mongoUrl = mongoUriBuilder(uri);
     }
     // Connect to EVSE
+    console.log(`Connecting to '${mongoUrl}'`);
     const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {

@@ -722,7 +722,7 @@ export default class CpoOCPIClient extends OCPIClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -1015,12 +1015,12 @@ export default class CpoOCPIClient extends OCPIClient {
       connectorId: number, countryId: string, partyId: string): OCPILocation {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
-    for (const chargingStationConnector of chargingStation.connectors) {
-      if (chargingStationConnector.connectorId === connectorId) {
-        connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, countryId, partyId));
-        status = chargingStationConnector.status;
-        break;
-      }
+    const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+    let chargePoint;
+    if (connector) {
+      connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryId, partyId));
+      status = connector.status;
+      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
     const ocpiLocation: OCPILocation = {
       id: site.id,
@@ -1036,8 +1036,7 @@ export default class CpoOCPIClient extends OCPIClient {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
-        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id,
-          Utils.getConnectorFromID(chargingStation, connectorId).connectorId),
+        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, chargePoint && chargePoint.cannotChargeInParallel ? chargePoint.chargePointID : connectorId),
         location_id: chargingStation.siteID,
         status: OCPIUtilsService.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],

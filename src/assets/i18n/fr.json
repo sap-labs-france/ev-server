@@ -76,7 +76,7 @@
       "title": "Hubject envoie des bornes",
       "body": "La mise à jour des bornes vers Hubject a échoué dans l'organisation '{{tenantName}}', vérifier les logs"
     },
-    "smtpAuthError": {
+    "smtpError": {
       "title": "Erreur serveur email",
       "body": "Le serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
     },

@@ -75,7 +75,7 @@ export default class StripeIntegrationTestData {
   public async setBillingSystemValidCredentials(immediateBilling: boolean) : Promise<void> {
     const billingSettings = this.getLocalSettings(immediateBilling);
     await this.saveBillingSettings(billingSettings);
-    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenantID(), billingSettings.stripe.secretKey);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(this.getTenant(), billingSettings.stripe.secretKey);
     this.billingImpl = StripeBillingIntegration.getInstance(this.getTenant(), billingSettings);
     assert(this.billingImpl, 'Billing implementation should not be null');
   }

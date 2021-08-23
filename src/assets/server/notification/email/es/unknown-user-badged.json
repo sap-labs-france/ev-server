@@ -21,10 +21,6 @@
       "",
       "Un usuario desconocido acaba de conectarse a <strong> '<%- chargeBoxID%>' </strong> con el ID de la insignia <strong> '<%- badgeID%>' </strong>."
     ],
-    "actions": [{
-      "title": "Editar Insignia",
-      "url": "<%- evseDashboardTagURL %>"
-    }],
     "afterActionLines": [
       "Atentamente,",
       "EV Admins."

@@ -81,7 +81,7 @@ class TestData {
     await this.saveBillingSettings(billingSettings);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
-    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant.id, billingSettings.stripe.secretKey);
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, billingSettings.stripe.secretKey);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
     return billingImpl;
@@ -91,7 +91,7 @@ class TestData {
     const billingSettings = this.getLocalSettings(false);
     const tenant = this.tenantContext?.getTenant();
     assert(!!tenant, 'Tenant cannot be null');
-    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant.id, 'sk_test_' + 'invalid_credentials');
+    billingSettings.stripe.secretKey = await Cypher.encrypt(tenant, 'sk_test_' + 'invalid_credentials');
     await this.saveBillingSettings(billingSettings);
     const billingImpl = StripeBillingIntegration.getInstance(tenant, billingSettings);
     assert(billingImpl, 'Billing implementation should not be null');
