@@ -116,9 +116,15 @@ export default class PricingEngine {
 
   static async priceFinalConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): Promise<PricingConsumptionData> {
     // Check the restrictions to find the pricing definition matching the current context
-    const actualPricingDefinitions = transaction.pricingModel.pricingDefinitions.filter((pricingDefinition) =>
+    let actualPricingDefinitions = transaction.pricingModel.pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
     );
+    // Having more than one pricing definition this NOT a normal situation.
+    // This means that two different tariff matches the same criteria. This should not happen!
+    if (actualPricingDefinitions.length > 1) {
+      // TODO - to be clarified! - Shall we mix several pricing definition for a single transaction?
+      actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
+    }
     // Build the consumption data for each dimension
     const flatFee: PricingDimensionData = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
     const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);

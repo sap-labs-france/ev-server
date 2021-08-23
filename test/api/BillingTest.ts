@@ -248,9 +248,11 @@ class TestData {
     assert(company, 'The Company should not be null');
     await this.createTariff4Company(company.id);
 
-    const site = (await this.adminUserService.siteApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
-    assert(site, 'The Site should not be null');
-    await this.createTariff4Site(site.id);
+    const sites = (await this.adminUserService.siteApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
+    const selectedSites = sites.filter((site) => site.name === 'ut-site-stop');
+    assert(selectedSites, 'Sites should not be null');
+    assert(selectedSites[0], 'The Site should not be null');
+    await this.createTariff4Site(selectedSites[0].id);
   }
 
   public async createTariff4Company(companyID: string): Promise<void> {
@@ -270,7 +272,7 @@ class TestData {
       name: 'GREEN Tariff',
       description: 'Tariff for low EVSE',
       restrictions: {
-        maxPowerkW: 40000,
+        maxPowerkW: 40,
       },
       dimensions: {
         flatFee: {
@@ -316,7 +318,7 @@ class TestData {
       name: 'RED Tariff',
       description: 'Tariff for fast chargers',
       restrictions: {
-        minPowerkW: 40000,
+        minPowerkW: 40,
       },
       dimensions: {
         flatFee: {
