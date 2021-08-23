@@ -495,6 +495,7 @@ export default class EmspOCPIClient extends OCPIClient {
     await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_START_SESSION,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       message: `${Utils.buildConnectorInfo(connectorID)} OCPI Remote Start session response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStartSession',
@@ -553,6 +554,7 @@ export default class EmspOCPIClient extends OCPIClient {
     await Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_STOP_SESSION,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Remote Stop response status '${response.status}'`,
       module: MODULE_NAME, method: 'remoteStopSession',

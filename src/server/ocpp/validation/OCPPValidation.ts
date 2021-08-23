@@ -98,6 +98,7 @@ export default class OCPPValidation extends SchemaValidator {
       // KEBA: Connector ID must be > 0 according to OCPP
       await Logging.logWarning({
         tenantID: tenantID,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
@@ -111,6 +112,7 @@ export default class OCPPValidation extends SchemaValidator {
     if (!foundConnector) {
       await Logging.logWarning({
         tenantID: tenantID,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
@@ -129,6 +131,7 @@ export default class OCPPValidation extends SchemaValidator {
           // No: Log that the transaction ID will be reused
           await Logging.logWarning({
             tenantID: tenantID,
+            siteID: chargingStation.siteID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.METER_VALUES,
@@ -143,6 +146,7 @@ export default class OCPPValidation extends SchemaValidator {
       // Yes: Use Connector's Transaction ID
       await Logging.logWarning({
         tenantID: tenantID,
+        siteID: chargingStation.siteID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,

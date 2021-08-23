@@ -83,6 +83,7 @@ export default class CpoOICPClient extends OICPClient {
     await Logging.logDebug({
       tenantID: this.tenant.id,
       user: transaction.user,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OICP_PUSH_SESSIONS,
       message: `Start OICP Session ID '${transaction.id}'`,
@@ -162,6 +163,7 @@ export default class CpoOICPClient extends OICPClient {
       const response = await this.authorizeStop(transaction);
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
@@ -700,6 +702,7 @@ export default class CpoOICPClient extends OICPClient {
     if (requestError) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -715,6 +718,7 @@ export default class CpoOICPClient extends OICPClient {
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -725,6 +729,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -806,6 +811,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
@@ -820,6 +826,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
@@ -881,6 +888,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationStartResponse?.Result || notificationStartResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -895,6 +903,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -960,6 +969,7 @@ export default class CpoOICPClient extends OICPClient {
       if (!notificationProgressResponse?.Result || notificationProgressResponse?.Result !== true) {
         await Logging.logWarning({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -974,6 +984,7 @@ export default class CpoOICPClient extends OICPClient {
       } else {
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -1053,6 +1064,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationEndResponse?.Result || notificationEndResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
@@ -1067,6 +1079,7 @@ export default class CpoOICPClient extends OICPClient {
     } else {
       await Logging.logInfo({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,
@@ -1125,6 +1138,7 @@ export default class CpoOICPClient extends OICPClient {
     if (!notificationErrorResponse?.Result || notificationErrorResponse?.Result !== true) {
       await Logging.logWarning({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_ERROR,
