@@ -137,10 +137,28 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string): Promise<number> {
-    // To be implemented
+  public async getCurrentSoC(userID: string, VIN: string): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
-    return 0;
+    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${VIN}/resources/soc`;
+    try {
+      // Get consumption
+      const response = await this.axiosInstance.get(
+        request,
+        {
+          headers: { 'Authorization': 'Bearer ' + connection.data.access_token }
+        }
+      );
+      return response.data.soc;
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'getCurrentSoC',
+        action: ServerAction.CAR_CONNECTOR,
+        message: 'Error while retrieving the SOC',
+        detailedMessages: { request, error: error.stack }
+      });
+    }
   }
 
   private computeValidUntilAt(response: AxiosResponse) {

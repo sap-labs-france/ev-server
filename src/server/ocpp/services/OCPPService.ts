@@ -7,6 +7,8 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import { CarConnectorConnectionType } from '../../../types/Setting';
+import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -447,6 +449,8 @@ export default class OCPPService {
         await OCPPUtils.processTransactionBilling(tenant, newTransaction, TransactionAction.START);
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
+        // Handle current SOC
+        newTransaction.stateOfCharge = await this.getCurrentSOC(tenant, newTransaction, chargingStation);
         // Save it
         await TransactionStorage.saveTransaction(tenant, newTransaction);
         // Clean up
@@ -572,6 +576,8 @@ export default class OCPPService {
         await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
+        // Handle current SOC
+        transaction.stop.stateOfCharge = await this.getCurrentSOC(tenant, transaction, chargingStation);
         // Save the transaction
         await TransactionStorage.saveTransaction(tenant, transaction);
         // Notify User
@@ -1656,6 +1662,29 @@ export default class OCPPService {
       }
       // Clear
       await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
+    }
+  }
+
+  private async getCurrentSOC(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && transaction.carID && transaction.carCatalogID &&
+    Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      const car = await CarStorage.getCar(tenant, transaction.carID);
+      const carCatalog = await CarStorage.getCarCatalog(car.carCatalogID);
+      let stateOfCharge = 0;
+      switch (carCatalog.vehicleMake) {
+        case 'Mercedes': {
+          const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, CarConnectorConnectionType.MERCEDES);
+          if (carImplementation) {
+            try {
+              stateOfCharge = await carImplementation.getCurrentSoC(transaction.userID, car.vin);
+            } catch {
+              return 0;
+            }
+            return stateOfCharge;
+          }
+          break;
+        }
+      }
     }
   }
 
