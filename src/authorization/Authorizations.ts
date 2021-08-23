@@ -904,7 +904,10 @@ export default class Authorizations {
           // Check Tag ID
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
+              companyID: chargingStation.companyID,
               siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              chargingStationID: chargingStation.id,
               source: chargingStation.id,
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,

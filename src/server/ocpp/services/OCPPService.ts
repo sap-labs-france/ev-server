@@ -161,7 +161,10 @@ export default class OCPPService {
         // Log
         await Logging.logDebug({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'handleHeartbeat',
           action: ServerAction.HEARTBEAT,
@@ -234,7 +237,10 @@ export default class OCPPService {
         if (Utils.isEmptyArray(normalizedMeterValues.values)) {
           await Logging.logDebug({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'handleMeterValues',
             action: ServerAction.METER_VALUES,
@@ -707,7 +713,10 @@ export default class OCPPService {
         await OCPPUtils.clearAndDeleteChargingProfile(tenant, chargingProfile);
         await Logging.logDebug({
           tenantID: tenant.id,
+          companyID: transaction.companyID,
           siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          chargingStationID: transaction.chargeBoxID,
           source: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} TX Charging Profile with ID '${chargingProfile.id}'`,

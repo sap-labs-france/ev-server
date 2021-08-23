@@ -188,7 +188,9 @@ export interface VerificationEmailNotification extends BaseNotification {
 }
 
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   connectorId: string;
   error: string;
@@ -197,14 +199,18 @@ export interface ChargingStationStatusErrorNotification extends BaseNotification
 }
 
 export interface ChargingStationRegisteredNotification extends BaseNotification {
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   evseDashboardURL: string;
   evseDashboardChargingStationURL: string;
 }
 
 export interface UnknownUserBadgedNotification extends BaseNotification {
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   badgeID: string;
   evseDashboardURL: string;
@@ -213,7 +219,9 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
 export interface TransactionStartedNotification extends BaseNotification {
   user: User;
   transactionId: number;
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   connectorId: string;
   evseDashboardURL: string;
@@ -246,7 +254,9 @@ export interface UserAccountInactivityNotification extends BaseNotification {
 
 export interface PreparingSessionNotStartedNotification extends BaseNotification {
   user: User;
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   connectorId: string;
   startedOn: string;
@@ -296,7 +306,9 @@ export interface CarCatalogSynchronizationFailedNotification extends BaseNotific
 
 export interface ComputeAndApplyChargingProfilesFailedNotification extends BaseNotification {
   siteAreaName: string;
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   evseDashboardURL: string;
 }
@@ -319,7 +331,9 @@ export interface Notification {
 }
 
 export interface SessionNotStartedNotification extends BaseNotification {
+  companyID: string;
   siteID: string;
+  siteAreaID: string;
   chargeBoxID: string;
   user: User;
   evseDashboardURL: string;

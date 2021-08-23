@@ -230,7 +230,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // Email sent successfully
       await Logging.logDebug({
         tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
         siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteAreaID,
+        chargingStationID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',

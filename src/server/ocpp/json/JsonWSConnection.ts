@@ -128,7 +128,10 @@ export default class JsonWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      companyID: this.getCompanyID(),
       siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      chargingStationID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
@@ -140,6 +143,10 @@ export default class JsonWSConnection extends WSConnection {
   public async onPing(): Promise<void> {
     void Logging.logDebug({
       tenantID: this.getTenantID(),
+      companyID: this.getCompanyID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      chargingStationID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_PINGED,
       module: MODULE_NAME, method: 'onPing',

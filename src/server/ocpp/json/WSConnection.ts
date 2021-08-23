@@ -21,7 +21,9 @@ export default abstract class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
   private chargingStationID: string;
+  private companyID: string;
   private siteID: string;
+  private siteAreaID: string;
   private tenantID: string;
   private tenant: Tenant;
   private token: string;
@@ -85,6 +87,10 @@ export default abstract class WSConnection {
     }
     void Logging.logDebug({
       tenantID: this.tenantID,
+      companyID: this.companyID,
+      siteID: this.siteID,
+      siteAreaID: this.siteAreaID,
+      chargingStationID: this.chargingStationID,
       source: this.chargingStationID,
       action: action,
       module: MODULE_NAME, method: 'constructor',
@@ -324,6 +330,16 @@ export default abstract class WSConnection {
   public getSiteID(): string {
     // TODO fetch site id based on charging station
     return this.siteID;
+  }
+
+  public getCompanyID(): string {
+    // TODO fetch company id based on charging station
+    return this.companyID;
+  }
+
+  public getSiteAreaID(): string {
+    // TODO fetch site area id based on charging station
+    return this.siteAreaID;
   }
 
   public getChargingStationID(): string {

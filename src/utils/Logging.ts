@@ -515,23 +515,23 @@ export default class Logging {
   }
 
   public static async logChargingStationClientSendAction(module: string, tenantID: string, chargeBoxID: string,
-      siteID: string, action: ServerAction, args: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, siteID, action, args, '<<');
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, args: any): Promise<void> {
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, siteID, siteAreaID, companyID, action, args, '<<');
   }
 
   public static async logChargingStationClientReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      siteID: string, action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, siteID, action, detailedMessages, '>>');
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, detailedMessages: any): Promise<void> {
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, siteID, siteAreaID, companyID, action, detailedMessages, '>>');
   }
 
   public static async logChargingStationServerReceiveAction(module: string, tenantID: string, chargeBoxID: string,
-      siteID: string, action: ServerAction, payload: any): Promise<void> {
-    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, siteID, action, payload, '>>');
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, payload: any): Promise<void> {
+    await this.traceChargingStationActionStart(module, tenantID, chargeBoxID, siteID, siteAreaID, companyID, action, payload, '>>');
   }
 
   public static async logChargingStationServerRespondAction(module: string, tenantID: string, chargeBoxID: string,
-      siteID: string, action: ServerAction, detailedMessages: any): Promise<void> {
-    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, siteID, action, detailedMessages, '<<');
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, detailedMessages: any): Promise<void> {
+    await this.traceChargingStationActionEnd(module, tenantID, chargeBoxID, siteID, siteAreaID, companyID, action, detailedMessages, '<<');
   }
 
   // Used to log exception in catch(...) only
@@ -903,7 +903,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionStart(module: string, tenantID: string, chargeBoxID: string,
-      siteID: string, action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, args: any, direction: '<<' | '>>'): Promise<void> {
     // Keep duration (only for one Action per Charging Station)
     // If 2 Actions for the same Charging Station arrive at the same time, the second one will not have response time measured
     Logging.traceCalls[`${chargeBoxID}~${action}`] = new Date().getTime();
@@ -911,7 +911,10 @@ export default class Logging {
     Utils.isDevelopmentEnv() && console.debug(chalk.green(message));
     await Logging.logDebug({
       tenantID: tenantID,
+      companyID: companyID,
       siteID: siteID,
+      siteAreaID: siteAreaID,
+      chargingStationID: chargeBoxID,
       source: chargeBoxID,
       module: module, method: action, action,
       message,
@@ -920,7 +923,7 @@ export default class Logging {
   }
 
   private static async traceChargingStationActionEnd(module: string, tenantID: string, chargingStationID: string,
-      siteID: string, action: ServerAction, detailedMessages: any, direction: '<<' | '>>'): Promise<void> {
+      siteID: string, siteAreaID: string, companyID: string, action: ServerAction, detailedMessages: any, direction: '<<' | '>>'): Promise<void> {
     // Compute duration if provided
     let executionDurationMillis: number;
     let found = false;
@@ -961,7 +964,10 @@ export default class Logging {
     } else {
       await Logging.logDebug({
         tenantID,
+        companyID: companyID,
         siteID: siteID,
+        siteAreaID: siteAreaID,
+        chargingStationID: chargingStationID,
         source: chargingStationID,
         module, method: action, action,
         message, detailedMessages

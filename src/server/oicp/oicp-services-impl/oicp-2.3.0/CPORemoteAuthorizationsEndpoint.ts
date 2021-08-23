@@ -109,7 +109,10 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
           // Current remote authorization fails due to valid remote authorization of different user
           await Logging.logDebug({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
             message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,

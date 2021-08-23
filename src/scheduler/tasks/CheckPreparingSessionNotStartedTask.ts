@@ -38,7 +38,9 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
               for (const connector of chargingStation.connectors) {
                 await NotificationHandler.sendPreparingSessionNotStarted(tenant, chargingStation, siteOwners.result[0].user, {
                   user: siteOwners.result[0].user,
+                  companyID: chargingStation.companyID,
                   siteID: chargingStation.siteID,
+                  siteAreaID: chargingStation.siteAreaID,
                   chargeBoxID: chargingStation.id,
                   connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
                   startedOn: moment(chargingStation.connectors['statusLastChangedOn']).format('LL'),
