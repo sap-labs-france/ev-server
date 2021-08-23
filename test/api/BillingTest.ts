@@ -244,8 +244,18 @@ class TestData {
   }
 
   public async checkPricingModel(): Promise<void> {
+    const company = (await this.adminUserService.companyApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
+    assert(company, 'The Company should not be null');
+    await this.createTariff4Company(company.id);
+
+    const site = (await this.adminUserService.siteApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
+    assert(site, 'The Site should not be null');
+    await this.createTariff4Site(site.id);
+  }
+
+  public async createTariff4Company(companyID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
-      contextID: null, // a pricing model for the tenant
+      contextID: companyID, // a pricing model for the company
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
@@ -255,57 +265,87 @@ class TestData {
     const pricingModelId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
     assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-    const price4ParkingTime: PricingDimension = {
-      price: 0.75,
-      active: true
-    };
-    const fastChargerRestrictions: PricingRestriction = {
-      minPowerkW: 40000
-    };
-    const priceEachSessionWithFlatFee: PricingDimension = {
-      price: 1.25,
-      active: true
-    };
-    const price4ChargingTime: PricingDimension = {
-      price: 0.15,
-      active: true
-    };
-    const price4TheEnergy: PricingDimension = {
-      price: 0.35,
-      active: true
-    };
-    const tariff1: PricingDefinition = {
-      name: 'RED Tariff',
-      description: 'Tariff for fast chargers',
-      restrictions: fastChargerRestrictions,
-      dimensions: {
-        flatFee: priceEachSessionWithFlatFee,
-        // chargingTime: price4ChargingTime, // parking time is free while charging
-        energy: price4TheEnergy,
-        parkingTime: price4ParkingTime, // Parking time is not free when not charging
-      }
-    };
-    const lowConsumptionRestrictions: PricingRestriction = {
-      maxPowerkW: 40000,
-    };
-    const tariff2: PricingDefinition = {
+
+    const tariff: PricingDefinition = {
       name: 'GREEN Tariff',
       description: 'Tariff for low EVSE',
-      restrictions: lowConsumptionRestrictions,
+      restrictions: {
+        maxPowerkW: 40000,
+      },
       dimensions: {
-        flatFee: priceEachSessionWithFlatFee,
-        chargingTime: price4ChargingTime,
-        energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
-        parkingTime: price4ParkingTime,
+        flatFee: {
+          price: 1.25,
+          active: true
+        },
+        chargingTime: {
+          price: 0.15,
+          active: true
+        },
+        energy: {
+          price: 0.35,
+          active: true
+        },
+        parkingTime: {
+          price: 0.75,
+          active: true
+        },
       }
     };
+
     const pricingModel = response?.data;
-    pricingModel.pricingDefinitions = [tariff1, tariff2];
+    pricingModel.pricingDefinitions = [tariff];
+    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+  }
+
+
+  public async createTariff4Site(siteID: string): Promise<void> {
+    const initialPricingModel: Partial<PricingModel> = {
+      contextID: siteID, // a pricing model for the site
+      pricingDefinitions: []
+    };
+    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingModelId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
+    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
+
+    const tariff: PricingDefinition = {
+      name: 'RED Tariff',
+      description: 'Tariff for fast chargers',
+      restrictions: {
+        minPowerkW: 40000,
+      },
+      dimensions: {
+        flatFee: {
+          price: 2.25,
+          active: true
+        },
+        chargingTime: {
+          price: 0,
+          active: false
+        },
+        energy: {
+          price: 0.75,
+          active: true
+        },
+        parkingTime: {
+          price: 0,
+          active: true
+        },
+      }
+    };
+
+    const pricingModel = response?.data;
+    pricingModel.pricingDefinitions = [tariff];
     response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
 }
+
 
 const testData: TestData = new TestData();
 

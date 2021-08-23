@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import { PricingConsumptionData, PricingDefinition, PricingDimension, PricingDimensionData, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingModel, { PricingConsumptionData, PricingDefinition, PricingDimension, PricingDimensionData, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
@@ -24,22 +24,37 @@ export default class PricingEngine {
     // - Charging Station
     // - User Group
     // - User
-    // Of course, the date has an impact as well
+    // Of course, the date has an impact as well ... but not sure were to check for it!
     // -----------------------------------------------------------------------------------------
-    // First implementation:
-    // - we only have a single pricing model which is defined for the tenant
-    // - we simply get the latest created one
-    // -----------------------------------------------------------------------------------------
-    let pricingModel: ResolvedPricingModel = null;
-    const pricingModelResults = await PricingStorage.getPricingModels(tenant, {}, { limit: 1, skip: 0, sort: { createdOn: -1 } });
-    if (pricingModelResults.count > 0) {
-      const { pricingDefinitions } = pricingModelResults.result[0];
-      pricingModel = {
-        pricingDefinitions
-      };
+    // Merge the pricing definitions from the different contexts
+    const pricingDefinitions: PricingDefinition[] = [];
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteAreaID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID));
+    // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
+    const resolvedPricingModel: ResolvedPricingModel = {
+      pricingDefinitions
+    };
+    return Promise.resolve(resolvedPricingModel);
+  }
+
+  static async getPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
+    const pricingModel: PricingModel = await PricingEngine.getPricingModel4Entity(tenant, entityID);
+    return pricingModel?.pricingDefinitions || [];
+  }
+
+  static async getPricingModel4Entity(tenant: Tenant, entityID: string): Promise<PricingModel> {
+    if (entityID) {
+      const contextIDs = [ entityID ];
+      const pricingModelResults = await PricingStorage.getPricingModels(tenant, { contextIDs }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
+      if (pricingModelResults.count > 0) {
+        // ---------------------------------------------------------------------
+        // TODO - First implementation: we simply return the latest created one
+        // ---------------------------------------------------------------------
+        return pricingModelResults.result[0];
+      }
     }
-    // TODO - No pricing definition? => Throw an exception ?
-    return Promise.resolve(pricingModel);
+    return null;
   }
 
   static checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition, consumptionData: Consumption) : PricingDefinition {
