@@ -105,7 +105,10 @@ export default class OCPPUtils {
       } else {
         await Logging.logWarning({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.ROAMING,
           user: transaction.userID,
@@ -1141,7 +1144,10 @@ export default class OCPPUtils {
         if (!templateConnector) {
           await Logging.logWarning({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1199,7 +1205,10 @@ export default class OCPPUtils {
       }
       await Logging.logInfo({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1210,7 +1219,10 @@ export default class OCPPUtils {
     }
     await Logging.logWarning({
       tenantID: tenant.id,
+      companyID: chargingStation.companyID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1260,7 +1272,10 @@ export default class OCPPUtils {
       await ChargingStationStorage.saveChargingStation(tenant, chargingStation);
       await Logging.logInfo({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStation',
@@ -1387,7 +1402,10 @@ export default class OCPPUtils {
     await ChargingStationStorage.deleteChargingProfile(tenant, chargingProfile.id);
     await Logging.logInfo({
       tenantID: tenant.id,
+      companyID: chargingStation.companyID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_DELETE,
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
@@ -1472,7 +1490,10 @@ export default class OCPPUtils {
     const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenant, chargingProfile);
     await Logging.logInfo({
       tenantID: tenant.id,
+      companyID: chargingStation.companyID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
@@ -1646,7 +1667,10 @@ export default class OCPPUtils {
       // Ok
       await Logging.logInfo({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
@@ -1676,7 +1700,10 @@ export default class OCPPUtils {
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       await Logging.logInfo({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1697,7 +1724,10 @@ export default class OCPPUtils {
           // Ok: Already the good value
           await Logging.logInfo({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1714,7 +1744,10 @@ export default class OCPPUtils {
           updatedOcppParameters.inSuccess++;
           await Logging.logInfo({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1725,7 +1758,10 @@ export default class OCPPUtils {
           rebootRequired = true;
           await Logging.logInfo({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1797,7 +1833,10 @@ export default class OCPPUtils {
     if (triggerConditionalReset && result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       await Logging.logInfo({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameter',
@@ -1870,7 +1909,10 @@ export default class OCPPUtils {
       if (hardResetFallback && resetType !== OCPPResetType.HARD) {
         await Logging.logInfo({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_RESET,
           module: MODULE_NAME, method: 'triggerChargingStationReset',
@@ -2054,7 +2096,10 @@ export default class OCPPUtils {
                   if (Constants.OCPP_HEARTBEAT_KEYS.includes(parameter)) {
                     await Logging.logWarning({
                       tenantID: tenant.id,
+                      companyID: chargingStation.companyID,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2117,7 +2162,10 @@ export default class OCPPUtils {
                   if (Constants.OCPP_HEARTBEAT_KEYS.includes(parameter)) {
                     await Logging.logWarning({
                       tenantID: tenant.id,
+                      companyID: chargingStation.companyID,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2162,7 +2210,10 @@ export default class OCPPUtils {
         templateUpdateResult.chargingStationUpdated = true;
         await Logging.logInfo({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2172,7 +2223,10 @@ export default class OCPPUtils {
         if (!Utils.isEmptyArray(sectionsNotMatched)) {
           await Logging.logWarning({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2198,7 +2252,10 @@ export default class OCPPUtils {
     } else if (chargingStationTemplate && chargingStation.manualConfiguration) {
       await Logging.logWarning({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2215,7 +2272,10 @@ export default class OCPPUtils {
     }
     await Logging.logWarning({
       tenantID: tenant.id,
+      companyID: chargingStation.companyID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',

@@ -445,7 +445,10 @@ export default class ChargingStationService {
         // Log
         await Logging.logWarning({
           tenantID: req.user.tenantID,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: action,
           user: req.user,
@@ -474,7 +477,10 @@ export default class ChargingStationService {
     }
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      companyID: chargingStation.companyID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -1499,7 +1505,10 @@ export default class ChargingStationService {
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               await Logging.logWarning({
                 tenantID: tenant.id,
+                companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 user: user,
                 action: action,
@@ -1610,7 +1619,10 @@ export default class ChargingStationService {
           // OCPP Command with no status
           await Logging.logInfo({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',

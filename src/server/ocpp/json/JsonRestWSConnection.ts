@@ -28,7 +28,10 @@ export default class JsonRestWSConnection extends WSConnection {
       this.initialized = true;
       await Logging.logInfo({
         tenantID: this.getTenantID(),
+        companyID: this.getCompanyID(),
         siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        chargingStationID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
@@ -51,7 +54,10 @@ export default class JsonRestWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      companyID: (this.getCompanyID() ? this.getCompanyID() : ''),
       siteID: (this.getSiteID() ? this.getSiteID() : ''),
+      siteAreaID: (this.getSiteAreaID() ? this.getSiteAreaID() : ''),
+      chargingStationID: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,

@@ -43,7 +43,10 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             if (ocppHeartbeatConfiguration) {
               await Logging.logInfo({
                 tenantID: tenant.id,
+                companyID: chargingStation.companyID,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',

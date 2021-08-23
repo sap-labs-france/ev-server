@@ -148,7 +148,9 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     // Notify Admins
     await NotificationHandler.sendComputeAndApplyChargingProfilesFailed(tenant, chargingStation,
       {
+        companyID: chargingProfile.chargingStation?.companyID,
         siteID: chargingProfile.chargingStation?.siteID,
+        siteAreaID: chargingProfile.chargingStation?.siteAreaID,
         chargeBoxID: chargingProfile.chargingStationID,
         siteAreaName: siteAreaName,
         evseDashboardURL: Utils.buildEvseURL()
