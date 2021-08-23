@@ -255,12 +255,20 @@ class TestData {
     const pricingModelId = response?.data?.id;
     response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
     assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
-    const parkingPrice: PricingDimension = {
+    const price4ParkingTime: PricingDimension = {
       price: 0.75,
       active: true
     };
     const fastChargerRestrictions: PricingRestriction = {
       minPowerkW: 40000
+    };
+    const priceEachSessionWithFlatFee: PricingDimension = {
+      price: 1.25,
+      active: true
+    };
+    const price4ChargingTime: PricingDimension = {
+      price: 0.15,
+      active: true
     };
     const price4TheEnergy: PricingDimension = {
       price: 0.35,
@@ -271,9 +279,10 @@ class TestData {
       description: 'Tariff for fast chargers',
       restrictions: fastChargerRestrictions,
       dimensions: {
-        // chargingTime: parkingPrice, // parking time is free while charging
+        flatFee: priceEachSessionWithFlatFee,
+        // chargingTime: price4ChargingTime, // parking time is free while charging
         energy: price4TheEnergy,
-        parkingTime: parkingPrice, // Parking time is not free when not charging
+        parkingTime: price4ParkingTime, // Parking time is not free when not charging
       }
     };
     const lowConsumptionRestrictions: PricingRestriction = {
@@ -284,9 +293,10 @@ class TestData {
       description: 'Tariff for low EVSE',
       restrictions: lowConsumptionRestrictions,
       dimensions: {
-        chargingTime: parkingPrice,
-        // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
-        parkingTime: parkingPrice,
+        flatFee: priceEachSessionWithFlatFee,
+        chargingTime: price4ChargingTime,
+        energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
+        parkingTime: price4ParkingTime,
       }
     };
     const pricingModel = response?.data;
