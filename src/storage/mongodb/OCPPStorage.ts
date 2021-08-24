@@ -8,6 +8,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TransactionStorage from './TransactionStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPPStorage';
@@ -443,8 +444,13 @@ export default class OCPPStorage {
         // Execute
         await global.database.getCollection<any>(tenant.id, 'metervalues').insertOne(meterValueMDB);
       } catch (error) {
+        const transaction = await TransactionStorage.getTransaction(tenant, meterValueToSave.transactionId);
         await Logging.logError({
           tenantID: tenant.id,
+          companyID: transaction.companyID,
+          siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          chargingStationID: transaction.chargeBoxID,
           source: meterValueToSave.chargeBoxID,
           module: MODULE_NAME, method: 'saveMeterValues',
           action: ServerAction.METER_VALUES,

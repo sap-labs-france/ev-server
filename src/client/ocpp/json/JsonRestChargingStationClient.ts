@@ -171,7 +171,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         await Logging.logError({
           tenantID: this.tenantID,
+          companyID: this.chargingStation.companyID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          chargingStationID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
           module: MODULE_NAME, method: 'onError',
@@ -193,7 +196,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               // Error message
               await Logging.logError({
                 tenantID: this.tenantID,
+                companyID: this.chargingStation.companyID,
                 siteID: this.chargingStation.siteID,
+                siteAreaID: this.chargingStation.siteAreaID,
+                chargingStationID: this.chargingStation.id,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
@@ -212,7 +218,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Error message
             await Logging.logError({
               tenantID: this.tenantID,
+              companyID: this.chargingStation.companyID,
               siteID: this.chargingStation.siteID,
+              siteAreaID: this.chargingStation.siteAreaID,
+              chargingStationID: this.chargingStation.id,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',

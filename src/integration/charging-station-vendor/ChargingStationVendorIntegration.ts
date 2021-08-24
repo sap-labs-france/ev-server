@@ -234,7 +234,10 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
@@ -332,7 +335,10 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
@@ -385,7 +391,10 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
@@ -489,7 +498,10 @@ export default abstract class ChargingStationVendorIntegration {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,

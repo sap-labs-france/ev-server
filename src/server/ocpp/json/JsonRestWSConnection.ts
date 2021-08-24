@@ -43,6 +43,10 @@ export default class JsonRestWSConnection extends WSConnection {
   public onError(errorEvent: ErrorEvent): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
+      companyID: (this.getCompanyID() ? this.getCompanyID() : ''),
+      siteID: (this.getSiteID() ? this.getSiteID() : ''),
+      siteAreaID: (this.getSiteAreaID() ? this.getSiteAreaID() : ''),
+      chargingStationID: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
@@ -81,7 +85,9 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID());
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(
+      this.getTenantID(), this.getCompanyID(), this.getSiteID(), this.getSiteAreaID(), this.getChargingStationID()
+    );
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),

@@ -16,6 +16,7 @@ import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
+import { json } from 'body-parser';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
@@ -45,12 +46,16 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.startWSServer();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
+  public getChargingStationClient(tenantID: string, companyID: string, siteID: string, siteAreaID: string, chargingStationID: string): ChargingStationClient {
     // Get the Json Web Socket
     const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
+        companyID: companyID,
+        siteID: siteID,
+        siteAreaID: siteAreaID,
+        chargingStationID: chargingStationID,
         source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
@@ -176,6 +181,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           if (!jsonWSConnection.isConnectionAlive) {
             void Logging.logError({
               tenantID: jsonWSConnection.getTenantID(),
+              companyID: jsonWSConnection.getCompanyID(),
+              siteID: jsonWSConnection.getSiteID(),
+              siteAreaID: jsonWSConnection.getSiteAreaID(),
+              chargingStationID: jsonWSConnection.getChargingStationID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
               module: MODULE_NAME, method: 'createWSServer',

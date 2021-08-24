@@ -188,7 +188,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // No suitable main SMTP server configuration found to send the email
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
         siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteAreaID,
+        chargingStationID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
@@ -201,7 +204,10 @@ export default class EMailNotificationTask implements NotificationTask {
     // No suitable backup SMTP server configuration found or activated to send the email
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
         siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteAreaID,
+        chargingStationID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'sendEmail',
@@ -250,7 +256,10 @@ export default class EMailNotificationTask implements NotificationTask {
       try {
         await Logging.logError({
           tenantID: tenant.id ? tenant.id : Constants.DEFAULT_TENANT,
+          companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
           siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+          siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteAreaID,
+          chargingStationID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
           source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
           action: ServerAction.EMAIL_NOTIFICATION,
           module: MODULE_NAME, method: 'sendEmail',
@@ -425,7 +434,10 @@ export default class EMailNotificationTask implements NotificationTask {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
         siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteAreaID,
+        chargingStationID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         action: ServerAction.EMAIL_NOTIFICATION,
         module: MODULE_NAME, method: 'prepareAndSendEmail',

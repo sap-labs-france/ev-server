@@ -708,7 +708,10 @@ export default class CpoOICPClient extends OICPClient {
     if (requestError) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        companyID: transaction.companyID,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        chargingStationID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -724,7 +727,10 @@ export default class CpoOICPClient extends OICPClient {
     if (authorizeResponse?.AuthorizationStatus !== OICPAuthorizationStatus.Authorized) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        companyID: transaction.companyID,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        chargingStationID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -820,7 +826,10 @@ export default class CpoOICPClient extends OICPClient {
     if (!pushCdrResponse?.Result || pushCdrResponse?.Result !== true) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        companyID: transaction.companyID,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        chargingStationID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,

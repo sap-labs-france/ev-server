@@ -715,7 +715,10 @@ export default class OCPPService {
         } catch (error) {
           await Logging.logError({
             tenantID: tenant.id,
+            companyID: chargingStation.companyID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'triggerSmartChargingStopTransaction',
             action: ServerAction.STOP_TRANSACTION,
@@ -753,7 +756,10 @@ export default class OCPPService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
+          companyID: transaction.companyID,
           siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          chargingStationID: transaction.chargeBoxID,
           source: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
@@ -818,7 +824,10 @@ export default class OCPPService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'processSmartChargingStatusNotification',
           action: ServerAction.STATUS_NOTIFICATION,
@@ -1028,7 +1037,10 @@ export default class OCPPService {
       } catch (error) {
         await Logging.logError({
           tenantID: tenant.id,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'updateOCPIConnectorStatus',
           action: ServerAction.OCPI_PATCH_STATUS,
@@ -1048,7 +1060,10 @@ export default class OCPPService {
     } catch (error) {
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'updateOICPConnectorStatus',
         action: ServerAction.OICP_UPDATE_EVSE_STATUS,
@@ -1066,7 +1081,10 @@ export default class OCPPService {
       // Log
       await Logging.logError({
         tenantID: tenant.id,
+        companyID: chargingStation.companyID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.STATUS_NOTIFICATION,
         module: MODULE_NAME, method: 'notifyStatusNotification',
@@ -1552,7 +1570,10 @@ export default class OCPPService {
             // Cannot stop it
             await Logging.logError({
               tenantID: tenant.id,
+              companyID: chargingStation.companyID,
               siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              chargingStationID: chargingStation.id,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
@@ -1994,7 +2015,10 @@ export default class OCPPService {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.BOOT_NOTIFICATION,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
           message: `Cannot set heartbeat interval OCPP Parameter on '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
@@ -2009,7 +2033,10 @@ export default class OCPPService {
         await Logging.logError({
           tenantID: tenant.id,
           action: ServerAction.BOOT_NOTIFICATION,
+          companyID: chargingStation.companyID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'requestOCPPConfigurationDelayed',
           message: `Cannot request and save OCPP Parameters from '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,

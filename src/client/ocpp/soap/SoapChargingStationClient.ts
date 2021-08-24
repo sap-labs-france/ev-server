@@ -46,7 +46,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           void Logging.logError({
             tenantID: scsc.tenantID,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
+            companyID: scsc.chargingStation.companyID,
             siteID: scsc.chargingStation.siteID,
+            siteAreaID: scsc.chargingStation.siteAreaID,
+            chargingStationID: scsc.chargingStation.id,
             source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
@@ -62,7 +65,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           await Logging.logError({
             tenantID: scsc.tenantID,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
+            companyID: scsc.chargingStation.companyID,
             siteID: scsc.chargingStation.siteID,
+            siteAreaID: scsc.chargingStation.siteAreaID,
+            chargingStationID: scsc.chargingStation.id,
             source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `Error when creating SOAP client: ${error.toString()}`,
@@ -96,7 +102,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
@@ -129,7 +138,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`,
@@ -162,7 +174,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
@@ -195,7 +210,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_RESET,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
@@ -226,7 +244,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_CLEAR_CACHE,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
@@ -266,7 +287,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
@@ -304,7 +328,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       await Logging.logError({
         tenantID: this.tenantID,
+        companyID: this.chargingStation.companyID,
         siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        chargingStationID: this.chargingStation.id,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'changeConfiguration',
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,

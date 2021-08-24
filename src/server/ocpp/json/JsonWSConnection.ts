@@ -120,6 +120,10 @@ export default class JsonWSConnection extends WSConnection {
   public onError(errorEvent: ErrorEvent): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
+      companyID: this.getCompanyID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      chargingStationID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
@@ -202,6 +206,10 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.isWSConnectionOpen()) {
       void Logging.logError({
         tenantID: this.getTenantID(),
+        companyID: this.getCompanyID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        chargingStationID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,

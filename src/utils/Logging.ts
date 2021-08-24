@@ -956,7 +956,10 @@ export default class Logging {
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === OCPPStatus.REJECTED) {
       await Logging.logError({
         tenantID,
+        companyID: companyID,
         siteID: siteID,
+        siteAreaID: siteAreaID,
+        chargingStationID: chargingStationID,
         source: chargingStationID,
         module, method: action, action,
         message, detailedMessages

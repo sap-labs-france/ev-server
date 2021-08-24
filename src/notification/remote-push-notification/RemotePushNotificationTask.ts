@@ -501,7 +501,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error: Error) => {
       void Logging.logError({
         tenantID: tenant.id,
+        companyID: (data && Utils.objectHasProperty(data, 'companyID') ? data['companyID'] : null),
         siteID: (data && Utils.objectHasProperty(data, 'siteID') ? data['siteID'] : null),
+        siteAreaID: (data && Utils.objectHasProperty(data, 'siteAreaID') ? data['siteAreaID'] : null),
+        chargingStationID: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',

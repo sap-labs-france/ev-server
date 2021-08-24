@@ -62,6 +62,10 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         // Log failed
         await Logging.logError({
           tenantID: this.tenant.id,
+          companyID: chargingProfile.chargingStation.companyID,
+          siteID: chargingProfile.chargingStation.siteID,
+          siteAreaID: chargingProfile.chargingStation.siteAreaID,
+          chargingStationID: chargingProfile.chargingStation.id,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
@@ -133,6 +137,10 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         // Log failed
         await Logging.logError({
           tenantID: this.tenant.id,
+          companyID: chargingProfile.chargingStation.companyID,
+          siteID: chargingProfile.chargingStation.siteID,
+          siteAreaID: chargingProfile.chargingStation.siteAreaID,
+          chargingStationID: chargingProfile.chargingStation.id,
           source: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'handleRefusedChargingProfile',
