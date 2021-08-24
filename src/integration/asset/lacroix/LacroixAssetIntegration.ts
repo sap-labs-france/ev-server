@@ -59,7 +59,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
         {
           auth: {
             username: this.connection.lacroixConnection.user,
-            password: await Cypher.decrypt(this.tenant.id, this.connection.lacroixConnection.password)
+            password: await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password)
           }
         }
       );
@@ -194,7 +194,7 @@ export default class LacroixAssetIntegration extends AssetIntegration<AssetSetti
   private async getCredentialParams(): Promise<URLSearchParams> {
     const params = new URLSearchParams();
     params.append('email', this.connection.lacroixConnection.user);
-    params.append('plainPassword', await Cypher.decrypt(this.tenant.id, this.connection.lacroixConnection.password));
+    params.append('plainPassword', await Cypher.decrypt(this.tenant, this.connection.lacroixConnection.password));
     return params;
   }
 }

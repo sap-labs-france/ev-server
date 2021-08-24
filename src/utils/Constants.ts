@@ -313,7 +313,7 @@ export default class Constants {
 
   public static readonly SENSITIVE_DATA = Object.freeze([
     'firstName', 'name', 'repeatPassword', 'password', 'plainPassword','captcha', 'email', 'coordinates', 'latitude', 'longitude',
-    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'token', 'Bearer',
+    'Authorization', 'authorization', 'client_id', 'client_secret', 'refresh_token', 'localToken', 'Bearer',
   ]);
 
   public static readonly MONGO_USER_MASK = Object.freeze({

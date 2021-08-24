@@ -215,6 +215,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
@@ -260,6 +261,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
@@ -306,6 +308,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_PUSH_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been patched successfully`,
@@ -351,6 +354,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_STOP_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been stopped successfully`,
@@ -406,6 +410,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has been sent successfully`,
@@ -440,6 +445,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
@@ -716,7 +722,7 @@ export default class CpoOCPIClient extends OCPIClient {
         failureNbr: result.failure,
         totalNbr: result.total,
         chargeBoxIDsInFailure: _.uniq(result.objectIDsInFailure),
-        chargeBoxIDsInSuccess: _.uniq(result.objectIDsInFailure)
+        chargeBoxIDsInSuccess: []
       };
     } else {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -827,6 +833,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.data.status_code === 3001) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_CHECK_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR does not exist in IOP`,
@@ -849,6 +856,7 @@ export default class CpoOCPIClient extends OCPIClient {
         // CDR checked
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_CDRS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR has been checked successfully`,
@@ -860,6 +868,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logError({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR '${transaction.ocpiData.session.id}' at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
@@ -895,6 +904,7 @@ export default class CpoOCPIClient extends OCPIClient {
       if (session) {
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_SESSIONS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been checked successfully`,
@@ -906,6 +916,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logError({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check Transaction at ${sessionsUrl}`,
@@ -1003,12 +1014,12 @@ export default class CpoOCPIClient extends OCPIClient {
       connectorId: number, countryId: string, partyId: string): OCPILocation {
     const connectors: OCPIConnector[] = [];
     let status: ChargePointStatus;
-    for (const chargingStationConnector of chargingStation.connectors) {
-      if (chargingStationConnector.connectorId === connectorId) {
-        connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, chargingStationConnector, countryId, partyId));
-        status = chargingStationConnector.status;
-        break;
-      }
+    const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+    let chargePoint;
+    if (connector) {
+      connectors.push(OCPIUtilsService.convertConnector2OCPIConnector(tenant, chargingStation, connector, countryId, partyId));
+      status = connector.status;
+      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
     const ocpiLocation: OCPILocation = {
       id: site.id,
@@ -1024,8 +1035,7 @@ export default class CpoOCPIClient extends OCPIClient {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation, Utils.getConnectorFromID(chargingStation, connectorId)),
-        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id,
-          Utils.getConnectorFromID(chargingStation, connectorId).connectorId),
+        evse_id: RoamingUtils.buildEvseID(countryId, partyId, chargingStation.id, chargePoint && chargePoint.cannotChargeInParallel ? chargePoint.chargePointID : connectorId),
         location_id: chargingStation.siteID,
         status: OCPIUtilsService.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],

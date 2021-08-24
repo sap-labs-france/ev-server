@@ -105,6 +105,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Log
     await Logging.logInfo({
       tenantID: this.tenantID,
+      siteID: this.chargingStation.siteID,
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'onOpen',
@@ -138,6 +139,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         await Logging.logInfo({
           tenantID: this.tenantID,
+          siteID: this.chargingStation.siteID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
           module: MODULE_NAME, method: 'onOpen',
@@ -151,6 +153,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         await Logging.logInfo({
           tenantID: this.tenantID,
+          siteID: this.chargingStation.siteID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
           module: MODULE_NAME, method: 'onClose',
@@ -163,6 +166,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         await Logging.logError({
           tenantID: this.tenantID,
+          siteID: this.chargingStation.siteID,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_ERROR,
           module: MODULE_NAME, method: 'onError',
@@ -184,6 +188,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               // Error message
               await Logging.logError({
                 tenantID: this.tenantID,
+                siteID: this.chargingStation.siteID,
                 source: this.chargingStation.id,
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
@@ -202,6 +207,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Error message
             await Logging.logError({
               tenantID: this.tenantID,
+              siteID: this.chargingStation.siteID,
               source: this.chargingStation.id,
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',

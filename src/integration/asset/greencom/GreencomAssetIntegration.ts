@@ -180,7 +180,7 @@ export default class GreencomAssetIntegration extends AssetIntegration<AssetSett
     return {
       'grant_type': 'client_credentials',
       'client_id': this.connection.greencomConnection.clientId,
-      'client_secret': await Cypher.decrypt(this.tenant.id, this.connection.greencomConnection.clientSecret)
+      'client_secret': await Cypher.decrypt(this.tenant, this.connection.greencomConnection.clientSecret)
     };
   }
 

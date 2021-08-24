@@ -20,7 +20,7 @@ export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<CpoOCPIClient|EmspOCPIClient> {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-      const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
+      const ocpiSettings = await SettingStorage.getOCPISettings(tenant);
       // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
         await Logging.logError({
