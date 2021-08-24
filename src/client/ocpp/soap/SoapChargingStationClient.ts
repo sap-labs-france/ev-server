@@ -4,6 +4,7 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import global from '../../../types/GlobalType';
 import { soap } from 'strong-soap';
