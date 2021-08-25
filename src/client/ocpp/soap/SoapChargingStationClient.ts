@@ -46,6 +46,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           void Logging.logError({
             tenantID: scsc.tenantID,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
+            siteID: scsc.chargingStation.siteID,
             source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
@@ -61,6 +62,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           await Logging.logError({
             tenantID: scsc.tenantID,
             action: ServerAction.CHARGING_STATION_CLIENT_INITIALIZATION,
+            siteID: scsc.chargingStation.siteID,
             source: scsc.chargingStation.id,
             module: MODULE_NAME, method: 'getChargingStationClient',
             message: `Error when creating SOAP client: ${error.toString()}`,
@@ -93,6 +95,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
@@ -122,6 +125,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`,
@@ -153,6 +157,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
@@ -183,6 +188,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_RESET,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
@@ -211,6 +217,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_CLEAR_CACHE,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
@@ -248,6 +255,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       await Logging.logError({
         tenantID: this.tenantID,
         action: ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
@@ -283,6 +291,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       await Logging.logError({
         tenantID: this.tenantID,
+        siteID: this.chargingStation.siteID,
         source: this.chargingStation.id,
         module: MODULE_NAME, method: 'changeConfiguration',
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
