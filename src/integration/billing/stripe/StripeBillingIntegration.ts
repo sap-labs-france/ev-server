@@ -2,7 +2,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import PricingModel, { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
+import { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
@@ -859,6 +859,19 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async _createStripeInvoiceItems(customerID: string, billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<void> {
+    // ---------------------------------------------------------------------------------------------------------
+    // Be careful, we may have sessions mixing several pricing definitions
+    // e.g.: We may have a tariff for the week-end which is different from the regular one.If the user starts a
+    // session on friday night and keeps charging during the week-end, the two tariffs are used.
+    // The invoice will show the detail for each tariff and for each billed dimension
+    // ---------------------------------------------------------------------------------------------------------
+    for (const pricingConsumptionData of billingInvoiceItem.pricingData) {
+      await this._createStripeInvoiceItems4PricingConsumptionData(customerID, billingInvoiceItem, pricingConsumptionData, invoiceID);
+    }
+  }
+
+  private async _createStripeInvoiceItems4PricingConsumptionData(customerID: string,
+      billingInvoiceItem: BillingInvoiceItem, pricedData: PricingConsumptionData, invoiceID?: string): Promise<void> {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
     -----------------------------------------------------------------------------------
@@ -871,24 +884,23 @@ export default class StripeBillingIntegration extends BillingIntegration {
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
     // A stripe invoice item per dimension
-    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, pricedData, invoiceID);
   }
 
   private async _createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
-      billingInvoiceItem: BillingInvoiceItem, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
-    const pricingData = billingInvoiceItem.pricingData;
+      billingInvoiceItem: BillingInvoiceItem, pricedData: PricingConsumptionData, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     // data for the current dimension (energy | parkingTime, etc)
-    const dimensionData: PricingDimensionData = pricingData[dimension];
+    const dimensionData: PricingDimensionData = pricedData[dimension];
     if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
       // Do not bill that dimension
       return null;
     }
     const currency = billingInvoiceItem.currency.toLowerCase();
     // Tax rates
-    const tax_rates = pricingData[dimension].taxes || [];
+    const tax_rates = pricedData[dimension].taxes || [];
     // Build stripe parameters for the parking time
     const parameters: Stripe.InvoiceItemCreateParams = {
       invoice: invoiceID,
@@ -897,7 +909,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description: dimensionData.itemDescription,
       tax_rates,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(pricingData[dimension].amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(pricedData[dimension].amount).times(100).round().toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
@@ -1036,14 +1048,12 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-
     if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL) && transaction.pricingModel) {
       // Built-in Pricing
       return this._convertPricingDataToBillingInvoiceItem(transaction);
     }
     // Simple Pricing - Do it the old way!
     return this._convertToBillingInvoiceItem(transaction);
-
   }
 
   private _convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
@@ -1053,7 +1063,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData: pricingData[0],
+      pricingData: pricingData,
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,
@@ -1114,14 +1124,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData: {
+      pricingData: [{
         energy: {
           itemDescription,
           amount,
           quantity,
           taxes
         }
-      },
+      }],
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,

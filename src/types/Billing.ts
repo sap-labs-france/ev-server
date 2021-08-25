@@ -84,7 +84,7 @@ export interface BillingInvoice {
 export interface BillingInvoiceItem {
   transactionID: number;
   currency: string;
-  pricingData: PricingConsumptionData
+  pricingData: PricingConsumptionData[]
   metadata?: {
     // Just a flat list of key/value pairs!
     [name: string]: string | number | null;
@@ -93,7 +93,7 @@ export interface BillingInvoiceItem {
 
 export interface BillingSessionData {
   transactionID: number;
-  pricingData: PricingConsumptionData;
+  pricingData: PricingConsumptionData[];
 }
 
 export enum BillingInvoiceStatus {

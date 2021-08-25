@@ -295,7 +295,7 @@ export default class StripeIntegrationTestData {
     const invoiceItem:BillingInvoiceItem = {
       currency: 'EUR',
       transactionID: Utils.getRandomIntSafe(),
-      pricingData: pricingConsumptionData
+      pricingData: [ pricingConsumptionData ]
     };
     // Let's attempt to bill the line item
     const billingInvoice: BillingInvoice = await this.billingImpl.billInvoiceItem(this.dynamicUser, invoiceItem);
