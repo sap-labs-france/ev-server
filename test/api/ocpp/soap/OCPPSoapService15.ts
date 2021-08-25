@@ -77,6 +77,9 @@ export default class OCPPSoapService15 extends OCPPService {
       name: action,
       headers: {
         chargeBoxIdentity: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         From: {
           Address: 'http://www.w3.org/2005/08/addressing/anonymous'
         },

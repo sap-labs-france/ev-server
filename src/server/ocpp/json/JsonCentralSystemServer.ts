@@ -16,7 +16,6 @@ import WebSocket from 'ws';
 import { WebSocketCloseEventStatusCode } from '../../../types/WebSocket';
 import global from '../../../types/GlobalType';
 import http from 'http';
-import { json } from 'body-parser';
 
 const MODULE_NAME = 'JsonCentralSystemServer';
 
