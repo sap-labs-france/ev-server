@@ -119,14 +119,14 @@ export default class PricingEngine {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    const quantity = 1; // To be clarified - Flat Fee is billing billed once per sessions
+    const quantity = 1; // TODO - To be clarified - Flat Fee is billed once per sessions
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'flatFee', quantity);
     return pricingDimensionData;
   }
 
   private static priceEnergyConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
-    const quantity = Utils.createDecimal(consumptionData?.cumulatedConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
+    const quantity = Utils.createDecimal(consumptionData?.consumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'energy', quantity);
     return pricingDimensionData;
   }
@@ -223,8 +223,8 @@ export default class PricingEngine {
     const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
     const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
     const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
-
-    const amount = flatFee?.amount + energy?.amount + chargingTime?.amount + parkingTime?.amount;
+    // Sum all dimensions
+    const amount = Utils.createDecimal(flatFee?.amount || 0).plus(energy?.amount || 0).plus(chargingTime?.amount || 0).plus(parkingTime?.amount || 0).toNumber();
     return amount;
   }
 
