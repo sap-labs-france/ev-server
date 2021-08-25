@@ -28,6 +28,8 @@ export default class PricingEngine {
     // -----------------------------------------------------------------------------------------
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: PricingDefinition[] = [];
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
+    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.chargeBoxID));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteAreaID));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteID));
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID));

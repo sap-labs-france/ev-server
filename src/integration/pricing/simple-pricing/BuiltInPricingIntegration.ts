@@ -1,4 +1,4 @@
-import { PricedConsumption, PricingSource } from '../../../types/Pricing';
+import { PricedConsumption, PricingDefinition, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
 import PricingEngine from '../PricingEngine';
@@ -19,7 +19,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    pricedConsumption.pricingModel = await PricingEngine.resolvePricingContext(this.tenant, transaction);
+    pricedConsumption.pricingModel = await this.resolvePricingContext(this.tenant, transaction);
     return pricedConsumption;
   }
 
@@ -50,4 +50,23 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     };
     return Promise.resolve(pricedConsumption);
   }
+
+  private async resolvePricingContext(tenant: Tenant, transaction: Transaction): Promise<ResolvedPricingModel> {
+    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction);
+    if (!resolvedPricingModel.pricingDefinitions?.length) {
+      const simplePricingDefinition: PricingDefinition = {
+        name: 'Default Tariff',
+        description: 'Tariff based on simple pricing settings',
+        dimensions: {
+          energy: {
+            active: true,
+            price: this.setting.price,
+          }
+        }
+      };
+      resolvedPricingModel.pricingDefinitions = [ simplePricingDefinition ];
+    }
+    return resolvedPricingModel;
+  }
+
 }
