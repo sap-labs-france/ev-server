@@ -2,6 +2,7 @@ import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, 
 import { OCPPIncomingRequest, OCPPMessageType } from '../../../../src/types/ocpp/OCPPCommon';
 import { ServerAction, WSServerProtocol } from '../../../../src/types/Server';
 
+import ChargingStation from '../../../types/ChargingStation';
 import OCPPService from '../OCPPService';
 import Utils from '../../../../src/utils/Utils';
 import WSClient from '../../../../src/client/websocket/WSClient';
@@ -23,7 +24,7 @@ export default class OCPPJsonService16 extends OCPPService {
     return OCPPVersion.VERSION_16;
   }
 
-  public async openConnection(chargeBoxIdentity: string): Promise<{ connection: WSClient, requests: any }> {
+  public async openConnection(chargingStation: ChargingStation): Promise<{ connection: WSClient, requests: any }> {
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};
@@ -32,7 +33,7 @@ export default class OCPPJsonService16 extends OCPPService {
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
         autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
       };
-      const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
+      const wsConnection = new WSClient(`${this.serverUrl}/${chargingStation.id}/${chargingStation.siteAreaID}/${chargingStation.siteID}/${chargingStation.companyID}`, wsClientOptions, false);
       // Opened
       wsConnection.onopen = () => {
         // Connection is opened and ready to use
@@ -68,7 +69,7 @@ export default class OCPPJsonService16 extends OCPPService {
             // Respond to the request
             sentRequests[messageId].resolve(response);
           } else if (messageType === OCPPMessageType.CALL_MESSAGE) {
-            await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
+            await this.handleRequest(chargingStation, messageId, commandName, commandPayload);
           }
         } catch (error) {
           reject(error);
@@ -77,13 +78,13 @@ export default class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  public async handleRequest(chargeBoxIdentity: string, messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
+  public async handleRequest(chargingStation: ChargingStation, messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
     let result = {};
     const methodName = `handle${commandName}`;
     if (this.requestHandler && typeof this.requestHandler[methodName] === 'function') {
       result = await this.requestHandler[methodName](commandPayload);
     }
-    await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
+    await this.send(chargingStation, this.buildResponse(messageId, result));
   }
 
   public closeConnection(): void {
@@ -94,79 +95,79 @@ export default class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  public async executeAuthorize(chargingStationID: string, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('Authorize', authorize));
+  public async executeAuthorize(chargingStation: ChargingStation, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('Authorize', authorize));
     return response.data;
   }
 
-  public async executeStartTransaction(chargingStationID: string, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StartTransaction', startTransaction));
+  public async executeStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('StartTransaction', startTransaction));
     return response.data;
   }
 
-  public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StopTransaction', stopTransaction));
+  public async executeStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('StopTransaction', stopTransaction));
     return response.data;
   }
 
-  public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('Heartbeat', heartbeat));
+  public async executeHeartbeat(chargingStation: ChargingStation, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('Heartbeat', heartbeat));
     return response.data;
   }
 
-  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('MeterValues', meterValue));
+  public async executeMeterValues(chargingStation: ChargingStation, meterValue: OCPPMeterValuesRequest | OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('MeterValues', meterValue));
     return response.data;
   }
 
-  public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('BootNotification', bootNotification));
+  public async executeBootNotification(chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('BootNotification', bootNotification));
     return response.data;
   }
 
-  public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('StatusNotification', statusNotification));
+  public async executeStatusNotification(chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('StatusNotification', statusNotification));
     return response.data;
   }
 
-  public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('FirmwareStatusNotification', firmwareStatusNotification));
+  public async executeFirmwareStatusNotification(chargingStation: ChargingStation, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('FirmwareStatusNotification', firmwareStatusNotification));
     return response.data;
   }
 
-  public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('DiagnosticsStatusNotification', diagnosticsStatusNotification));
+  public async executeDiagnosticsStatusNotification(chargingStation: ChargingStation, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('DiagnosticsStatusNotification', diagnosticsStatusNotification));
     return response.data;
   }
 
-  public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
-    const response = await this.send(chargingStationID, this.buildRequest('DataTransfer', dataTransfer));
+  public async executeDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    const response = await this.send(chargingStation, this.buildRequest('DataTransfer', dataTransfer));
     return response.data;
   }
 
-  private async send(chargeBoxIdentity: string, message: any): Promise<any> {
+  private async send(chargingStation: ChargingStation, message: any): Promise<any> {
     // Debug
     if (config.trace_logs) {
       console.debug('OCPP Request ====================================');
-      console.debug({ chargeBoxIdentity, message });
+      console.debug({ chargeBoxIdentity: chargingStation.id, message });
       console.debug('====================================');
     }
     // WS Opened?
-    if (!this.wsSessions?.get(chargeBoxIdentity)?.connection?.isConnectionOpen()) {
+    if (!this.wsSessions?.get(chargingStation.id)?.connection?.isConnectionOpen()) {
       // Open WS
-      const ws = await this.openConnection(chargeBoxIdentity);
-      this.wsSessions.set(chargeBoxIdentity, ws);
+      const ws = await this.openConnection(chargingStation);
+      this.wsSessions.set(chargingStation.id, ws);
     }
     // Send
     const t0 = performance.now();
-    this.wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
-      config.trace_logs && console.debug(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
+    this.wsSessions.get(chargingStation.id).connection.send(JSON.stringify(message), {}, (error?: Error) => {
+      config.trace_logs && console.debug(`Sending error to '${chargingStation.id}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
     if (message[0] === OCPPMessageType.CALL_MESSAGE) {
       // Return a promise
       return new Promise((resolve, reject) => {
         // Set the resolve function
-        this.wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
+        this.wsSessions.get(chargingStation.id).requests[message[1]] = { resolve, reject, t0: t0 };
       });
     }
   }

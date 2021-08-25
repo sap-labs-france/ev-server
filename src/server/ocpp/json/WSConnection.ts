@@ -56,10 +56,19 @@ export default abstract class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
+    // Parse URL Updated: should be like /OCPPxx/TenantID/Token/ChargeBoxID/SiteAreaID/SiteID/CompanyID
     // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
     // We support previous format for existing charging station without token /OCPPxx/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
-    if (splittedURL.length === 4) {
+    if (splittedURL.length === 7) {
+      // URL /OCPPxx/TenantID/Token/ChargeBoxID/SiteAreaID/SiteID/CompanyID
+      this.tenantID = splittedURL[1];
+      this.token = splittedURL[2];
+      this.chargingStationID = splittedURL[3];
+      this.siteAreaID = splittedURL[4];
+      this.siteID = splittedURL[5];
+      this.companyID = splittedURL[6];
+    } else if (splittedURL.length === 4) {
       // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.token = splittedURL[2];

@@ -1,5 +1,6 @@
 import { OCPP15MeterValuesRequest, OCPPAuthorizeRequest, OCPPAuthorizeResponse, OCPPBootNotificationRequest, OCPPBootNotificationResponse, OCPPDataTransferRequest, OCPPDataTransferResponse, OCPPDiagnosticsStatusNotificationRequest, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequest, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPStartTransactionRequest, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionRequest, OCPPStopTransactionResponse, OCPPVersion } from '../../../../src/types/ocpp/OCPPServer';
 
+import ChargingStation from '../../../types/ChargingStation';
 import OCPPService from '../OCPPService';
 import global from '../../../../src/types/GlobalType';
 import soap from 'strong-soap';
@@ -17,44 +18,44 @@ export default class OCPPSoapService15 extends OCPPService {
     return OCPPVersion.VERSION_15;
   }
 
-  public async executeAuthorize(chargingStationID: string, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'Authorize', authorize));
+  public async executeAuthorize(chargingStation: ChargingStation, authorize: OCPPAuthorizeRequest): Promise<OCPPAuthorizeResponse> {
+    return this.execute(this.buildSOAPRequest(chargingStation, 'Authorize', authorize));
   }
 
-  public async executeStartTransaction(chargingStationID: string, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
-    return this.execute(this.buildSOAPRequest(chargingStationID, 'StartTransaction', startTransaction));
+  public async executeStartTransaction(chargingStation: ChargingStation, startTransaction: OCPPStartTransactionRequest): Promise<OCPPStartTransactionResponse> {
+    return this.execute(this.buildSOAPRequest(chargingStation, 'StartTransaction', startTransaction));
   }
 
-  public async executeStopTransaction(chargingStationID: string, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'StopTransaction', stopTransaction));
+  public async executeStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequest): Promise<OCPPStopTransactionResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'StopTransaction', stopTransaction));
   }
 
-  public async executeHeartbeat(chargingStationID: string, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'Heartbeat', heartbeat));
+  public async executeHeartbeat(chargingStation: ChargingStation, heartbeat: OCPPHeartbeatRequest): Promise<OCPPHeartbeatResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'Heartbeat', heartbeat));
   }
 
-  public async executeMeterValues(chargingStationID: string, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'MeterValues', meterValue));
+  public async executeMeterValues(chargingStation: ChargingStation, meterValue: OCPPMeterValuesRequest|OCPP15MeterValuesRequest): Promise<OCPPMeterValuesResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'MeterValues', meterValue));
   }
 
-  public async executeBootNotification(chargingStationID: string, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'BootNotification', bootNotification));
+  public async executeBootNotification(chargingStation: ChargingStation, bootNotification: OCPPBootNotificationRequest): Promise<OCPPBootNotificationResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'BootNotification', bootNotification));
   }
 
-  public async executeStatusNotification(chargingStationID: string, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'StatusNotification', statusNotification));
+  public async executeStatusNotification(chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequest): Promise<OCPPStatusNotificationResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'StatusNotification', statusNotification));
   }
 
-  public async executeFirmwareStatusNotification(chargingStationID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'FirmwareStatusNotification', firmwareStatusNotification));
+  public async executeFirmwareStatusNotification(chargingStation: ChargingStation, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequest): Promise<OCPPFirmwareStatusNotificationResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'FirmwareStatusNotification', firmwareStatusNotification));
   }
 
-  public async executeDiagnosticsStatusNotification(chargingStationID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'DiagnosticsStatusNotification', diagnosticsStatusNotification));
+  public async executeDiagnosticsStatusNotification(chargingStation: ChargingStation, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequest): Promise<OCPPDiagnosticsStatusNotificationResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'DiagnosticsStatusNotification', diagnosticsStatusNotification));
   }
 
-  public async executeDataTransfer(chargingStationID: string, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
-    return await this.execute(this.buildSOAPRequest(chargingStationID, 'DataTransfer', dataTransfer));
+  public async executeDataTransfer(chargingStation: ChargingStation, dataTransfer: OCPPDataTransferRequest): Promise<OCPPDataTransferResponse> {
+    return await this.execute(this.buildSOAPRequest(chargingStation, 'DataTransfer', dataTransfer));
   }
 
   private async execute(request: any): Promise<any> {
@@ -71,11 +72,11 @@ export default class OCPPSoapService15 extends OCPPService {
     return result || {};
   }
 
-  private buildSOAPRequest(chargeBoxIdentity: string, action: string, payload: any): any {
+  private buildSOAPRequest(chargingStation: ChargingStation, action: string, payload: any): any {
     return {
       name: action,
       headers: {
-        chargeBoxIdentity: chargeBoxIdentity,
+        chargeBoxIdentity: chargingStation.id,
         From: {
           Address: 'http://www.w3.org/2005/08/addressing/anonymous'
         },

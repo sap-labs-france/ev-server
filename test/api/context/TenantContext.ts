@@ -272,7 +272,7 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    const response = await ocppService.executeBootNotification(chargingStation, chargingStation);
     // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
@@ -358,7 +358,7 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea: SiteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    const response = await ocppService.executeBootNotification(chargingStation, chargingStation);
     // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
@@ -450,7 +450,7 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea = null) {
     const ocppService = await this.getOCPPServiceForContextCreation(ocppVersion, siteArea?.id);
-    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
+    const response = await ocppService.executeBootNotification(chargingStation, chargingStation);
     // Check
     expect(response).to.not.be.null;
     expect(response.status).to.eql('Accepted');
