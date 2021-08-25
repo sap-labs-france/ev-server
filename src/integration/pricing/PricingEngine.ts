@@ -29,10 +29,10 @@ export default class PricingEngine {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: PricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.chargeBoxID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteAreaID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.chargeBoxID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteAreaID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID.toString()));
     // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
     const resolvedPricingModel: ResolvedPricingModel = {
       pricingDefinitions

@@ -21,7 +21,7 @@ export default class PricingStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const pricingModelMDB = {
       _id: pricingModel.id ? DatabaseUtils.convertToObjectID(pricingModel.id) : new ObjectId(),
-      contextID: DatabaseUtils.convertToObjectID(pricingModel.contextID),
+      contextID: pricingModel.contextID,
       pricingDefinitions: pricingModel.pricingDefinitions, // TODO - check here some data consistency
     };
     // Check Created/Last Changed By
@@ -86,7 +86,7 @@ export default class PricingStorage {
     }
     // Context IDs
     if (!Utils.isEmptyArray(params.contextIDs)) {
-      filters.contextID = { $in: params.contextIDs.map((contextID) => DatabaseUtils.convertToObjectID(contextID)) };
+      filters.contextID = { $in: params.contextIDs };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
@@ -133,7 +133,7 @@ export default class PricingStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'contextID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'contextID');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Project
