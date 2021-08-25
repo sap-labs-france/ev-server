@@ -10,6 +10,7 @@ export default interface PricingModel extends CreatedUpdatedProps, Authorization
 export interface ResolvedPricingModel {
   // Put there only the information that is to be kept with the Transaction
   pricingDefinitions: PricingDefinition[];
+  flatFeeAlreadyPriced: boolean
 }
 
 export interface PricingDefinition {

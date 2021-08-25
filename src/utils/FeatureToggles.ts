@@ -4,7 +4,8 @@ export enum Feature {
   BILLING_SYNC_USERS,
   BILLING_CHECK_THRESHOLD_ON_STOP,
   BILLING_PREVENT_CUSTOMER_DELETION,
-  PRICING_NEW_MODEL
+  PRICING_NEW_MODEL,
+  PRICING_TEST_PARKING_TIME
 }
 
 export default class FeatureToggles {
@@ -13,7 +14,8 @@ export default class FeatureToggles {
     // Feature.BILLING_SYNC_USERS, - When switched OFF the sync of the user should be implicit (LAZY mode)
     Feature.BILLING_CHECK_THRESHOLD_ON_STOP,
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
-    Feature.PRICING_NEW_MODEL
+    Feature.PRICING_NEW_MODEL,
+    // Feature.PRICING_TEST_PARKING_TIME
   ];
 
   // Check whether the feature is active or not!

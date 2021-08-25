@@ -1,3 +1,4 @@
+import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { PricedConsumption, PricingDefinition, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
 import Consumption from '../../../types/Consumption';
@@ -54,19 +55,44 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   private async resolvePricingContext(tenant: Tenant, transaction: Transaction): Promise<ResolvedPricingModel> {
     const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction);
     if (!resolvedPricingModel.pricingDefinitions?.length) {
-      const simplePricingDefinition: PricingDefinition = {
-        name: 'Default Tariff',
-        description: 'Tariff based on simple pricing settings',
-        dimensions: {
-          energy: {
-            active: true,
-            price: this.setting.price,
-          }
-        }
-      };
-      resolvedPricingModel.pricingDefinitions = [ simplePricingDefinition ];
+      resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
     }
     return resolvedPricingModel;
+  }
+
+  private getDefaultPricingDefinition(): PricingDefinition {
+    if (FeatureToggles.isFeatureActive(Feature.PRICING_TEST_PARKING_TIME)) {
+      // TODO - Should be removed - just for testing purposes!
+      return {
+        name: 'Tariff 3 Dimensions',
+        description: 'Tariff - FF + CT + PT',
+        dimensions: {
+          flatFee: {
+            active: true,
+            price: 3, // 3 EUR when connecting
+          },
+          chargingTime: {
+            active: true,
+            price: 5, // 5 EUR/hour
+          },
+          parkingTime: {
+            active: true,
+            price: 7, // 7 EUR/hour
+          },
+        }
+      };
+    }
+    // Defaults to the simple pricing settings
+    return {
+      name: 'Default Tariff',
+      description: 'Tariff based on simple pricing settings',
+      dimensions: {
+        energy: {
+          active: true,
+          price: this.setting.price,
+        }
+      }
+    };
   }
 
 }

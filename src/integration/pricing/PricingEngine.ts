@@ -35,6 +35,7 @@ export default class PricingEngine {
     pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID.toString()));
     // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
     const resolvedPricingModel: ResolvedPricingModel = {
+      flatFeeAlreadyPriced: false,
       pricingDefinitions
     };
     return Promise.resolve(resolvedPricingModel);
@@ -133,6 +134,7 @@ export default class PricingEngine {
 
   private static priceParkingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
+    // TODO - This is wrong - totalInactivitySecs should not be used here!
     const hours = Utils.createDecimal(consumptionData?.totalInactivitySecs).dividedBy(3600).toNumber();
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'parkingTime', hours);
     return pricingDimensionData;
@@ -140,6 +142,7 @@ export default class PricingEngine {
 
   private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
+    // TODO - This is wrong - totalDurationSecs should not be used here!
     const hours = Utils.createDecimal(consumptionData?.totalDurationSecs).dividedBy(3600).toNumber();
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'chargingTime', hours);
     return pricingDimensionData;
@@ -218,8 +221,13 @@ export default class PricingEngine {
     // TODO - POC - to be clarified - temporary solution
     // - we shouldn't update the transaction object directly from this layer
     // ----------------------------------------------------------------------------------------------
+    let flatFee: PricingDimensionData = null;
+    if (!transaction.pricingModel.flatFeeAlreadyPriced) {
+      // Flat fee must not be priced only once
+      flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
+      transaction.pricingModel.flatFeeAlreadyPriced = !!flatFee;
+    }
     // Build the consumption data for each dimension
-    const flatFee: PricingDimensionData = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
     const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
     const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
     const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
