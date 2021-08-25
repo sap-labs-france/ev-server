@@ -147,4 +147,3 @@ export default class LoggingService {
     return loggings;
   }
 }
-
