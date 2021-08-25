@@ -114,45 +114,6 @@ export default class PricingEngine {
     return true;
   }
 
-  static async priceFinalConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): Promise<PricingConsumptionData> {
-    // Check the restrictions to find the pricing definition matching the current context
-    let actualPricingDefinitions = transaction.pricingModel.pricingDefinitions.filter((pricingDefinition) =>
-      PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
-    );
-    // Having more than one pricing definition this NOT a normal situation.
-    // This means that two different tariff matches the same criteria. This should not happen!
-    if (actualPricingDefinitions.length > 1) {
-      // TODO - to be clarified! - Shall we mix several pricing definition for a single transaction?
-      actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
-    }
-    // Build the consumption data for each dimension
-    const flatFee: PricingDimensionData = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
-    const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
-    const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
-    const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
-    // For now we can have up to 4 dimensions
-    const pricingConsumptionData: PricingConsumptionData = {
-      flatFee,
-      energy,
-      chargingTime,
-      parkingTime,
-    };
-    // Remove unset properties
-    if (!pricingConsumptionData.flatFee) {
-      delete pricingConsumptionData.flatFee;
-    }
-    if (!pricingConsumptionData.energy) {
-      delete pricingConsumptionData.energy;
-    }
-    if (!pricingConsumptionData.chargingTime) {
-      delete pricingConsumptionData.chargingTime;
-    }
-    if (!pricingConsumptionData.parkingTime) {
-      delete pricingConsumptionData.parkingTime;
-    }
-    return Promise.resolve(pricingConsumptionData);
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;

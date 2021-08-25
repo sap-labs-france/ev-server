@@ -20,7 +20,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData);
     pricedConsumption.pricingModel = await PricingEngine.resolvePricingContext(this.tenant, transaction);
-    return Promise.resolve(pricedConsumption);
+    return pricedConsumption;
   }
 
   public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
@@ -28,8 +28,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    return Promise.resolve(pricedConsumption);
+    return this.computePrice(transaction, consumptionData);
   }
 
   private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
