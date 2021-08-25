@@ -83,7 +83,6 @@ export default interface Transaction extends AbstractCurrentConsumption {
   priceUnit?: string;
   pricingSource?: string;
   pricingModel?: ResolvedPricingModel,
-  pricingConsumptionData?: PricingConsumptionData,
   stateOfCharge: number;
   timezone: string;
   currentTimestamp?: Date;

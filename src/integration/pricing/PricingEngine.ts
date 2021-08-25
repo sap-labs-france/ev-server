@@ -153,6 +153,7 @@ export default class PricingEngine {
     return Promise.resolve(pricingConsumptionData);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
     const quantity = 1; // To be clarified - Flat Fee is billing billed once per sessions
@@ -229,7 +230,72 @@ export default class PricingEngine {
       amount,
       quantity
     };
+    if (!pricingDimension.pricedData) {
+      pricingDimension.pricedData = pricingDimensionData;
+    } else {
+      // TODO - to be clarified - we should not update the transaction data directly!
+      pricingDimension.pricedData.amount = Utils.createDecimal(pricingDimension.pricedData.amount).plus(pricingDimensionData.amount).toNumber();
+      pricingDimension.pricedData.quantity = Utils.createDecimal(pricingDimension.pricedData.quantity).plus(pricingDimensionData.quantity).toNumber();
+    }
     return pricingDimensionData;
+  }
+
+  static priceConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): number {
+    // Check the restrictions to find the pricing definition matching the current context
+    let actualPricingDefinitions = transaction.pricingModel.pricingDefinitions.filter((pricingDefinition) =>
+      PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
+    );
+    // Having more than one pricing definition this NOT a normal situation.
+    // This means that two different tariff matches the same criteria. This should not happen!
+    if (actualPricingDefinitions.length > 1) {
+      // TODO - to be clarified! - Shall we mix several pricing definition for a single transaction?
+      actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
+    }
+    // ----------------------------------------------------------------------------------------------
+    // TODO - POC - to be clarified - temporary solution
+    // - we shouldn't update the transaction object directly from this layer
+    // ----------------------------------------------------------------------------------------------
+    // Build the consumption data for each dimension
+    const flatFee: PricingDimensionData = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
+    const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
+    const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
+    const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
+
+    const amount = flatFee?.amount + energy?.amount + chargingTime?.amount + parkingTime?.amount;
+    return amount;
+  }
+
+  static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricingConsumptionData[] {
+    // Iterate throw the list of pricing definitions
+    const pricedData: PricingConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
+      PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
+    );
+    // Remove null/undefined entries (if any)
+    return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
+  }
+
+  static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricingConsumptionData {
+    const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
+    const energy = pricingDefinition.dimensions.energy?.pricedData;
+    const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
+    const parkingTime = pricingDefinition.dimensions.parkingTime?.pricedData;
+    if (flatFee || energy || chargingTime || parkingTime) {
+      return {
+        flatFee,
+        energy,
+        chargingTime,
+        parkingTime
+      };
+    }
+    // Nothing to bill for the current pricing definition
+    return null;
+  }
+
+  static extractPricedDataFromDimension(pricedData: PricingDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
+    const pricingDimensionData = pricingDefinition.dimensions[dimensionType]?.pricedData;
+    if (pricingDimensionData) {
+      pricedData.push(pricingDimensionData);
+    }
   }
 
 }

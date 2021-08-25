@@ -2,7 +2,7 @@ import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
+import PricingModel, { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
@@ -17,6 +17,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import PricingEngine from '../../pricing/PricingEngine';
 import { Request } from 'express';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -1046,16 +1047,13 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private _convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
-    if (!transaction.pricingConsumptionData) {
-      throw new Error('Unexpected situation - no pricing data!');
-    }
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
-    const pricingData: PricingConsumptionData = this._enrichTransactionPricingData(transaction);
+    const pricingData: PricingConsumptionData[] = this._extractTransactionPricingData(transaction);
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
-      pricingData,
+      pricingData: pricingData[0],
       metadata: {
         // Let's keep track of the initial data for troubleshooting purposes
         tenantID: this.tenant.id,
@@ -1068,8 +1066,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoiceItem ;
   }
 
-  private _enrichTransactionPricingData(transaction: Transaction) : PricingConsumptionData {
-    const pricingConsumptionData: PricingConsumptionData = Object.freeze(transaction.pricingConsumptionData);
+  private _extractTransactionPricingData(transaction: Transaction) : PricingConsumptionData[] {
+    const pricingModel = Object.freeze(transaction.pricingModel);
+    let pricingData: PricingConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
+    pricingData = pricingData.map((pricingConsumptionData) => this._enrichTransactionPricingData(transaction, pricingConsumptionData));
+    return pricingData;
+  }
+
+  private _enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricingConsumptionData) : PricingConsumptionData {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------

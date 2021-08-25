@@ -285,10 +285,6 @@ export default class OCPPUtils {
             consumption.pricingSource = pricedConsumption.pricingSource;
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
-            if (FeatureToggles.isFeatureActive(Feature.PRICING_NEW_MODEL)) {
-              // TODO - To be clarified - check for the PricingSource instead?
-              transaction.pricingConsumptionData = pricedConsumption.pricingConsumptionData;
-            }
           }
           break;
       }

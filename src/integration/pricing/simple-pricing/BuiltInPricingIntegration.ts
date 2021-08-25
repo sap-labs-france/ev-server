@@ -29,9 +29,6 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
 
   public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    if (transaction.pricingModel) {
-      pricedConsumption.pricingConsumptionData = await PricingEngine.priceFinalConsumption(this.tenant, transaction, consumptionData);
-    }
     return Promise.resolve(pricedConsumption);
   }
 
@@ -39,7 +36,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumptionWh && typeof consumptionData.consumptionWh === 'number') {
-      amount = Utils.computeSimplePrice(this.settings.price, consumptionData.consumptionWh);
+      amount = PricingEngine.priceConsumption(this.tenant, transaction, consumptionData);
       roundedAmount = Utils.truncTo(amount, 2);
     } else {
       amount = 0;
