@@ -3,7 +3,8 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface PricingModel extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
-  contextID: string; // id of the entity the pricing definition belongs to!
+  entityID: string; // id of the entity the pricing definition belongs to!
+  entityType: string; // Type of the entity this model belongs to
   pricingDefinitions: PricingDefinition[];
 }
 

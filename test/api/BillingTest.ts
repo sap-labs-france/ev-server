@@ -2,7 +2,7 @@ import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricingDefinition, PricingDimension, PricingRestriction } from '../../src/types/Pricing';
+import PricingModel, { PricingDefinition } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
@@ -13,6 +13,7 @@ import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Cypher from '../../src/utils/Cypher';
 import { DataResult } from '../../src/types/DataResult';
+import { Entity } from '../../src/types/Authorization';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectId } from 'mongodb';
@@ -257,7 +258,8 @@ class TestData {
 
   public async createTariff4Company(companyID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
-      contextID: companyID, // a pricing model for the company
+      entityID: companyID, // a pricing model for the Company
+      entityType: Entity.COMPANY,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
@@ -303,7 +305,8 @@ class TestData {
 
   public async createTariff4Site(siteID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
-      contextID: siteID, // a pricing model for the site
+      entityID: siteID, // a pricing model for the site
+      entityType: Entity.SITE,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);

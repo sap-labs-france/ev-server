@@ -433,7 +433,8 @@ export default class StripeIntegrationTestData {
 
   public async checkPricingModel(): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
-      contextID: null, // a pricing model for the tenant
+      entityID: null, // a pricing model for the tenant
+      entityType: null,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);

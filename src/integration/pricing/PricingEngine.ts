@@ -52,8 +52,8 @@ export default class PricingEngine {
 
   static async getPricingModel4Entity(tenant: Tenant, entityID: string): Promise<PricingModel> {
     if (entityID) {
-      const contextIDs = [ entityID ];
-      const pricingModelResults = await PricingStorage.getPricingModels(tenant, { contextIDs }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
+      const entityIDs = [ entityID ];
+      const pricingModelResults = await PricingStorage.getPricingModels(tenant, { entityIDs }, { limit: 1, skip: 0, sort: { createdOn: -1 } });
       if (pricingModelResults.count > 0) {
         // ---------------------------------------------------------------------
         // TODO - First implementation: we simply return the latest created one

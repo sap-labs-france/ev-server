@@ -21,7 +21,8 @@ export default class PricingStorage {
     DatabaseUtils.checkTenantObject(tenant);
     const pricingModelMDB = {
       _id: pricingModel.id ? DatabaseUtils.convertToObjectID(pricingModel.id) : new ObjectId(),
-      contextID: pricingModel.contextID,
+      entityID: pricingModel.entityID,
+      entityType: pricingModel.entityType,
       pricingDefinitions: pricingModel.pricingDefinitions, // TODO - check here some data consistency
     };
     // Check Created/Last Changed By
@@ -52,10 +53,10 @@ export default class PricingStorage {
   }
 
   public static async getPricingModel(tenant: Tenant, id: string,
-      params: { contextIDs?: string[]; } = {}, projectFields?: string[]): Promise<PricingModel> {
+      params: { entityIDs?: string[]; } = {}, projectFields?: string[]): Promise<PricingModel> {
     const pricingModelMDB = await PricingStorage.getPricingModels(tenant, {
       pricingModelIDs: [id],
-      contextIDs: params.contextIDs,
+      entityIDs: params.entityIDs,
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return pricingModelMDB.count === 1 ? pricingModelMDB.result[0] : null;
   }
@@ -63,7 +64,7 @@ export default class PricingStorage {
   public static async getPricingModels(tenant: Tenant,
       params: {
         pricingModelIDs?: string[],
-        contextIDs?: string[];
+        entityIDs?: string[];
       },
       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<PricingModel>> {
     const uniqueTimerID = Logging.traceStart(tenant.id, MODULE_NAME, 'getPricingModels');
@@ -85,8 +86,8 @@ export default class PricingStorage {
       };
     }
     // Context IDs
-    if (!Utils.isEmptyArray(params.contextIDs)) {
-      filters.contextID = { $in: params.contextIDs };
+    if (!Utils.isEmptyArray(params.entityIDs)) {
+      filters.contextID = { $in: params.entityIDs };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
