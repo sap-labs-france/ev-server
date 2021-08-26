@@ -29,10 +29,10 @@ export default class PricingEngine {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: PricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.chargeBoxID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteAreaID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.siteID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.companyID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.chargeBoxID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.siteAreaID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.siteID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.companyID.toString()));
     // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
     const resolvedPricingModel: ResolvedPricingModel = {
       flatFeeAlreadyPriced: false,
@@ -41,9 +41,13 @@ export default class PricingEngine {
     return Promise.resolve(resolvedPricingModel);
   }
 
-  static async getPricingDefinitions4Entity(tenant: Tenant, entityID: string): Promise<PricingDefinition[]> {
+  static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, entityID: string): Promise<PricingDefinition[]> {
     const pricingModel: PricingModel = await PricingEngine.getPricingModel4Entity(tenant, entityID);
-    return pricingModel?.pricingDefinitions || [];
+    const pricingDefinitions = pricingModel?.pricingDefinitions || [];
+    const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
+      PricingEngine.checkStaticRestrictions(pricingDefinition, transaction)
+    );
+    return actualPricingDefinitions || [];
   }
 
   static async getPricingModel4Entity(tenant: Tenant, entityID: string): Promise<PricingModel> {
@@ -60,11 +64,26 @@ export default class PricingEngine {
     return null;
   }
 
+  static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction) : PricingDefinition {
+    // -----------------------------------------------------------------------
+    // TODO - check here the static restrictions
+    // i.e.: - restrictions that are not depending on the actual consumption
+    // e.g.: - validity dates, minPowerkW/maxPowerkW
+    // -----------------------------------------------------------------------
+    if (pricingDefinition.restrictions) {
+      if (!PricingEngine.checkRestrictionMinPower(pricingDefinition.restrictions, transaction)
+        || !PricingEngine.checkRestrictionMaxPower(pricingDefinition.restrictions, transaction)
+      ) {
+        return null;
+      }
+    }
+    // a definition matching the restrictions has been found
+    return pricingDefinition;
+  }
+
   static checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition, consumptionData: Consumption) : PricingDefinition {
     if (pricingDefinition.restrictions) {
-      if (!PricingEngine.checkRestrictionMinPower(pricingDefinition.restrictions, consumptionData)
-        || !PricingEngine.checkRestrictionMaxPower(pricingDefinition.restrictions, consumptionData)
-        || !PricingEngine.checkRestrictionMinDuration(pricingDefinition.restrictions, consumptionData)
+      if (!PricingEngine.checkRestrictionMinDuration(pricingDefinition.restrictions, consumptionData)
         || !PricingEngine.checkRestrictionMaxDuration(pricingDefinition.restrictions, consumptionData)) {
         // -----------------------------------------------------------------------------------------
         // TODO - to be clarified - why don't we put "date validity" at the pricing model level????
@@ -81,21 +100,23 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  static checkRestrictionMinPower(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
-    if (!Utils.isNullOrUndefined(restrictions.minPowerkW)) {
-      if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).dividedBy(1000).lessThan(restrictions.minPowerkW)) {
-        return false;
-      }
-    }
+  static checkRestrictionMinPower(restrictions: PricingRestriction, transaction: Transaction): boolean {
+    // TODO - where to get the power limits
+    // if (!Utils.isNullOrUndefined(restrictions.minPowerkW)) {
+    //   if (Utils.createDecimal(transaction.currentInstantWatts).dividedBy(1000).lessThan(restrictions.minPowerkW)) {
+    //     return false;
+    //   }
+    // }
     return true;
   }
 
-  static checkRestrictionMaxPower(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
-    if (!Utils.isNullOrUndefined(restrictions.maxPowerkW)) {
-      if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).dividedBy(1000).greaterThanOrEqualTo(restrictions.maxPowerkW)) {
-        return false;
-      }
-    }
+  static checkRestrictionMaxPower(restrictions: PricingRestriction, transaction: Transaction): boolean {
+    // TODO - where to get the power limits
+    // if (!Utils.isNullOrUndefined(restrictions.maxPowerkW)) {
+    //   if (Utils.createDecimal(transaction.currentInstantWatts).dividedBy(1000).greaterThanOrEqualTo(restrictions.maxPowerkW)) {
+    //     return false;
+    //   }
+    // }
     return true;
   }
 
@@ -134,7 +155,7 @@ export default class PricingEngine {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
-      const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.consumptionWh || 0);
+      const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.cumulatedConsumptionWh || 0);
       if (pricedData) {
         pricedData.sourceName = activePricingDefinition.name;
       }
@@ -207,39 +228,36 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricingDimensionData {
-    const amount = Utils.createDecimal(pricingDimension.price).times(consumptionWh).div(1000).toNumber();
-    const quantity = Utils.createDecimal(consumptionWh).div(1000).toNumber();
-    // --------------------------------------------------------------------------------------------
-    // TODO - take the step size into consideration
-    // --------------------------------------------------------------------------------------------
-    // let amount: number;
-    // if (pricingDimension.stepSize) {
-    //   // --------------------------------------------------------------------------------------------
-    //   // Step Size - Minimum amount to be billed. This unit will be billed in this step_size blocks.
-    //   // For example:
-    //   //  if type is time and step_size is 300, then time will be billed in blocks of 5 minutes,
-    //   //  so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
-    //   // --------------------------------------------------------------------------------------------
-    //   const nbSteps = Utils.createDecimal(quantity).modulo(pricingDimension.stepSize).toNumber();
-    //   amount = Utils.createDecimal(pricingDimension.price).times(nbSteps).toNumber();
-    // } else {
-    //   amount = Utils.createDecimal(pricingDimension.price).times(quantity).toNumber();
-    // }
-    const newData: PricingDimensionData = {
-      amount,
-      quantity
-    };
+  static priceEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricingDimensionData {
+    let amount: number;
+    let consumptionkWh: number;
+    if (pricingDimension.stepSize) { // In kWh
+      const nbSteps = Utils.createDecimal(cumulatedConsumptionWh).div(1000).divToInt(pricingDimension.stepSize).plus(1).toNumber();
+      amount = Utils.createDecimal(pricingDimension.price).mul(nbSteps).mul(pricingDimension.stepSize).toNumber();
+      consumptionkWh = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
+    } else {
+      amount = Utils.createDecimal(pricingDimension.price).times(cumulatedConsumptionWh).div(1000).toNumber();
+      consumptionkWh = Utils.createDecimal(cumulatedConsumptionWh).div(1000).toNumber();
+    }
     const previousData = pricingDimension.pricedData;
     if (previousData) {
+      // The new priced data is the delta
+      const newData : PricingDimensionData = {
+        amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
+        quantity: Utils.createDecimal(consumptionkWh).minus(previousData?.quantity || 0).toNumber(),
+      };
       // Update the previous data
-      previousData.amount = Utils.createDecimal(previousData.amount).plus(newData.amount).toNumber();
-      previousData.quantity = Utils.createDecimal(previousData.quantity).plus(newData.quantity).toNumber();
-    } else {
-      // First call for this dimension
-      pricingDimension.pricedData = newData;
+      previousData.amount = amount;
+      previousData.quantity = consumptionkWh;
+      // return the delta
+      return newData;
     }
-    return newData;
+    // first call for this dimension
+    pricingDimension.pricedData = {
+      amount,
+      quantity: consumptionkWh
+    };
+    return pricingDimension.pricedData;
   }
 
   static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricingDimensionData {
@@ -271,7 +289,7 @@ export default class PricingEngine {
     // first call for this dimension
     pricingDimension.pricedData = {
       amount,
-      quantity: seconds
+      quantity: hours
     };
     return pricingDimension.pricedData;
   }
@@ -284,7 +302,7 @@ export default class PricingEngine {
     // Having more than one pricing definition this NOT a normal situation.
     // This means that two different tariff matches the same criteria. This should not happen!
     if (actualPricingDefinitions.length > 1) {
-      // TODO - to be clarified! - Shall we mix several pricing definition for a single transaction?
+      // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
       actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
     }
     // ----------------------------------------------------------------------------------------------
