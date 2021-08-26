@@ -4,8 +4,8 @@
     "id": {
       "$ref": "common.json#/definitions/id"
     },
-    "ids": {
-      "$ref": "common.json#/definitions/ids"
+    "IDs": {
+      "$ref": "common.json#/definitions/IDs"
     },
     "name": {
       "type": "string",
