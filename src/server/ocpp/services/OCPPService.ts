@@ -253,6 +253,8 @@ export default class OCPPService {
         this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
         // Create Consumptions
         const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
+        // Handle current SOC
+        consumptions[consumptions.length - 1].stateOfCharge = await this.getCurrentSOC(tenant, transaction, chargingStation);
         // Price/Bill Transaction and Save them
         for (const consumption of consumptions) {
           // Update Transaction with Consumption
@@ -1699,22 +1701,23 @@ export default class OCPPService {
     Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
       const car = await CarStorage.getCar(tenant, transaction.carID);
       const carCatalog = await CarStorage.getCarCatalog(car.carCatalogID);
-      let stateOfCharge = 0;
+      // TBD: Instead of using make --> change the identification of the car connector to specific connector data in the car object
+      // Will be implemented with the Tronity integration
       switch (carCatalog.vehicleMake) {
         case 'Mercedes': {
           const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, CarConnectorConnectionType.MERCEDES);
           if (carImplementation) {
             try {
-              stateOfCharge = await carImplementation.getCurrentSoC(transaction.userID, car.vin);
+              return await carImplementation.getCurrentSoC(transaction.userID, car.vin);
             } catch {
-              return 0;
+              return null;
             }
-            return stateOfCharge;
           }
           break;
         }
       }
     }
+    return null;
   }
 
   private addChargingStationToException(error: BackendError, chargingStationID: string): void {

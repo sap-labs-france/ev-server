@@ -148,7 +148,18 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
           headers: { 'Authorization': 'Bearer ' + connection.data.access_token }
         }
       );
-      return response.data.soc;
+      await Logging.logDebug({
+        tenantID: this.tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.CAR_CONNECTOR,
+        message: `${VIN} > Mercedes web service has been called successfully`,
+        module: MODULE_NAME, method: 'getCurrentSoC',
+        detailedMessages: { response: response.data }
+      });
+      if (response?.data?.soc?.value) {
+        return response.data.soc.value;
+      }
+      return null;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
