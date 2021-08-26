@@ -1593,7 +1593,7 @@ export default class ChargingStationService {
           });
           break;
         case Command.TRIGGER_DATA_TRANSFER:
-          result = await chargingStationClient.triggerDataTransfer(params);
+          result = await chargingStationClient.dataTransfer(params);
           break;
       }
       if (result) {
