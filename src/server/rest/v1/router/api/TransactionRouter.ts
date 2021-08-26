@@ -25,12 +25,34 @@ export default class TransactionRouter {
     this.buildRouteTransactionsRefund();
     this.buildRouteTransactionsAssignUser();
     this.buildRouteTransactionsExport();
+    this.buildRouteSynchronizeRefundedTransactions();
+    this.buildRouteTransactionsRefundReports();
+    this.buildRouteTransactionsToRefundExport();
     return this.router;
   }
 
   protected buildRouteTransactions(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      await RouterUtils.handleServerAction(TransactionService.handleGetTransactions.bind(this), ServerAction.TRANSACTIONS, req, res, next);
+      switch (req.query.Status) {
+        case 'in-error':
+          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsInError.bind(this), ServerAction.TRANSACTIONS_IN_ERROR, req, res, next);
+          break;
+        case 'completed':
+          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsCompleted.bind(this), ServerAction.TRANSACTIONS_COMPLETED, req, res, next);
+          break;
+        case 'to-refund':
+          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsToRefund.bind(this), ServerAction.TRANSACTIONS_TO_REFUND, req, res, next);
+          break;
+        case 'active':
+          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsActive.bind(this), ServerAction.TRANSACTIONS_ACTIVE, req, res, next);
+          break;
+        case 'not-assigned-to-user':
+          await RouterUtils.handleServerAction(TransactionService.handleGetUnassignedTransactionsCount.bind(this), ServerAction.UNASSIGNED_TRANSACTIONS_COUNT, req, res, next);
+          break;
+        default:
+          await RouterUtils.handleServerAction(TransactionService.handleGetTransactions.bind(this), ServerAction.TRANSACTIONS, req, res, next);
+          break;
+      }
     });
   }
 
@@ -104,6 +126,24 @@ export default class TransactionRouter {
   protected buildRouteTransactionsExport(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(TransactionService.handleExportTransactions.bind(this), ServerAction.TRANSACTIONS_EXPORT, req, res, next);
+    });
+  }
+
+  protected buildRouteSynchronizeRefundedTransactions(): void {
+    this.router.post(`/${ServerRoute.REST_TRANSACTIONS_SYNCHRONIZE_REFUNDED}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleSynchronizeRefundedTransactions.bind(this), ServerAction.SYNCHRONIZE_REFUNDED_TRANSACTIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsRefundReports(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_REFUND_REPORTS}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetRefundReports.bind(this), ServerAction.TRANSACTIONS_TO_REFUND_REPORTS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsToRefundExport(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_REFUND_EXPORT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleExportTransactionsToRefund.bind(this), ServerAction.TRANSACTIONS_TO_REFUND_EXPORT, req, res, next);
     });
   }
 }
