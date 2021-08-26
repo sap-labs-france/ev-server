@@ -135,7 +135,7 @@ export default class PricingEngine {
   private static priceParkingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
     // TODO - This is wrong - totalInactivitySecs should not be used here!
-    const hours = Utils.createDecimal(consumptionData?.totalInactivitySecs).dividedBy(3600).toNumber();
+    const hours = Utils.createDecimal(consumptionData?.totalInactivitySecs || 0).toNumber();
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'parkingTime', hours);
     return pricingDimensionData;
   }
@@ -143,7 +143,7 @@ export default class PricingEngine {
   private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
     let pricingDimensionData: PricingDimensionData = null;
     // TODO - This is wrong - totalDurationSecs should not be used here!
-    const hours = Utils.createDecimal(consumptionData?.totalDurationSecs).dividedBy(3600).toNumber();
+    const hours = Utils.createDecimal(consumptionData?.totalDurationSecs || 0).toNumber();
     pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'chargingTime', hours);
     return pricingDimensionData;
   }
@@ -159,7 +159,11 @@ export default class PricingEngine {
     for (const activePricingDefinition of activePricingDefinitions) {
       const dimensionToPrice = activePricingDefinition.dimensions[dimensionType];
       if (dimensionToPrice) {
-        pricingDimensionData = PricingEngine.priceDimension(dimensionToPrice, quantity);
+        if (dimensionType === 'parkingTime' || dimensionType === 'chargingTime') {
+          pricingDimensionData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, quantity);
+        } else {
+          pricingDimensionData = PricingEngine.priceDimension(dimensionToPrice, quantity);
+        }
         if (pricingDimensionData) {
           // TODO - clarify where to show the actual tariff name
           pricingDimensionData.itemDescription = activePricingDefinition.name;
@@ -179,31 +183,71 @@ export default class PricingEngine {
   }
 
   static priceDimension(pricingDimension: PricingDimension, quantity: number): PricingDimensionData {
-    let amount: number;
-    if (pricingDimension.stepSize) {
-      // --------------------------------------------------------------------------------------------
-      // Step Size - Minimum amount to be billed. This unit will be billed in this step_size blocks.
-      // For example:
-      //  if type is time and step_size is 300, then time will be billed in blocks of 5 minutes,
-      //  so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
-      // --------------------------------------------------------------------------------------------
-      const nbSteps = Utils.createDecimal(quantity).modulo(pricingDimension.stepSize).toNumber();
-      amount = Utils.createDecimal(pricingDimension.price).times(nbSteps).toNumber();
-    } else {
-      amount = Utils.createDecimal(pricingDimension.price).times(quantity).toNumber();
-    }
-    const pricingDimensionData: PricingDimensionData = {
+    const amount = Utils.createDecimal(pricingDimension.price).times(quantity).toNumber();
+    // --------------------------------------------------------------------------------------------
+    // TODO - take the step size into consideration
+    // --------------------------------------------------------------------------------------------
+    // let amount: number;
+    // if (pricingDimension.stepSize) {
+    //   // --------------------------------------------------------------------------------------------
+    //   // Step Size - Minimum amount to be billed. This unit will be billed in this step_size blocks.
+    //   // For example:
+    //   //  if type is time and step_size is 300, then time will be billed in blocks of 5 minutes,
+    //   //  so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
+    //   // --------------------------------------------------------------------------------------------
+    //   const nbSteps = Utils.createDecimal(quantity).modulo(pricingDimension.stepSize).toNumber();
+    //   amount = Utils.createDecimal(pricingDimension.price).times(nbSteps).toNumber();
+    // } else {
+    //   amount = Utils.createDecimal(pricingDimension.price).times(quantity).toNumber();
+    // }
+    const newData: PricingDimensionData = {
       amount,
       quantity
     };
-    if (!pricingDimension.pricedData) {
-      pricingDimension.pricedData = pricingDimensionData;
+    const previousData = pricingDimension.pricedData;
+    if (previousData) {
+      // Update the previous data
+      previousData.amount = Utils.createDecimal(previousData.amount).plus(newData.amount).toNumber();
+      previousData.quantity = Utils.createDecimal(previousData.quantity).plus(newData.quantity).toNumber();
     } else {
-      // TODO - to be clarified - we should not update the transaction data directly!
-      pricingDimension.pricedData.amount = Utils.createDecimal(pricingDimension.pricedData.amount).plus(pricingDimensionData.amount).toNumber();
-      pricingDimension.pricedData.quantity = Utils.createDecimal(pricingDimension.pricedData.quantity).plus(pricingDimensionData.quantity).toNumber();
+      // First call for this dimension
+      pricingDimension.pricedData = newData;
     }
-    return pricingDimensionData;
+    return newData;
+  }
+
+  static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricingDimensionData {
+    let amount: number;
+    let hours: number;
+    if (pricingDimension.stepSize) { // stepSize is in second
+      // bill at least one step
+      const nbSteps = Utils.createDecimal(seconds).divToInt(pricingDimension.stepSize).plus(1).toNumber();
+      const nbSeconds = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
+      hours = Utils.createDecimal(nbSeconds).div(3600).toNumber();
+      amount = Utils.createDecimal(pricingDimension.price).mul(nbSeconds).div(3600).toNumber();
+    } else {
+      hours = Utils.createDecimal(seconds).div(3600).toNumber();
+      amount = Utils.createDecimal(pricingDimension.price).mul(seconds).div(3600).toNumber();
+    }
+    const previousData = pricingDimension.pricedData;
+    if (previousData) {
+      // The new priced data is the delta
+      const newData : PricingDimensionData = {
+        amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
+        quantity: Utils.createDecimal(hours).minus(previousData?.quantity || 0).toNumber(),
+      };
+      // Update the previous data
+      previousData.amount = amount;
+      previousData.quantity = hours;
+      // return the delta
+      return newData;
+    }
+    // first call for this dimension
+    pricingDimension.pricedData = {
+      amount,
+      quantity: seconds
+    };
+    return pricingDimension.pricedData;
   }
 
   static priceConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): number {

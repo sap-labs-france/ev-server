@@ -15,7 +15,7 @@ export default class FeatureToggles {
     Feature.BILLING_CHECK_THRESHOLD_ON_STOP,
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.PRICING_NEW_MODEL,
-    // Feature.PRICING_TEST_PARKING_TIME
+    Feature.PRICING_TEST_PARKING_TIME
   ];
 
   // Check whether the feature is active or not!

@@ -69,15 +69,16 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
         dimensions: {
           flatFee: {
             active: true,
-            price: 3, // 3 EUR when connecting
+            price: 3, // per session
           },
           chargingTime: {
             active: true,
-            price: 5, // 5 EUR/hour
+            price: 120, // per hour
+            stepSize: 60, // seconds
           },
           parkingTime: {
             active: true,
-            price: 7, // 7 EUR/hour
+            price: 7, // per hour
           },
         }
       };
