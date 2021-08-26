@@ -254,7 +254,10 @@ export default class OCPPService {
         // Create Consumptions
         const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
         // Handle current SOC
-        consumptions[consumptions.length - 1].stateOfCharge = await this.getCurrentSOC(tenant, transaction, chargingStation);
+        const currentStateOfCharge = await this.getCurrentSoC(tenant, transaction, chargingStation);
+        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
+          consumptions[consumptions.length - 1].stateOfCharge = currentStateOfCharge;
+        }
         // Price/Bill Transaction and Save them
         for (const consumption of consumptions) {
           // Update Transaction with Consumption
@@ -460,7 +463,10 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
         // Handle current SOC
-        newTransaction.stateOfCharge = await this.getCurrentSOC(tenant, newTransaction, chargingStation);
+        const currentStateOfCharge = await this.getCurrentSoC(tenant, newTransaction, chargingStation);
+        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
+          newTransaction.stateOfCharge = currentStateOfCharge;
+        }
         // Save it
         await TransactionStorage.saveTransaction(tenant, newTransaction);
         // Clean up
@@ -589,7 +595,10 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
         // Handle current SOC
-        transaction.stop.stateOfCharge = await this.getCurrentSOC(tenant, transaction, chargingStation);
+        const currentStateOfCharge = await this.getCurrentSoC(tenant, transaction, chargingStation);
+        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
+          transaction.stop.stateOfCharge = currentStateOfCharge;
+        }
         // Save the transaction
         await TransactionStorage.saveTransaction(tenant, transaction);
         // Notify User
@@ -1696,24 +1705,26 @@ export default class OCPPService {
     }
   }
 
-  private async getCurrentSOC(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
+  private async getCurrentSoC(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && transaction.carID && transaction.carCatalogID &&
     Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
-      const car = await CarStorage.getCar(tenant, transaction.carID);
-      const carCatalog = await CarStorage.getCarCatalog(car.carCatalogID);
+      const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['vin', 'carCatalogID']);
+      const carCatalog = await CarStorage.getCarCatalog(car.carCatalogID, {}, ['vehicleMake']);
       // TBD: Instead of using make --> change the identification of the car connector to specific connector data in the car object
       // Will be implemented with the Tronity integration
-      switch (carCatalog.vehicleMake) {
-        case 'Mercedes': {
-          const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, CarConnectorConnectionType.MERCEDES);
-          if (carImplementation) {
-            try {
-              return await carImplementation.getCurrentSoC(transaction.userID, car.vin);
-            } catch {
-              return null;
+      if (!Utils.isNullOrUndefined(car) && !Utils.isNullOrUndefined(carCatalog)) {
+        switch (carCatalog.vehicleMake) {
+          case 'Mercedes': {
+            const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, CarConnectorConnectionType.MERCEDES);
+            if (carImplementation) {
+              try {
+                return await carImplementation.getCurrentSoC(transaction.userID, car.vin);
+              } catch {
+                return null;
+              }
             }
+            break;
           }
-          break;
         }
       }
     }
