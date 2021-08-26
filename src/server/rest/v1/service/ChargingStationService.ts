@@ -1592,6 +1592,9 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
+        case Command.TRIGGER_DATA_TRANSFER:
+          result = await chargingStationClient.dataTransfer(params);
+          break;
       }
       if (result) {
         // OCPP Command with status
