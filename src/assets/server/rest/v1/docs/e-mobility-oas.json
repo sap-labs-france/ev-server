@@ -5801,49 +5801,19 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "in": "query",
-            "name": "Level",
-            "description": "Pipe separated log levels (D, I, W, E, NONE, DEFAULT)",
-            "schema": {
-              "type": "string",
-              "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
-            }
+            "$ref": "#/components/parameters/LogLevel"
           },
           {
-            "in": "query",
-            "name": "Source",
-            "description": "Log source",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogSource"
           },
           {
-            "in": "query",
-            "name": "Host",
-            "description": "Log host",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogHost"
           },
           {
-            "in": "query",
-            "name": "Type",
-            "description": "Log type",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "R",
-                "S"
-              ]
-            }
+            "$ref": "#/components/parameters/LogType"
           },
           {
-            "in": "query",
-            "name": "Action",
-            "description": "Pipe separated log actions",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogAction"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -5991,49 +5961,19 @@
             "$ref": "#/components/parameters/EndDateTime"
           },
           {
-            "in": "query",
-            "name": "Level",
-            "description": "Pipe separated log levels (D, I, W, E, NONE, DEFAULT)",
-            "schema": {
-              "type": "string",
-              "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
-            }
+            "$ref": "#/components/parameters/LogLevel"
           },
           {
-            "in": "query",
-            "name": "Source",
-            "description": "Log source",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogSource"
           },
           {
-            "in": "query",
-            "name": "Host",
-            "description": "Log host",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogHost"
           },
           {
-            "in": "query",
-            "name": "Type",
-            "description": "Log type",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "R",
-                "S"
-              ]
-            }
+            "$ref": "#/components/parameters/LogType"
           },
           {
-            "in": "query",
-            "name": "Action",
-            "description": "Pipe separated log actions",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/LogAction"
           },
           {
             "$ref": "#/components/parameters/UserID"
@@ -7519,6 +7459,51 @@
         "description": "Retrieve also the user",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "LogLevel": {
+        "in": "query",
+        "name": "Level",
+        "description": "Pipe separated log levels (D, I, W, E, NONE, DEFAULT)",
+        "schema": {
+          "type": "string",
+          "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+        }
+      },
+      "LogSource": {
+        "in": "query",
+        "name": "Source",
+        "description": "Log source",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogHost": {
+        "in": "query",
+        "name": "Host",
+        "description": "Log host",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogType": {
+        "in": "query",
+        "name": "Type",
+        "description": "Log type",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "R",
+            "S"
+          ]
+        }
+      },
+      "LogAction": {
+        "in": "query",
+        "name": "Action",
+        "description": "Pipe separated log actions",
+        "schema": {
+          "type": "string"
         }
       }
     }
