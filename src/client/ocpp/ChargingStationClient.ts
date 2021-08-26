@@ -5,7 +5,7 @@ export default abstract class ChargingStationClient {
 
   public abstract clearCache(): Promise<OCPPClearCacheCommandResult>;
 
-  public abstract triggerDataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult>;
+  public abstract dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult>;
 
   public abstract getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult>;
 
