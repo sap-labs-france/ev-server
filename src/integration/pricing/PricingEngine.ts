@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import PricingModel, { PricingConsumptionData, PricingDefinition, PricingDimension, PricingDimensionData, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingModel, { DimensionType, PricingConsumptionData, PricingDefinition, PricingDimension, PricingDimensionData, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
@@ -119,59 +119,67 @@ export default class PricingEngine {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
-    let pricingDimensionData: PricingDimensionData = null;
-    const quantity = 1; // TODO - To be clarified - Flat Fee is billed once per sessions
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'flatFee', quantity);
-    return pricingDimensionData;
+    const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.FLAT_FEE);
+    if (activePricingDefinition) {
+      const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
+      const pricedData = PricingEngine.priceFlatFeeDimension(dimensionToPrice);
+      if (pricedData) {
+        pricedData.sourceName = activePricingDefinition.name;
+      }
+      return pricedData;
+    }
   }
 
   private static priceEnergyConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
-    let pricingDimensionData: PricingDimensionData = null;
-    const quantity = Utils.createDecimal(consumptionData?.consumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'energy', quantity);
-    return pricingDimensionData;
+    const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.ENERGY);
+    if (activePricingDefinition) {
+      const dimensionToPrice = activePricingDefinition.dimensions.energy;
+      const pricedData = PricingEngine.priceEnergyDimension(dimensionToPrice, consumptionData?.consumptionWh || 0);
+      if (pricedData) {
+        pricedData.sourceName = activePricingDefinition.name;
+      }
+      return pricedData;
+    }
   }
 
   private static priceParkingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
-    let pricingDimensionData: PricingDimensionData = null;
-    // TODO - This is wrong - totalInactivitySecs should not be used here!
-    const hours = Utils.createDecimal(consumptionData?.totalInactivitySecs || 0).toNumber();
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'parkingTime', hours);
-    return pricingDimensionData;
+    const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.PARKING_TIME);
+    if (activePricingDefinition) {
+      const dimensionToPrice = activePricingDefinition.dimensions.parkingTime;
+      const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalInactivitySecs || 0);
+      if (pricedData) {
+        pricedData.sourceName = activePricingDefinition.name;
+      }
+      return pricedData;
+    }
   }
 
   private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
-    let pricingDimensionData: PricingDimensionData = null;
-    // TODO - This is wrong - totalDurationSecs should not be used here!
-    const hours = Utils.createDecimal(consumptionData?.totalDurationSecs || 0).toNumber();
-    pricingDimensionData = PricingEngine.PriceDimensionConsumption(pricingDefinitions, 'chargingTime', hours);
-    return pricingDimensionData;
+    const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.CHARGING_TIME);
+    if (activePricingDefinition) {
+      const dimensionToPrice = activePricingDefinition.dimensions.chargingTime;
+      const pricedData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, consumptionData?.totalDurationSecs || 0);
+      if (pricedData) {
+        pricedData.sourceName = activePricingDefinition.name;
+      }
+      return pricedData;
+    }
   }
 
-  static PriceDimensionConsumption(actualPricingDefinitions: PricingDefinition[], dimensionType: string, quantity = 0): PricingDimensionData {
+  static getActiveDefinition4Dimension(actualPricingDefinitions: PricingDefinition[], dimensionType: string): PricingDefinition {
     // Search for the first pricing definition matching the current dimension type
     const activePricingDefinitions = actualPricingDefinitions.filter((pricingDefinition) =>
       // We search for a pricing definition where the current dimension exists
       PricingEngine.checkPricingDimensionRestrictions(pricingDefinition, dimensionType)
     );
     // Iterate throw the list of pricing definitions where the current dimension makes sense
-    let pricingDimensionData: PricingDimensionData = null;
     for (const activePricingDefinition of activePricingDefinitions) {
       const dimensionToPrice = activePricingDefinition.dimensions[dimensionType];
       if (dimensionToPrice) {
-        if (dimensionType === 'parkingTime' || dimensionType === 'chargingTime') {
-          pricingDimensionData = PricingEngine.priceTimeBasedDimension(dimensionToPrice, quantity);
-        } else {
-          pricingDimensionData = PricingEngine.priceDimension(dimensionToPrice, quantity);
-        }
-        if (pricingDimensionData) {
-          // TODO - clarify where to show the actual tariff name
-          pricingDimensionData.itemDescription = activePricingDefinition.name;
-          break;
-        }
+        return activePricingDefinition;
       }
     }
-    return pricingDimensionData;
+    return null;
   }
 
   static checkPricingDimensionRestrictions(pricingDefinition: PricingDefinition, dimensionType: string) : PricingDefinition {
@@ -182,8 +190,26 @@ export default class PricingEngine {
     return null;
   }
 
-  static priceDimension(pricingDimension: PricingDimension, quantity: number): PricingDimensionData {
-    const amount = Utils.createDecimal(pricingDimension.price).times(quantity).toNumber();
+  static priceFlatFeeDimension(pricingDimension: PricingDimension): PricingDimensionData {
+    if (pricingDimension.pricedData) {
+      // This should not happen for the flatFee dimension - Flat Fee is billed only once per session
+      // throw new Error('Unexpected situation - priceFlatFeeDimension should be called only once per session');
+      return {
+        amount: 0,
+        quantity: 0
+      };
+    }
+    // First call for this dimension
+    pricingDimension.pricedData = {
+      amount: pricingDimension.price,
+      quantity: 1
+    };
+    return pricingDimension.pricedData;
+  }
+
+  static priceEnergyDimension(pricingDimension: PricingDimension, consumptionWh: number): PricingDimensionData {
+    const amount = Utils.createDecimal(pricingDimension.price).times(consumptionWh).div(1000).toNumber();
+    const quantity = Utils.createDecimal(consumptionWh).div(1000).toNumber();
     // --------------------------------------------------------------------------------------------
     // TODO - take the step size into consideration
     // --------------------------------------------------------------------------------------------

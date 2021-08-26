@@ -7,6 +7,13 @@ export default interface PricingModel extends CreatedUpdatedProps, Authorization
   pricingDefinitions: PricingDefinition[];
 }
 
+export enum DimensionType {
+  FLAT_FEE = 'flatFee',
+  ENERGY = 'energy',
+  CHARGING_TIME = 'chargingTime',
+  PARKING_TIME = 'parkingTime'
+}
+
 export interface ResolvedPricingModel {
   // Put there only the information that is to be kept with the Transaction
   pricingDefinitions: PricingDefinition[];
@@ -83,6 +90,8 @@ export interface PricingConsumptionData {
 export interface PricingDimensionData {
   amount: number;
   quantity: number;
+  // Name of the tariff this dimension belongs to - mainly for troubleshooting purposes
+  sourceName?: string
   // The item description is generated while billing the transaction
   itemDescription?: string,
   // Each dimension have a different tax rate

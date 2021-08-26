@@ -1,8 +1,8 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
+import { DimensionType, PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
-import { PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
 
@@ -884,10 +884,10 @@ export default class StripeBillingIntegration extends BillingIntegration {
       unit_amount_decimal: '004.00' (in Cents, with 2 decimals, as a string)
     ----------------------------------------------------------------------------------- */
     // A stripe invoice item per dimension
-    await this._createStripeInvoiceItem4Dimension(customerID, 'flatFee', billingInvoiceItem, pricedData, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'chargingTime', billingInvoiceItem, pricedData, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'energy', billingInvoiceItem, pricedData, invoiceID);
-    await this._createStripeInvoiceItem4Dimension(customerID, 'parkingTime', billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.FLAT_FEE, billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.CHARGING_TIME, billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.ENERGY, billingInvoiceItem, pricedData, invoiceID);
+    await this._createStripeInvoiceItem4Dimension(customerID, DimensionType.PARKING_TIME, billingInvoiceItem, pricedData, invoiceID);
   }
 
   private async _createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
@@ -1091,21 +1091,25 @@ export default class StripeBillingIntegration extends BillingIntegration {
     // -------------------------------------------------------------------------------
     // Enrich the consumption data with information required for billing it
     // -------------------------------------------------------------------------------
-    if (pricingConsumptionData.flatFee) {
-      pricingConsumptionData.flatFee.itemDescription += ' - Flat Fee'; // TODO! - generate proper description
-      pricingConsumptionData.flatFee.taxes = taxes;
+    const flatFee = pricingConsumptionData.flatFee;
+    if (flatFee) {
+      flatFee.itemDescription = flatFee.sourceName + ' - Flat Fee'; // TODO! - generate proper description
+      flatFee.taxes = taxes;
     }
-    if (pricingConsumptionData.energy) {
-      pricingConsumptionData.energy.itemDescription = this.buildLineItemDescription(transaction);
-      pricingConsumptionData.energy.taxes = taxes;
+    const energy = pricingConsumptionData.energy;
+    if (energy) {
+      energy.itemDescription = this.buildLineItemDescription(transaction);
+      energy.taxes = taxes;
     }
-    if (pricingConsumptionData.chargingTime) {
-      pricingConsumptionData.chargingTime.itemDescription += ' - Charging Time'; // TODO! - generate proper description
-      pricingConsumptionData.chargingTime.taxes = taxes;
+    const chargingTime = pricingConsumptionData.chargingTime;
+    if (chargingTime) {
+      chargingTime.itemDescription = chargingTime.sourceName + ' - Charging Time'; // TODO! - generate proper description
+      chargingTime.taxes = taxes;
     }
-    if (pricingConsumptionData.parkingTime) {
-      pricingConsumptionData.parkingTime.itemDescription += ' - Parking Time'; // TODO! - generate proper description
-      pricingConsumptionData.parkingTime.taxes = taxes;
+    const parkingTime = pricingConsumptionData.parkingTime;
+    if (parkingTime) {
+      parkingTime.itemDescription = parkingTime.sourceName + ' - Parking Time'; // TODO! - generate proper description
+      parkingTime.taxes = taxes;
     }
     return pricingConsumptionData;
   }
