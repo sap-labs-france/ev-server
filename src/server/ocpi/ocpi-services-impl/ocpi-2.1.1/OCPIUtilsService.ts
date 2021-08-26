@@ -853,9 +853,9 @@ export default class OCPIUtilsService {
     const connectorOneStatus = OCPIUtilsService.convertToOneConnectorStatus(connectors);
     // Build evse
     const evse: OCPIEvse = {
-      // Force the connector id to always be 1 on charging station that have mutually exclusive connectors
-      uid: OCPIUtils.buildEvseUID(chargingStation, { connectorId: 1 } as Connector),
-      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, 1),
+      // Evse uid must contains the chargePoint.id
+      uid: OCPIUtils.buildEvseUID(chargingStation, connectors[0]),
+      evse_id: RoamingUtils.buildEvseID(options.countryID, options.partyID, chargingStation.id, chargePoint.chargePointID),
       location_id: chargingStation.siteID,
       status: chargingStation.inactive ? OCPIEvseStatus.INOPERATIVE : OCPIUtilsService.convertStatus2OCPIStatus(connectorOneStatus),
       capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
@@ -922,6 +922,7 @@ export default class OCPIUtilsService {
   }
 
   private static buildTariffID(tenant: Tenant, chargingStation: ChargingStation): string {
+    const defaultTariff = 'Default';
     switch (tenant?.id) {
       // SLF
       case '5be7fb271014d90008992f06':
@@ -929,24 +930,21 @@ export default class OCPIUtilsService {
         switch (chargingStation?.siteAreaID) {
           // Mougins - South
           case '5abebb1b4bae1457eb565e98':
-            return 'FR*SLF_AC_Sud2';
+            return 'AC_Sud2';
           // Mougins - South - Fastcharging
           case '5b72cef274ae30000855e458':
-            return 'FR*SLF_DC_Sud';
-          // Caen
-          case '5ac678b5c0cc5e7fdd2c5ef3':
-            return 'FR*SLF_Caen';
+            return 'DC_Sud';
         }
-        return '';
+        return defaultTariff;
       // Proviridis
       case '5e2701b248aaa90007904cca':
         return '1';
       // Exadys
       case '5ff4c5ca1804a20013ce8a23':
-        return 'FR*EXA_Tarif_Standard';
+        return 'Tarif_Standard';
       // Inouid
       case '602e260fa9b0290023fb68d2':
-        return 'FR*ISE_Payant1';
+        return 'Payant1';
       // Properphi
       case '603655d291930d0014017e0a':
         switch (chargingStation?.siteAreaID) {
@@ -954,24 +952,27 @@ export default class OCPIUtilsService {
           case '60990f1cc48de10014ea4fdc':
             switch (chargingStation?.id) {
               case 'F3CBaume-CAHORS25DC':
-                return 'Tarif_EVSE_DC';
+                return 'EVSE_DC';
               case 'F3CBaume-LAFON22AC':
-                return 'Tarif_EVSE_AC';
+                return 'EVSE_AC';
             }
-            return '';
+            return defaultTariff;
           // Garage Cheval
           case '60e40cfc32a7e60014672290':
             switch (chargingStation?.id) {
               case 'F3CALBON-CAHORS25DC':
-                return 'Tarif_EVSE_DC';
+                return 'EVSE_DC';
               case 'F3CALBON-SCHNEIDER22AC':
-                return 'Tarif_EVSE_AC';
+                return 'EVSE_AC';
             }
-            return '';
+            return defaultTariff;
         }
-        return '';
+        return defaultTariff;
+      // eChargeNow
+      case '60b9f4336493830016c9a68c':
+        return 'Tarif_Standard';
     }
-    return '';
+    return defaultTariff;
   }
 
   private static convertOCPINumberOfConnectedPhases2PowerType(ocpiNumberOfConnectedPhases: number): OCPIPowerType {

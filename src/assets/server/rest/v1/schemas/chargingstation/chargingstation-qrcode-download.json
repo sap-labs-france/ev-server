@@ -9,10 +9,10 @@
       "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
     },
     "SiteAreaID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     }
   },
   "anyOf": [
