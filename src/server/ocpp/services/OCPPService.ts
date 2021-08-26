@@ -594,11 +594,6 @@ export default class OCPPService {
         await OCPPUtils.processTransactionBilling(tenant, transaction, TransactionAction.STOP);
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, transaction, chargingStation, transaction.tag, TransactionAction.STOP);
-        // Handle current SOC
-        const currentStateOfCharge = await this.getCurrentSoC(tenant, transaction, chargingStation);
-        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
-          transaction.stop.stateOfCharge = currentStateOfCharge;
-        }
         // Save the transaction
         await TransactionStorage.saveTransaction(tenant, transaction);
         // Notify User
