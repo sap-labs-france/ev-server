@@ -39,6 +39,10 @@
     {
       "name": "Tags",
       "description": "Tags API"
+    },
+    {
+      "name": "Loggings",
+      "description": "Loggings API"
     }
   ],
   "paths": {
@@ -6099,6 +6103,239 @@
           }
         }
       }
+    },
+    "/api/loggings": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of logs",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/LogLevel"
+          },
+          {
+            "$ref": "#/components/parameters/LogSource"
+          },
+          {
+            "$ref": "#/components/parameters/LogHost"
+          },
+          {
+            "$ref": "#/components/parameters/LogType"
+          },
+          {
+            "$ref": "#/components/parameters/LogAction"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return logs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "level": "D",
+                      "source": "###",
+                      "host": "###",
+                      "process": "###",
+                      "type": "S",
+                      "timestamp": "2021-08-18T09:09:57.129Z",
+                      "module": "###",
+                      "method": "###",
+                      "action": "###",
+                      "message": "###",
+                      "user": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "hasDetailedMessages": true,
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/loggings/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a log",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Log ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned log",
+            "content": {
+              "application/json": {
+                "example": {
+                  "level": "D",
+                  "source": "###",
+                  "host": "###",
+                  "process": "###",
+                  "type": "S",
+                  "timestamp": "2021-08-18T08:53:00.924Z",
+                  "action": "###",
+                  "message": "###",
+                  "detailedMessages": "###",
+                  "user": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "hasDetailedMessages": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/loggings/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export loggings as CSV file",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/LogLevel"
+          },
+          {
+            "$ref": "#/components/parameters/LogSource"
+          },
+          {
+            "$ref": "#/components/parameters/LogHost"
+          },
+          {
+            "$ref": "#/components/parameters/LogType"
+          },
+          {
+            "$ref": "#/components/parameters/LogAction"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return exported logs",
+            "content": {
+              "text/csv": {
+                "example": "date,time,level,type,action,message,method,module,source,host,process\n\"2021-08-18\",\"11:36:37\",\"D\",\"S\",\"###\",\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7541,6 +7778,51 @@
         "description": "Retrieve also the user",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "LogLevel": {
+        "in": "query",
+        "name": "Level",
+        "description": "Pipe separated log levels (D, I, W, E, NONE, DEFAULT)",
+        "schema": {
+          "type": "string",
+          "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+        }
+      },
+      "LogSource": {
+        "in": "query",
+        "name": "Source",
+        "description": "Log source",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogHost": {
+        "in": "query",
+        "name": "Host",
+        "description": "Log host",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogType": {
+        "in": "query",
+        "name": "Type",
+        "description": "Log type",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "R",
+            "S"
+          ]
+        }
+      },
+      "LogAction": {
+        "in": "query",
+        "name": "Action",
+        "description": "Pipe separated log actions",
+        "schema": {
+          "type": "string"
         }
       }
     }
