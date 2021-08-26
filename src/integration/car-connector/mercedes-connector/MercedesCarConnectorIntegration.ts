@@ -137,9 +137,9 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string, VIN: string): Promise<number> {
+  public async getCurrentSoC(userID: string, vin: string): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
-    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${VIN}/resources/soc`;
+    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${vin}/resources/soc`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -152,7 +152,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CAR_CONNECTOR,
-        message: `${VIN} > Mercedes web service has been called successfully`,
+        message: `${vin} > Mercedes web service has been called successfully`,
         module: MODULE_NAME, method: 'getCurrentSoC',
         detailedMessages: { response: response.data }
       });
