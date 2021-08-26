@@ -438,11 +438,6 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    try {
-      TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
-    } catch (e) {
-      const a = 5;
-    }
     const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {

@@ -5,13 +5,14 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import { Log } from '../../types/Log';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 
 export default class LoggingStorage {
-  public static async deleteLogs(tenantID: string, deleteUpToDate: Date): Promise<DeletedResult> {
+  public static async deleteLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
     // Do Not Delete Security Logs
@@ -25,15 +26,15 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<Log>(tenantID, 'logs')
+    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
   }
 
-  public static async deleteSecurityLogs(tenantID: string, deleteUpToDate: Date): Promise<DeletedResult> {
+  public static async deleteSecurityLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
     // Delete Only Security Logs
@@ -47,7 +48,7 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<Log>(tenantID, 'logs')
+    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
       .deleteMany(filters);
     // Return the result
     return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
@@ -59,6 +60,7 @@ export default class LoggingStorage {
       userID: logToSave.user ? DatabaseUtils.convertUserToObjectID(logToSave.user) : null,
       actionOnUserID: DatabaseUtils.convertUserToObjectID(logToSave.actionOnUser),
       level: logToSave.level,
+      siteID: logToSave.siteID,
       source: logToSave.source,
       host: logToSave.host ? logToSave.host : Utils.getHostname(),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id.toString() : 'master'),
@@ -77,19 +79,19 @@ export default class LoggingStorage {
     }
   }
 
-  public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
-    const logsMDB = await LoggingStorage.getLogs(tenantID, {
+  public static async getLog(tenant: Tenant, id: string = Constants.UNKNOWN_OBJECT_ID, projectFields: string[]): Promise<Log> {
+    const logsMDB = await LoggingStorage.getLogs(tenant, {
       logIDs: [id]
     }, Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     return logsMDB.count === 1 ? logsMDB.result[0] : null;
   }
 
-  public static async getLogs(tenantID: string, params: {
+  public static async getLogs(tenant: Tenant, params: {
     startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
     hosts?: string[]; userIDs?: string[]; search?: string; logIDs?: string[];
   } = {}, dbParams: DbParams, projectFields: string[]): Promise<DataResult<Log>> {
     // Check Tenant
-    await DatabaseUtils.checkTenant(tenantID);
+    DatabaseUtils.checkTenantObject(tenant);
     // Clone before updating the values
     dbParams = Utils.cloneObject(dbParams);
     // Check Limit
@@ -160,7 +162,7 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
+    const loggingsCountMDB = await global.database.getCollection<any>(tenant.id, 'logs')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
@@ -189,7 +191,7 @@ export default class LoggingStorage {
     });
     // Add Users
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
+      tenantID: tenant.id,
       aggregation: aggregation,
       asField: 'user',
       localField: 'userID',
@@ -200,7 +202,7 @@ export default class LoggingStorage {
       { $project: { name: 1, firstName: 1 } }
     ]);
     DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
+      tenantID: tenant.id,
       aggregation: aggregation,
       asField: 'actionOnUser',
       localField: 'actionOnUserID',
@@ -221,7 +223,7 @@ export default class LoggingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const loggingsMDB = await global.database.getCollection<Log>(tenantID, 'logs')
+    const loggingsMDB = await global.database.getCollection<Log>(tenant.id, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Ok

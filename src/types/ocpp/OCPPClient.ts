@@ -1,5 +1,6 @@
 import { ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 
+import { OCPPDataTransferStatus } from './OCPPServer';
 import { OcppParameter } from '../ChargingStation';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -36,6 +37,16 @@ export interface OCPPClearCacheCommandResult {
 export enum OCPPClearCacheStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected'
+}
+
+export interface OCPPDataTransferCommandParam extends OCPPCommandParam {
+  vendorId: string,
+  messageId?: string,
+  data: string
+}
+
+export interface OCPPDataTransferCommandResult {
+  status: OCPPDataTransferStatus
 }
 
 export interface OCPPGetConfigurationCommandParam extends OCPPCommandParam {

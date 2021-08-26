@@ -1,33 +1,44 @@
 {
-  "title": "Get Users",
+  "title": "Get Loggings",
+  "description": "",
   "type": "object",
-  "definitions": {
-    "Issuer": {
-      "type": "boolean",
+  "properties": {
+    "StartDateTime": {
+      "type": "string",
+      "format": "date-time",
       "sanitize": "mongo"
     },
-    "SiteID": {
-      "$ref": "common.json#/definitions/IDs"
+    "EndDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "sanitize": "mongo"
+    },
+    "Level": {
+      "type": "string",
+      "sanitize": "mongo",
+      "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+    },
+    "Source": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Host": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Type": {
+      "type": "string",
+      "sanitize": "mongo",
+      "enum": [
+        "R", "S"
+      ]
+    },
+    "Action": {
+      "type": "string",
+      "sanitize": "mongo"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/IDs"
-    },
-    "Roles": {
-      "type": "string",
-      "sanitize": "mongo",
-      "pattern": "^[SABD](\\|[SABD])*$"
-    },
-    "Status": {
-      "type": "string",
-      "sanitize": "mongo",
-      "pattern": "^[PAIBL](\\|[PAIBL])*$"
-    },
-    "ExcludeSiteID": {
-      "$ref": "common.json#/definitions/IDs"
-    },
-    "VisualTagID": {
-      "type": "string",
-      "sanitize": "mongo"
+      "$ref": "user.json#/definitions/ids"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"
