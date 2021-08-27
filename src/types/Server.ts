@@ -496,7 +496,7 @@ export enum ServerRoute {
   REST_TRANSACTIONS_IN_ERROR = 'transactions/status/in-error',
   REST_TRANSACTIONS_ACTIVE = 'transactions/status/active',
   REST_TRANSACTIONS_COMPLETED = 'transactions/status/completed',
-  REST_TRANSACTIONS_UNASSIGNED_COUNT = '/transactions/status/unassigned/count',
+  REST_TRANSACTIONS_UNASSIGNED_COUNT = 'transactions/status/unassigned/count',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTIONS_EXPORT = 'transactions/action/export',
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
