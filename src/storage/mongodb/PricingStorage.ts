@@ -87,7 +87,7 @@ export default class PricingStorage {
     }
     // Context IDs
     if (!Utils.isEmptyArray(params.entityIDs)) {
-      filters.contextID = { $in: params.entityIDs };
+      filters.entityID = { $in: params.entityIDs };
     }
     // Remove deleted
     filters.deleted = { '$ne': true };
@@ -134,7 +134,7 @@ export default class PricingStorage {
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'contextID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'entityID');
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenant.id, aggregation);
     // Project
