@@ -2,11 +2,12 @@ import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricingDefinition } from '../../src/types/Pricing';
+import PricingModel, { PricingDefinition, PricingDimensions } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
 import CentralServerService from './client/CentralServerService';
+import ChargingStation from '../../src/types/ChargingStation';
 import ChargingStationContext from './context/ChargingStationContext';
 import Constants from '../../src/utils/Constants';
 import ContextDefinition from './context/ContextDefinition';
@@ -85,16 +86,36 @@ class TestData {
     return source;
   }
 
-  public async initChargingStationContext() : Promise<ChargingStationContext> {
+  public initUserContextAsAdmin() : void {
+    expect(this.userContext).to.not.be.null;
+    this.userContext = this.adminUserContext;
+    assert(this.userContext, 'User context cannot be null');
+    this.userService = this.adminUserService;
+    assert(!!this.userService, 'User service cannot be null');
+  }
+
+  public initChargingStationContext() : ChargingStationContext {
     this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
     this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
     this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
-    // Alternative
-    // this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
-    // this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
-    // this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}` + '-' + 'singlePhased');
-    expect(this.chargingStationContext).to.not.be.null;
-    return Promise.resolve(this.chargingStationContext);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    return this.chargingStationContext;
+  }
+
+  public initChargingStationContext2TestChargingTime() : ChargingStationContext {
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED + '-singlePhased');
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    return this.chargingStationContext;
+  }
+
+  public initChargingStationContext2EnergyPlusFlatFee() : ChargingStationContext {
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + ContextDefinition.SITE_CONTEXTS.SITE_BASIC + '-' + ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    assert(!!this.chargingStationContext, 'Charging station context should not be null');
+    return this.chargingStationContext;
   }
 
   public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
@@ -257,16 +278,51 @@ class TestData {
     return (draftInvoice) ? draftInvoice.sessions?.length : 0;
   }
 
-  public async checkPricingModel(): Promise<void> {
-    const company = (await this.adminUserService.companyApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
-    assert(company, 'The Company should not be null');
-    await this.createTariff4Company(company.id);
+  public async initializePricingModels(): Promise<void> {
+    // const company = (await this.adminUserService.companyApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result?.[0];
+    // assert(company, 'The Company should not be null');
+    // await this.createTariff4Company(company.id);
 
-    const sites = (await this.adminUserService.siteApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
-    const selectedSites = sites.filter((site) => site.name === 'ut-site-stop');
-    assert(selectedSites, 'Sites should not be null');
-    assert(selectedSites[0], 'The Site should not be null');
-    await this.createTariff4Site(selectedSites[0].id);
+    // const sites = (await this.adminUserService.siteApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
+    // const selectedSites = sites.filter((site) => site.name === 'ut-site-stop');
+    // assert(selectedSites, 'Sites should not be null');
+    // assert(selectedSites[0], 'The Site should not be null');
+    // await this.createTariff4Site(selectedSites[0].id);
+
+    const chargingStations: ChargingStation[] = (await this.adminUserService.chargingStationApi.readAll({}, { limit: 0, skip: 0 }))?.data?.result;
+    let selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingDC');
+    await this.createTariff4ChargingStation(selectedChargingStations[0]);
+
+    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingSinglePhased');
+    await this.createTariff4ChargingStation(selectedChargingStations[0]);
+
+    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased');
+    await this.createTariff4ChargingStation(selectedChargingStations[0], {
+      flatFee: {
+        price: 2,
+        active: true
+      },
+      energy: {
+        price: 0.25,
+        active: true
+      },
+      chargingTime: {
+        price: 0.4,
+        active: false // THIS IS OFF
+      }
+    });
+
+    selectedChargingStations = chargingStations.filter((chargingStation) => chargingStation.id === 'cs-16-ut-site-withSmartChargingThreePhased-singlePhased');
+    await this.createTariff4ChargingStation(selectedChargingStations[0], {
+      flatFee: {
+        price: 1,
+        active: true
+      },
+      chargingTime: {
+        price: 0.4,
+        active: true
+      }
+    });
   }
 
   public async createTariff4Company(companyID: string): Promise<void> {
@@ -315,7 +371,6 @@ class TestData {
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
-
   public async createTariff4Site(siteID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
       entityID: siteID, // a pricing model for the site
@@ -362,8 +417,51 @@ class TestData {
     assert(response?.data?.status === 'Success', 'The operation should succeed');
   }
 
-}
+  public async createTariff4ChargingStation(chargingStation: ChargingStation, dimensions: PricingDimensions = null): Promise<void> {
+    dimensions = dimensions || {
+      flatFee: {
+        price: 1.25,
+        active: true
+      },
+      chargingTime: {
+        price: 0.15,
+        active: true
+      },
+      energy: {
+        price: 0.35,
+        active: true
+      },
+      parkingTime: {
+        price: 0.75,
+        active: true
+      },
+    };
 
+    const initialPricingModel: Partial<PricingModel> = {
+      entityID: chargingStation.id, // a pricing model for the site
+      entityType: Entity.CHARGING_STATION,
+      pricingDefinitions: []
+    };
+    let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+    assert(response?.data?.id, 'The ID should not be null');
+
+    const pricingModelId = response?.data?.id;
+    response = await this.adminUserService.pricingApi.readPricingModel(pricingModelId);
+    assert(response?.data?.id === pricingModelId, 'The ID should be: ' + pricingModelId);
+
+    const tariff: PricingDefinition = {
+      name: 'CS Tariff - ' + chargingStation.id,
+      description: 'Tariff for CS' + chargingStation.id,
+      dimensions
+    };
+
+    const pricingModel = response?.data;
+    pricingModel.pricingDefinitions = [tariff];
+    response = await this.adminUserService.pricingApi.updatePricingModel(pricingModel);
+    assert(response?.data?.status === 'Success', 'The operation should succeed');
+  }
+}
 
 const testData: TestData = new TestData();
 
@@ -388,10 +486,7 @@ describe('Billing Settings', function() {
     describe('As an admin - with transaction billing OFF', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
-        testData.userContext = testData.adminUserContext;
-        assert(testData.userContext, 'User context cannot be null');
-        testData.userService = testData.adminUserService;
-        assert(!!testData.userService, 'User service cannot be null');
+        testData.initUserContextAsAdmin();
         // Initialize the Billing module with transaction billing ON
         testData.billingImpl = await testData.setBillingSystemValidCredentials(false);
       });
@@ -454,10 +549,7 @@ describe('Billing Settings', function() {
     describe('As an admin - with transaction billing ON', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
       before(async () => {
-        testData.userContext = testData.adminUserContext;
-        assert(testData.userContext, 'User context cannot be null');
-        testData.userService = testData.adminUserService;
-        assert(!!testData.userService, 'User service cannot be null');
+        testData.initUserContextAsAdmin();
         // Initialize the Billing module with transaction billing ON
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
       });
@@ -539,23 +631,22 @@ describe('Billing Service', function() {
       await testData.initialize();
     });
 
-    describe('Initialization Pricing Model', () => {
+    describe('Pricing Model', () => {
       before(async () => {
       });
 
       after(async () => {
       });
 
-      it('check CRUD operations on a Pricing Model', async () => {
-        await testData.checkPricingModel();
+      it('Initialize the Pricing Models', async () => {
+        await testData.initializePricingModels();
       });
     });
 
     describe('with Transaction Billing ON', () => {
       before(async () => {
-        expect(testData.userContext).to.not.be.null;
-        const chargingStationContext = await testData.initChargingStationContext();
-        expect(chargingStationContext).to.not.be.null;
+        // Initialize the charing station context
+        testData.initChargingStationContext();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         // Make sure the required users are in sync
@@ -567,13 +658,9 @@ describe('Billing Service', function() {
       });
 
       xdescribe('Tune user profiles', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          testData.initUserContextAsAdmin();
         });
 
         it('Should change admin user locale to fr_FR', async () => {
@@ -590,13 +677,9 @@ describe('Billing Service', function() {
       });
 
       describe('Where admin user (essential)', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          testData.initUserContextAsAdmin();
         });
 
         it('should add an item to a DRAFT invoice after a transaction', async () => {
@@ -614,13 +697,9 @@ describe('Billing Service', function() {
       });
 
       describe('Where admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          testData.initUserContextAsAdmin();
         });
 
         it('Should connect to Billing Provider', async () => {
@@ -844,13 +923,9 @@ describe('Billing Service', function() {
       });
 
       describe('Negative tests as an admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          testData.initUserContextAsAdmin();
         });
 
         it('should not delete a transaction linked to an invoice', async () => {
@@ -863,12 +938,9 @@ describe('Billing Service', function() {
       });
 
       describe('Recovery Scenarios', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
+          testData.initUserContextAsAdmin();
         });
 
         after(async () => {
@@ -896,12 +968,9 @@ describe('Billing Service', function() {
       });
 
       describe('Negative tests - Wrong Billing Settings', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
+          testData.initUserContextAsAdmin();
           // Force INVALID STRIPE credentials
           testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
           assert(testData.billingImpl, 'Billing implementation should not be null');
@@ -951,12 +1020,9 @@ describe('Billing Service', function() {
       });
 
       describe('Negative tests', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
+          testData.initUserContextAsAdmin();
           // Set STRIPE credentials
           testData.billingImpl = await testData.setBillingSystemInvalidCredentials();
         });
@@ -977,21 +1043,15 @@ describe('Billing Service', function() {
     describe('with Transaction Billing OFF', () => {
       before(async () => {
         expect(testData.userContext).to.not.be.null;
-        testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-        testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        testData.initChargingStationContext();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials(false);
       });
 
       describe('Where admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          testData.initUserContextAsAdmin();
         });
 
         it('should NOT add an item to a DRAFT invoice after a transaction', async () => {
@@ -1012,25 +1072,38 @@ describe('Billing Service', function() {
 
     describe('with Transaction Billing + Immediate Billing ON', () => {
       before(async () => {
-        expect(testData.userContext).to.not.be.null;
-        testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-        testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        testData.initUserContextAsAdmin();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials(true, true /* immediateBillingAllowed ON */);
       });
 
       describe('Where admin user', () => {
-      // eslint-disable-next-line @typescript-eslint/require-await
+        // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
+          // Initialize the charing station context
+          testData.initChargingStationContext2TestChargingTime();
         });
 
-        it('should create and bill an invoice after a transaction', async () => {
+        it('should create and bill an invoice with FF + CT', async () => {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
+          await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
+          const transactionID = await testData.generateTransaction(testData.userContext);
+          assert(transactionID, 'transactionID should not be null');
+          // Check that we have a new invoice with an invoiceID and an invoiceNumber
+          await testData.checkTransactionBillingData(transactionID, BillingInvoiceStatus.PAID);
+        });
+
+      });
+
+      describe('Where admin user', () => {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        before(async () => {
+          // Initialize the charing station context
+          testData.initChargingStationContext2EnergyPlusFlatFee();
+        });
+
+        it('should create and bill an invoice with FF + ENERGY', async () => {
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');
@@ -1045,10 +1118,9 @@ describe('Billing Service', function() {
 
     describe('with Transaction Billing + Periodic Billing ON', () => {
       before(async () => {
-        expect(testData.userContext).to.not.be.null;
-        testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-        testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        testData.initUserContextAsAdmin();
+        // Initialize the charing station context
+        testData.initChargingStationContext2TestChargingTime();
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials(true, false /* immediateBillingAllowed OFF, so periodicBilling ON */);
       });
@@ -1056,14 +1128,9 @@ describe('Billing Service', function() {
       describe('Where admin user', () => {
       // eslint-disable-next-line @typescript-eslint/require-await
         before(async () => {
-          testData.userContext = testData.adminUserContext;
-          assert(testData.userContext, 'User context cannot be null');
-          testData.userService = testData.adminUserService;
-          assert(!!testData.userService, 'User service cannot be null');
-        // await testData.setBillingSystemValidCredentials();
         });
 
-        it('should create a DRAFT invoice after a transaction', async () => {
+        it('should create a DRAFT invoice, Finalize it and Pay it', async () => {
           await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
           const userWithBillingData = await testData.billingImpl.getUser(testData.userContext);
           await testData.assignPaymentMethod(userWithBillingData, 'tok_fr');

@@ -25,14 +25,15 @@ export interface PricingDefinition {
   name: string, // Short marketing name - e.g.: BLUE Tariff,
   description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
   restrictions?: PricingRestriction; // To be clarified! - These restrictions are so far common to all dimensions
-  dimensions: {
-    flatFee?: PricingDimension, // Flat fee, no unit
-    energy?: PricingDimension, // Defined in kWh, step_size multiplier: 1 Wh
-    chargingTime?: PricingDimension, // Time charging: defined in hours, step_size multiplier: 1 second
-    parkingTime?: PricingDimension, // Time not charging: defined in hours, step_size multiplier: 1 second
-  }
+  dimensions: PricingDimensions
 }
 
+export interface PricingDimensions {
+  flatFee?: PricingDimension, // Flat fee, no unit
+  energy?: PricingDimension, // Defined in kWh, step_size multiplier: 1 Wh
+  chargingTime?: PricingDimension, // Time charging: defined in hours, step_size multiplier: 1 second
+  parkingTime?: PricingDimension, // Time not charging: defined in hours, step_size multiplier: 1 second
+}
 export interface PricingDimension {
   active: boolean, // Lets the user switch OFF that price without loosing the value (if any)
   price: number, // Price per unit (excluding VAT) for this tariff dimension
