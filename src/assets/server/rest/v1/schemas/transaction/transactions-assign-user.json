@@ -1,5 +1,5 @@
 {
-  "title": "Get Transaction Consumption Request",
+  "title": "Assign User to Transactions Request",
   "type": "object",
   "properties": {
     "TagID": {
