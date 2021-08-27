@@ -38,7 +38,7 @@
       "sanitize": "mongo"
     },
     "UserID": {
-      "$ref": "user.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "Search": {
       "$ref": "common.json#/definitions/search"
