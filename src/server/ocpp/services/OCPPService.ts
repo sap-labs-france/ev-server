@@ -1702,6 +1702,10 @@ export default class OCPPService {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
     Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
       let currentStateOfCharge = null;
+      // If statement not needed anymore with specific connector data in car object --> Coming with Tronity implementation
+      if (action === TransactionAction.UPDATE) {
+        transaction.car.carCatalog = transaction.carCatalog;
+      }
       const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, null, transaction.car);
       if (carImplementation) {
         try {
