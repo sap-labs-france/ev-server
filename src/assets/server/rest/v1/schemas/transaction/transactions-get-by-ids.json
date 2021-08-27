@@ -1,0 +1,15 @@
+{
+  "title": "Get Transactions by IDs Request",
+  "type": "object",
+  "properties": {
+    "transactionsIDs": {
+      "type": "array",
+      "items": {
+        "$ref": "transaction.json#/definitions/id"
+      }
+    }
+  },
+  "required": [
+    "transactionsIDs"
+  ]
+}
