@@ -6,7 +6,7 @@
       "$ref": "common.json#/definitions/search"
     },
     "ChargingStationID": {
-      "$ref": "chargingstation.json#/definitions/ids"
+      "$ref": "chargingstation.json#/definitions/IDs"
     },
     "ConnectorID": {
       "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
@@ -20,7 +20,7 @@
       "sanitize": "mongo"
     },
     "SiteID": {
-      "$ref": "common.json#/definitions/ids"
+      "$ref": "common.json#/definitions/IDs"
     },
     "Limit": {
       "$ref": "common.json#/definitions/limit"
