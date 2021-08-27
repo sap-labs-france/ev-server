@@ -17,6 +17,7 @@ import { Entity } from '../../src/types/Authorization';
 import Factory from '../factories/Factory';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 import { ObjectId } from 'mongodb';
+import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
@@ -47,7 +48,7 @@ class TestData {
   public userService: CentralServerService;
   // Other test resources
   public siteContext: SiteContext;
-  public siteAreaContext: any;
+  public siteAreaContext: SiteAreaContext;
   public chargingStationContext: ChargingStationContext;
   public createdUsers: User[] = [];
   // Dynamic User for testing billing against an empty STRIPE account
@@ -82,6 +83,18 @@ class TestData {
     });
     assert(customer, 'Customer should not be null');
     return source;
+  }
+
+  public async initChargingStationContext() : Promise<ChargingStationContext> {
+    this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+    this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+    this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+    // Alternative
+    // this.siteContext = this.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    // this.siteAreaContext = this.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED);
+    // this.chargingStationContext = this.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16 + '-' + `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_SMART_CHARGING_THREE_PHASED}` + '-' + 'singlePhased');
+    expect(this.chargingStationContext).to.not.be.null;
+    return Promise.resolve(this.chargingStationContext);
   }
 
   public async setBillingSystemValidCredentials(activateTransactionBilling = true, immediateBillingAllowed = false) : Promise<StripeBillingIntegration> {
@@ -541,9 +554,8 @@ describe('Billing Service', function() {
     describe('with Transaction Billing ON', () => {
       before(async () => {
         expect(testData.userContext).to.not.be.null;
-        testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-        testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        const chargingStationContext = await testData.initChargingStationContext();
+        expect(chargingStationContext).to.not.be.null;
         // Initialize the Billing module
         testData.billingImpl = await testData.setBillingSystemValidCredentials();
         // Make sure the required users are in sync

@@ -17,7 +17,7 @@ export default class FeatureToggles {
     Feature.BILLING_PREVENT_CUSTOMER_DELETION,
     Feature.PRICING_NEW_MODEL,
     // Feature.PRICING_TEST_PARKING_TIME
-    Feature.PRICING_TEST_ENERGY_WITH_STEP_SIZE
+    // Feature.PRICING_TEST_ENERGY_WITH_STEP_SIZE
   ];
 
   // Check whether the feature is active or not!
