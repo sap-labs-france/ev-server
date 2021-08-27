@@ -125,7 +125,7 @@ export default class LoggingService {
       }
     }
     // Get logs
-    const loggings = await LoggingStorage.getLogs(req.user.tenantID, {
+    const loggings = await LoggingStorage.getLogs(req.tenant, {
       search: filteredRequest.Search,
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime,

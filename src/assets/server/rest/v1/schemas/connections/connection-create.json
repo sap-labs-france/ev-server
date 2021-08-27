@@ -4,13 +4,14 @@
   "type": "object",
   "properties": {
     "connectorId": {
-      "type": "string"
+      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
     },
     "userId": {
-      "type": "string"
+      "$ref": "user.json#/definitions/id"
     },
     "data": {
-      "type": "object"
+      "type": "object",
+      "sanitize": "mongo"
     }
   },
   "required": [

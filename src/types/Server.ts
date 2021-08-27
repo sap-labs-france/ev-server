@@ -528,6 +528,9 @@ export enum ServerRoute {
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
 
+  REST_CONNECTIONS = 'connections',
+  REST_CONNECTION = 'connections/:id',
+
   REST_LOGGINGS = 'loggings',
   REST_LOGGING = 'loggings/:id',
   REST_LOGGINGS_EXPORT = 'loggings/action/export',
