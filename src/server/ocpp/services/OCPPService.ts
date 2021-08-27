@@ -15,6 +15,7 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
@@ -254,10 +255,7 @@ export default class OCPPService {
         // Create Consumptions
         const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
         // Handle current SOC
-        const currentStateOfCharge = await this.getCurrentSoC(tenant, transaction, chargingStation);
-        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
-          consumptions[consumptions.length - 1].stateOfCharge = currentStateOfCharge;
-        }
+        await this.processTransactionSoC(tenant, transaction, chargingStation, consumptions[consumptions.length - 1], TransactionAction.UPDATE);
         // Price/Bill Transaction and Save them
         for (const consumption of consumptions) {
           // Update Transaction with Consumption
@@ -463,10 +461,7 @@ export default class OCPPService {
         // Roaming
         await OCPPUtils.processTransactionRoaming(tenant, newTransaction, chargingStation, tag, TransactionAction.START);
         // Handle current SOC
-        const currentStateOfCharge = await this.getCurrentSoC(tenant, newTransaction, chargingStation);
-        if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
-          newTransaction.stateOfCharge = currentStateOfCharge;
-        }
+        await this.processTransactionSoC(tenant, newTransaction, chargingStation, null, TransactionAction.START);
         // Save it
         await TransactionStorage.saveTransaction(tenant, newTransaction);
         // Clean up
@@ -1684,46 +1679,48 @@ export default class OCPPService {
         transaction.carID = user.lastSelectedCarID;
       } else {
         // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
+        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
         if (defaultCar) {
           transaction.carID = defaultCar.id;
           transaction.carCatalogID = defaultCar.carCatalogID;
+          transaction.car = defaultCar;
         }
       }
       // Set Car Catalog ID
       if (transaction.carID && !transaction.carCatalogID) {
-        const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
+        const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
         transaction.carCatalogID = car?.carCatalogID;
+        transaction.car = car;
       }
       // Clear
       await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
     }
   }
 
-  private async getCurrentSoC(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && transaction.carID && transaction.carCatalogID &&
+  private async processTransactionSoC(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption,
+      action: TransactionAction): Promise<void> {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
     Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
-      const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['vin', 'carCatalogID']);
-      const carCatalog = await CarStorage.getCarCatalog(car.carCatalogID, {}, ['vehicleMake']);
-      // TBD: Instead of using make --> change the identification of the car connector to specific connector data in the car object
-      // Will be implemented with the Tronity integration
-      if (!Utils.isNullOrUndefined(car) && !Utils.isNullOrUndefined(carCatalog)) {
-        switch (carCatalog.vehicleMake) {
-          case 'Mercedes': {
-            const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, CarConnectorConnectionType.MERCEDES);
-            if (carImplementation) {
-              try {
-                return await carImplementation.getCurrentSoC(transaction.userID, car.vin);
-              } catch {
-                return null;
-              }
-            }
+      let currentStateOfCharge = null;
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, null, transaction.car);
+      if (carImplementation) {
+        try {
+          currentStateOfCharge = await carImplementation.getCurrentSoC(transaction.userID, transaction.car);
+        } catch {
+          return;
+        }
+      }
+      if (!Utils.isNullOrUndefined(currentStateOfCharge)) {
+        switch (action) {
+          case TransactionAction.START:
+            transaction.stateOfCharge = currentStateOfCharge;
             break;
-          }
+          case TransactionAction.UPDATE:
+            consumption.stateOfCharge = currentStateOfCharge;
+            break;
         }
       }
     }
-    return null;
   }
 
   private addChargingStationToException(error: BackendError, chargingStationID: string): void {
@@ -2051,7 +2048,7 @@ export default class OCPPService {
         detailedMessages: { headers, meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true });
+    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Try a Remote Stop the Transaction
       if (meterValues.transactionId) {

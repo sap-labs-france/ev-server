@@ -4,6 +4,7 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 
 import AxiosFactory from '../../../utils/AxiosFactory';
 import BackendError from '../../../exception/BackendError';
+import { Car } from '../../../types/Car';
 import CarConnectorIntegration from '../CarConnectorIntegration';
 import Connection from '../../../types/Connection';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
@@ -137,9 +138,9 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
     }
   }
 
-  public async getCurrentSoC(userID: string, vin: string): Promise<number> {
+  public async getCurrentSoC(userID: string, car: Car): Promise<number> {
     const connection = await this.getRefreshedConnection(userID);
-    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${vin}/resources/soc`;
+    const request = `${this.connection.mercedesConnection.apiUrl}/vehicledata/v2/vehicles/${car.vin}/resources/soc`;
     try {
       // Get consumption
       const response = await this.axiosInstance.get(
@@ -152,7 +153,7 @@ export default class MercedesCarConnectorIntegration extends CarConnectorIntegra
         tenantID: this.tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CAR_CONNECTOR,
-        message: `${vin} > Mercedes web service has been called successfully`,
+        message: `${car.vin} > Mercedes web service has been called successfully`,
         module: MODULE_NAME, method: 'getCurrentSoC',
         detailedMessages: { response: response.data }
       });

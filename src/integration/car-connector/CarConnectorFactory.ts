@@ -1,5 +1,6 @@
 import { CarConnectorConnectionType, CarConnectorSetting } from '../../types/Setting';
 
+import { Car } from '../../types/Car';
 import CarConnectorIntegration from './CarConnectorIntegration';
 import MercedesCarConnectorIntegration from './mercedes-connector/MercedesCarConnectorIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
@@ -8,13 +9,14 @@ import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
 export default class CarConnectorFactory {
-  static async getCarConnectorImpl(tenant: Tenant, connectorId: string): Promise<CarConnectorIntegration<CarConnectorSetting>> {
+  static async getCarConnectorImpl(tenant: Tenant, connectorId: string, car?: Car): Promise<CarConnectorIntegration<CarConnectorSetting>> {
     // Check if car connector component is active
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR)) {
       const settings = await SettingStorage.getCarConnectorSettings(tenant);
       if (settings?.carConnector?.connections) {
         // Find connection
-        const foundConnection = settings.carConnector.connections.find((connection) => connection.type === connectorId);
+        // Vehicle make will be replaced with specific car information in the car object --> coming with Tronity
+        const foundConnection = settings.carConnector.connections.find((connection) => connection.type === connectorId ?? car.carCatalog.vehicleMake.toLowerCase());
         if (foundConnection) {
           let carConnectorIntegrationImpl: CarConnectorIntegration<CarConnectorSetting> = null;
           switch (foundConnection.type) {
