@@ -23,7 +23,11 @@
         "visualTagID": {
           "$ref": "tag.json#/definitions/visualID"
         }
-      }
+      },
+      "anyOf": [
+        { "required": ["tagID"] },
+        { "required": ["visualTagID"] }
+      ]
     },
     "chargePointID": {
       "$ref": "common.json#/definitions/id"
