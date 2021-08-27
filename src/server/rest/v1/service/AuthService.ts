@@ -98,9 +98,9 @@ export default class AuthService {
             message: 'User has been unlocked after a period of time can try to login again'
           });
           // Save User Status
-          await UserStorage.saveUserStatus(req.tenant, user.id, UserStatus.ACTIVE);
+          await UserStorage.saveUserStatus(tenant, user.id, UserStatus.ACTIVE);
           // Init User Password
-          await UserStorage.saveUserPassword(req.tenant, user.id,
+          await UserStorage.saveUserPassword(tenant, user.id,
             { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
           // Read user again
           const updatedUser = await UserStorage.getUser(tenant, user.id);
