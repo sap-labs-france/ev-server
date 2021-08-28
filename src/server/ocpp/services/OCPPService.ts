@@ -1703,10 +1703,10 @@ export default class OCPPService {
       case TransactionAction.UPDATE:
         // Handle SoC
         // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
-        transaction.car.carCatalog = transaction.carCatalog;
-        if (Utils.isNullOrUndefined(consumption)) {
+        if (Utils.isNullOrUndefined(transaction.car || Utils.isNullOrUndefined(consumption))) {
           return;
         }
+        transaction.car.carCatalog = transaction.carCatalog;
         consumption.stateOfCharge = await this.getCurrentSoc(tenant, transaction, chargingStation);
         break;
     }
