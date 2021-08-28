@@ -1697,17 +1697,17 @@ export default class OCPPService {
           // Clear
           await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
           // Handle SoC
-          transaction.stateOfCharge = await this.getCurrentSoc(tenant, transaction, chargingStation);
+          transaction.stateOfCharge = (await this.getCurrentSoc(tenant, transaction, chargingStation) ?? transaction.stateOfCharge);
         }
         break;
       case TransactionAction.UPDATE:
         // Handle SoC
-        // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
         if (Utils.isNullOrUndefined(transaction.car) || Utils.isNullOrUndefined(consumption)) {
           return;
         }
+        // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
         transaction.car.carCatalog = transaction.carCatalog;
-        consumption.stateOfCharge = await this.getCurrentSoc(tenant, transaction, chargingStation);
+        consumption.stateOfCharge = (await this.getCurrentSoc(tenant, transaction, chargingStation) ?? consumption.stateOfCharge);
         break;
     }
   }
