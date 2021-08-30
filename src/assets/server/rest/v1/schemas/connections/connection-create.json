@@ -4,7 +4,8 @@
   "type": "object",
   "properties": {
     "connectorId": {
-      "$ref": "chargingstation.json#/definitions/connector/properties/connectorId"
+      "type": "string",
+      "sanitize": "mongo"
     },
     "userId": {
       "$ref": "user.json#/definitions/id"
