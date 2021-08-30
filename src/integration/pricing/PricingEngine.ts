@@ -212,17 +212,20 @@ export default class PricingEngine {
   }
 
   static priceFlatFeeDimension(pricingDimension: PricingDimension): PricingDimensionData {
+    const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.pricedData) {
       // This should not happen for the flatFee dimension - Flat Fee is billed only once per session
       // throw new Error('Unexpected situation - priceFlatFeeDimension should be called only once per session');
       return {
+        unitPrice: 0,
         amount: 0,
         quantity: 0
       };
     }
     // First call for this dimension
     pricingDimension.pricedData = {
-      amount: pricingDimension.price,
+      unitPrice: unitPrice,
+      amount: unitPrice,
       quantity: 1
     };
     return pricingDimension.pricedData;
@@ -231,18 +234,24 @@ export default class PricingEngine {
   static priceEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricingDimensionData {
     let amount: number;
     let consumptionkWh: number;
+    const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.stepSize) { // In kWh
-      const nbSteps = Utils.createDecimal(cumulatedConsumptionWh).div(1000).divToInt(pricingDimension.stepSize).plus(1).toNumber();
-      amount = Utils.createDecimal(pricingDimension.price).mul(nbSteps).mul(pricingDimension.stepSize).toNumber();
+      // TODO - clarify the .plus(1) below - shall we bill the first step?
+      const nbSteps = Utils.createDecimal(cumulatedConsumptionWh).div(1000).divToInt(unitPrice).plus(1).toNumber();
       consumptionkWh = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
+      amount = Utils.createDecimal(unitPrice).mul(consumptionkWh).toNumber();
     } else {
-      amount = Utils.createDecimal(pricingDimension.price).times(cumulatedConsumptionWh).div(1000).toNumber();
+      // Convert to kWh
       consumptionkWh = Utils.createDecimal(cumulatedConsumptionWh).div(1000).toNumber();
+      // Let's truncate to avoid pricing an energy which was not delivered
+      consumptionkWh = Utils.truncTo(consumptionkWh, 2);
+      amount = Utils.createDecimal(unitPrice).times(consumptionkWh).toNumber();
     }
     const previousData = pricingDimension.pricedData;
     if (previousData) {
       // The new priced data is the delta
       const newData : PricingDimensionData = {
+        unitPrice: unitPrice,
         amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
         quantity: Utils.createDecimal(consumptionkWh).minus(previousData?.quantity || 0).toNumber(),
       };
@@ -254,6 +263,7 @@ export default class PricingEngine {
     }
     // first call for this dimension
     pricingDimension.pricedData = {
+      unitPrice: unitPrice,
       amount,
       quantity: consumptionkWh
     };
@@ -263,20 +273,22 @@ export default class PricingEngine {
   static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricingDimensionData {
     let amount: number;
     let hours: number;
+    const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.stepSize) { // stepSize is in second
       // bill at least one step
       const nbSteps = Utils.createDecimal(seconds).divToInt(pricingDimension.stepSize).plus(1).toNumber();
       const nbSeconds = Utils.createDecimal(nbSteps).mul(pricingDimension.stepSize).toNumber();
       hours = Utils.createDecimal(nbSeconds).div(3600).toNumber();
-      amount = Utils.createDecimal(pricingDimension.price).mul(nbSeconds).div(3600).toNumber();
+      amount = Utils.createDecimal(unitPrice).mul(nbSeconds).div(3600).toNumber();
     } else {
       hours = Utils.createDecimal(seconds).div(3600).toNumber();
-      amount = Utils.createDecimal(pricingDimension.price).mul(seconds).div(3600).toNumber();
+      amount = Utils.createDecimal(unitPrice).mul(seconds).div(3600).toNumber();
     }
     const previousData = pricingDimension.pricedData;
     if (previousData) {
       // The new priced data is the delta
       const newData : PricingDimensionData = {
+        unitPrice: unitPrice,
         amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
         quantity: Utils.createDecimal(hours).minus(previousData?.quantity || 0).toNumber(),
       };
@@ -288,6 +300,7 @@ export default class PricingEngine {
     }
     // first call for this dimension
     pricingDimension.pricedData = {
+      unitPrice: unitPrice,
       amount,
       quantity: hours
     };

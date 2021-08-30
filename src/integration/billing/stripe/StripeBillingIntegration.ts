@@ -1116,12 +1116,11 @@ export default class StripeBillingIntegration extends BillingIntegration {
 
   private _convertToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     // Destructuring transaction.stop
-    const { price, priceUnit, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
+    const { price: unitPrice, priceUnit: currency, roundedPrice, totalConsumptionWh, timestamp } = transaction.stop;
     const transactionID = transaction.id;
     const itemDescription = this.buildLineItemDescription(transaction);
     const quantity = Utils.createDecimal(transaction.stop.totalConsumptionWh).dividedBy(1000).toNumber(); // Total consumption in kW.h
     const amount = roundedPrice; // Total amount for the line item
-    const currency = priceUnit;
     // -------------------------------------------------------------------------------
     const taxes = this.getTaxRateIds();
     // Build a billing invoice item based on the transaction
@@ -1130,6 +1129,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       currency,
       pricingData: [{
         energy: {
+          unitPrice,
           itemDescription,
           amount,
           quantity,
@@ -1141,9 +1141,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
         tenantID: this.tenant.id,
         transactionID: transaction.id,
         userID: transaction.userID,
-        price,
+        unitPrice,
         roundedPrice,
-        priceUnit,
+        currency,
         totalConsumptionWh,
         begin: transaction.timestamp?.valueOf(),
         end: timestamp?.valueOf()
