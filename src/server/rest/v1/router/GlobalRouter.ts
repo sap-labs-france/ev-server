@@ -42,7 +42,6 @@ export default class GlobalRouter {
       AuthService.checkSessionHash.bind(this),
       [
         new AssetRouter().buildRoutes(),
-        new BillingRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
