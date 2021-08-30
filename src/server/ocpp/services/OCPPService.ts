@@ -1672,6 +1672,7 @@ export default class OCPPService {
 
   private async processTransactionCar(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User,
       action: TransactionAction): Promise<void> {
+    let soc = null;
     switch (action) {
       case TransactionAction.START:
         // Handle car in transaction start
@@ -1697,7 +1698,10 @@ export default class OCPPService {
           // Clear
           await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
           // Handle SoC
-          transaction.stateOfCharge = (await this.getCurrentSoc(tenant, transaction, chargingStation) ?? transaction.stateOfCharge);
+          soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+          if (soc) {
+            transaction.stateOfCharge = soc;
+          }
         }
         break;
       case TransactionAction.UPDATE:
@@ -1707,7 +1711,10 @@ export default class OCPPService {
         }
         // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
         transaction.car.carCatalog = transaction.carCatalog;
-        consumption.stateOfCharge = (await this.getCurrentSoc(tenant, transaction, chargingStation) ?? consumption.stateOfCharge);
+        soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+        if (soc) {
+          consumption.stateOfCharge = soc;
+        }
         break;
     }
   }
@@ -1715,7 +1722,7 @@ export default class OCPPService {
   private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
           Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
-      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, null, transaction.car);
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car?.carCatalog?.vehicleMake?.toLowerCase());
       if (carImplementation) {
         try {
           return await carImplementation.getCurrentSoC(transaction.userID, transaction.car);
