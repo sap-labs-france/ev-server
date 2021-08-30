@@ -107,7 +107,7 @@ export default class TransactionRouter {
   }
 
   protected buildRouteTransactionConsumption(): void {
-    this.router.get(`/${ServerRoute.REST_TRANSACTION_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.TransactionId = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
     });

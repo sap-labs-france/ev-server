@@ -1,5 +1,5 @@
 {
-  "title": "Get Transaction Consumption Request",
+  "title": "Get Transaction Consumptions Request",
   "type": "object",
   "properties": {
     "TransactionId": {
