@@ -7,12 +7,15 @@ import Transaction, { InactivityStatus, TransactionAction } from '../../../types
 import { Action } from '../../../types/Authorization';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import { CarConnectorConnectionType } from '../../../types/Setting';
+import CarConnectorFactory from '../../../integration/car-connector/CarConnectorFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import CpoOICPClient from '../../../client/oicp/CpoOICPClient';
@@ -251,6 +254,8 @@ export default class OCPPService {
         this.updateTransactionWithMeterValues(chargingStation, transaction, normalizedMeterValues.values);
         // Create Consumptions
         const consumptions = await OCPPUtils.createConsumptionsFromMeterValues(tenant, chargingStation, transaction, normalizedMeterValues.values);
+        // Handle current SOC
+        await this.processTransactionCar(tenant, transaction, chargingStation, consumptions[consumptions.length - 1], null, TransactionAction.UPDATE);
         // Price/Bill Transaction and Save them
         for (const consumption of consumptions) {
           // Update Transaction with Consumption
@@ -447,8 +452,8 @@ export default class OCPPService {
         }
         // Cleanup ongoing Transaction
         await this.stopOrDeleteActiveTransaction(tenant, chargingStation, startTransaction.connectorId);
-        // Car
-        await this.processCarTransaction(tenant, newTransaction, user);
+        // Handle car and current SOC
+        await this.processTransactionCar(tenant, newTransaction, chargingStation, null, user, TransactionAction.START);
         // Pricing
         await OCPPUtils.processTransactionPricing(tenant, newTransaction, chargingStation, null, TransactionAction.START);
         // Billing
@@ -1665,27 +1670,68 @@ export default class OCPPService {
     chargingStation.lastSeen = new Date();
   }
 
-  private async processCarTransaction(tenant: Tenant, transaction: Transaction, user: User): Promise<void> {
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
-      // Check default car
-      if (user.lastSelectedCarID) {
-        transaction.carID = user.lastSelectedCarID;
-      } else {
-        // Get default car if any
-        const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID']);
-        if (defaultCar) {
-          transaction.carID = defaultCar.id;
-          transaction.carCatalogID = defaultCar.carCatalogID;
+  private async processTransactionCar(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, consumption: Consumption, user: User,
+      action: TransactionAction): Promise<void> {
+    let soc = null;
+    switch (action) {
+      case TransactionAction.START:
+        // Handle car in transaction start
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR) && user) {
+          // Check default car
+          if (user.lastSelectedCarID) {
+            transaction.carID = user.lastSelectedCarID;
+          } else {
+            // Get default car if any
+            const defaultCar = await CarStorage.getDefaultUserCar(tenant, user.id, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
+            if (defaultCar) {
+              transaction.carID = defaultCar.id;
+              transaction.carCatalogID = defaultCar.carCatalogID;
+              transaction.car = defaultCar;
+            }
+          }
+          // Set Car Catalog ID
+          if (transaction.carID && !transaction.carCatalogID) {
+            const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID', 'vin', 'carCatalog.vehicleMake']);
+            transaction.carCatalogID = car?.carCatalogID;
+            transaction.car = car;
+          }
+          // Clear
+          await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
+          // Handle SoC
+          soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+          if (soc) {
+            transaction.stateOfCharge = soc;
+          }
+        }
+        break;
+      case TransactionAction.UPDATE:
+        // Handle SoC
+        if (Utils.isNullOrUndefined(transaction.car) || Utils.isNullOrUndefined(consumption)) {
+          return;
+        }
+        // Reassignment not needed anymore with specific connector data in car object --> Coming with Tronity implementation
+        transaction.car.carCatalog = transaction.carCatalog;
+        soc = await this.getCurrentSoc(tenant, transaction, chargingStation);
+        if (soc) {
+          consumption.stateOfCharge = soc;
+        }
+        break;
+    }
+  }
+
+  private async getCurrentSoc(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<number> {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.CAR_CONNECTOR) && !Utils.isNullOrUndefined(transaction.car) &&
+          Utils.getChargingStationCurrentType(chargingStation, null, transaction.connectorId) === CurrentType.AC) {
+      const carImplementation = await CarConnectorFactory.getCarConnectorImpl(tenant, transaction.car?.carCatalog?.vehicleMake?.toLowerCase());
+      if (carImplementation) {
+        try {
+          return await carImplementation.getCurrentSoC(transaction.userID, transaction.car);
+        } catch {
+          return null;
         }
       }
-      // Set Car Catalog ID
-      if (transaction.carID && !transaction.carCatalogID) {
-        const car = await CarStorage.getCar(tenant, transaction.carID, {}, ['id', 'carCatalogID']);
-        transaction.carCatalogID = car?.carCatalogID;
-      }
-      // Clear
-      await UserStorage.saveUserLastSelectedCarID(tenant, user.id, null);
     }
+    return null;
   }
 
   private addChargingStationToException(error: BackendError, chargingStationID: string): void {
@@ -2013,7 +2059,7 @@ export default class OCPPService {
         detailedMessages: { headers, meterValues }
       });
     }
-    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true });
+    const transaction = await TransactionStorage.getTransaction(tenant, meterValues.transactionId, { withUser: true, withTag: true, withCar: true });
     if (!transaction) {
       // Try a Remote Stop the Transaction
       if (meterValues.transactionId) {
