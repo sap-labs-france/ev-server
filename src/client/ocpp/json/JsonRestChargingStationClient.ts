@@ -97,7 +97,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this.sendMessage(this.buildRequest(Command.UPDATE_FIRMWARE, params));
   }
 
-  public async triggerDataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
+  public async dataTransfer(params: OCPPDataTransferCommandParam): Promise<OCPPDataTransferCommandResult> {
     return this.sendMessage(this.buildRequest(Command.TRIGGER_DATA_TRANSFER, params));
   }
 

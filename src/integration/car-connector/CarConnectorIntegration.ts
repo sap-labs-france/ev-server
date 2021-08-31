@@ -1,5 +1,6 @@
 import { CarConnectorConnectionSetting, CarConnectorSetting } from '../../types/Setting';
 
+import { Car } from '../../types/Car';
 import Connection from '../../types/Connection';
 import Tenant from '../../types/Tenant';
 
@@ -16,5 +17,5 @@ export default abstract class CarConnectorIntegration<T extends CarConnectorSett
 
   public abstract createConnection(userID: string, data: unknown): Promise<Connection>;
 
-  public abstract getCurrentSoC(userID: string): Promise<number>;
+  public abstract getCurrentSoC(userID: string, car: Car): Promise<number>;
 }
