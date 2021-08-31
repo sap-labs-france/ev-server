@@ -17,7 +17,6 @@ import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { filter } from 'lodash';
 
 const MODULE_NAME = 'SiteService';
 
@@ -401,7 +400,7 @@ export default class SiteService {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Cannot set site to public as charging stations in site are public',
+            message: 'Cannot set site to private as charging stations in site are public',
             module: MODULE_NAME, method: 'handleUpdateSite',
             user: req.user,
           });
