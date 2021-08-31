@@ -110,6 +110,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
           await Logging.logDebug({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
             message: `An existing remote authorization exists for Charging Station '${chargingStation.id}' and Connector ID ${connector.connectorId}`,

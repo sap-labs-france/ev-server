@@ -165,6 +165,9 @@ export default class OCPPService {
         await Logging.logDebug({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargeBoxID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'handleHeartbeat',
           action: ServerAction.HEARTBEAT,
@@ -238,6 +241,9 @@ export default class OCPPService {
           await Logging.logDebug({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'handleMeterValues',
             action: ServerAction.METER_VALUES,
@@ -713,6 +719,9 @@ export default class OCPPService {
         await Logging.logDebug({
           tenantID: tenant.id,
           siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargeBoxID: transaction.chargeBoxID,
           source: transaction.chargeBoxID,
           action: ServerAction.CHARGING_PROFILE_DELETE,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} TX Charging Profile with ID '${chargingProfile.id}'`,
@@ -872,6 +881,9 @@ export default class OCPPService {
                 await Logging.logWarning({
                   tenantID: tenant.id,
                   siteID: chargingStation.siteID,
+                  siteAreaID: chargingStation.siteAreaID,
+                  companyID: chargingStation.companyID,
+                  chargeBoxID: chargingStation.id,
                   source: chargingStation.id,
                   module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
                   action: ServerAction.STATUS_NOTIFICATION,
@@ -927,6 +939,9 @@ export default class OCPPService {
         await Logging.logWarning({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargeBoxID: chargingStation.id,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'checkAndUpdateLastCompletedTransaction',
           action: ServerAction.STATUS_NOTIFICATION,
@@ -1362,6 +1377,9 @@ export default class OCPPService {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'filterMeterValuesOnSpecificChargingStations',
             action: ServerAction.METER_VALUES,
@@ -1466,6 +1484,9 @@ export default class OCPPService {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
             action: ServerAction.CLEANUP_TRANSACTION,
@@ -1505,6 +1526,9 @@ export default class OCPPService {
             await Logging.logWarning({
               tenantID: tenant.id,
               siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              companyID: chargingStation.companyID,
+              chargeBoxID: chargingStation.id,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'stopOrDeleteActiveTransactions',
               action: ServerAction.CLEANUP_TRANSACTION,
@@ -1660,6 +1684,9 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'clearChargingStationConnectorRuntimeData',
         action: ServerAction.START_TRANSACTION, user: user,
@@ -1851,6 +1878,9 @@ export default class OCPPService {
         await Logging.logWarning({
           tenantID: headers.tenantID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargeBoxID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.BOOT_NOTIFICATION,
           module: MODULE_NAME, method: 'checkExistingChargingStation',
@@ -2037,6 +2067,9 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'bypassStopTransaction',
         action: ServerAction.STOP_TRANSACTION,
@@ -2069,6 +2102,9 @@ export default class OCPPService {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'getTransactionFromMeterValues',
             action: ServerAction.STOP_TRANSACTION,
@@ -2094,6 +2130,9 @@ export default class OCPPService {
             await Logging.logWarning({
               tenantID: tenant.id,
               siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              companyID: chargingStation.companyID,
+              chargeBoxID: chargingStation.id,
               source: chargingStation.id,
               module: MODULE_NAME, method: 'getTransactionFromMeterValues',
               action: ServerAction.STOP_TRANSACTION,
@@ -2117,6 +2156,9 @@ export default class OCPPService {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'getTransactionFromMeterValues',
         action: ServerAction.METER_VALUES,
@@ -2179,6 +2221,9 @@ export default class OCPPService {
         await Logging.logWarning({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargeBoxID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.STOP_TRANSACTION,
           module: MODULE_NAME, method: 'checkAndApplyLastConsumptionInStopTransaction',

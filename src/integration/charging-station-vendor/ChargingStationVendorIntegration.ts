@@ -39,6 +39,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `Charge Point '${chargePoint.chargePointID}' is excluded from power limitation`,
@@ -51,6 +54,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         message: `No OCPP Parameter provided in template for Charge Point '${chargePoint.chargePointID}'`,
@@ -196,6 +202,9 @@ export default abstract class ChargingStationVendorIntegration {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
@@ -272,6 +281,9 @@ export default abstract class ChargingStationVendorIntegration {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearChargingProfile',
