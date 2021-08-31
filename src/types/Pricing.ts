@@ -55,10 +55,10 @@ export interface PricingRestriction {
   endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
   startDate?: string, // Start date, for example: 2015-12-24, valid from this day
   endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
-  minKWh?: number, // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
-  maxKWh?: number, // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
-  minPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
-  maxPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
+  minEnergyKWh?: number, // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
+  maxEnergyKWh?: number, // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
+  minOutputPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
+  maxOutputPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
   minDurationSecs?: number, // Minimum duration in seconds, valid for a duration from x seconds
   maxDurationSecs?: number, // Maximum duration in seconds, valid for a duration up to x seconds
   daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid

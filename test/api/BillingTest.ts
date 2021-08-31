@@ -341,9 +341,9 @@ class TestData {
 
     const tariff: PricingDefinition = {
       name: 'GREEN Tariff',
-      description: 'Tariff for low EVSE',
+      description: 'Tariff for slow chargers',
       restrictions: {
-        maxPowerkW: 40,
+        maxOutputPowerkW: 40,
       },
       dimensions: {
         flatFee: {
@@ -389,7 +389,7 @@ class TestData {
       name: 'RED Tariff',
       description: 'Tariff for fast chargers',
       restrictions: {
-        minPowerkW: 40,
+        minOutputPowerkW: 40,
       },
       dimensions: {
         flatFee: {

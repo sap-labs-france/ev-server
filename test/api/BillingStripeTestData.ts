@@ -287,7 +287,7 @@ export default class StripeIntegrationTestData {
         taxes // Array of taxes - cannot be null
       },
       parkingTime: {
-        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes * ${consumptionTestData.parkingAmount} Eur`,
+        itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes * ${consumptionTestData.parkingAmount} Eur/hour`,
         unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.partingTime).toNumber(),
         amount: consumptionTestData.parkingAmount, // Euros
         roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),
@@ -453,7 +453,7 @@ export default class StripeIntegrationTestData {
       active: true
     };
     const lowConsumptionRestrictions: PricingRestriction = {
-      maxPowerkW: 40000,
+      maxOutputPowerkW: 40000,
     };
     const tariff1: PricingDefinition = {
       name: 'BLUE Tariff',
@@ -466,7 +466,7 @@ export default class StripeIntegrationTestData {
       }
     };
     const fastChargerRestrictions: PricingRestriction = {
-      minPowerkW: 40000
+      minOutputPowerkW: 40000
     };
     const price4TheEnergy: PricingDimension = {
       price: 0.35,
