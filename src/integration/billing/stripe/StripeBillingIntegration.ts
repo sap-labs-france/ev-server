@@ -909,7 +909,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
       description: dimensionData.itemDescription,
       tax_rates,
       // quantity: 1, //Cannot be set separately
-      amount: Utils.createDecimal(pricedData[dimension].amount).times(100).round().toNumber(),
+      amount: Utils.createDecimal(pricedData[dimension].roundedAmount).times(100).toNumber(),
       metadata: { ...billingInvoiceItem?.metadata }
     };
     if (!parameters.invoice) {
