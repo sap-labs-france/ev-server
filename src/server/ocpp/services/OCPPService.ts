@@ -1463,6 +1463,9 @@ export default class OCPPService {
     // Create the normalized meter value
     const normalizedMeterValues: OCPPNormalizedMeterValues = {
       chargeBoxID: chargingStation.id,
+      siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
       values: []
     };
     // OCPP 1.5: transfer to OCPP 1.6 structure

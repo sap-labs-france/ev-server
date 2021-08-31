@@ -238,6 +238,9 @@ export default class OCPPUtils {
               {
                 id: Utils.getRandomIntSafe().toString(),
                 chargeBoxID: transaction.chargeBoxID,
+                siteID: transaction.siteID,
+                siteAreaID: transaction.siteAreaID,
+                companyID: transaction.companyID,
                 connectorId: transaction.connectorId,
                 transactionId: transaction.id,
                 timestamp: transaction.timestamp,
@@ -711,6 +714,9 @@ export default class OCPPUtils {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
       chargeBoxID: transaction.chargeBoxID,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
       connectorId: transaction.connectorId,
       transactionId: transaction.id,
       timestamp: Utils.convertToDate(stopTransaction.timestamp),

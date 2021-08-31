@@ -446,6 +446,9 @@ export default class OCPPStorage {
         await Logging.logError({
           tenantID: tenant.id,
           source: meterValueToSave.chargeBoxID,
+          siteID: meterValueToSave.siteID,
+          siteAreaID: meterValueToSave.siteAreaID,
+          companyID: meterValueToSave.companyID,
           module: MODULE_NAME, method: 'saveMeterValues',
           action: ServerAction.METER_VALUES,
           message: 'An error occurred while trying to save the meter value',
