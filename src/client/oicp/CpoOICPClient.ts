@@ -167,6 +167,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_SESSIONS,
@@ -733,6 +736,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -830,6 +836,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,
@@ -910,6 +919,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_START,
@@ -994,6 +1006,9 @@ export default class CpoOICPClient extends OICPClient {
         await Logging.logInfo({
           tenantID: this.tenant.id,
           siteID: transaction.siteID,
+          siteAreaID: transaction.siteAreaID,
+          companyID: transaction.companyID,
+          chargeBoxID: transaction.chargeBoxID,
           source: transaction.chargeBoxID,
           user: transaction.user,
           action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_PROGRESS,
@@ -1092,6 +1107,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logInfo({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_SEND_CHARGING_NOTIFICATION_END,

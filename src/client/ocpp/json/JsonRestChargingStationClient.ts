@@ -106,6 +106,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     await Logging.logInfo({
       tenantID: this.tenantID,
       siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+      chargeBoxID: this.chargingStation.id,
       source: this.chargingStation.id,
       action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
       module: MODULE_NAME, method: 'onOpen',
@@ -140,6 +143,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         await Logging.logInfo({
           tenantID: this.tenantID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          companyID: this.chargingStation.companyID,
+          chargeBoxID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_OPENED,
           module: MODULE_NAME, method: 'onOpen',
@@ -154,6 +160,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         await Logging.logInfo({
           tenantID: this.tenantID,
           siteID: this.chargingStation.siteID,
+          siteAreaID: this.chargingStation.siteAreaID,
+          companyID: this.chargingStation.companyID,
+          chargeBoxID: this.chargingStation.id,
           source: this.chargingStation.id,
           action: ServerAction.WS_REST_CLIENT_CONNECTION_CLOSED,
           module: MODULE_NAME, method: 'onClose',

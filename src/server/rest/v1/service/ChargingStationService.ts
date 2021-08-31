@@ -478,6 +478,9 @@ export default class ChargingStationService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargeBoxID: chargingStation.id,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -1620,6 +1623,9 @@ export default class ChargingStationService {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
