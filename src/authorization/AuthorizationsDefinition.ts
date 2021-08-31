@@ -196,7 +196,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
           Action.REMOTE_STOP_TRANSACTION, Action.STOP_TRANSACTION, Action.START_TRANSACTION,
           Action.UNLOCK_CONNECTOR, Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE,
           Action.CLEAR_CHARGING_PROFILE, Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT,
-          Action.CHANGE_AVAILABILITY
+          Action.CHANGE_AVAILABILITY, Action.TRIGGER_DATA_TRANSFER
         ]
       },
       { resource: Entity.TRANSACTIONS, action: [Action.LIST, Action.EXPORT, Action.IN_ERROR] },

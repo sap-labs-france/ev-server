@@ -39,6 +39,14 @@
     {
       "name": "Tags",
       "description": "Tags API"
+    },
+    {
+      "name": "Connections",
+      "description": "Integration connection API"
+    },
+    {
+      "name": "Loggings",
+      "description": "Loggings API"
     }
   ],
   "paths": {
@@ -685,18 +693,6 @@
         "description": "Retrieve a list of Transactions",
         "parameters": [
           {
-            "in": "query",
-            "name": "Status",
-            "description": "Transaction status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "completed",
-                "active"
-              ]
-            }
-          },
-          {
             "$ref": "#/components/parameters/Issuer"
           },
           {
@@ -760,20 +756,10 @@
             "$ref": "#/components/parameters/RefundStatus"
           },
           {
-            "in": "query",
-            "name": "MinimalPrice",
-            "description": "Transactions minimal price",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/TransactionMinimalPrice"
           },
           {
-            "in": "query",
-            "name": "ReportIDs",
-            "description": "Pipe separated report IDs",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/ReportIDs"
           },
           {
             "$ref": "#/components/parameters/Limit"
@@ -930,6 +916,624 @@
                   "inSuccess": 42,
                   "inError": 0
                 }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/completed": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of completed Transactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionMinimalPrice"
+          },
+          {
+            "$ref": "#/components/parameters/ReportIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return completed Transaction's list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "count": 500
+                  },
+                  "result": [
+                    {
+                      "issuer": true,
+                      "companyID": "###",
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "carID": null,
+                      "carCatalogID": null,
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 0,
+                      "timestamp": "2021-07-06T09:29:55.309Z",
+                      "stateOfCharge": 75,
+                      "timezone": "Europe/Paris",
+                      "stop": {
+                        "userID": "###",
+                        "timestamp": "2021-07-06T09:36:55.656Z",
+                        "tagID": "###",
+                        "meterStop": 3194,
+                        "reason": null,
+                        "stateOfCharge": 47,
+                        "totalConsumptionWh": 3194,
+                        "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 0,
+                        "inactivityStatus": "I",
+                        "totalDurationSecs": 420.347,
+                        "price": 0.51104,
+                        "roundedPrice": 0.51,
+                        "priceUnit": "EUR"
+                      },
+                      "ocpi": false,
+                      "ocpiWithCdr": false,
+                      "id": 123456789
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/active": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of active Transactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionMinimalPrice"
+          },
+          {
+            "$ref": "#/components/parameters/ReportIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return active Transaction's list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "count": 1
+                  },
+                  "result": [
+                    {
+                      "issuer": true,
+                      "companyID": "###",
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "carID": null,
+                      "carCatalogID": null,
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 0,
+                      "timestamp": "2021-07-06T12:02:40.957Z",
+                      "price": 0,
+                      "roundedPrice": 0,
+                      "priceUnit": "EUR",
+                      "stateOfCharge": 21,
+                      "timezone": "Europe/Paris",
+                      "currentStateOfCharge": 77,
+                      "currentTotalInactivitySecs": 0,
+                      "currentInactivityStatus": "I",
+                      "currentCumulatedPrice": 2.51456,
+                      "currentInstantWatts": 16919.436018799373,
+                      "currentTotalConsumptionWh": 15716,
+                      "currentTotalDurationSecs": 2550.496,
+                      "id": 123456789
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/refund": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Transactions to refund and refunded",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionMinimalPrice"
+          },
+          {
+            "$ref": "#/components/parameters/ReportIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Transactions to refund and refunded list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "stats": {
+                    "_id": null,
+                    "count": 500
+                  },
+                  "result": [
+                    {
+                      "issuer": true,
+                      "companyID": "###",
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "AAE",
+                      "carID": null,
+                      "carCatalogID": null,
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 0,
+                      "timestamp": "2021-07-06T09:29:55.309Z",
+                      "stateOfCharge": 75,
+                      "timezone": "Europe/Paris",
+                      "stop": {
+                        "userID": "###",
+                        "timestamp": "2021-07-06T09:36:55.656Z",
+                        "tagID": "###",
+                        "reason": null,
+                        "stateOfCharge": 47,
+                        "totalConsumptionWh": 3194,
+                        "totalInactivitySecs": 0,
+                        "extraInactivitySecs": 0,
+                        "inactivityStatus": "I",
+                        "totalDurationSecs": 420.347,
+                        "price": 0.51104,
+                        "roundedPrice": 0.51,
+                        "priceUnit": "EUR"
+                      },
+                      "id": 123456789
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/in-error": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of Transactions in error",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "in": "query",
+            "name": "ErrorType",
+            "description": "Pipe separated error types (long_activity, negative_activity, negative_duration, low_duration, invalid_start_date, no_consumption, low_consumption, missing_user, missing_price, no_billing_data)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return Transactions in error list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "issuer": true,
+                      "siteID": "###",
+                      "siteAreaID": "###",
+                      "connectorId": 1,
+                      "tagID": "###",
+                      "userID": "###",
+                      "chargeBoxID": "###",
+                      "meterStart": 1152126,
+                      "timestamp": "2020-12-07T11:15:41.314Z",
+                      "stateOfCharge": 9,
+                      "timezone": "Europe/Paris",
+                      "stop": {
+                        "userID": "###",
+                        "tagID": "###",
+                        "stateOfCharge": 9,
+                        "totalConsumptionWh": 149,
+                        "totalDurationSecs": 54
+                      },
+                      "companyID": "###",
+                      "errorCode": "low_duration",
+                      "uniqueId": "123456789#low_duration",
+                      "id": 123456789
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/unassigned/count": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Count unassigned Transactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TagID"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return unassigned Transactions count",
+            "content": {
+              "text/plain": {
+                "example": 42
               }
             }
           },
@@ -1393,8 +1997,8 @@
         }
       }
     },
-    "/api/transactions/{id}/stop/soft": {
-      "post": {
+    "/api/transactions/{id}/soft-stop": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -1488,8 +2092,235 @@
         }
       }
     },
-    "/api/transactions/action/assign": {
+    "/api/transactions/status/refund/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export Transactions to refund",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Issuer"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/WithChargingStation"
+          },
+          {
+            "$ref": "#/components/parameters/ChargingStationIDs"
+          },
+          {
+            "$ref": "#/components/parameters/ConnectorIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithCar"
+          },
+          {
+            "$ref": "#/components/parameters/WithUser"
+          },
+          {
+            "$ref": "#/components/parameters/UserIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithTag"
+          },
+          {
+            "$ref": "#/components/parameters/TagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/VisualTagIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSite"
+          },
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/WithSiteArea"
+          },
+          {
+            "$ref": "#/components/parameters/WithCompany"
+          },
+          {
+            "$ref": "#/components/parameters/InactivityStatuses"
+          },
+          {
+            "$ref": "#/components/parameters/TransactionStatistics"
+          },
+          {
+            "$ref": "#/components/parameters/RefundStatus"
+          },
+          {
+            "in": "query",
+            "name": "MinimalPrice",
+            "description": "Transactions minimal price",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ReportIDs",
+            "description": "Pipe separated report IDs",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Exported Transactions to refund",
+            "content": {
+              "text/csv": {
+                "example": "id,chargingStationID,connectorID,companyName,siteName,siteAreaName,userID,user,tagID,visualTagID,tagDescription,timezone,startDate,startTime,endDate,endTime,totalConsumptionkWh,totalDurationMins,totalInactivityMins,price,priceUnit\n123456789,\"###\",2,,,,\"\",\"\",\"###\",,\"\",\"Europe/Paris\",\"2021-07-07\",\"10:08:25\",\"2021-07-07\",\"10:08:32\",0,0.11,0.11,0,\"EUR\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/refund/synchronize": {
       "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Synchronize refunded Transactions",
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Synchronized refunded transactions successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/status/refund/reports": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve Transactions refund reports",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SiteAreaIDs"
+          },
+          {
+            "$ref": "#/components/parameters/SiteIDs"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved Transactions refund reports",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": "###",
+                      "user": {
+                        "id": "###",
+                        "name": "###",
+                        "firstName": "###",
+                        "email": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/transactions/action/assign-user": {
+      "put": {
         "security": [
           {
             "bearerAuth": []
@@ -2130,6 +2961,95 @@
         "responses": {
           "200": {
             "description": "Charging Station cache has been successfully cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "accepted": {
+                    "summary": "Accepted",
+                    "value": {
+                      "status": "Accepted"
+                    }
+                  },
+                  "rejected": {
+                    "summary": "Rejected",
+                    "value": {
+                      "status": "Rejected"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/charging-stations/{id}/data/transfer": {
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Trigger Data Transfer",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/chargingStationID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "args": {
+                    "type": "object",
+                    "properties": {
+                      "vendorId": {
+                        "type": "string",
+                        "description": "Mandatory. Vendor of the charging station.",
+                        "example": ""
+                      },
+                      "messageId": {
+                        "type": "string",
+                        "description": "Optional. Message to send.",
+                        "example": ""
+                      },
+                      "data": {
+                        "type": "string",
+                        "description": "Optional. Data to send.",
+                        "example": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Charging Stations"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data Transfer has been successfully executed",
             "content": {
               "application/json": {
                 "schema": {
@@ -5780,6 +6700,450 @@
           }
         }
       }
+    },
+    "/api/loggings": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a list of logs",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/LogLevel"
+          },
+          {
+            "$ref": "#/components/parameters/LogSource"
+          },
+          {
+            "$ref": "#/components/parameters/LogHost"
+          },
+          {
+            "$ref": "#/components/parameters/LogType"
+          },
+          {
+            "$ref": "#/components/parameters/LogAction"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/OnlyRecordCount"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return logs list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "level": "D",
+                      "source": "###",
+                      "host": "###",
+                      "process": "###",
+                      "type": "S",
+                      "timestamp": "2021-08-18T09:09:57.129Z",
+                      "module": "###",
+                      "method": "###",
+                      "action": "###",
+                      "message": "###",
+                      "user": {
+                        "firstName": "###",
+                        "name": "###"
+                      },
+                      "hasDetailedMessages": true,
+                      "id": "###"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/loggings/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Retrieve a log",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "Log ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned log",
+            "content": {
+              "application/json": {
+                "example": {
+                  "level": "D",
+                  "source": "###",
+                  "host": "###",
+                  "process": "###",
+                  "type": "S",
+                  "timestamp": "2021-08-18T08:53:00.924Z",
+                  "action": "###",
+                  "message": "###",
+                  "detailedMessages": "###",
+                  "user": {
+                    "firstName": "###",
+                    "name": "###"
+                  },
+                  "hasDetailedMessages": true,
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
+    "/api/loggings/action/export": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Export loggings as CSV file",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/StartDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/EndDateTime"
+          },
+          {
+            "$ref": "#/components/parameters/LogLevel"
+          },
+          {
+            "$ref": "#/components/parameters/LogSource"
+          },
+          {
+            "$ref": "#/components/parameters/LogHost"
+          },
+          {
+            "$ref": "#/components/parameters/LogType"
+          },
+          {
+            "$ref": "#/components/parameters/LogAction"
+          },
+          {
+            "$ref": "#/components/parameters/UserID"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "$ref": "#/components/parameters/Skip"
+          },
+          {
+            "$ref": "#/components/parameters/SortFields"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/ProjectFields"
+          }
+        ],
+        "tags": [
+          "Loggings"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return exported logs",
+            "content": {
+              "text/csv": {
+                "example": "date,time,level,type,action,message,method,module,source,host,process\n\"2021-08-18\",\"11:36:37\",\"D\",\"S\",\"###\",\"###\",\"###\",\"###\",\"###\",\"###\",\"###\""
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/connections": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get integration connections",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "UserID",
+            "description": "User ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": [
+          "Connections"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return connections list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "count": 1,
+                  "result": [
+                    {
+                      "id": "###",
+                      "connectorId": "###",
+                      "createdAt": "###",
+                      "validUntil": "###",
+                      "lastChangedOn": "###",
+                      "createdOn": "###",
+                      "createdBy": {
+                        "name": "###",
+                        "firstName": "###"
+                      },
+                      "lastChangedBy": {
+                        "name": "###",
+                        "firstName": "###"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create an integration connection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "connectorId": {
+                    "type": "number"
+                  },
+                  "userId": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Connections"
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "id": "###"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          }
+        }
+      }
+    },
+    "/api/connections/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get integration connection",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/connectionID"
+          }
+        ],
+        "tags": [
+          "Connections"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return connection",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "connectorId": "###",
+                  "createdAt": "###",
+                  "validUntil": "###",
+                  "lastChangedOn": "###",
+                  "createdOn": "###",
+                  "createdBy": {
+                    "name": "###",
+                    "firstName": "###"
+                  },
+                  "lastChangedBy": {
+                    "name": "###",
+                    "firstName": "###"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete an integration connection",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/connectionID"
+          }
+        ],
+        "tags": [
+          "Connections"
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection successfully deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7222,6 +8586,76 @@
         "description": "Retrieve also the user",
         "schema": {
           "type": "boolean"
+        }
+      },
+      "connectionID": {
+        "in": "path",
+        "name": "id",
+        "description": "Connection ID",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogLevel": {
+        "in": "query",
+        "name": "Level",
+        "description": "Pipe separated log levels (D, I, W, E, NONE, DEFAULT)",
+        "schema": {
+          "type": "string",
+          "pattern": "^((D|I|W|E|NONE|DEFAULT)(\\||D|I|W|E|NONE|DEFAULT)*)?$"
+        }
+      },
+      "LogSource": {
+        "in": "query",
+        "name": "Source",
+        "description": "Log source",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogHost": {
+        "in": "query",
+        "name": "Host",
+        "description": "Log host",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "LogType": {
+        "in": "query",
+        "name": "Type",
+        "description": "Log type",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "R",
+            "S"
+          ]
+        }
+      },
+      "LogAction": {
+        "in": "query",
+        "name": "Action",
+        "description": "Pipe separated log actions",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TransactionMinimalPrice": {
+        "in": "query",
+        "name": "MinimalPrice",
+        "description": "Transactions minimal price",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ReportIDs": {
+        "in": "query",
+        "name": "ReportIDs",
+        "description": "Pipe separated report IDs",
+        "schema": {
+          "type": "string"
         }
       }
     }
