@@ -1102,6 +1102,9 @@ export default class OCPPService {
         chargingStation,
         {
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(connector.connectorId),
           error: this.buildStatusNotification(statusNotification),
           evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
@@ -1322,6 +1325,9 @@ export default class OCPPService {
           user: transaction.user,
           transactionId: transaction.id,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
           stateOfCharge: transaction.currentStateOfCharge,
@@ -1346,6 +1352,9 @@ export default class OCPPService {
         {
           user: transaction.user,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           transactionId: transaction.id,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.currentTotalConsumptionWh / 10) / 100),
@@ -1615,6 +1624,9 @@ export default class OCPPService {
           'user': user,
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
+          'siteID': chargingStation.siteID,
+          'siteAreaID': chargingStation.siteAreaID,
+          'companyID': chargingStation.companyID,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(tenant.subdomain, transaction.id, '#inprogress')
@@ -1660,6 +1672,9 @@ export default class OCPPService {
           alternateUser: (alternateUser ? alternateUser : null),
           transactionId: transaction.id,
           chargeBoxID: chargingStation.id,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
           connectorId: Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           totalConsumption: i18nManager.formatNumber(Math.round(transaction.stop.totalConsumptionWh / 10) / 100),
           totalDuration: this.buildTransactionDuration(transaction),
@@ -2020,6 +2035,9 @@ export default class OCPPService {
       chargingStation,
       {
         chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
         evseDashboardChargingStationURL: Utils.buildEvseChargingStationURL(tenant.subdomain, chargingStation, '#all')
       }

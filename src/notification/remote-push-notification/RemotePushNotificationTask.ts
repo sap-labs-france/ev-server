@@ -453,6 +453,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
       await Logging.logDebug({
         tenantID: tenant.id,
+        siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteID,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
+        chargeBoxID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
@@ -474,6 +478,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Response is a message ID string.
       void Logging.logDebug({
         tenantID: tenant.id,
+        siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteID,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
+        chargeBoxID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
@@ -484,6 +492,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error: Error) => {
       void Logging.logError({
         tenantID: tenant.id,
+        siteID: Utils.objectHasProperty(data, 'siteID') && data.siteID,
+        siteAreaID: Utils.objectHasProperty(data, 'siteAreaID') && data.siteID,
+        companyID: Utils.objectHasProperty(data, 'companyID') && data.companyID,
+        chargeBoxID: Utils.objectHasProperty(data, 'chargeBoxID') && data.chargeBoxID,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',

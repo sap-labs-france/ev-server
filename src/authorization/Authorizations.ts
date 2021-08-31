@@ -993,6 +993,9 @@ export default class Authorizations {
       chargingStation,
       {
         chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
