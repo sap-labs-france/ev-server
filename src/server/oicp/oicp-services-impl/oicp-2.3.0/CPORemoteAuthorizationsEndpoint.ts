@@ -189,6 +189,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${transaction.chargeBoxID}' not found`,
@@ -211,6 +214,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_START,
         message: `Charging Station '${chargingStation.id}' not found`,
@@ -231,6 +237,9 @@ export default class CPORemoteAuthorizationsEndpoint extends AbstractEndpoint {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.OICP_AUTHORIZE_REMOTE_STOP,
         message: `Charging Station '${chargingStation.id}' not found`,

@@ -709,6 +709,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -725,6 +728,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: user,
         action: ServerAction.OICP_AUTHORIZE_STOP,
@@ -821,6 +827,9 @@ export default class CpoOICPClient extends OICPClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         user: transaction.user,
         action: ServerAction.OICP_PUSH_CDRS,

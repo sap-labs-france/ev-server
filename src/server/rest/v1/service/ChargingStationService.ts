@@ -1611,6 +1611,9 @@ export default class ChargingStationService {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargeBoxID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',

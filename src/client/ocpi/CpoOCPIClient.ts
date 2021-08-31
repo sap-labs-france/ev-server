@@ -852,6 +852,9 @@ export default class CpoOCPIClient extends OCPIClient {
       await Logging.logError({
         tenantID: this.tenant.id,
         siteID: transaction.siteID,
+        siteAreaID: transaction.siteAreaID,
+        companyID: transaction.companyID,
+        chargeBoxID: transaction.chargeBoxID,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_CHECK_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR does not exist in IOP`,
@@ -890,6 +893,9 @@ export default class CpoOCPIClient extends OCPIClient {
     await Logging.logError({
       tenantID: this.tenant.id,
       siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      chargeBoxID: transaction.chargeBoxID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR '${transaction.ocpiData.session.id}' at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
@@ -941,6 +947,9 @@ export default class CpoOCPIClient extends OCPIClient {
     await Logging.logError({
       tenantID: this.tenant.id,
       siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
+      chargeBoxID: transaction.chargeBoxID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check Transaction at ${sessionsUrl}`,

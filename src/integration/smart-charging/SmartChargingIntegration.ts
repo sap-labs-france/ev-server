@@ -63,6 +63,10 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         await Logging.logError({
           tenantID: this.tenant.id,
           source: chargingProfile.chargingStationID,
+          siteID: chargingProfile.chargingStation.siteID,
+          siteAreaID: chargingProfile.chargingStation.siteAreaID,
+          companyID: chargingProfile.chargingStation.companyID,
+          chargeBoxID: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed, because of  '${chargingProfile.chargingStationID}'. It has been excluded from this smart charging run automatically`,
@@ -134,6 +138,10 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         await Logging.logError({
           tenantID: this.tenant.id,
           source: chargingProfile.chargingStationID,
+          siteID: chargingProfile.chargingStation.siteID,
+          siteAreaID: chargingProfile.chargingStation.siteAreaID,
+          companyID: chargingProfile.chargingStation.companyID,
+          chargeBoxID: chargingProfile.chargingStationID,
           action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'handleRefusedChargingProfile',
           message: 'Setting Charging Profiles failed 3 times.',

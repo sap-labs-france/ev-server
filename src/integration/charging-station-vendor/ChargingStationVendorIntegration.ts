@@ -236,6 +236,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
@@ -334,6 +337,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
@@ -387,6 +393,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
@@ -491,6 +500,9 @@ export default abstract class ChargingStationVendorIntegration {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargeBoxID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `${Utils.buildConnectorInfo(connectorID)} Cannot retrieve the current limitation`,
