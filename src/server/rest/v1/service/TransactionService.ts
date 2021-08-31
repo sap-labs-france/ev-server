@@ -86,8 +86,8 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
-    if (!filteredRequest.transactionIds) {
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
+    if (!filteredRequest.transactionsIDs) {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -99,7 +99,7 @@ export default class TransactionService {
       });
     }
     const transactionsToRefund: Transaction[] = [];
-    for (const transactionId of filteredRequest.transactionIds) {
+    for (const transactionId of filteredRequest.transactionsIDs) {
       const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId, { withUser: true });
       if (!transaction) {
         await Logging.logError({
@@ -361,7 +361,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsAssignUserReq(req.query);
     // Check
     if (!filteredRequest.TagID) {
       throw new AppError({
@@ -457,7 +457,7 @@ export default class TransactionService {
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
@@ -533,7 +533,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetConsumptionsReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
@@ -774,7 +774,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
