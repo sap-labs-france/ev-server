@@ -282,6 +282,7 @@ export default class StripeIntegrationTestData {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         unitPrice: Utils.createDecimal(consumptionTestData.energyAmount).div(consumptionTestData.energyConsumptionkWh).toNumber(),
         amount: consumptionTestData.energyAmount, // total amount to bill -  not yet in cents
+        roundedAmount: Utils.truncTo(consumptionTestData.energyAmount, 2),
         quantity: consumptionTestData.energyConsumptionkWh, // kW.h
         taxes // Array of taxes - cannot be null
       },
@@ -289,6 +290,7 @@ export default class StripeIntegrationTestData {
         itemDescription: `Parking time - ${consumptionTestData.partingTime} minutes * ${consumptionTestData.parkingAmount} Eur`,
         unitPrice: Utils.createDecimal(consumptionTestData.parkingAmount).div(consumptionTestData.partingTime).toNumber(),
         amount: consumptionTestData.parkingAmount, // Euros
+        roundedAmount: Utils.truncTo(consumptionTestData.parkingAmount, 2),
         quantity: consumptionTestData.partingTime, // minutes
         taxes // Array of taxes - cannot be null
       }

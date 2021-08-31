@@ -92,6 +92,7 @@ export interface PricingConsumptionData {
 export interface PricingDimensionData {
   unitPrice: number,
   amount: number;
+  roundedAmount: number;
   quantity: number;
   // Name of the tariff this dimension belongs to - mainly for troubleshooting purposes
   sourceName?: string

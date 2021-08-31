@@ -219,6 +219,7 @@ export default class PricingEngine {
       return {
         unitPrice: 0,
         amount: 0,
+        roundedAmount: 0,
         quantity: 0
       };
     }
@@ -226,6 +227,7 @@ export default class PricingEngine {
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
       amount: unitPrice,
+      roundedAmount: Utils.truncTo(unitPrice, 2),
       quantity: 1
     };
     return pricingDimension.pricedData;
@@ -243,20 +245,21 @@ export default class PricingEngine {
     } else {
       // Convert to kWh
       consumptionkWh = Utils.createDecimal(cumulatedConsumptionWh).div(1000).toNumber();
-      // Let's truncate to avoid pricing an energy which was not delivered
-      consumptionkWh = Utils.truncTo(consumptionkWh, 2);
       amount = Utils.createDecimal(unitPrice).times(consumptionkWh).toNumber();
     }
     const previousData = pricingDimension.pricedData;
     if (previousData) {
       // The new priced data is the delta
+      const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
       const newData : PricingDimensionData = {
         unitPrice: unitPrice,
-        amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
+        amount: delta,
+        roundedAmount: Utils.truncTo(delta, 2),
         quantity: Utils.createDecimal(consumptionkWh).minus(previousData?.quantity || 0).toNumber(),
       };
       // Update the previous data
       previousData.amount = amount;
+      previousData.roundedAmount = Utils.truncTo(amount, 2);
       previousData.quantity = consumptionkWh;
       // return the delta
       return newData;
@@ -265,6 +268,7 @@ export default class PricingEngine {
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
       amount,
+      roundedAmount: Utils.truncTo(amount, 2),
       quantity: consumptionkWh
     };
     return pricingDimension.pricedData;
@@ -287,13 +291,16 @@ export default class PricingEngine {
     const previousData = pricingDimension.pricedData;
     if (previousData) {
       // The new priced data is the delta
+      const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
       const newData : PricingDimensionData = {
         unitPrice: unitPrice,
-        amount: Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber(),
+        roundedAmount: Utils.truncTo(delta, 2),
+        amount: delta,
         quantity: Utils.createDecimal(hours).minus(previousData?.quantity || 0).toNumber(),
       };
       // Update the previous data
       previousData.amount = amount;
+      previousData.roundedAmount = Utils.truncTo(amount, 2);
       previousData.quantity = hours;
       // return the delta
       return newData;
@@ -302,14 +309,15 @@ export default class PricingEngine {
     pricingDimension.pricedData = {
       unitPrice: unitPrice,
       amount,
+      roundedAmount: Utils.truncTo(amount, 2),
       quantity: hours
     };
     return pricingDimension.pricedData;
   }
 
-  static priceConsumption(tenant: Tenant, transaction: Transaction, consumptionData: Consumption): number {
+  static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricingConsumptionData {
     // Check the restrictions to find the pricing definition matching the current context
-    let actualPricingDefinitions = transaction.pricingModel.pricingDefinitions.filter((pricingDefinition) =>
+    let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
     );
     // Having more than one pricing definition this NOT a normal situation.
@@ -318,23 +326,25 @@ export default class PricingEngine {
       // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
       actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
     }
-    // ----------------------------------------------------------------------------------------------
-    // TODO - POC - to be clarified - temporary solution
-    // - we shouldn't update the transaction object directly from this layer
-    // ----------------------------------------------------------------------------------------------
     let flatFee: PricingDimensionData = null;
-    if (!transaction.pricingModel.flatFeeAlreadyPriced) {
+    if (!pricingModel.flatFeeAlreadyPriced) {
       // Flat fee must not be priced only once
       flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
-      transaction.pricingModel.flatFeeAlreadyPriced = !!flatFee;
+      pricingModel.flatFeeAlreadyPriced = !!flatFee;
     }
     // Build the consumption data for each dimension
     const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
     const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
     const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
-    // Sum all dimensions
-    const amount = Utils.createDecimal(flatFee?.amount || 0).plus(energy?.amount || 0).plus(chargingTime?.amount || 0).plus(parkingTime?.amount || 0).toNumber();
-    return amount;
+
+    // Return all dimensions
+    const pricingConsumptionData: PricingConsumptionData = {
+      flatFee,
+      energy,
+      chargingTime,
+      parkingTime
+    };
+    return pricingConsumptionData;
   }
 
   static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricingConsumptionData[] {

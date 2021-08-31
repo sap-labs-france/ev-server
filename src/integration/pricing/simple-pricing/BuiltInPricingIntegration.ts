@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { PricedConsumption, PricingDefinition, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
@@ -19,9 +20,7 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    const pricedConsumption = await this.computePrice(transaction, consumptionData);
-    pricedConsumption.pricingModel = await this.resolvePricingContext(this.tenant, transaction);
-    return pricedConsumption;
+    return this.computePrice(transaction, consumptionData);
   }
 
   public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
@@ -33,17 +32,19 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
   }
 
   private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    let amount: number;
-    let roundedAmount: number;
-    if (consumptionData.consumptionWh && typeof consumptionData.consumptionWh === 'number') {
-      amount = PricingEngine.priceConsumption(this.tenant, transaction, consumptionData);
-      roundedAmount = Utils.truncTo(amount, 2);
-    } else {
-      amount = 0;
-      roundedAmount = 0;
+    let pricingModel = transaction.pricingModel;
+    if (!pricingModel) {
+      // This should happen only on the first call (i.e.: on a start transaction)
+      pricingModel = await this.resolvePricingContext(this.tenant, transaction);
     }
+    const pricingConsumptionData = PricingEngine.priceConsumption(this.tenant, pricingModel, consumptionData);
+    const { flatFee, energy, chargingTime, parkingTime } = pricingConsumptionData;
+    const amount = Utils.createDecimal(flatFee?.amount || 0).plus(energy?.amount || 0).plus(chargingTime?.amount || 0).plus(parkingTime?.amount || 0).toNumber();
+    const roundedAmount = Utils.createDecimal(flatFee?.roundedAmount || 0).plus(energy?.roundedAmount || 0).plus(chargingTime?.roundedAmount || 0).plus(parkingTime?.roundedAmount || 0).toNumber();
+    // Sum all dimensions
     const pricedConsumption: PricedConsumption = {
       pricingSource: PricingSource.SIMPLE,
+      pricingModel,
       amount: amount,
       roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,

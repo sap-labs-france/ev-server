@@ -1132,6 +1132,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
           unitPrice,
           itemDescription,
           amount,
+          roundedAmount: Utils.truncTo(amount, 2),
           quantity,
           taxes
         }
