@@ -38,7 +38,7 @@ export interface PricingDimension {
   active: boolean, // Lets the user switch OFF that price without loosing the value (if any)
   price: number, // Price per unit (excluding VAT) for this tariff dimension
   stepSize?: number, // Minimum amount to be billed. This unit will be billed in this step_size blocks. For example: if type is time and step_size is 300, then time will be billed in blocks of 5 minutes, so if 6 minutes is used, 10 minutes (2 blocks of step_size) will be billed.
-  pricedData?: PricingDimensionData // Information set dynamically while charging
+  pricedData?: PricedDimensionData // Information set dynamically while charging
 }
 
 export interface PricingRestriction {
@@ -73,7 +73,7 @@ export interface PricedConsumption {
   currencyCode: string;
   pricingSource: PricingSource;
   pricingModel?: ResolvedPricingModel
-  pricingConsumptionData?: PricingConsumptionData
+  pricingConsumptionData?: PricedConsumptionData
 }
 
 export enum PricingSource {
@@ -82,14 +82,14 @@ export enum PricingSource {
   OCPI = 'ocpi',
 }
 
-export interface PricingConsumptionData {
-  flatFee?: PricingDimensionData,
-  energy?: PricingDimensionData,
-  parkingTime?: PricingDimensionData,
-  chargingTime?: PricingDimensionData,
+export interface PricedConsumptionData {
+  flatFee?: PricedDimensionData,
+  energy?: PricedDimensionData,
+  parkingTime?: PricedDimensionData,
+  chargingTime?: PricedDimensionData,
 }
 
-export interface PricingDimensionData {
+export interface PricedDimensionData {
   unitPrice: number,
   amount: number;
   roundedAmount: number;

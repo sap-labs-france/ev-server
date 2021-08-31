@@ -1,7 +1,7 @@
 import { AsyncTaskType, AsyncTasks } from '../../../types/AsyncTask';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingPaymentMethod, BillingStatus, BillingTax, BillingUser, BillingUserData } from '../../../types/Billing';
-import { DimensionType, PricingConsumptionData, PricingDimensionData } from '../../../types/Pricing';
+import { DimensionType, PricedConsumptionData, PricedDimensionData } from '../../../types/Pricing';
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import StripeHelpers, { StripeChargeOperationResult } from './StripeHelpers';
 import Transaction, { StartTransactionErrorCode } from '../../../types/Transaction';
@@ -871,7 +871,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async _createStripeInvoiceItems4PricingConsumptionData(customerID: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricingConsumptionData, invoiceID?: string): Promise<void> {
+      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, invoiceID?: string): Promise<void> {
     /* --------------------------------------------------------------------------------
      Convert pricing information to STRIPE expected data
     -----------------------------------------------------------------------------------
@@ -891,9 +891,9 @@ export default class StripeBillingIntegration extends BillingIntegration {
   }
 
   private async _createStripeInvoiceItem4Dimension(customerID: string, dimension: string,
-      billingInvoiceItem: BillingInvoiceItem, pricedData: PricingConsumptionData, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
+      billingInvoiceItem: BillingInvoiceItem, pricedData: PricedConsumptionData, invoiceID?: string): Promise<Stripe.InvoiceItemCreateParams> {
     // data for the current dimension (energy | parkingTime, etc)
-    const dimensionData: PricingDimensionData = pricedData[dimension];
+    const dimensionData: PricedDimensionData = pricedData[dimension];
     if (!dimensionData || !dimensionData.amount || !dimensionData.quantity) {
       // Do not bill that dimension
       return null;
@@ -1059,7 +1059,7 @@ export default class StripeBillingIntegration extends BillingIntegration {
   private _convertPricingDataToBillingInvoiceItem(transaction: Transaction) : BillingInvoiceItem {
     const transactionID = transaction.id;
     const currency = transaction.stop.priceUnit;
-    const pricingData: PricingConsumptionData[] = this._extractTransactionPricingData(transaction);
+    const pricingData: PricedConsumptionData[] = this._extractTransactionPricingData(transaction);
     const billingInvoiceItem: BillingInvoiceItem = {
       transactionID,
       currency,
@@ -1076,14 +1076,14 @@ export default class StripeBillingIntegration extends BillingIntegration {
     return billingInvoiceItem ;
   }
 
-  private _extractTransactionPricingData(transaction: Transaction) : PricingConsumptionData[] {
+  private _extractTransactionPricingData(transaction: Transaction) : PricedConsumptionData[] {
     const pricingModel = Object.freeze(transaction.pricingModel);
-    let pricingData: PricingConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
+    let pricingData: PricedConsumptionData[] = PricingEngine.extractFinalPricingData(pricingModel);
     pricingData = pricingData.map((pricingConsumptionData) => this._enrichTransactionPricingData(transaction, pricingConsumptionData));
     return pricingData;
   }
 
-  private _enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricingConsumptionData) : PricingConsumptionData {
+  private _enrichTransactionPricingData(transaction: Transaction, pricingConsumptionData: PricedConsumptionData) : PricedConsumptionData {
     // -------------------------------------------------------------------------------
     // TODO - so far we use the same tax rates for all invoice items!
     // -------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricingConsumptionData, PricingDefinition, PricingDimension, PricingRestriction } from '../../src/types/Pricing';
+import PricingModel, { PricedConsumptionData, PricingDefinition, PricingDimension, PricingRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -277,7 +277,7 @@ export default class StripeIntegrationTestData {
     // array of tax ids to apply to the line item
     const taxes = (consumptionTestData.taxId) ? [ consumptionTestData.taxId ] : [];
     // Pricing/Consumption Data
-    const pricingConsumptionData: PricingConsumptionData = {
+    const pricingConsumptionData: PricedConsumptionData = {
       energy: {
         itemDescription: `Energy consumption - ${consumptionTestData.energyConsumptionkWh} kWh * ${consumptionTestData.energyAmount / consumptionTestData.energyConsumptionkWh} Eur`,
         unitPrice: Utils.createDecimal(consumptionTestData.energyAmount).div(consumptionTestData.energyConsumptionkWh).toNumber(),

@@ -1,7 +1,7 @@
 import { Car, CarCatalog } from './Car';
 import { ChargePointStatus, OCPP15TransactionData, OCPPMeterValue } from './ocpp/OCPPServer';
 import Consumption, { AbstractCurrentConsumption } from './Consumption';
-import PricingModel, { PricingConsumptionData, ResolvedPricingModel } from './Pricing';
+import PricingModel, { PricedConsumptionData, ResolvedPricingModel } from './Pricing';
 
 import ChargingStation from '../types/ChargingStation';
 import Company from './Company';

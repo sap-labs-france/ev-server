@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import PricingModel, { DimensionType, PricingConsumptionData, PricingDefinition, PricingDimension, PricingDimensionData, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingModel, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDefinition, PricingDimension, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
 import Consumption from '../../types/Consumption';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
@@ -139,7 +139,7 @@ export default class PricingEngine {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
+  private static priceFlatFeeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.FLAT_FEE);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.flatFee;
@@ -151,7 +151,7 @@ export default class PricingEngine {
     }
   }
 
-  private static priceEnergyConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
+  private static priceEnergyConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.ENERGY);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.energy;
@@ -163,7 +163,7 @@ export default class PricingEngine {
     }
   }
 
-  private static priceParkingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
+  private static priceParkingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.PARKING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.parkingTime;
@@ -175,7 +175,7 @@ export default class PricingEngine {
     }
   }
 
-  private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricingDimensionData {
+  private static priceChargingTimeConsumption(pricingDefinitions: PricingDefinition[], consumptionData: Consumption): PricedDimensionData {
     const activePricingDefinition = PricingEngine.getActiveDefinition4Dimension(pricingDefinitions, DimensionType.CHARGING_TIME);
     if (activePricingDefinition) {
       const dimensionToPrice = activePricingDefinition.dimensions.chargingTime;
@@ -211,7 +211,7 @@ export default class PricingEngine {
     return null;
   }
 
-  static priceFlatFeeDimension(pricingDimension: PricingDimension): PricingDimensionData {
+  static priceFlatFeeDimension(pricingDimension: PricingDimension): PricedDimensionData {
     const unitPrice = pricingDimension.price || 0;
     if (pricingDimension.pricedData) {
       // This should not happen for the flatFee dimension - Flat Fee is billed only once per session
@@ -233,7 +233,7 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricingDimensionData {
+  static priceEnergyDimension(pricingDimension: PricingDimension, cumulatedConsumptionWh: number): PricedDimensionData {
     let amount: number;
     let consumptionkWh: number;
     const unitPrice = pricingDimension.price || 0;
@@ -251,7 +251,7 @@ export default class PricingEngine {
     if (previousData) {
       // The new priced data is the delta
       const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
-      const newData : PricingDimensionData = {
+      const newData : PricedDimensionData = {
         unitPrice: unitPrice,
         amount: delta,
         roundedAmount: Utils.truncTo(delta, 2),
@@ -274,7 +274,7 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricingDimensionData {
+  static priceTimeBasedDimension(pricingDimension: PricingDimension, seconds: number): PricedDimensionData {
     let amount: number;
     let hours: number;
     const unitPrice = pricingDimension.price || 0;
@@ -292,7 +292,7 @@ export default class PricingEngine {
     if (previousData) {
       // The new priced data is the delta
       const delta = Utils.createDecimal(amount).minus(previousData?.amount || 0).toNumber();
-      const newData : PricingDimensionData = {
+      const newData : PricedDimensionData = {
         unitPrice: unitPrice,
         roundedAmount: Utils.truncTo(delta, 2),
         amount: delta,
@@ -315,7 +315,7 @@ export default class PricingEngine {
     return pricingDimension.pricedData;
   }
 
-  static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricingConsumptionData {
+  static priceConsumption(tenant: Tenant, pricingModel: ResolvedPricingModel, consumptionData: Consumption): PricedConsumptionData {
     // Check the restrictions to find the pricing definition matching the current context
     let actualPricingDefinitions = pricingModel.pricingDefinitions.filter((pricingDefinition) =>
       PricingEngine.checkPricingDefinitionRestrictions(pricingDefinition, consumptionData)
@@ -326,19 +326,19 @@ export default class PricingEngine {
       // TODO - to be clarified! - Shall we mix several pricing definitions for a single transaction?
       actualPricingDefinitions = [ actualPricingDefinitions?.[0] ];
     }
-    let flatFee: PricingDimensionData = null;
+    let flatFee: PricedDimensionData = null;
     if (!pricingModel.flatFeeAlreadyPriced) {
       // Flat fee must not be priced only once
       flatFee = PricingEngine.priceFlatFeeConsumption(actualPricingDefinitions, consumptionData);
       pricingModel.flatFeeAlreadyPriced = !!flatFee;
     }
     // Build the consumption data for each dimension
-    const energy: PricingDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
-    const chargingTime: PricingDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
-    const parkingTime: PricingDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
+    const energy: PricedDimensionData = PricingEngine.priceEnergyConsumption(actualPricingDefinitions, consumptionData);
+    const chargingTime: PricedDimensionData = PricingEngine.priceChargingTimeConsumption(actualPricingDefinitions, consumptionData);
+    const parkingTime: PricedDimensionData = PricingEngine.priceParkingTimeConsumption(actualPricingDefinitions, consumptionData);
 
     // Return all dimensions
-    const pricingConsumptionData: PricingConsumptionData = {
+    const pricingConsumptionData: PricedConsumptionData = {
       flatFee,
       energy,
       chargingTime,
@@ -347,16 +347,16 @@ export default class PricingEngine {
     return pricingConsumptionData;
   }
 
-  static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricingConsumptionData[] {
+  static extractFinalPricingData(pricingModel: ResolvedPricingModel): PricedConsumptionData[] {
     // Iterate throw the list of pricing definitions
-    const pricedData: PricingConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
+    const pricedData: PricedConsumptionData[] = pricingModel.pricingDefinitions.map((pricingDefinition) =>
       PricingEngine.extractFinalPricedConsumptionData(pricingDefinition)
     );
     // Remove null/undefined entries (if any)
     return pricedData.filter((pricingConsumptionData) => !!pricingConsumptionData);
   }
 
-  static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricingConsumptionData {
+  static extractFinalPricedConsumptionData(pricingDefinition: PricingDefinition): PricedConsumptionData {
     const flatFee = pricingDefinition.dimensions.flatFee?.pricedData;
     const energy = pricingDefinition.dimensions.energy?.pricedData;
     const chargingTime = pricingDefinition.dimensions.chargingTime?.pricedData;
@@ -373,7 +373,7 @@ export default class PricingEngine {
     return null;
   }
 
-  static extractPricedDataFromDimension(pricedData: PricingDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
+  static extractPricedDataFromDimension(pricedData: PricedDimensionData[], pricingDefinition: PricingDefinition, dimensionType: string): void {
     const pricingDimensionData = pricingDefinition.dimensions[dimensionType]?.pricedData;
     if (pricingDimensionData) {
       pricedData.push(pricingDimensionData);
