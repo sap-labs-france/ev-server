@@ -14,6 +14,11 @@ export default class TransactionRouter {
 
   public buildRoutes(): express.Router {
     this.buildRouteTransactions();
+    this.buildRouteTransactionsCompleted();
+    this.buildRouteTransactionsActive();
+    this.buildRouteTransactionsInError();
+    this.buildRouteTransactionsUnassignedCount();
+    this.buildRouteTransactionsGetRefund();
     this.buildRouteTransaction();
     this.buildRouteTransactionConsumption();
     this.buildRouteDeleteTransaction();
@@ -33,26 +38,37 @@ export default class TransactionRouter {
 
   protected buildRouteTransactions(): void {
     this.router.get(`/${ServerRoute.REST_TRANSACTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
-      switch (req.query.Status) {
-        case 'in-error':
-          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsInError.bind(this), ServerAction.TRANSACTIONS_IN_ERROR, req, res, next);
-          break;
-        case 'completed':
-          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsCompleted.bind(this), ServerAction.TRANSACTIONS_COMPLETED, req, res, next);
-          break;
-        case 'to-refund':
-          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsToRefund.bind(this), ServerAction.TRANSACTIONS_TO_REFUND, req, res, next);
-          break;
-        case 'active':
-          await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsActive.bind(this), ServerAction.TRANSACTIONS_ACTIVE, req, res, next);
-          break;
-        case 'not-assigned-to-user':
-          await RouterUtils.handleServerAction(TransactionService.handleGetUnassignedTransactionsCount.bind(this), ServerAction.UNASSIGNED_TRANSACTIONS_COUNT, req, res, next);
-          break;
-        default:
-          await RouterUtils.handleServerAction(TransactionService.handleGetTransactions.bind(this), ServerAction.TRANSACTIONS, req, res, next);
-          break;
-      }
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactions.bind(this), ServerAction.TRANSACTIONS, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsInError(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_IN_ERROR}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsInError.bind(this), ServerAction.TRANSACTIONS_IN_ERROR, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsCompleted(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_COMPLETED}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsCompleted.bind(this), ServerAction.TRANSACTIONS_COMPLETED, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsActive(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_ACTIVE}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsActive.bind(this), ServerAction.TRANSACTIONS_ACTIVE, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsUnassignedCount(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_UNASSIGNED_COUNT}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetUnassignedTransactionsCount.bind(this), ServerAction.UNASSIGNED_TRANSACTIONS_COUNT, req, res, next);
+    });
+  }
+
+  protected buildRouteTransactionsGetRefund(): void {
+    this.router.get(`/${ServerRoute.REST_TRANSACTIONS_REFUND}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(TransactionService.handleGetTransactionsToRefund.bind(this), ServerAction.TRANSACTIONS_TO_REFUND, req, res, next);
     });
   }
 
@@ -91,7 +107,7 @@ export default class TransactionRouter {
   }
 
   protected buildRouteTransactionConsumption(): void {
-    this.router.get(`/${ServerRoute.REST_TRANSACTION_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.get(`/${ServerRoute.REST_TRANSACTION_CONSUMPTIONS}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.TransactionId = req.params.id;
       await RouterUtils.handleServerAction(TransactionService.handleGetTransactionConsumption.bind(this), ServerAction.TRANSACTION_CONSUMPTION, req, res, next);
     });
@@ -112,7 +128,7 @@ export default class TransactionRouter {
   }
 
   protected buildRouteTransactionsRefund(): void {
-    this.router.post(`/${ServerRoute.REST_TRANSACTIONS_REFUND}`, async (req: Request, res: Response, next: NextFunction) => {
+    this.router.post(`/${ServerRoute.REST_TRANSACTIONS_REFUND_ACTION}`, async (req: Request, res: Response, next: NextFunction) => {
       req.body.transactionsIDs = req.body.transactionIds;
       await RouterUtils.handleServerAction(TransactionService.handleRefundTransactions.bind(this), ServerAction.TRANSACTIONS_REFUND, req, res, next);
     });

@@ -445,6 +445,7 @@ export default class ChargingStationService {
         // Log
         await Logging.logWarning({
           tenantID: req.user.tenantID,
+          siteID: chargingStation.siteID,
           source: chargingStation.id,
           action: action,
           user: req.user,
@@ -473,6 +474,7 @@ export default class ChargingStationService {
     }
     await Logging.logInfo({
       tenantID: req.user.tenantID,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -1497,6 +1499,7 @@ export default class ChargingStationService {
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               await Logging.logWarning({
                 tenantID: tenant.id,
+                siteID: chargingStation.siteID,
                 source: chargingStation.id,
                 user: user,
                 action: action,
@@ -1589,12 +1592,16 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
+        case Command.TRIGGER_DATA_TRANSFER:
+          result = await chargingStationClient.dataTransfer(params);
+          break;
       }
       if (result) {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && ![OCPPStatus.ACCEPTED, OCPPUnlockStatus.UNLOCKED].includes(result.status)) {
           await Logging.logError({
             tenantID: tenant.id,
+            siteID: chargingStation.siteID,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1606,6 +1613,7 @@ export default class ChargingStationService {
           // OCPP Command with no status
           await Logging.logInfo({
             tenantID: tenant.id,
+            siteID: chargingStation.siteID,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1796,17 +1804,15 @@ export default class ChargingStationService {
     }
     // Check Charging Station
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    // Save Car selection
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+      }
+    }
     // Execute it
     const result = await ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
-    // Save Car selection
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
-        }
-      }
-    }
     return result;
   }
 

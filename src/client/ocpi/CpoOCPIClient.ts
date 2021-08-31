@@ -215,6 +215,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_AUTHORIZE_TOKEN,
       message: `OCPI Tag ID '${token.uid}' has been authorized successfully`,
@@ -260,6 +261,7 @@ export default class CpoOCPIClient extends OCPIClient {
     };
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_START_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been started successfully`,
@@ -306,6 +308,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_PUSH_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been patched successfully`,
@@ -351,6 +354,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_STOP_SESSION,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI Transaction has been stopped successfully`,
@@ -406,6 +410,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} OCPI CDR has been sent successfully`,
@@ -440,6 +445,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logInfo({
       tenantID: this.tenant.id,
+      siteID: chargingStation.siteID,
       source: chargingStation.id,
       action: ServerAction.OCPI_PATCH_STATUS,
       message: 'Charging Station has been removed successfully',
@@ -827,6 +833,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.data.status_code === 3001) {
       await Logging.logError({
         tenantID: this.tenant.id,
+        siteID: transaction.siteID,
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_CHECK_CDRS,
         message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR does not exist in IOP`,
@@ -849,6 +856,7 @@ export default class CpoOCPIClient extends OCPIClient {
         // CDR checked
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_CDRS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} CDR has been checked successfully`,
@@ -860,6 +868,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logError({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_CDRS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check CDR '${transaction.ocpiData.session.id}' at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
@@ -895,6 +904,7 @@ export default class CpoOCPIClient extends OCPIClient {
       if (session) {
         await Logging.logInfo({
           tenantID: this.tenant.id,
+          siteID: transaction.siteID,
           source: transaction.chargeBoxID,
           action: ServerAction.OCPI_CHECK_SESSIONS,
           message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Transaction has been checked successfully`,
@@ -906,6 +916,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     await Logging.logError({
       tenantID: this.tenant.id,
+      siteID: transaction.siteID,
       source: transaction.chargeBoxID,
       action: ServerAction.OCPI_CHECK_SESSIONS,
       message: `${Utils.buildConnectorInfo(transaction.connectorId, transaction.id)} Failed to check Transaction at ${sessionsUrl}`,

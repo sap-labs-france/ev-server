@@ -11,7 +11,7 @@ export default class TransactionValidator extends SchemaValidator {
   private transactionGet: Schema;
   private transactionsGetByIDs: Schema;
   private transactionPushCDR: Schema;
-  private transactionGetConsumption: Schema;
+  private transactionGetConsumptions: Schema;
   private transactionsAssignUser: Schema;
   private transactionsUnassignedCountGet: Schema;
   private transactionsInErrorGet: Schema;
@@ -23,7 +23,7 @@ export default class TransactionValidator extends SchemaValidator {
     this.transactionGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get.json`, 'utf8'));
     this.transactionsGetByIDs = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-get-by-ids.json`, 'utf8'));
     this.transactionPushCDR = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-push-cdr.json`, 'utf8'));
-    this.transactionGetConsumption = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get-consumption.json`, 'utf8'));
+    this.transactionGetConsumptions = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get-consumptions.json`, 'utf8'));
     this.transactionsAssignUser = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-assign-user.json`, 'utf8'));
     this.transactionsUnassignedCountGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-unassigned-count-get.json`, 'utf8'));
     this.transactionsInErrorGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-inerror-get.json`, 'utf8'));
@@ -60,9 +60,9 @@ export default class TransactionValidator extends SchemaValidator {
     return data;
   }
 
-  public validateTransactionGetConsumptionReq(data: any): HttpConsumptionFromTransactionRequest {
+  public validateTransactionGetConsumptionsReq(data: any): HttpConsumptionFromTransactionRequest {
     // Validate schema
-    this.validate(this.transactionGetConsumption, data);
+    this.validate(this.transactionGetConsumptions, data);
     return data;
   }
 

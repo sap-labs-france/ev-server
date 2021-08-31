@@ -1,16 +1,12 @@
 {
-  "title": "Assign User to Transactions Request",
+  "title": "Get Connections Request",
   "type": "object",
   "properties": {
-    "TagID": {
-      "$ref": "tag.json#/definitions/id"
-    },
     "UserID": {
       "$ref": "user.json#/definitions/id"
     }
   },
   "required": [
-    "TagID",
     "UserID"
   ]
 }

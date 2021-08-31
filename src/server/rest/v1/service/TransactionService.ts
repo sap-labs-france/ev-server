@@ -428,11 +428,6 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    try {
-      TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
-    } catch (e) {
-      const a = 5;
-    }
     const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
@@ -528,7 +523,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetConsumptionReq(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetConsumptionsReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
