@@ -882,6 +882,8 @@ export default class OCPPUtils {
     for (const consumption of consumptions) {
       OCPPUtils.assertConsistencyInConsumption(chargingStation, transaction.connectorId, consumption);
     }
+    // Sort consumptions by date
+    consumptions.sort((a,b) => a.startedAt.getTime() - b.startedAt.getTime());
     return consumptions;
   }
 

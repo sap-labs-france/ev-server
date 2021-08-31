@@ -1804,17 +1804,15 @@ export default class ChargingStationService {
     }
     // Check Charging Station
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    // Save Car selection
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+      }
+    }
     // Execute it
     const result = await ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
-    // Save Car selection
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
-        }
-      }
-    }
     return result;
   }
 
