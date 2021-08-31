@@ -4,8 +4,17 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 export default interface PricingModel extends CreatedUpdatedProps, AuthorizationActions {
   id: string;
   entityID: string; // id of the entity the pricing definition belongs to!
-  entityType: string; // Type of the entity this model belongs to
+  entityType: PricingEntity; // Type of the entity this model belongs to
   pricingDefinitions: PricingDefinition[];
+}
+
+export enum PricingEntity {
+  TENANT = 'Tenant',
+  COMPANY = 'Company',
+  SITE = 'Site',
+  SITE_AREA = 'SiteArea',
+  CHARGING_STATION = 'ChargingStation',
+  // USER = 'User'
 }
 
 export enum DimensionType {

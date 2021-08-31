@@ -2,7 +2,7 @@ import AsyncTask, { AsyncTaskStatus } from '../../src/types/AsyncTask';
 import { BillingChargeInvoiceAction, BillingDataTransactionStop, BillingInvoiceStatus, BillingStatus, BillingUser } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricingDefinition, PricingDimensions } from '../../src/types/Pricing';
+import PricingModel, { PricingDefinition, PricingDimensions, PricingEntity } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import AsyncTaskStorage from '../../src/storage/mongodb/AsyncTaskStorage';
@@ -328,7 +328,7 @@ class TestData {
   public async createTariff4Company(companyID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
       entityID: companyID, // a pricing model for the Company
-      entityType: Entity.COMPANY,
+      entityType: PricingEntity.COMPANY,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
@@ -374,7 +374,7 @@ class TestData {
   public async createTariff4Site(siteID: string): Promise<void> {
     const initialPricingModel: Partial<PricingModel> = {
       entityID: siteID, // a pricing model for the site
-      entityType: Entity.SITE,
+      entityType: PricingEntity.SITE,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
@@ -439,7 +439,7 @@ class TestData {
 
     const initialPricingModel: Partial<PricingModel> = {
       entityID: chargingStation.id, // a pricing model for the site
-      entityType: Entity.CHARGING_STATION,
+      entityType: PricingEntity.CHARGING_STATION,
       pricingDefinitions: []
     };
     let response = await this.adminUserService.pricingApi.createPricingModel(initialPricingModel);
