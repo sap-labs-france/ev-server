@@ -1,8 +1,8 @@
+import ChargingStation, { Command } from '../../../types/ChargingStation';
 import { OCPPErrorType, OCPPIncomingRequest, OCPPMessageType, OCPPRequest } from '../../../types/ocpp/OCPPCommon';
 import WebSocket, { CLOSED, CLOSING, CONNECTING, CloseEvent, ErrorEvent, MessageEvent, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
-import { Command } from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import DatabaseUtils from '../../../storage/mongodb/DatabaseUtils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
@@ -56,20 +56,10 @@ export default abstract class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID/SITEID/SITEAREAID/COMPANYID
-    // We support previous format like
-    // for existing charging station without siteID, siteAreaID and companyID /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
-    // for existing charging station without token also /OCPPxx/TENANTID/CHARGEBOXID
+    // Parse URL: should be like /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
+    // We support previous format like for existing charging station without token also /OCPPxx/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
-    if (splittedURL.length === 7) {
-      // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID/SITEID/SITEAREAID/COMPANYID
-      this.tenantID = splittedURL[1];
-      this.token = splittedURL[2];
-      this.chargingStationID = splittedURL[3];
-      this.siteID = splittedURL[4];
-      this.siteAreaID = splittedURL[5];
-      this.companyID = splittedURL[6];
-    } else if (splittedURL.length === 4) {
+    if (splittedURL.length === 4) {
       // URL /OCPPxx/TENANTID/TOKEN/CHARGEBOXID
       this.tenantID = splittedURL[1];
       this.token = splittedURL[2];
@@ -335,6 +325,12 @@ export default abstract class WSConnection {
         setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
+  }
+
+  public setChargingStationDetails(chargingStation: ChargingStation): void {
+    this.siteID = chargingStation.siteID;
+    this.siteAreaID = chargingStation.siteAreaID;
+    this.companyID = chargingStation.companyID;
   }
 
   public getSiteID(): string {

@@ -88,6 +88,8 @@ export default class JsonWSConnection extends WSConnection {
       const chargingStation = await ChargingStationStorage.getChargingStation(
         this.getTenant(), this.getChargingStationID(), { issuer: true }, ['id']);
       if (chargingStation) {
+        // Update charging station details
+        this.setChargingStationDetails(chargingStation);
         // Update Last Seen
         await ChargingStationStorage.saveChargingStationLastSeen(this.getTenant(),
           chargingStation.id, { lastSeen: new Date() });
