@@ -526,7 +526,9 @@ export enum ServerRoute {
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
-  REST_ASSET_CONSUMPTION = 'assets/:assetID/consumption',
+  REST_ASSETS = 'assets',
+  REST_ASSET = 'assets/:id',
+  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
 
   REST_PING = 'ping',
 

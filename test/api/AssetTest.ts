@@ -1,9 +1,13 @@
 import chai, { expect } from 'chai';
 
+import Asset from '../../src/types/Asset';
 import CentralServerService from './client/CentralServerService';
+import Company from '../../src/types/Company';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
+import Site from '../../src/types/Site';
+import SiteArea from '../../src/types/SiteArea';
 import TenantContext from './context/TenantContext';
 import chaiSubset from 'chai-subset';
 
@@ -15,14 +19,14 @@ class TestData {
   public centralUserService: CentralServerService;
   public userContext: any;
   public userService: CentralServerService;
-  public newCompany: any;
-  public createdCompanies: any[] = [];
-  public newSite: any;
-  public createdSites: any[] = [];
-  public newSiteArea: any;
-  public createdSiteAreas: any[] = [];
-  public newAsset: any;
-  public createdAssets: any[] = [];
+  public newCompany: Company;
+  public createdCompanies: Company[] = [];
+  public newSite: Site;
+  public createdSites: Site[] = [];
+  public newSiteArea: SiteArea;
+  public createdSiteAreas: SiteArea[] = [];
+  public newAsset: Asset;
+  public createdAssets: Asset[] = [];
 }
 
 const testData: TestData = new TestData();
