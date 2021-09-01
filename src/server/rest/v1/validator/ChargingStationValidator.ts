@@ -13,6 +13,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationGet: Schema;
   private chargingStationDelete: Schema;
   private chargingStationAction: Schema;
+  private chargingStationActionStartTransaction: Schema;
   private chargingStationActionStopTransaction: Schema;
   private chargingStationQRCodeGenerate: Schema;
   private chargingStationQRCodeDownload: Schema;
@@ -35,6 +36,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-get.json`, 'utf8'));
     this.chargingStationDelete = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-delete.json`, 'utf8'));
     this.chargingStationAction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action.json`, 'utf8'));
+    this.chargingStationActionStartTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-start-transaction.json`, 'utf8'));
     this.chargingStationActionStopTransaction = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-stop-transaction.json`, 'utf8'));
     this.chargingStationQRCodeGenerate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-generate.json`, 'utf8'));
     this.chargingStationQRCodeDownload = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-qrcode-download.json`, 'utf8'));
@@ -83,7 +85,13 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationActionStopTransactionReq(data: any): HttpChargingStationCommandRequest {
+  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandRequest {
+    // Validate schema for StartTransaction
+    this.validate(this.chargingStationActionStartTransaction, data);
+    return data;
+  }
+
+  public validateChargingStationActionStopTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandRequest {
     // Validate schema for StopTransaction
     this.validate(this.chargingStationActionStopTransaction, data);
     return data;

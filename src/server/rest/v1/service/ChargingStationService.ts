@@ -1158,6 +1158,7 @@ export default class ChargingStationService {
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get the Charging Plans
