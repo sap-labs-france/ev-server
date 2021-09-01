@@ -90,7 +90,7 @@ export default abstract class WSConnection {
       siteID: this.siteID,
       siteAreaID: this.siteAreaID,
       companyID: this.companyID,
-      chargeBoxID: this.chargingStationID,
+      chargingStationID: this.chargingStationID,
       source: this.chargingStationID,
       action: action,
       module: MODULE_NAME, method: 'constructor',

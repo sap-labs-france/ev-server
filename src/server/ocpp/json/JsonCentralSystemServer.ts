@@ -45,22 +45,21 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.startWSServer();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationDetails: {
-    chargingStationID: string,
+  public getChargingStationClient(tenantID: string, chargingStationID: string, chargingStationLocation?: {
     siteID: string,
     siteAreaID: string,
     companyID: string
   }): ChargingStationClient {
     // Get the Json Web Socket
-    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationDetails.chargingStationID}`);
+    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
-        siteID: chargingStationDetails.siteID,
-        siteAreaID: chargingStationDetails.siteAreaID,
-        companyID: chargingStationDetails.companyID,
-        chargeBoxID: chargingStationDetails.chargingStationID,
-        source: chargingStationDetails.chargingStationID,
+        siteID: chargingStationLocation?.siteID,
+        siteAreaID: chargingStationLocation?.siteAreaID,
+        companyID: chargingStationLocation?.companyID,
+        chargingStationID: chargingStationID,
+        source: chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: 'No open WebSocket connection found'
@@ -188,7 +187,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
               siteID: jsonWSConnection.getSiteID(),
               siteAreaID: jsonWSConnection.getSiteAreaID(),
               companyID: jsonWSConnection.getCompanyID(),
-              chargeBoxID: jsonWSConnection.getChargingStationID(),
+              chargingStationID: jsonWSConnection.getChargingStationID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
               module: MODULE_NAME, method: 'createWSServer',

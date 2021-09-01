@@ -6,7 +6,7 @@ export interface Log {
   tenantID: string;
   id?: string;
   level?: LogLevel;
-  chargeBoxID?: string;
+  chargingStationID?: string;
   siteAreaID?: string;
   siteID?: string;
   companyID?: string;

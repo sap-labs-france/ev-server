@@ -907,7 +907,7 @@ export default class Authorizations {
               siteID: chargingStation.siteID,
               siteAreaID: chargingStation.siteAreaID,
               companyID: chargingStation.companyID,
-              chargeBoxID: chargingStation.id,
+              chargingStationID: chargingStation.id,
               source: chargingStation.id,
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,

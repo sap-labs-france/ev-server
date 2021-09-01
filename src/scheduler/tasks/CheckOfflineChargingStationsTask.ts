@@ -46,7 +46,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
                 siteID: chargingStation.siteID,
                 siteAreaID: chargingStation.siteAreaID,
                 companyID: chargingStation.companyID,
-                chargeBoxID: chargingStation.id,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 action: ServerAction.OFFLINE_CHARGING_STATION,
                 module: MODULE_NAME, method: 'processTenant',
