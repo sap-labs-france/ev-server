@@ -41,6 +41,7 @@ export default class AssetRouter {
 
   protected buildRouteGetAsset(): void {
     this.router.get(`/${ServerRoute.REST_ASSET}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(AssetService.handleGetAsset.bind(this), ServerAction.ASSET, req, res, next);
     });
   }
