@@ -136,25 +136,26 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async onPing(): Promise<void> {
-    void Logging.logDebug({
-      tenantID: this.getTenantID(),
-      source: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_PINGED,
-      module: MODULE_NAME, method: 'onPing',
-      message: 'Ping received',
-    });
+    // Commented for perfs reasons (1 ping/sec for certain chargers)
+    // void Logging.logDebug({
+    //   tenantID: this.getTenantID(),
+    //   source: this.getChargingStationID(),
+    //   action: ServerAction.WS_JSON_CONNECTION_PINGED,
+    //   module: MODULE_NAME, method: 'onPing',
+    //   message: 'Ping received',
+    // });
     await this.updateChargingStationLastSeen();
   }
 
   public async onPong(): Promise<void> {
     this.isConnectionAlive = true;
-    void Logging.logDebug({
-      tenantID: this.getTenantID(),
-      source: this.getChargingStationID(),
-      action: ServerAction.WS_JSON_CONNECTION_PONGED,
-      module: MODULE_NAME, method: 'onPong',
-      message: 'Pong received',
-    });
+    // void Logging.logDebug({
+    //   tenantID: this.getTenantID(),
+    //   source: this.getChargingStationID(),
+    //   action: ServerAction.WS_JSON_CONNECTION_PONGED,
+    //   module: MODULE_NAME, method: 'onPong',
+    //   message: 'Pong received',
+    // });
     await this.updateChargingStationLastSeen();
   }
 
