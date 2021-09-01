@@ -17,6 +17,9 @@ export default class AssetRouter {
     this.buildRouteCreateAsset();
     this.buildRouteGetAssets();
     this.buildRouteGetAsset();
+    this.buildRouteGetAssetsInError();
+    this.buildRouteCheckAssetConnection();
+    this.buildRouteGetAssetLastConsumption();
     return this.router;
   }
 
@@ -43,6 +46,26 @@ export default class AssetRouter {
     this.router.get(`/${ServerRoute.REST_ASSET}`, async (req: Request, res: Response, next: NextFunction) => {
       req.query.ID = req.params.id;
       await RouterUtils.handleServerAction(AssetService.handleGetAsset.bind(this), ServerAction.ASSET, req, res, next);
+    });
+  }
+
+  protected buildRouteGetAssetsInError(): void {
+    this.router.get(`/${ServerRoute.REST_ASSETS_IN_ERROR}`, async (req: Request, res: Response, next: NextFunction) => {
+      await RouterUtils.handleServerAction(AssetService.handleGetAssetsInError.bind(this), ServerAction.ASSETS_IN_ERROR, req, res, next);
+    });
+  }
+
+  protected buildRouteCheckAssetConnection(): void {
+    this.router.get(`/${ServerRoute.REST_ASSET_CHECK_CONNECTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleCheckAssetConnection.bind(this), ServerAction.CHECK_ASSET_CONNECTION, req, res, next);
+    });
+  }
+
+  protected buildRouteGetAssetLastConsumption(): void {
+    this.router.get(`/${ServerRoute.REST_ASSET_RETRIEVE_CONSUMPTION}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(AssetService.handleRetrieveConsumption.bind(this), ServerAction.RETRIEVE_ASSET_CONSUMPTION, req, res, next);
     });
   }
 }

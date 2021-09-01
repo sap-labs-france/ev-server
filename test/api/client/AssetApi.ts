@@ -28,4 +28,8 @@ export default class AssetApi extends CrudApi {
   public async delete(id: string): Promise<any> {
     return super.delete(id, '/client/api/AssetDelete');
   }
+
+  public async readAllInError(params, paging = TestConstants.DEFAULT_PAGING, ordering = TestConstants.DEFAULT_ORDERING): Promise<any> {
+    return super.readAll(params, paging, ordering, this.buildRestEndpointUrl(ServerRoute.REST_ASSETS_IN_ERROR));
+  }
 }
