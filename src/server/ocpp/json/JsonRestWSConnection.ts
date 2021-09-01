@@ -73,7 +73,12 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID());
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), {
+      chargingStationID: this.getChargingStationID(),
+      siteAreaID: this.getSiteAreaID(),
+      siteID: this.getSiteID(),
+      companyID: this.getCompanyID()
+    });
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),

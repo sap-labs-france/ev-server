@@ -20,6 +20,9 @@ const MODULE_NAME = 'WSConnection';
 export default abstract class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
+  private siteID: string;
+  private siteAreaID: string;
+  private companyID: string;
   private chargingStationID: string;
   private tenantID: string;
   private tenant: Tenant;
@@ -84,6 +87,10 @@ export default abstract class WSConnection {
     }
     void Logging.logDebug({
       tenantID: this.tenantID,
+      siteID: this.siteID,
+      siteAreaID: this.siteAreaID,
+      companyID: this.companyID,
+      chargeBoxID: this.chargingStationID,
       source: this.chargingStationID,
       action: action,
       module: MODULE_NAME, method: 'constructor',
@@ -318,6 +325,18 @@ export default abstract class WSConnection {
         setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant?.name})`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
+  }
+
+  public getSiteID(): string {
+    return this.siteID;
+  }
+
+  public getSiteAreaID(): string {
+    return this.siteAreaID;
+  }
+
+  public getCompanyID(): string {
+    return this.companyID;
   }
 
   public getChargingStationID(): string {

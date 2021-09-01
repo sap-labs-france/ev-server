@@ -105,6 +105,10 @@ export default class JsonWSConnection extends WSConnection {
       this.initialized = true;
       await Logging.logInfo({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargeBoxID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
@@ -116,6 +120,10 @@ export default class JsonWSConnection extends WSConnection {
   public onError(errorEvent: ErrorEvent): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargeBoxID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_ERROR,
       module: MODULE_NAME, method: 'onError',
@@ -127,6 +135,10 @@ export default class JsonWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargeBoxID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
@@ -138,6 +150,10 @@ export default class JsonWSConnection extends WSConnection {
   public async onPing(): Promise<void> {
     void Logging.logDebug({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargeBoxID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_PINGED,
       module: MODULE_NAME, method: 'onPing',
@@ -150,6 +166,10 @@ export default class JsonWSConnection extends WSConnection {
     this.isConnectionAlive = true;
     void Logging.logDebug({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargeBoxID: this.getChargingStationID(),
       source: this.getChargingStationID(),
       action: ServerAction.WS_JSON_CONNECTION_PONGED,
       module: MODULE_NAME, method: 'onPong',
@@ -188,6 +208,10 @@ export default class JsonWSConnection extends WSConnection {
     if (!this.isWSConnectionOpen()) {
       void Logging.logError({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargeBoxID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,

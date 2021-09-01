@@ -45,13 +45,22 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     this.startWSServer();
   }
 
-  public getChargingStationClient(tenantID: string, chargingStationID: string): ChargingStationClient {
+  public getChargingStationClient(tenantID: string, chargingStationDetails: {
+    chargingStationID: string,
+    siteID: string,
+    siteAreaID: string,
+    companyID: string
+  }): ChargingStationClient {
     // Get the Json Web Socket
-    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationID}`);
+    const jsonWebSocket = this.jsonChargingStationClients.get(`${tenantID}~${chargingStationDetails.chargingStationID}`);
     if (!jsonWebSocket) {
       void Logging.logError({
         tenantID: tenantID,
-        source: chargingStationID,
+        siteID: chargingStationDetails.siteID,
+        siteAreaID: chargingStationDetails.siteAreaID,
+        companyID: chargingStationDetails.companyID,
+        chargeBoxID: chargingStationDetails.chargingStationID,
+        source: chargingStationDetails.chargingStationID,
         module: MODULE_NAME, method: 'getChargingStationClient',
         action: ServerAction.WS_CONNECTION,
         message: 'No open WebSocket connection found'
@@ -176,6 +185,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
           if (!jsonWSConnection.isConnectionAlive) {
             void Logging.logError({
               tenantID: jsonWSConnection.getTenantID(),
+              siteID: jsonWSConnection.getSiteID(),
+              siteAreaID: jsonWSConnection.getSiteAreaID(),
+              companyID: jsonWSConnection.getCompanyID(),
+              chargeBoxID: jsonWSConnection.getChargingStationID(),
               source: jsonWSConnection.getChargingStationID(),
               action: ServerAction.WS_JSON_CONNECTION_CLOSED,
               module: MODULE_NAME, method: 'createWSServer',
