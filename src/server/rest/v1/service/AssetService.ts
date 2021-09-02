@@ -7,7 +7,6 @@ import AppError from '../../../../exception/AppError';
 import Asset from '../../../../types/Asset';
 import AssetFactory from '../../../../integration/asset/AssetFactory';
 import { AssetInErrorType } from '../../../../types/InError';
-import AssetSecurity from './security/AssetSecurity';
 import AssetStorage from '../../../../storage/mongodb/AssetStorage';
 import AssetValidator from '../validator/AssetValidator';
 import AuthorizationService from './AuthorizationService';
@@ -356,7 +355,7 @@ export default class AssetService {
       },
       { limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       [ 'id', 'name', 'errorCodeDetails', 'errorCode' ]

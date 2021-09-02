@@ -2,7 +2,7 @@
   "title": "Get Asset Consumptions by ID Request",
   "type": "object",
   "properties": {
-    "ID": {
+    "AssetID": {
       "$ref": "asset.json#/definitions/id"
     },
     "StartDate": {
@@ -17,7 +17,7 @@
     }
   },
   "required": [
-    "ID",
+    "AssetID",
     "StartDate",
     "EndDate"
   ]
