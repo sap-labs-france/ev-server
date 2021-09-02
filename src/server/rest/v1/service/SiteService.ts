@@ -400,7 +400,7 @@ export default class SiteService {
         if (publicChargingStation) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
+            errorCode: HTTPError.SITE_WITH_PUBLIC_CHARGER_ERROR,
             message: `Cannot set site ${site.name} to private as charging station ${publicChargingStation.id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',
             user: req.user,

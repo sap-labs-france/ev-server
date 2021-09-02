@@ -43,6 +43,7 @@ export enum HTTPError {
   CHARGER_WITH_NO_SITE_AREA_ERROR = 525,
   SITE_AREA_WITH_NO_SITE_ERROR = 525,
   USER_WITH_NO_SITE_ERROR = 525,
+  SITE_WITH_PUBLIC_CHARGER_ERROR = 526,
 
   BILLING_DELETE_ERROR = 510, // FIXME: override an already defined HTTP status code: Not extended (RFC 2774)
 
