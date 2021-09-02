@@ -11,6 +11,7 @@ export enum ServerAction {
   CHARGING_STATION_RESET = 'RestChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'RestChargingStationRequestOcppParameters',
   CHARGING_STATION_CLEAR_CACHE = 'RestChargingStationClearCache',
+  CHARGING_STATION_TRIGGER_DATA_TRANSFER = 'RestChargingStationDataTransfer',
   CHARGING_STATION_GET_CONFIGURATION = 'RestChargingStationGetConfiguration',
   CHARGING_STATION_CHANGE_CONFIGURATION = 'RestChargingStationChangeConfiguration',
   CHARGING_STATION_DATA_TRANSFER = 'ChargingStationChangeDataTransfer',
@@ -458,6 +459,7 @@ export enum ServerRoute {
 
   REST_CHARGING_STATIONS_RESET = 'charging-stations/:id/reset',
   REST_CHARGING_STATIONS_CACHE_CLEAR = 'charging-stations/:id/cache/clear',
+  REST_CHARGING_STATIONS_TRIGGER_DATA_TRANSFER = 'charging-stations/:id/data/transfer',
   REST_CHARGING_STATIONS_RETRIEVE_CONFIGURATION = 'charging-stations/:id/configuration/retrieve',
   REST_CHARGING_STATIONS_CHANGE_CONFIGURATION = 'charging-stations/:id/configuration',
   REST_CHARGING_STATIONS_REMOTE_START = 'charging-stations/:id/remote/start',
@@ -491,15 +493,23 @@ export enum ServerRoute {
   REST_CHARGING_PROFILE = 'charging-profiles/:id',
 
   REST_TRANSACTIONS = 'transactions',
+  REST_TRANSACTIONS_IN_ERROR = 'transactions/status/in-error',
+  REST_TRANSACTIONS_ACTIVE = 'transactions/status/active',
+  REST_TRANSACTIONS_COMPLETED = 'transactions/status/completed',
+  REST_TRANSACTIONS_UNASSIGNED_COUNT = 'transactions/status/unassigned/count',
   REST_TRANSACTION = 'transactions/:id',
   REST_TRANSACTIONS_EXPORT = 'transactions/action/export',
   REST_TRANSACTION_CDR = 'transactions/:id/ocpi/cdr',
-  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/action/export',
-  REST_TRANSACTIONS_CONSUMPTION = 'transactions/:id/consumptions',
+  REST_TRANSACTION_CDR_EXPORT = 'transactions/:id/ocpi/cdr/export',
+  REST_TRANSACTION_CONSUMPTIONS = 'transactions/:id/consumptions',
   REST_TRANSACTION_CONSUMPTIONS_REBUILD = 'transactions/:id/consumptions/rebuild',
-  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/stop/soft',
-  REST_TRANSACTIONS_REFUND = 'transactions/action/refund',
-  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign',
+  REST_TRANSACTION_SOFT_STOP = 'transactions/:id/soft-stop',
+  REST_TRANSACTIONS_REFUND_ACTION = 'transactions/action/refund',
+  REST_TRANSACTIONS_REFUND = 'transactions/status/refund',
+  REST_TRANSACTIONS_REFUND_EXPORT = 'transactions/status/refund/export',
+  REST_TRANSACTIONS_ASSIGN_USER = 'transactions/action/assign-user',
+  REST_TRANSACTIONS_SYNCHRONIZE_REFUNDED = 'transactions/status/refund/synchronize',
+  REST_TRANSACTIONS_REFUND_REPORTS = 'transactions/status/refund/reports',
 
   REST_USERS = 'users',
   REST_USER = 'users/:id',
@@ -516,12 +526,24 @@ export enum ServerRoute {
   REST_TAGS_IMPORT = 'tags/action/import',
   REST_TAGS_EXPORT = 'tags/action/export',
 
-  REST_ASSET_CONSUMPTION = 'assets/:assetID/consumption',
+  REST_ASSETS = 'assets',
+  REST_ASSET = 'assets/:id',
+  REST_ASSET_CONSUMPTION = 'assets/:id/consumption',
+  REST_ASSETS_IN_ERROR = 'assets/status/in-error',
+  REST_ASSET_CHECK_CONNECTION = 'assets/:id/connector/connection/check',
+  REST_ASSET_RETRIEVE_CONSUMPTION = 'assets/:id/connector/consumption/retrieve-last',
 
   REST_PING = 'ping',
 
   REST_TENANTS = 'tenants',
   REST_TENANT = 'tenants/:id',
+
+  REST_CONNECTIONS = 'connections',
+  REST_CONNECTION = 'connections/:id',
+
+  REST_LOGGINGS = 'loggings',
+  REST_LOGGING = 'loggings/:id',
+  REST_LOGGINGS_EXPORT = 'loggings/action/export',
 
   // BILLING URLs for CRUD operations on PAYMENT METHODS
   REST_BILLING_PAYMENT_METHODS = 'users/:userID/payment-methods',

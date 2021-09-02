@@ -29,7 +29,6 @@ import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
 import TenantComponents from '../../../../types/TenantComponents';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
-import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
 import User from '../../../../types/User';
@@ -86,8 +85,8 @@ export default class TransactionService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.REFUND,
       Action.REFUND_TRANSACTION, Entity.TRANSACTION, MODULE_NAME, 'handleRefundTransactions');
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
-    if (!filteredRequest.transactionIds) {
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body);
+    if (!filteredRequest.transactionsIDs) {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -99,7 +98,7 @@ export default class TransactionService {
       });
     }
     const transactionsToRefund: Transaction[] = [];
-    for (const transactionId of filteredRequest.transactionIds) {
+    for (const transactionId of filteredRequest.transactionsIDs) {
       const transaction = await TransactionStorage.getTransaction(req.tenant, transactionId, { withUser: true });
       if (!transaction) {
         await Logging.logError({
@@ -178,7 +177,7 @@ export default class TransactionService {
 
   public static async handlePushTransactionCdr(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterPushTransactionCdrRequest(req.body);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionPushCDRReq(req.body);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.transactionId, MODULE_NAME, 'handlePushTransactionCdr', req.user);
     // Check auth
@@ -305,16 +304,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    if (!filteredRequest.TagID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Tag ID must be provided',
-        module: MODULE_NAME, method: 'handleGetUnassignedTransactionsCount',
-        user: req.user, action: action
-      });
-    }
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsUnassignedCountReq(req.query);
     // Get the user
     const tag = await TagStorage.getTag(req.tenant, filteredRequest.TagID);
     UtilsService.assertObjectExists(action, tag, `Tag ID '${filteredRequest.TagID}' does not exist`,
@@ -337,7 +327,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID.toString(), MODULE_NAME, 'handleRebuildTransactionConsumptions', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, { withUser: true });
@@ -361,7 +351,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsAssignUserReq(req.query);
     // Check
     if (!filteredRequest.TagID) {
       throw new AppError({
@@ -415,7 +405,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.query).ID;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -438,7 +428,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
+    const transactionsIds = TransactionValidator.getInstance().validateTransactionsGetByIDsReq(req.body).transactionsIDs;
     // Check auth
     if (!await Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -457,7 +447,7 @@ export default class TransactionService {
 
   public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
+    const transactionId = TransactionValidator.getInstance().validateTransactionGetReq(req.body).ID;
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
@@ -533,7 +523,7 @@ export default class TransactionService {
 
   public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetConsumptionsReq(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
@@ -637,7 +627,7 @@ export default class TransactionService {
 
   public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID,
@@ -774,7 +764,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsGetReq(req.query);
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
@@ -850,7 +840,7 @@ export default class TransactionService {
       });
     }
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleExportTransactionOcpiCdr', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.tenant, filteredRequest.ID, {}, ['id', 'ocpiData']);
@@ -908,7 +898,7 @@ export default class TransactionService {
     }
     const filter: any = {};
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    const filteredRequest = TransactionValidator.getInstance().validateTransactionsInErrorGetReq(req.query);
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.tenant,
       {
@@ -926,7 +916,7 @@ export default class TransactionService {
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
-        sort: filteredRequest.SortFields
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields)
       },
       projectFields
     );

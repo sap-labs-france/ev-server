@@ -1144,7 +1144,7 @@ export default class ChargingStationService {
     req.body.chargeBoxID && (req.body.chargingStationID = req.body.chargeBoxID);
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const command = action.slice('RestChargingStation'.length) as Command;
-    const filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
+    let filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionReq(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargingStationID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
@@ -1157,6 +1157,7 @@ export default class ChargingStationService {
         break;
       // Remote Start Transaction
       case Command.REMOTE_START_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStartTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStartTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Get the Charging Plans
@@ -1592,6 +1593,9 @@ export default class ChargingStationService {
             retryInterval: params.retryInterval
           });
           break;
+        case Command.TRIGGER_DATA_TRANSFER:
+          result = await chargingStationClient.dataTransfer(params);
+          break;
       }
       if (result) {
         // OCPP Command with status
@@ -1801,17 +1805,15 @@ export default class ChargingStationService {
     }
     // Check Charging Station
     Authorizations.isChargingStationValidInOrganization(action, req.tenant, chargingStation);
+    // Save Car selection
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
+      if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
+        await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
+      }
+    }
     // Execute it
     const result = await ChargingStationService.executeChargingStationCommand(
       req.tenant, req.user, chargingStation, action, command, { tagID: tag.id, connectorId: filteredRequest.args.connectorId });
-    // Save Car selection
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.CAR)) {
-      if (result?.status === OCPPRemoteStartStopStatus.ACCEPTED) {
-        if (filteredRequest.carID && filteredRequest.carID !== user.lastSelectedCarID) {
-          await UserStorage.saveUserLastSelectedCarID(req.tenant, user.id, filteredRequest.carID);
-        }
-      }
-    }
     return result;
   }
 

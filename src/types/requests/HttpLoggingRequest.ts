@@ -14,7 +14,6 @@ export interface HttpLogsRequest extends HttpDatabaseRequest {
   Level: LogLevel;
   Source: string;
   Host: string;
-  SortDate: string;
   Type: LogType;
   Action: string;
   UserID: string;

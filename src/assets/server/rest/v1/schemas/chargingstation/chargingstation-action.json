@@ -88,6 +88,18 @@
         },
         "csChargingProfile": {
           "$ref": "chargingstation.json#/definitions/chargingProfile"
+        },
+        "vendorId": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "messageId": {
+          "type": "string",
+          "sanitize": "mongo"
+        },
+        "data": {
+          "type": "string",
+          "sanitize": "mongo"
         }
       }
     },

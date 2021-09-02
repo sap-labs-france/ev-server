@@ -6,7 +6,7 @@
       "pattern": "^[\\w\\d]*$",
       "sanitize": "mongo"
     },
-    "ids": {
+    "IDs": {
       "type": "string",
       "pattern": "^(([\\w\\d]*)(\\||[\\w\\d])*)?$",
       "sanitize": "mongo"

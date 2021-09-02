@@ -9,21 +9,33 @@ class I18nChecker {
     const contentEN = await fs.readFile('./src/assets/i18n/en.json', 'utf8');
     const otherLanguages = Constants.SUPPORTED_LANGUAGES.filter((lang) => (lang !== 'en') ? lang : null);
     const otherFiles = otherLanguages.map((language) => language + '.json');
-    const parsedContentEN = JSON.parse(contentEN);
-
-    for (const file of otherFiles) {
-      const contentOtherLanguage = await fs.readFile('./src/assets/i18n/' + file, 'utf8');
-      const parsedContentOtherLanguage = JSON.parse(contentOtherLanguage);
-      const added = addedDiff(parsedContentEN, parsedContentOtherLanguage);
-      const deleted = deletedDiff(parsedContentEN, parsedContentOtherLanguage);
-      if (Object.keys(added).length > 0) {
-        console.log('Added in language ' + file);
-        console.log(added);
+    try {
+      const parsedContentEN = JSON.parse(contentEN);
+      for (const file of otherFiles) {
+        try {
+          const contentOtherLanguage = await fs.readFile('./src/assets/i18n/' + file, 'utf8');
+          const parsedContentOtherLanguage = JSON.parse(contentOtherLanguage);
+          const added = addedDiff(parsedContentEN, parsedContentOtherLanguage);
+          const deleted = deletedDiff(parsedContentEN, parsedContentOtherLanguage);
+          if (Object.keys(added).length > 0) {
+            console.log('Added in language ' + file);
+            console.log(added);
+          }
+          if (Object.keys(deleted).length > 0) {
+            console.log('Deleted in language ' + file);
+            console.log(deleted);
+          }
+          if (Object.keys(added).length === 0 && Object.keys(deleted).length === 0) {
+            console.log('No issue found for: ' + file);
+          }
+        } catch (err) {
+          console.log('File not found or with wrong format: ' + file);
+          continue;
+        }
       }
-      if (Object.keys(deleted).length > 0) {
-        console.log('Deleted in language ' + file);
-        console.log(deleted);
-      }
+    } catch (err) {
+      console.log('English file not found.');
+      throw err;
     }
   }
 }
