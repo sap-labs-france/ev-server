@@ -119,6 +119,7 @@ export interface HttpChargingStationStartTransactionRequest {
     connectorId: string
   }
 }
+
 export interface HttpChargingStationStopTransactionRequest {
   chargingStationID: string,
   args: {
