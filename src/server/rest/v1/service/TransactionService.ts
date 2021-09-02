@@ -1,6 +1,7 @@
 import { Action, Entity } from '../../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 import Transaction, { TransactionAction } from '../../../../types/Transaction';
 
 import { ActionsResponse } from '../../../../types/GlobalType';
@@ -26,8 +27,6 @@ import { RefundStatus } from '../../../../types/Refund';
 import { ServerAction } from '../../../../types/Server';
 import SynchronizeRefundTransactionsTask from '../../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import TransactionValidator from '../validator/TransactionValidator';
@@ -487,6 +486,9 @@ export default class TransactionService {
       const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.id,
+          companyID: chargingStation.companyID,
+          siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
           tenantID: req.user.tenantID
         },
         {

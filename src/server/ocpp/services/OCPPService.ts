@@ -1569,7 +1569,10 @@ export default class OCPPService {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
             tenantID: tenant.id,
-            chargeBoxIdentity: activeTransaction.chargeBoxID
+            chargeBoxIdentity: activeTransaction.chargeBoxID,
+            companyID: activeTransaction.companyID,
+            siteID: activeTransaction.siteID,
+            siteAreaID: activeTransaction.siteAreaID,
           }, {
             chargeBoxID: activeTransaction.chargeBoxID,
             transactionId: activeTransaction.id,
