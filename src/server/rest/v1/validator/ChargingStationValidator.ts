@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetDiagnostics, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -21,6 +21,7 @@ export default class ChargingStationValidator extends SchemaValidator {
   private chargingStationUpdateParameters: Schema;
   private chargingStationLimitPower: Schema;
   private chargingStationFirmwareDownload: Schema;
+  private chargingStationGetDiagnostics: Schema;
   private smartChargingTrigger: Schema;
   private chargingStationInErrorGet: Schema;
   private chargingProfileCreate: Schema;
@@ -43,6 +44,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     this.chargingStationUpdateParameters = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-update-parameters.json`, 'utf8'));
     this.chargingStationLimitPower = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-limit-power.json`, 'utf8'));
     this.chargingStationFirmwareDownload = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-firmware-download.json`, 'utf8'));
+    this.chargingStationGetDiagnostics = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstation-action-get-diagnostics.json`, 'utf8'));
     this.smartChargingTrigger = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/smartcharging-trigger.json`, 'utf8'));
     this.chargingStationInErrorGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingstations-inerror-get.json`, 'utf8'));
     this.chargingProfileCreate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/chargingstation/chargingprofile-create.json`, 'utf8'));
@@ -128,6 +130,12 @@ export default class ChargingStationValidator extends SchemaValidator {
   public validateChargingStationFirmwareDownloadReq(data: any): HttpChargingStationGetFirmwareRequest {
     // Validate schema
     this.validate(this.chargingStationFirmwareDownload, data);
+    return data;
+  }
+
+  public validateChargingStationGetDiagnostics(data: HttpChargingStationGetDiagnostics): HttpChargingStationGetDiagnostics {
+    // Validate schema
+    this.validate(this.chargingStationGetDiagnostics, data);
     return data;
   }
 

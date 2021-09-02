@@ -47,6 +47,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { filter } from 'lodash';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1149,6 +1150,16 @@ export default class ChargingStationService {
     // Get the Charging station
     const chargingStation = await UtilsService.checkAndGetChargingStationAuthorization(
       req.tenant, req.user, filteredRequest.chargingStationID, action, null, { withSite: true, withSiteArea: true });
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(req.tenant, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: action,
+        module: MODULE_NAME, method: 'handleChargingStationCommand',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
     let result: any;
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
@@ -1177,10 +1188,25 @@ export default class ChargingStationService {
             value: chargingStation.id
           });
         }
-        // Execute it
-        result = await ChargingStationService.executeChargingStationCommand(
-          req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
-        break;
+        switch (command) {
+          // Get diagnostic
+          case Command.GET_DIAGNOSTICS:
+            // const filteredRequest = ChargingStationValidator.validateChargingStationGetDiagnostics(params);
+            filteredRequest = ChargingStationValidator.getInstance().validateChargingStationGetDiagnostics(req.body);
+            result = await chargingStationClient.getDiagnostics({
+              location: filteredRequest.args.location,
+              retries: filteredRequest.args.retries,
+              retryInterval: filteredRequest.args.retryInterval,
+              startTime: filteredRequest.args.startTime,
+              stopTime: filteredRequest.args.stopTime
+            });
+            break;
+          default:
+            // Execute it
+            result = await ChargingStationService.executeChargingStationCommand(
+              req.tenant, req.user, chargingStation, action, command, filteredRequest.args);
+            break;
+        }
     }
     res.json(result);
     next();
@@ -1572,16 +1598,6 @@ export default class ChargingStationService {
           result = await chargingStationClient.changeAvailability({
             connectorId: params.connectorId,
             type: params.type
-          });
-          break;
-        // Get diagnostic
-        case Command.GET_DIAGNOSTICS:
-          result = await chargingStationClient.getDiagnostics({
-            location: params.location,
-            retries: params.retries,
-            retryInterval: params.retryInterval,
-            startTime: params.startTime,
-            stopTime: params.stopTime
           });
           break;
         // Update Firmware
