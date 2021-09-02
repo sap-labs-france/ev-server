@@ -342,7 +342,7 @@ class TestData {
     const tariff: PricingDefinition = {
       name: 'GREEN Tariff',
       description: 'Tariff for slow chargers',
-      restrictions: {
+      staticRestrictions: {
         maxOutputPowerkW: 40,
       },
       dimensions: {
@@ -388,7 +388,7 @@ class TestData {
     const tariff: PricingDefinition = {
       name: 'RED Tariff',
       description: 'Tariff for fast chargers',
-      restrictions: {
+      staticRestrictions: {
         minOutputPowerkW: 40,
       },
       dimensions: {

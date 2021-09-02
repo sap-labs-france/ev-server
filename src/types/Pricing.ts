@@ -1,4 +1,5 @@
 import { AuthorizationActions } from './Authorization';
+import { ConnectorType } from './ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface PricingModel extends CreatedUpdatedProps, AuthorizationActions {
@@ -33,7 +34,8 @@ export interface ResolvedPricingModel {
 export interface PricingDefinition {
   name: string, // Short marketing name - e.g.: BLUE Tariff,
   description: string, // A long description to explain it, e.g.: Time-based pricing for low charging stations
-  restrictions?: PricingRestriction; // To be clarified! - These restrictions are so far common to all dimensions
+  staticRestrictions?: PricingStaticRestriction,
+  restrictions?: PricingRestriction,
   dimensions: PricingDimensions
 }
 
@@ -50,18 +52,23 @@ export interface PricingDimension {
   pricedData?: PricedDimensionData // Information set dynamically while charging
 }
 
-export interface PricingRestriction {
-  startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
-  endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
-  startDate?: string, // Start date, for example: 2015-12-24, valid from this day
-  endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
-  minEnergyKWh?: number, // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
-  maxEnergyKWh?: number, // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
+// Restriction that can be checked on session start
+export interface PricingStaticRestriction {
+  connectorTypes?: ConnectorType[], // Connector types allowed to use this tariff
   minOutputPowerkW?: number, // Minimum power in kW, for example 0, valid from this charging speed
   maxOutputPowerkW?: number, // Maximum power in kW, for example 20, valid up to this charging speed
+}
+export interface PricingRestriction {
+  // TODO - first Pricing implementation - some options are not yet supported
+  // startDate?: string, // Start date, for example: 2015-12-24, valid from this day
+  // endDate?: string, // End date, for example: 2015-12-27, valid until this day (excluding this day)
+  // startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
+  // endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
+  // daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
+  minEnergyKWh?: number, // Minimum used energy in kWh, for example 20, valid from this amount of energy is used
+  maxEnergyKWh?: number, // Maximum used energy in kWh, for example 50, valid until this amount of energy is used
   minDurationSecs?: number, // Minimum duration in seconds, valid for a duration from x seconds
   maxDurationSecs?: number, // Maximum duration in seconds, valid for a duration up to x seconds
-  daysOfWeek?: DayOfWeek[], // Which day(s) of the week this tariff is valid
 }
 
 export enum DayOfWeek {

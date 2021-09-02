@@ -2,6 +2,7 @@
 import FeatureToggles, { Feature } from '../../../utils/FeatureToggles';
 import { PricedConsumption, PricingDefinition, PricingSource, ResolvedPricingModel } from '../../../types/Pricing';
 
+import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import PricingEngine from '../PricingEngine';
 import PricingIntegration from '../PricingIntegration';
@@ -19,23 +20,23 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     super(tenant, settings);
   }
 
-  public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  public async startSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData, chargingStation);
   }
 
-  public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  public async updateSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData, chargingStation);
   }
 
-  public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  public async stopSession(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData, chargingStation);
   }
 
-  private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+  private async computePrice(transaction: Transaction, consumptionData: Consumption, chargingStation: ChargingStation): Promise<PricedConsumption> {
     let pricingModel = transaction.pricingModel;
     if (!pricingModel) {
       // This should happen only on the first call (i.e.: on a start transaction)
-      pricingModel = await this.resolvePricingContext(this.tenant, transaction);
+      pricingModel = await this.resolvePricingContext(this.tenant, transaction, chargingStation);
     }
     const pricingConsumptionData = PricingEngine.priceConsumption(this.tenant, pricingModel, consumptionData);
     const { flatFee, energy, chargingTime, parkingTime } = pricingConsumptionData;
@@ -53,8 +54,8 @@ export default class BuiltInPricingIntegration extends PricingIntegration<Simple
     return Promise.resolve(pricedConsumption);
   }
 
-  private async resolvePricingContext(tenant: Tenant, transaction: Transaction): Promise<ResolvedPricingModel> {
-    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction);
+  private async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
+    const resolvedPricingModel: ResolvedPricingModel = await PricingEngine.resolvePricingContext(tenant, transaction, chargingStation);
     if (!resolvedPricingModel.pricingDefinitions?.length) {
       resolvedPricingModel.pricingDefinitions = [ this.getDefaultPricingDefinition() ];
     }

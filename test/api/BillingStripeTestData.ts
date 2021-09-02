@@ -1,7 +1,7 @@
 import { BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingOperationResult, BillingUser, BillingUserData } from '../../src/types/Billing';
 import { BillingSettings, BillingSettingsType, SettingDB } from '../../src/types/Setting';
 import FeatureToggles, { Feature } from '../../src/utils/FeatureToggles';
-import PricingModel, { PricedConsumptionData, PricingDefinition, PricingDimension, PricingRestriction } from '../../src/types/Pricing';
+import PricingModel, { PricedConsumptionData, PricingDefinition, PricingDimension, PricingRestriction, PricingStaticRestriction } from '../../src/types/Pricing';
 import chai, { assert, expect } from 'chai';
 
 import BillingStorage from '../../src/storage/mongodb/BillingStorage';
@@ -452,20 +452,20 @@ export default class StripeIntegrationTestData {
       price: 0.75,
       active: true
     };
-    const lowConsumptionRestrictions: PricingRestriction = {
+    const lowConsumptionRestrictions: PricingStaticRestriction = {
       maxOutputPowerkW: 40000,
     };
     const tariff1: PricingDefinition = {
       name: 'BLUE Tariff',
       description: 'Tariff for low EVSE',
-      restrictions: lowConsumptionRestrictions,
+      staticRestrictions: lowConsumptionRestrictions,
       dimensions: {
         chargingTime: parkingPrice,
         // energy: price4TheEnergy, // do not bill the energy - bill the parking time instead
         parkingTime: parkingPrice,
       }
     };
-    const fastChargerRestrictions: PricingRestriction = {
+    const fastChargerRestrictions: PricingStaticRestriction = {
       minOutputPowerkW: 40000
     };
     const price4TheEnergy: PricingDimension = {
@@ -475,7 +475,7 @@ export default class StripeIntegrationTestData {
     const tariff2: PricingDefinition = {
       name: 'GREEN Tariff',
       description: 'Tariff for fast chargers',
-      restrictions: fastChargerRestrictions,
+      staticRestrictions: fastChargerRestrictions,
       dimensions: {
         // chargingTime: parkingPrice, // parking time is free while charging
         energy: price4TheEnergy,

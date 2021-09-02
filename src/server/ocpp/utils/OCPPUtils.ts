@@ -245,7 +245,7 @@ export default class OCPPUtils {
             );
           }
           // Set
-          pricedConsumption = await pricingImpl.startSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.startSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
@@ -262,7 +262,7 @@ export default class OCPPUtils {
         // Meter Values
         case TransactionAction.UPDATE:
           // Set
-          pricedConsumption = await pricingImpl.updateSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.updateSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -276,7 +276,7 @@ export default class OCPPUtils {
         // Stop Transaction
         case TransactionAction.STOP:
           // Set
-          pricedConsumption = await pricingImpl.stopSession(transaction, consumption);
+          pricedConsumption = await pricingImpl.stopSession(transaction, consumption, chargingStation);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/member-ordering */
-import PricingModel, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDefinition, PricingDimension, PricingRestriction, ResolvedPricingModel } from '../../types/Pricing';
+import PricingModel, { DimensionType, PricedConsumptionData, PricedDimensionData, PricingDefinition, PricingDimension, PricingRestriction, PricingStaticRestriction, ResolvedPricingModel } from '../../types/Pricing';
 
+import ChargingStation from '../../types/ChargingStation';
 import Consumption from '../../types/Consumption';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../types/Tenant';
@@ -12,7 +13,7 @@ import Utils from '../../utils/Utils';
 // --------------------------------------------------------------------------------------------------
 export default class PricingEngine {
 
-  static async resolvePricingContext(tenant: Tenant, transaction: Transaction): Promise<ResolvedPricingModel> {
+  static async resolvePricingContext(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation): Promise<ResolvedPricingModel> {
     // -----------------------------------------------------------------------------------------
     // TODO - We need to find the pricing model to apply by resolving the hierarchy of contexts
     // that may override (or extend) the pricing definitions.
@@ -29,10 +30,10 @@ export default class PricingEngine {
     // Merge the pricing definitions from the different contexts
     const pricingDefinitions: PricingDefinition[] = [];
     // pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction.userID));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.chargeBoxID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.siteAreaID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.siteID.toString()));
-    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, transaction.companyID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.chargeBoxID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteAreaID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.siteID.toString()));
+    pricingDefinitions.push(...await PricingEngine.getPricingDefinitions4Entity(tenant, transaction, chargingStation, transaction.companyID.toString()));
     // TODO - No pricing definition? => Throw an exception ? or create dynamically a simple one based on the simple pricing settings?
     const resolvedPricingModel: ResolvedPricingModel = {
       flatFeeAlreadyPriced: false,
@@ -41,11 +42,11 @@ export default class PricingEngine {
     return Promise.resolve(resolvedPricingModel);
   }
 
-  static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, entityID: string): Promise<PricingDefinition[]> {
+  static async getPricingDefinitions4Entity(tenant: Tenant, transaction: Transaction, chargingStation: ChargingStation, entityID: string): Promise<PricingDefinition[]> {
     const pricingModel: PricingModel = await PricingEngine.getPricingModel4Entity(tenant, entityID);
     const pricingDefinitions = pricingModel?.pricingDefinitions || [];
     const actualPricingDefinitions = pricingDefinitions.filter((pricingDefinition) =>
-      PricingEngine.checkStaticRestrictions(pricingDefinition, transaction)
+      PricingEngine.checkStaticRestrictions(pricingDefinition, transaction, chargingStation)
     );
     return actualPricingDefinitions || [];
   }
@@ -64,15 +65,16 @@ export default class PricingEngine {
     return null;
   }
 
-  static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction) : PricingDefinition {
+  static checkStaticRestrictions(pricingDefinition: PricingDefinition, transaction: Transaction, chargingStation: ChargingStation) : PricingDefinition {
     // -----------------------------------------------------------------------
     // TODO - check here the static restrictions
     // i.e.: - restrictions that are not depending on the actual consumption
     // e.g.: - validity dates, minPowerkW/maxPowerkW
     // -----------------------------------------------------------------------
-    if (pricingDefinition.restrictions) {
-      if (!PricingEngine.checkRestrictionMinPower(pricingDefinition.restrictions, transaction)
-        || !PricingEngine.checkRestrictionMaxPower(pricingDefinition.restrictions, transaction)
+    if (pricingDefinition.staticRestrictions) {
+      if (!PricingEngine.checkConnectorType(pricingDefinition.staticRestrictions, transaction, chargingStation)
+        || !PricingEngine.checkMinPower(pricingDefinition.staticRestrictions, transaction, chargingStation)
+        || !PricingEngine.checkMaxPower(pricingDefinition.staticRestrictions, transaction, chargingStation)
       ) {
         return null;
       }
@@ -83,10 +85,12 @@ export default class PricingEngine {
 
   static checkPricingDefinitionRestrictions(pricingDefinition: PricingDefinition, consumptionData: Consumption) : PricingDefinition {
     if (pricingDefinition.restrictions) {
-      if (!PricingEngine.checkRestrictionMinDuration(pricingDefinition.restrictions, consumptionData)
-        || !PricingEngine.checkRestrictionMaxDuration(pricingDefinition.restrictions, consumptionData)) {
+      if (!PricingEngine.checkMinEnergy(pricingDefinition.restrictions, consumptionData)
+        || !PricingEngine.checkMaxEnergy(pricingDefinition.restrictions, consumptionData)
+        || !PricingEngine.checkMinDuration(pricingDefinition.restrictions, consumptionData)
+        || !PricingEngine.checkMaxDuration(pricingDefinition.restrictions, consumptionData)) {
         // -----------------------------------------------------------------------------------------
-        // TODO - to be clarified - why don't we put "date validity" at the pricing model level????
+        // TODO - to be clarified - why don't we put "validity date" at the pricing model level?
         // -----------------------------------------------------------------------------------------
         // startTime?: string, // Start time of day, for example 13:30, valid from this time of the day. Must be in 24h format with leading zeros. Hour/Minute se
         // endTime?: string, // End time of day, for example 19:45, valid until this time of the day. Same syntax as start_time
@@ -100,27 +104,55 @@ export default class PricingEngine {
     return pricingDefinition;
   }
 
-  static checkRestrictionMinPower(restrictions: PricingRestriction, transaction: Transaction): boolean {
-    // TODO - where to get the power limits
-    // if (!Utils.isNullOrUndefined(restrictions.minPowerkW)) {
-    //   if (Utils.createDecimal(transaction.currentInstantWatts).dividedBy(1000).lessThan(restrictions.minPowerkW)) {
-    //     return false;
-    //   }
-    // }
+  static checkConnectorType(restrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.connectorTypes)) {
+      const connectorType = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.type;
+      if (!restrictions.connectorTypes.includes(connectorType)) {
+        return false;
+      }
+    }
     return true;
   }
 
-  static checkRestrictionMaxPower(restrictions: PricingRestriction, transaction: Transaction): boolean {
-    // TODO - where to get the power limits
-    // if (!Utils.isNullOrUndefined(restrictions.maxPowerkW)) {
-    //   if (Utils.createDecimal(transaction.currentInstantWatts).dividedBy(1000).greaterThanOrEqualTo(restrictions.maxPowerkW)) {
-    //     return false;
-    //   }
-    // }
+  static checkMinPower(restrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.minOutputPowerkW)) {
+      const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
+      if (Utils.createDecimal(connectorPowerWatts).dividedBy(1000).lessThan(restrictions.minOutputPowerkW)) {
+        return false;
+      }
+    }
     return true;
   }
 
-  static checkRestrictionMinDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  static checkMaxPower(restrictions: PricingStaticRestriction, transaction: Transaction, chargingStation: ChargingStation): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.maxOutputPowerkW)) {
+      const connectorPowerWatts = Utils.getConnectorFromID(chargingStation, transaction.connectorId)?.power;
+      if (Utils.createDecimal(connectorPowerWatts).dividedBy(1000).greaterThanOrEqualTo(restrictions.maxOutputPowerkW)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static checkMinEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.minEnergyKWh)) {
+      if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).div(1000).lessThan(restrictions.minEnergyKWh)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static checkMaxEnergy(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+    if (!Utils.isNullOrUndefined(restrictions.maxEnergyKWh)) {
+      if (Utils.createDecimal(consumptionData.cumulatedConsumptionWh).div(1000).greaterThanOrEqualTo(restrictions.maxEnergyKWh)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static checkMinDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.minDurationSecs)) {
       if (Utils.createDecimal(consumptionData.totalDurationSecs).lessThan(restrictions.minDurationSecs)) {
         return false;
@@ -129,7 +161,7 @@ export default class PricingEngine {
     return true;
   }
 
-  static checkRestrictionMaxDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
+  static checkMaxDuration(restrictions: PricingRestriction, consumptionData: Consumption): boolean {
     if (!Utils.isNullOrUndefined(restrictions.maxDurationSecs)) {
       if (Utils.createDecimal(consumptionData.totalDurationSecs).greaterThanOrEqualTo(restrictions.maxDurationSecs)) {
         return false;
