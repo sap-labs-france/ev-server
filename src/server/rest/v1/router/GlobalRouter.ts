@@ -4,6 +4,7 @@ import AssetRouter from './api/AssetRouter';
 import AuthRouter from './auth/AuthRouter';
 import AuthService from '../service/AuthService';
 import BillingRouter from './api/BillingRouter';
+import CarRouter from './api/CarRouter';
 import ChargingStationRouter from './api/ChargingStationRouter';
 import ConnectionRouter from './api/ConnectionRouter';
 import LoggingRouter from './api/LoggingRouter';
@@ -42,6 +43,7 @@ export default class GlobalRouter {
       [
         new AssetRouter().buildRoutes(),
         new BillingRouter().buildRoutes(),
+        new CarRouter().buildRoutes(),
         new ChargingStationRouter().buildRoutes(),
         new ConnectionRouter().buildRoutes(),
         new LoggingRouter().buildRoutes(),
