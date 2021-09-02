@@ -111,7 +111,7 @@ export interface HttpChargingStationCommandRequest {
   args?: any;
 }
 
-export interface HttpChargingStationCommandStartTransactionRequest {
+export interface HttpChargingStationStartTransactionRequest {
   chargingStationID: string,
   args: {
     tagID?: string,
@@ -119,7 +119,7 @@ export interface HttpChargingStationCommandStartTransactionRequest {
     connectorId: string
   }
 }
-export interface HttpChargingStationCommandStopTransactionRequest {
+export interface HttpChargingStationStopTransactionRequest {
   chargingStationID: string,
   args: {
     transactionID: string
