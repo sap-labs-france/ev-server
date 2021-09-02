@@ -1,0 +1,51 @@
+{
+  "title": "Get Assets Request",
+  "type": "object",
+  "properties": {
+    "WithSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "WithNoSiteArea": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "SiteAreaID": {
+      "$ref": "common.json#/definitions/IDs"
+    },
+    "SiteID": {
+      "$ref": "common.json#/definitions/IDs"
+    },
+    "DynamicOnly": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "ErrorType": {
+      "type": "string",
+      "sanitize": "mongo"
+    },
+    "Issuer": {
+      "type": "boolean",
+      "sanitize": "mongo"
+    },
+    "Search": {
+      "$ref": "common.json#/definitions/search"
+    },
+    "Limit": {
+      "$ref": "common.json#/definitions/limit"
+    },
+    "SortFields": {
+      "$ref": "common.json#/definitions/sortFields"
+    },
+    "Skip": {
+      "$ref": "common.json#/definitions/skip"
+    },
+    "OnlyRecordCount": {
+      "$ref": "common.json#/definitions/onlyRecordCount"
+    },
+    "ProjectFields": {
+      "$ref": "common.json#/definitions/projectFields"
+    }
+  },
+  "required": []
+}

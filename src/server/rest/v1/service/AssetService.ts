@@ -35,7 +35,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetConsumption');
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetConsumptionRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetConsumptionsReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.AssetID, MODULE_NAME,
       'handleGetAssetConsumption', req.user);
     // Check auth
@@ -197,9 +197,9 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
     // Filter request
-    const filteredRequest = AssetSecurity.filterAssetRequestByID(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // Get asset connection type
-    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest);
+    const assetImpl = await AssetFactory.getAssetImpl(req.tenant, filteredRequest.ID);
     // Asset has unknown connection type
     if (!assetImpl) {
       throw new AppError({
@@ -255,7 +255,7 @@ export default class AssetService {
       });
     }
     // Filter request
-    const assetID = AssetSecurity.filterAssetRequestByID(req.query);
+    const assetID = AssetValidator.getInstance().validateAssetGetReq(req.query).ID;
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleRetrieveConsumption', req.user);
     // Get
     const asset = await AssetStorage.getAsset(req.tenant, assetID);
@@ -342,7 +342,7 @@ export default class AssetService {
       });
     }
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Build error type
     const errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
     // Get the assets
@@ -370,7 +370,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleDeleteAsset', req.user);
     // Check auth
@@ -420,7 +420,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAsset');
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check auth
@@ -444,7 +444,7 @@ export default class AssetService {
 
   public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetImageRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetGetReq(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAssetImage', req.user);
     // Get it
     const assetImage = await AssetStorage.getAssetImage(req.tenant, filteredRequest.ID);
@@ -480,7 +480,7 @@ export default class AssetService {
       });
     }
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
+    const filteredRequest = AssetValidator.getInstance().validateAssetsGetReq(req.query);
     // Get authorization filters
     const authorizationAssetsFilters = await AuthorizationService.checkAndGetAssetsAuthorizations(
       req.tenant, req.user, filteredRequest);
@@ -500,7 +500,12 @@ export default class AssetService {
         dynamicOnly: filteredRequest.DynamicOnly,
         ...authorizationAssetsFilters.filters
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.SortFields, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: UtilsService.httpSortFieldsToMongoDB(filteredRequest.SortFields),
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
       authorizationAssetsFilters.projectFields
     );
     res.json(assets);
@@ -521,7 +526,7 @@ export default class AssetService {
       });
     }
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetCreateRequest(req.body);
+    const filteredRequest = AssetValidator.getInstance().validateAssetCreateReq(req.body);
     // Check Asset
     UtilsService.checkIfAssetValid(filteredRequest, req);
     // Check Site Area
@@ -571,7 +576,7 @@ export default class AssetService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');
     // Filter
-    const filteredRequest = AssetSecurity.filterAssetUpdateRequest(req.body);
+    const filteredRequest = AssetValidator.getInstance().validateAssetUpdateReq(req.body);
     // Check auth
     if (!await Authorizations.canUpdateAsset(req.user)) {
       throw new AppAuthError({
