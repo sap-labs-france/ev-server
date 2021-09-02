@@ -21,7 +21,7 @@ import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
-import TenantComponents from '../types/TenantComponents';
+import { TenantComponents } from '../types/Tenant';
 import UserToken from '../types/UserToken';
 import { WebSocketCloseEventStatusString } from '../types/WebSocket';
 import _ from 'lodash';
@@ -1298,7 +1298,7 @@ export default class Utils {
         break;
       // OCPI
       case TenantComponents.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Gireve
           return {
             'type': RoamingSettingsType.OCPI,
@@ -1308,7 +1308,7 @@ export default class Utils {
         break;
       // OICP
       case TenantComponents.OICP:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+        if (!currentSettingContent) {
           // Only Hubject
           return {
             'type': RoamingSettingsType.OICP,

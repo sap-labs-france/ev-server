@@ -18,7 +18,7 @@ import LockingManager from '../../../../locking/LockingManager';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 

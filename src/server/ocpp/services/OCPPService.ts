@@ -2,6 +2,7 @@ import { ChargePointErrorCode, ChargePointStatus, OCPPAttribute, OCPPAuthorizati
 import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, CurrentType, StaticLimitAmps, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPRemoteStartStopStatus } from '../../../types/ocpp/OCPPClient';
+import Tenant, { TenantComponents } from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import { Action } from '../../../types/Authorization';
@@ -36,8 +37,6 @@ import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import Tag from '../../../types/Tag';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
