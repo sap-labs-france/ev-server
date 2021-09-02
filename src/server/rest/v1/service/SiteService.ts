@@ -394,13 +394,14 @@ export default class SiteService {
     site.companyID = filteredRequest.companyID;
     if (Utils.objectHasProperty(filteredRequest, 'public')) {
       if (!filteredRequest.public) {
-        const publicChargingStations = (await ChargingStationStorage.getChargingStations(req.tenant,
-          { siteIDs: [site.id], public: true, withSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT)).result;
-        if (!Utils.isEmptyArray(publicChargingStations)) {
+        const publicChargingStation = await ChargingStationStorage.getPublicChargingStationInSite(req.tenant, {
+          siteID: site.id
+        } , ['id']);
+        if (publicChargingStation) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.GENERAL_ERROR,
-            message: 'Cannot set site to private as charging stations in site are public',
+            message: `Cannot set site ${site.name} to private as charging station ${publicChargingStation.id} under site is public`,
             module: MODULE_NAME, method: 'handleUpdateSite',
             user: req.user,
           });
