@@ -15,31 +15,6 @@ export default class LoggingStorage {
     DatabaseUtils.checkTenantObject(tenant);
     // Build filter
     const filters: FilterParams = {};
-    // Do Not Delete Security Logs
-    filters.type = {};
-    filters.type.$ne = 'S';
-    // Date provided?
-    if (deleteUpToDate) {
-      filters.timestamp = {};
-      filters.timestamp.$lte = Utils.convertToDate(deleteUpToDate);
-    } else {
-      return;
-    }
-    // Delete Logs
-    const result = await global.database.getCollection<Log>(tenant.id, 'logs')
-      .deleteMany(filters);
-    // Return the result
-    return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
-  }
-
-  public static async deleteSecurityLogs(tenant: Tenant, deleteUpToDate: Date): Promise<DeletedResult> {
-    // Check Tenant
-    DatabaseUtils.checkTenantObject(tenant);
-    // Build filter
-    const filters: FilterParams = {};
-    // Delete Only Security Logs
-    filters.type = {};
-    filters.type.$eq = 'S';
     // Date provided?
     if (deleteUpToDate) {
       filters.timestamp = {};
