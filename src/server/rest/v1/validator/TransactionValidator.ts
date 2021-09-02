@@ -1,4 +1,4 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpPushTransactionCdrRequest, HttpTransactionRequest, HttpTransactionsRequest, HttpUnassignTransactionsToUserRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 import Schema from '../../../../types/validator/Schema';
 import SchemaValidator from './SchemaValidator';
@@ -13,6 +13,8 @@ export default class TransactionValidator extends SchemaValidator {
   private transactionPushCDR: Schema;
   private transactionGetConsumptions: Schema;
   private transactionsAssignUser: Schema;
+  private transactionsUnassignedCountGet: Schema;
+  private transactionsInErrorGet: Schema;
 
 
   private constructor() {
@@ -23,6 +25,8 @@ export default class TransactionValidator extends SchemaValidator {
     this.transactionPushCDR = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-push-cdr.json`, 'utf8'));
     this.transactionGetConsumptions = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transaction-get-consumptions.json`, 'utf8'));
     this.transactionsAssignUser = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-assign-user.json`, 'utf8'));
+    this.transactionsUnassignedCountGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-unassigned-count-get.json`, 'utf8'));
+    this.transactionsInErrorGet = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/v1/schemas/transaction/transactions-inerror-get.json`, 'utf8'));
   }
 
   public static getInstance(): TransactionValidator {
@@ -65,6 +69,18 @@ export default class TransactionValidator extends SchemaValidator {
   public validateTransactionsAssignUserReq(data: any): HttpAssignTransactionsToUserRequest {
     // Validate schema
     this.validate(this.transactionsAssignUser, data);
+    return data;
+  }
+
+  public validateTransactionsUnassignedCountReq(data: any): HttpUnassignTransactionsToUserRequest {
+    // Validate schema
+    this.validate(this.transactionsUnassignedCountGet, data);
+    return data;
+  }
+
+  public validateTransactionsInErrorGetReq(data: any): HttpTransactionsRequest {
+    // Validate schema
+    this.validate(this.transactionsInErrorGet, data);
     return data;
   }
 }
