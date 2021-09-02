@@ -28,6 +28,10 @@ export default class JsonRestWSConnection extends WSConnection {
       this.initialized = true;
       await Logging.logInfo({
         tenantID: this.getTenantID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
+        chargingStationID: this.getChargingStationID(),
         source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
@@ -39,6 +43,10 @@ export default class JsonRestWSConnection extends WSConnection {
   public onError(errorEvent: ErrorEvent): void {
     void Logging.logError({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onError',
       action: ServerAction.WS_REST_CONNECTION_ERROR,
@@ -50,6 +58,10 @@ export default class JsonRestWSConnection extends WSConnection {
   public onClose(closeEvent: CloseEvent): void {
     void Logging.logInfo({
       tenantID: this.getTenantID(),
+      siteID: this.getSiteID(),
+      siteAreaID: this.getSiteAreaID(),
+      companyID: this.getCompanyID(),
+      chargingStationID: this.getChargingStationID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
       action: ServerAction.WS_REST_CONNECTION_CLOSED,
@@ -73,7 +85,11 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID());
+    const chargingStationClient: ChargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), this.getChargingStationID(), {
+      siteAreaID: this.getSiteAreaID(),
+      siteID: this.getSiteID(),
+      companyID: this.getCompanyID()
+    });
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),

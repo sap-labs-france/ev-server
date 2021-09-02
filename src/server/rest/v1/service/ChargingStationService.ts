@@ -446,6 +446,9 @@ export default class ChargingStationService {
         await Logging.logWarning({
           tenantID: req.user.tenantID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: action,
           user: req.user,
@@ -475,6 +478,9 @@ export default class ChargingStationService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -1502,6 +1508,9 @@ export default class ChargingStationService {
               await Logging.logWarning({
                 tenantID: tenant.id,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                companyID: chargingStation.companyID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 user: user,
                 action: action,
@@ -1604,6 +1613,9 @@ export default class ChargingStationService {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1616,6 +1628,9 @@ export default class ChargingStationService {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',

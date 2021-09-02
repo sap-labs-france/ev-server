@@ -16,11 +16,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.AUTHORIZE, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleAuthorize(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.AUTHORIZE, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.AUTHORIZE, {
             'result': result
           });
           // Answer
@@ -49,11 +57,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.START_TRANSACTION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStartTransaction(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.START_TRANSACTION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.START_TRANSACTION, {
             'result': result
           });
           callback({
@@ -83,11 +99,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.STOP_TRANSACTION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStopTransaction(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STOP_TRANSACTION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.STOP_TRANSACTION, {
             'result': result
           });
           callback({
@@ -117,11 +141,19 @@ export default { /* Services */
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.HEARTBEAT, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleHeartbeat(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.HEARTBEAT, {
             'result': result
           });
           callback({
@@ -145,11 +177,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.METER_VALUES, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleMeterValues(headers, args);
           // Return the result async
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.METER_VALUES, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.METER_VALUES, {
             'result': result
           });
           callback({
@@ -174,11 +214,19 @@ export default { /* Services */
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.BOOT_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleBootNotification(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.BOOT_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -206,11 +254,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleStatusNotification(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -231,11 +287,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.FIRMWARE_STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleFirmwareStatusNotification(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.FIRMWARE_STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.FIRMWARE_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -255,11 +319,19 @@ export default { /* Services */
         // Check SOAP params
         OCPPUtils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, [headers, args]);
+          await Logging.logChargingStationServerReceiveAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, [headers, args]);
           // Handle
           const result = await global.centralSystemSoapServer.getChargingStationService(OCPPVersion.VERSION_12).handleDiagnosticsStatusNotification(headers, args);
           // Log
-          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, {
+          await Logging.logChargingStationServerRespondAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, {
+            siteID: headers.siteID,
+            siteAreaID: headers.siteAreaID,
+            companyID: headers.companyID,
+          }, ServerAction.DIAGNOSTICS_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({

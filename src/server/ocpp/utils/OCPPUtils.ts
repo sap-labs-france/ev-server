@@ -105,6 +105,9 @@ export default class OCPPUtils {
         await Logging.logWarning({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.ROAMING,
           user: transaction.userID,
@@ -234,6 +237,9 @@ export default class OCPPUtils {
               {
                 id: Utils.getRandomIntSafe().toString(),
                 chargeBoxID: transaction.chargeBoxID,
+                siteID: transaction.siteID,
+                siteAreaID: transaction.siteAreaID,
+                companyID: transaction.companyID,
                 connectorId: transaction.connectorId,
                 transactionId: transaction.id,
                 timestamp: transaction.timestamp,
@@ -308,6 +314,9 @@ export default class OCPPUtils {
             await Logging.logError({
               tenantID: tenant.id,
               siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
+              chargingStationID: transaction.chargeBoxID,
               source: transaction.chargeBoxID,
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
@@ -338,6 +347,9 @@ export default class OCPPUtils {
             await Logging.logError({
               tenantID: tenant.id,
               siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
+              chargingStationID: transaction.chargeBoxID,
               source: transaction.chargeBoxID,
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
@@ -361,6 +373,9 @@ export default class OCPPUtils {
             await Logging.logError({
               tenantID: tenant.id,
               siteID: transaction.siteID,
+              siteAreaID: transaction.siteAreaID,
+              companyID: transaction.companyID,
+              chargingStationID: transaction.chargeBoxID,
               source: transaction.chargeBoxID,
               user: transaction.userID,
               action: ServerAction.BILLING_TRANSACTION,
@@ -698,6 +713,9 @@ export default class OCPPUtils {
     const stopMeterValues: OCPPNormalizedMeterValue[] = [];
     const meterValueBasedProps = {
       chargeBoxID: transaction.chargeBoxID,
+      siteID: transaction.siteID,
+      siteAreaID: transaction.siteAreaID,
+      companyID: transaction.companyID,
       connectorId: transaction.connectorId,
       transactionId: transaction.id,
       timestamp: Utils.convertToDate(stopTransaction.timestamp),
@@ -845,6 +863,9 @@ export default class OCPPUtils {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'createConsumptionsFromMeterValues',
             action: ServerAction.METER_VALUES,
@@ -1143,6 +1164,9 @@ export default class OCPPUtils {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1201,6 +1225,9 @@ export default class OCPPUtils {
       await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1212,6 +1239,9 @@ export default class OCPPUtils {
     await Logging.logWarning({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -1262,6 +1292,9 @@ export default class OCPPUtils {
       await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStation',
@@ -1280,6 +1313,9 @@ export default class OCPPUtils {
     await Logging.logDebug({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'applyTemplateOcppParametersToChargingStation',
@@ -1297,6 +1333,9 @@ export default class OCPPUtils {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateOcppParametersToChargingStation',
@@ -1327,6 +1366,9 @@ export default class OCPPUtils {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingProfile.chargingStation?.siteID,
+            siteAreaID: chargingProfile.chargingStation?.siteAreaID,
+            companyID: chargingProfile.chargingStation?.companyID,
+            chargingStationID: chargingProfile.chargingStationID,
             source: chargingProfile.chargingStationID,
             action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
@@ -1373,6 +1415,9 @@ export default class OCPPUtils {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
@@ -1386,6 +1431,9 @@ export default class OCPPUtils {
     await Logging.logInfo({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_DELETE,
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
@@ -1471,6 +1519,9 @@ export default class OCPPUtils {
     await Logging.logInfo({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
@@ -1602,6 +1653,9 @@ export default class OCPPUtils {
       await Logging.logDebug({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
@@ -1642,6 +1696,9 @@ export default class OCPPUtils {
       await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
@@ -1672,6 +1729,9 @@ export default class OCPPUtils {
       await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1693,6 +1753,9 @@ export default class OCPPUtils {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1710,6 +1773,9 @@ export default class OCPPUtils {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1721,6 +1787,9 @@ export default class OCPPUtils {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1731,6 +1800,9 @@ export default class OCPPUtils {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1742,6 +1814,9 @@ export default class OCPPUtils {
         await Logging.logError({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'updateChargingStationOcppParametersWithTemplate',
@@ -1793,6 +1868,9 @@ export default class OCPPUtils {
       await Logging.logInfo({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameter',
@@ -1857,6 +1935,9 @@ export default class OCPPUtils {
       await Logging.logError({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_RESET,
         module: MODULE_NAME, method: 'triggerChargingStationReset',
@@ -1866,6 +1947,9 @@ export default class OCPPUtils {
         await Logging.logInfo({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_RESET,
           module: MODULE_NAME, method: 'triggerChargingStationReset',
@@ -1876,6 +1960,9 @@ export default class OCPPUtils {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_RESET,
             module: MODULE_NAME, method: 'triggerChargingStationReset',
@@ -2038,6 +2125,9 @@ export default class OCPPUtils {
                     await Logging.logError({
                       tenantID: tenant.id,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      companyID: chargingStation.companyID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2050,6 +2140,9 @@ export default class OCPPUtils {
                     await Logging.logWarning({
                       tenantID: tenant.id,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      companyID: chargingStation.companyID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2101,6 +2194,9 @@ export default class OCPPUtils {
                     await Logging.logError({
                       tenantID: tenant.id,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      companyID: chargingStation.companyID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2113,6 +2209,9 @@ export default class OCPPUtils {
                     await Logging.logWarning({
                       tenantID: tenant.id,
                       siteID: chargingStation.siteID,
+                      siteAreaID: chargingStation.siteAreaID,
+                      companyID: chargingStation.companyID,
+                      chargingStationID: chargingStation.id,
                       source: chargingStation.id,
                       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
                       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2158,6 +2257,9 @@ export default class OCPPUtils {
         await Logging.logInfo({
           tenantID: tenant.id,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2168,6 +2270,9 @@ export default class OCPPUtils {
           await Logging.logWarning({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2180,6 +2285,9 @@ export default class OCPPUtils {
       await Logging.logDebug({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2191,6 +2299,9 @@ export default class OCPPUtils {
       await Logging.logWarning({
         tenantID: tenant.id,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
@@ -2208,6 +2319,9 @@ export default class OCPPUtils {
     await Logging.logWarning({
       tenantID: tenant.id,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',

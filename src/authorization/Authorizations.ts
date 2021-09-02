@@ -905,6 +905,9 @@ export default class Authorizations {
           if (remoteAuthorization.tagId === tag.ocpiToken?.uid) {
             await Logging.logDebug({
               siteID: chargingStation.siteID,
+              siteAreaID: chargingStation.siteAreaID,
+              companyID: chargingStation.companyID,
+              chargingStationID: chargingStation.id,
               source: chargingStation.id,
               tenantID: tenant.id, action,
               message: `${Utils.buildConnectorInfo(connector.connectorId, transaction?.id)} Valid Remote Authorization found for Tag ID '${tag.ocpiToken.uid}'`,
@@ -990,6 +993,9 @@ export default class Authorizations {
       chargingStation,
       {
         chargeBoxID: chargingStation.id,
+        siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
         badgeID: tagID,
         evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
       }
