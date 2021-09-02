@@ -125,6 +125,7 @@ export interface HttpChargingStationStopTransactionRequest {
     transactionID: string
   }
 }
+
 export interface HttpIsAuthorizedRequest {
   Action: string;
   Arg1: any;
