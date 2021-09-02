@@ -540,7 +540,7 @@ export enum ServerRoute {
   REST_CAR_CATALOG_IMAGES = 'car-catalogs/:id/images',
   REST_CAR_CATALOG_IMAGE = 'car-catalogs/:id/image',
   REST_CAR_CATALOG_SYNCHRONIZE = 'car-catalogs/action/synchronize',
-  REST_CAR_MAKERS = 'car-makes',
+  REST_CAR_MAKERS = 'car-makers',
 
   REST_PING = 'ping',
 
