@@ -37,7 +37,11 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case WSServerProtocol.OCPP16:
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID());
+        this.chargingStationClient = new JsonChargingStationClient(this, this.getTenantID(), this.getChargingStationID(), {
+          siteID: this.getSiteID(),
+          siteAreaID: this.getSiteAreaID(),
+          companyID: this.getCompanyID(),
+        });
         // Create the Json Server Service
         this.chargingStationService = new JsonChargingStationService();
         break;
@@ -75,6 +79,9 @@ export default class JsonWSConnection extends WSConnection {
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
+        siteID: this.getSiteID(),
+        siteAreaID: this.getSiteAreaID(),
+        companyID: this.getCompanyID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseSecureUrl ?? Configuration.getJsonEndpointConfig().baseUrl,
@@ -181,7 +188,11 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: Record<string, unknown> | string): Promise<void> {
-    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    await Logging.logChargingStationServerReceiveAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
+      siteAreaID: this.getSiteAreaID(),
+      siteID: this.getSiteID(),
+      companyID: this.getCompanyID(),
+    }, commandName, commandPayload);
     const methodName = `handle${commandName}`;
     // Check if method exist in the service
     if (typeof this.chargingStationService[methodName] === 'function') {
@@ -191,7 +202,11 @@ export default class JsonWSConnection extends WSConnection {
       // Call it
       const result = await this.chargingStationService[methodName](this.headers, commandPayload);
       // Log
-      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      await Logging.logChargingStationServerRespondAction(Constants.MODULE_JSON_OCPP_SERVER_16, this.getTenantID(), this.getChargingStationID(), {
+        siteAreaID: this.getSiteAreaID(),
+        siteID: this.getSiteID(),
+        companyID: this.getCompanyID(),
+      }, commandName, result);
       // Send Response
       await this.sendMessage(messageId, result, OCPPMessageType.CALL_RESULT_MESSAGE, commandName);
     } else {

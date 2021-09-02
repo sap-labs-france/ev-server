@@ -12,14 +12,24 @@ const MODULE_NAME = 'JsonChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
   private chargingStationID: string;
+  private siteID: string;
+  private siteAreaID: string;
+  private companyID: string;
   private tenantID: string;
   private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection: JsonWSConnection, tenantID: string, chargingStationID: string) {
+  constructor(wsConnection: JsonWSConnection, tenantID: string, chargingStationID: string, chargingStationDetails: {
+    siteAreaID: string,
+    siteID: string,
+    companyID: string,
+  }) {
     super();
     this.wsConnection = wsConnection;
     this.tenantID = tenantID;
     this.chargingStationID = chargingStationID;
+    this.siteID = chargingStationDetails.siteID;
+    this.siteAreaID = chargingStationDetails.siteAreaID;
+    this.companyID = chargingStationDetails.companyID;
   }
 
   getChargingStationID(): string {
@@ -84,11 +94,19 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   private async sendMessage(params: any, commandName: Command): Promise<any> {
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
+      siteAreaID: this.siteAreaID,
+      siteID: this.siteID,
+      companyID: this.companyID,
+    }, `ChargingStation${commandName}` as ServerAction, params);
     // Execute
     const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, commandName);
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, result);
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
+      siteAreaID: this.siteAreaID,
+      siteID: this.siteID,
+      companyID: this.companyID,
+    },`ChargingStation${commandName}` as ServerAction, result);
     return result;
   }
 }

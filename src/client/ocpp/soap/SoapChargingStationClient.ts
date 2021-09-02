@@ -91,8 +91,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_STOP_TRANSACTION);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
-      [params, { headers: this.client.getSoapHeaders() }]);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION,
+    [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.RemoteStopTransaction({
       'remoteStopTransactionRequest': params
@@ -113,7 +117,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, [
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_REMOTE_STOP_TRANSACTION, [
       { result },
       { envelope }
     ]);
@@ -124,8 +132,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.REMOTE_START_TRANSACTION);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
-      [params, { headers: this.client.getSoapHeaders() }]
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION,
+    [params, { headers: this.client.getSoapHeaders() }]
     );
     // Execute
     const { error, result, envelope } = await this.client.RemoteStartTransaction(params);
@@ -147,7 +159,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     }
     // Log
     await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID,
-      this.chargingStation.id, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, [
+      this.chargingStation.id, {
+        siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        companyID: this.chargingStation.companyID,
+      }, ServerAction.CHARGING_STATION_REMOTE_START_TRANSACTION, [
         { result },
         { envelope }
       ]);
@@ -158,8 +174,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.UNLOCK_CONNECTOR);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id,
-      ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, [params, { headers: this.client.getSoapHeaders() }]);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    },
+    ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.UnlockConnector({
       'unlockConnectorRequest': params
@@ -181,7 +201,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, [
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_UNLOCK_CONNECTOR, [
       { result },
       { envelope }
     ]);
@@ -192,8 +216,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.RESET);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET,
-      [params, { headers: this.client.getSoapHeaders() }]);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_RESET,
+    [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.Reset({
       'resetRequest': params
@@ -215,7 +243,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       return error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_RESET, [
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_RESET, [
       { result },
       { envelope }
     ]);
@@ -226,8 +258,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CLEAR_CACHE);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE,
-      { headers: this.client.getSoapHeaders() });
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_CLEAR_CACHE,
+    { headers: this.client.getSoapHeaders() });
     // Execute
     const { error, result, envelope } = await this.client.ClearCache({ clearCacheRequest: {} });
     if (error) {
@@ -247,7 +283,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CLEAR_CACHE, [
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_CLEAR_CACHE, [
       { result },
       { envelope }
     ]);
@@ -258,8 +298,12 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.GET_CONFIGURATION);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
-      [params.key, { headers: this.client.getSoapHeaders() }]);
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_GET_CONFIGURATION,
+    [params.key, { headers: this.client.getSoapHeaders() }]);
     // Set request
     const request: { getConfigurationRequest: OCPPGetConfigurationCommandParam } = {
       'getConfigurationRequest': {}
@@ -288,7 +332,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_GET_CONFIGURATION, [
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_GET_CONFIGURATION, [
       { result },
       { envelope }
     ]);
@@ -300,7 +348,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(Command.CHANGE_CONFIGURATION);
     // Log
-    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, [{
+    await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, {
+      siteID: this.chargingStation.siteID,
+      siteAreaID: this.chargingStation.siteAreaID,
+      companyID: this.chargingStation.companyID,
+    }, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, [{
       'key': key,
       'value': value
     }, { headers: this.client.getSoapHeaders() }]);
@@ -328,10 +380,15 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, [
-      { result },
-      { envelope }
-    ]);
+    await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStation.id,
+      {
+        siteID: this.chargingStation.siteID,
+        siteAreaID: this.chargingStation.siteAreaID,
+        companyID: this.chargingStation.companyID,
+      }, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, [
+        { result },
+        { envelope }
+      ]);
     return result;
   }
 
