@@ -79,19 +79,19 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationActionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandRequest {
+  public validateChargingStationActionReq(data: any): HttpChargingStationCommandRequest {
     // Validate schema
     this.validate(this.chargingStationAction, data);
     return data;
   }
 
-  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationStartTransactionRequest): HttpChargingStationStartTransactionRequest {
+  public validateChargingStationActionStartTransactionReq(data: any): HttpChargingStationStartTransactionRequest {
     // Validate schema for StartTransaction
     this.validate(this.chargingStationActionStartTransaction, data);
     return data;
   }
 
-  public validateChargingStationActionStopTransactionReq(data: HttpChargingStationStopTransactionRequest): HttpChargingStationStopTransactionRequest {
+  public validateChargingStationActionStopTransactionReq(data: any): HttpChargingStationStopTransactionRequest {
     // Validate schema for StopTransaction
     this.validate(this.chargingStationActionStopTransaction, data);
     return data;
@@ -103,7 +103,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationQRCodeDownloadReq(data: HttpDownloadQrCodeRequest): HttpDownloadQrCodeRequest {
+  public validateChargingStationQRCodeDownloadReq(data: any): HttpDownloadQrCodeRequest {
     // Validate schema
     this.validate(this.chargingStationQRCodeDownload, data);
     return data;
