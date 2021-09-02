@@ -7724,6 +7724,220 @@
         }
       }
     },
+    "/api/cars/{id}": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Get car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Return car",
+            "content": {
+              "application/json": {
+                "example": {
+                  "carCatalogID": 1234,
+                  "converter": {
+                    "powerWatts": 11,
+                    "amperagePerPhase": 16,
+                    "numberOfPhases": 3,
+                    "type": "S"
+                  },
+                  "createdOn": "2021-01-08T10:13:19.650Z",
+                  "licensePlate": "###",
+                  "type": "C",
+                  "vin": "###",
+                  "default": true,
+                  "lastChangedOn": "2021-09-02T14:25:20.771Z",
+                  "userID": "###",
+                  "carCatalog": {
+                    "vehicleMake": "Tesla",
+                    "vehicleModel": "Model 3",
+                    "vehicleModelVersion": "Long Range Dual Motor",
+                    "chargeStandardPower": 11,
+                    "chargeStandardPhase": 3,
+                    "chargeStandardPhaseAmp": 16,
+                    "chargeAlternativePower": 0,
+                    "chargeAlternativePhase": 0,
+                    "chargeAlternativePhaseAmp": 0,
+                    "chargeOptionPower": 0,
+                    "chargeOptionPhase": 0,
+                    "chargeOptionPhaseAmp": 0,
+                    "image": "###"
+                  },
+                  "user": {
+                    "firstName": "###",
+                    "name": "###",
+                    "id": "###"
+                  },
+                  "id": "###",
+                  "canRead": true,
+                  "canDelete": true,
+                  "canUpdate": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Create car",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Update a car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Car"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully updated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "###",
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "591": {
+            "description": "The Car with the given VIN and given License plate already exists"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "Delete a car",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/carID"
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "Car successfully deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/BackendError"
+          },
+          "550": {
+            "$ref": "#/components/responses/ResourceDoesNotExists"
+          }
+        }
+      }
+    },
     "/api/assets": {
       "get": {
         "security": [
@@ -9754,6 +9968,15 @@
         "in": "query",
         "name": "CarMaker",
         "description": "Pipe separated car makers",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "carID": {
+        "in": "query",
+        "name": "id",
+        "description": "Car ID",
+        "required": true,
         "schema": {
           "type": "string"
         }

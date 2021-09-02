@@ -21,6 +21,9 @@ export default class CarRouter {
     this.buildRouteGetCarMakers();
     this.buildRouteCreateCar();
     this.buildRouteGetCars();
+    this.buildRouteGetCar();
+    this.buildRouteUpdateCar();
+    this.buildRouteDeleteCar();
     return this.router;
   }
 
@@ -72,6 +75,27 @@ export default class CarRouter {
   protected buildRouteGetCars(): void {
     this.router.get(`/${ServerRoute.REST_CARS}`, async (req: Request, res: Response, next: NextFunction) => {
       await RouterUtils.handleServerAction(CarService.handleGetCars.bind(this), ServerAction.CARS, req, res, next);
+    });
+  }
+
+  protected buildRouteGetCar(): void {
+    this.router.get(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(CarService.handleGetCar.bind(this), ServerAction.CAR, req, res, next);
+    });
+  }
+
+  protected buildRouteUpdateCar(): void {
+    this.router.put(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(CarService.handleUpdateCar.bind(this), ServerAction.CAR_UPDATE, req, res, next);
+    });
+  }
+
+  protected buildRouteDeleteCar(): void {
+    this.router.delete(`/${ServerRoute.REST_CAR}`, async (req: Request, res: Response, next: NextFunction) => {
+      req.query.ID = req.params.id;
+      await RouterUtils.handleServerAction(CarService.handleDeleteCar.bind(this), ServerAction.CAR_DELETE, req, res, next);
     });
   }
 }
