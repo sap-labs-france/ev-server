@@ -95,7 +95,7 @@ export default class MongoDBStorage {
       { fields: { level: 1, timestamp: 1 } },
       { fields: { source: 1, timestamp: 1 } },
       { fields: { host: 1, timestamp: 1 } },
-      { fields: { message: 'text', source: 'text', host: 'text', action: 'text' } },
+      { fields: { message: 'text' } },
     ]);
     // MeterValues
     await this.handleIndexesInCollection(tenantID, 'metervalues', [

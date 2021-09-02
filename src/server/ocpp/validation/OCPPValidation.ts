@@ -99,6 +99,9 @@ export default class OCPPValidation extends SchemaValidator {
       await Logging.logWarning({
         tenantID: tenantID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
@@ -113,6 +116,9 @@ export default class OCPPValidation extends SchemaValidator {
       await Logging.logWarning({
         tenantID: tenantID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,
@@ -132,6 +138,9 @@ export default class OCPPValidation extends SchemaValidator {
           await Logging.logWarning({
             tenantID: tenantID,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: ServerAction.METER_VALUES,
@@ -147,6 +156,9 @@ export default class OCPPValidation extends SchemaValidator {
       await Logging.logWarning({
         tenantID: tenantID,
         siteID: chargingStation.siteID,
+        siteAreaID: chargingStation.siteAreaID,
+        companyID: chargingStation.companyID,
+        chargingStationID: chargingStation.id,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: ServerAction.METER_VALUES,

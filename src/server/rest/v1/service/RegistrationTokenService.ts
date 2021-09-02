@@ -13,7 +13,7 @@ import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import RegistrationTokenStorage from '../../../../storage/mongodb/RegistrationTokenStorage';
 import { ServerAction } from '../../../../types/Server';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import Utils from '../../../../utils/Utils';
 import UtilsService from './UtilsService';
 import moment from 'moment';

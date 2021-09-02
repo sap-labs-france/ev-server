@@ -40,7 +40,7 @@ import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
 import Tenant from '../../../../types/Tenant';
-import TenantComponents from '../../../../types/TenantComponents';
+import { TenantComponents } from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -447,6 +447,9 @@ export default class ChargingStationService {
         await Logging.logWarning({
           tenantID: req.user.tenantID,
           siteID: chargingStation.siteID,
+          siteAreaID: chargingStation.siteAreaID,
+          companyID: chargingStation.companyID,
+          chargingStationID: chargingStation.id,
           source: chargingStation.id,
           action: action,
           user: req.user,
@@ -476,6 +479,9 @@ export default class ChargingStationService {
     await Logging.logInfo({
       tenantID: req.user.tenantID,
       siteID: chargingStation.siteID,
+      siteAreaID: chargingStation.siteAreaID,
+      companyID: chargingStation.companyID,
+      chargingStationID: chargingStation.id,
       source: chargingStation.id,
       action: action,
       user: req.user,
@@ -1164,6 +1170,7 @@ export default class ChargingStationService {
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Remote Start Transaction
@@ -1540,6 +1547,9 @@ export default class ChargingStationService {
               await Logging.logWarning({
                 tenantID: tenant.id,
                 siteID: chargingStation.siteID,
+                siteAreaID: chargingStation.siteAreaID,
+                companyID: chargingStation.companyID,
+                chargingStationID: chargingStation.id,
                 source: chargingStation.id,
                 user: user,
                 action: action,
@@ -1632,6 +1642,9 @@ export default class ChargingStationService {
           await Logging.logError({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',
@@ -1644,6 +1657,9 @@ export default class ChargingStationService {
           await Logging.logInfo({
             tenantID: tenant.id,
             siteID: chargingStation.siteID,
+            siteAreaID: chargingStation.siteAreaID,
+            companyID: chargingStation.companyID,
+            chargingStationID: chargingStation.id,
             source: chargingStation.id,
             user: user,
             module: MODULE_NAME, method: 'handleChargingStationCommand',

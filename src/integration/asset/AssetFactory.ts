@@ -9,7 +9,7 @@ import SchneiderAssetIntegration from './schneider/SchneiderAssetIntegration';
 import { ServerAction } from '../../types/Server';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+import { TenantComponents } from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import WitAssetIntegration from './wit/WitAssetIntegration';
 
