@@ -1,4 +1,4 @@
-import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationCommandStopTransactionRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationCommandStartTransactionRequest, HttpChargingStationCommandStopTransactionRequest, HttpChargingStationConnectorRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationOcppRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationsInErrorRequest, HttpChargingStationsRequest, HttpDownloadQrCodeRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 
 import { ChargingProfile } from '../../../../types/ChargingProfile';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -85,7 +85,7 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandRequest {
+  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandStartTransactionRequest {
     // Validate schema for StartTransaction
     this.validate(this.chargingStationActionStartTransaction, data);
     return data;
