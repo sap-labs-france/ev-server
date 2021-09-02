@@ -1153,6 +1153,7 @@ export default class ChargingStationService {
     switch (command) {
       // Remote Stop Transaction / Unlock Connector
       case Command.REMOTE_STOP_TRANSACTION:
+        filteredRequest = ChargingStationValidator.getInstance().validateChargingStationActionStopTransactionReq(req.body);
         result = await ChargingStationService.executeChargingStationStopTransaction(action, chargingStation, command, filteredRequest, req, res, next);
         break;
       // Remote Start Transaction
