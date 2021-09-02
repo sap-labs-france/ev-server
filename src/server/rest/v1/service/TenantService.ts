@@ -2,7 +2,7 @@ import { Action, Entity } from '../../../../types/Authorization';
 import { CryptoSettings, CryptoSettingsType, SettingDB, SettingDBContent, TechnicalSettings, UserSettings, UserSettingsType } from '../../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import Tenant, { TenantLogo } from '../../../../types/Tenant';
+import Tenant, { TenantComponents , TenantLogo } from '../../../../types/Tenant';
 import User, { UserRole } from '../../../../types/User';
 
 import AppAuthError from '../../../../exception/AppAuthError';
@@ -21,7 +21,7 @@ import { ServerAction } from '../../../../types/Server';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import { StatusCodes } from 'http-status-codes';
-import { TenantComponents } from '../../../../types/Tenant';
+
 import TenantStorage from '../../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validator/TenantValidator';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -419,12 +419,7 @@ export default class TenantService {
       }
       // Create
       const newSettingContent = Utils.createDefaultSettingContent(
-        {
-          ...tenant.components[componentName],
-          name: componentName
-        },
-        currentSetting ? currentSetting.content : null
-      );
+        componentName, tenant.components[componentName], currentSetting?.content);
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
