@@ -16,7 +16,7 @@ const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: ServerAction } };
+  private requests: { [messageUID: string]: { resolve?: (result: Record<string, unknown> | string) => void; reject?: (error: Record<string, unknown>) => void; command: Command } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -192,7 +192,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       this.wsConnection.onmessage = async (message) => {
         try {
           // Parse the message
-          const [messageType, messageId, commandName, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
+          const [messageType, messageId, command, commandPayload, errorDetails]: OCPPIncomingRequest = JSON.parse(message.data) as OCPPIncomingRequest;
           // Check if this corresponds to a request
           if (this.requests[messageId]) {
             // Check message type
@@ -208,13 +208,13 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
                 module: MODULE_NAME, method: 'onMessage',
                 message: `${commandPayload.toString()}`,
-                detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+                detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
               });
               // Resolve with error message
-              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, commandName, commandPayload, errorDetails] });
+              this.requests[messageId].reject({ status: OCPPStatus.REJECTED, error: [messageType, messageId, command, commandPayload, errorDetails] });
             } else {
               // Respond to the request
-              this.requests[messageId].resolve(commandName);
+              this.requests[messageId].resolve(command);
             }
             // Close WS
             this.closeConnection();
@@ -230,7 +230,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
               module: MODULE_NAME, method: 'onMessage',
               message: 'Received unknown message',
-              detailedMessages: { messageType, messageId, commandName, commandPayload, errorDetails }
+              detailedMessages: { messageType, messageId, command, commandPayload, errorDetails }
             });
           }
         } catch (error) {

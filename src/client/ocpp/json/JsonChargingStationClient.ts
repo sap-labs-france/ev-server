@@ -92,21 +92,21 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     return this.sendMessage(params, Command.TRIGGER_DATA_TRANSFER);
   }
 
-  private async sendMessage(params: any, commandName: Command): Promise<any> {
+  private async sendMessage(params: any, command: Command): Promise<any> {
     // Log
     await Logging.logChargingStationClientSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
       siteAreaID: this.siteAreaID,
       siteID: this.siteID,
       companyID: this.companyID,
-    }, `ChargingStation${commandName}` as ServerAction, params);
+    }, `ChargingStation${command}` as ServerAction, params);
     // Execute
-    const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, commandName);
+    const result = await this.wsConnection.sendMessage(Utils.generateUUID(), params, OCPPMessageType.CALL_MESSAGE, command);
     // Log
     await Logging.logChargingStationClientReceiveAction(MODULE_NAME, this.tenantID, this.chargingStationID, {
       siteAreaID: this.siteAreaID,
       siteID: this.siteID,
       companyID: this.companyID,
-    },`ChargingStation${commandName}` as ServerAction, result);
+    },`ChargingStation${command}` as ServerAction, result);
     return result;
   }
 }

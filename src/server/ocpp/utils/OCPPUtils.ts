@@ -1,6 +1,6 @@
 import { BillingDataTransactionStart, BillingDataTransactionStop } from '../../../types/Billing';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, Command, Connector, ConnectorCurrentLimitSource, CurrentType, OcppParameter, SiteAreaLimitSource, StaticLimitAmps, TemplateUpdate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPResetCommandResult, OCPPResetStatus, OCPPResetType } from '../../../types/ocpp/OCPPClient';
 import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPPhase, OCPPReadingContext, OCPPStopTransactionRequestExtended, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../types/ocpp/OCPPServer';
 import { OICPIdentification, OICPSessionID } from '../../../types/oicp/OICPIdentification';
@@ -49,13 +49,17 @@ import url from 'url';
 const MODULE_NAME = 'OCPPUtils';
 
 export default class OCPPUtils {
+  public static getServerActionFromOcppCommand(command: Command): ServerAction {
+    return `Ocpp${command}` as ServerAction;
+  }
+
   public static async checkChargingStationConnectionToken(action: ServerAction, tenant: Tenant, chargingStationID: string,
       tokenID: string, detailedMessages?: any): Promise<RegistrationToken> {
     // Check Token
     if (!tokenID) {
       throw new BackendError({
         source: chargingStationID,
-        action: ServerAction.BOOT_NOTIFICATION,
+        action: ServerAction.OCPP_BOOT_NOTIFICATION,
         module: MODULE_NAME, method: 'checkChargingStationConnectionToken',
         message: 'Charging Station Token is required, connection refused',
         detailedMessages
@@ -128,14 +132,14 @@ export default class OCPPUtils {
     let action: ServerAction;
     switch (transactionAction) {
       case TransactionAction.START:
-        action = ServerAction.START_TRANSACTION;
+        action = ServerAction.OCPP_START_TRANSACTION;
         break;
       case TransactionAction.UPDATE:
         action = ServerAction.UPDATE_TRANSACTION;
         break;
       case TransactionAction.STOP:
       case TransactionAction.END:
-        action = ServerAction.STOP_TRANSACTION;
+        action = ServerAction.OCPP_STOP_TRANSACTION;
         break;
     }
     // Get the client
@@ -157,7 +161,7 @@ export default class OCPPUtils {
       case TransactionAction.START:
         // Get the Session ID and Identification from (remote) authorization stored in Charging Station
         authorization = OICPUtils.getOICPIdentificationFromRemoteAuthorization(
-          chargingStation, transaction.connectorId, ServerAction.START_TRANSACTION);
+          chargingStation, transaction.connectorId, ServerAction.OCPP_START_TRANSACTION);
         if (!authorization) {
           // Get the Session ID and Identification from OCPP Authorize message
           authorization = await OICPUtils.getOICPIdentificationFromAuthorization(tenant, transaction);
@@ -868,7 +872,7 @@ export default class OCPPUtils {
             chargingStationID: chargingStation.id,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'createConsumptionsFromMeterValues',
-            action: ServerAction.METER_VALUES,
+            action: ServerAction.OCPP_METER_VALUES,
             message: 'Meter Value is in the past and will be ignored',
             detailedMessages: { meterValue, transaction }
           });
@@ -2417,14 +2421,14 @@ export default class OCPPUtils {
     let action: ServerAction;
     switch (transactionAction) {
       case TransactionAction.START:
-        action = ServerAction.START_TRANSACTION;
+        action = ServerAction.OCPP_START_TRANSACTION;
         break;
       case TransactionAction.UPDATE:
         action = ServerAction.UPDATE_TRANSACTION;
         break;
       case TransactionAction.STOP:
       case TransactionAction.END:
-        action = ServerAction.STOP_TRANSACTION;
+        action = ServerAction.OCPP_STOP_TRANSACTION;
         break;
     }
     // Check User

@@ -3,6 +3,7 @@ import ChargingStation, { ChargingStationOcppParameters, ChargingStationQRCode, 
 import { HTTPAuthError, HTTPError } from '../../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPRemoteStartStopStatus, OCPPStatus, OCPPUnlockStatus } from '../../../../types/ocpp/OCPPClient';
+import Tenant, { TenantComponents } from '../../../../types/Tenant';
 
 import AppAuthError from '../../../../exception/AppAuthError';
 import AppError from '../../../../exception/AppError';
@@ -39,8 +40,6 @@ import SmartChargingFactory from '../../../../integration/smart-charging/SmartCh
 import { StatusCodes } from 'http-status-codes';
 import Tag from '../../../../types/Tag';
 import TagStorage from '../../../../storage/mongodb/TagStorage';
-import Tenant from '../../../../types/Tenant';
-import { TenantComponents } from '../../../../types/Tenant';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import User from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
@@ -1871,7 +1870,7 @@ export default class ChargingStationService {
     const tag = tags.result[0];
     // Check if user is authorized
     await Authorizations.isAuthorizedToStopTransaction(req.tenant, chargingStation, transaction, tag.id,
-      ServerAction.STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
+      ServerAction.OCPP_STOP_TRANSACTION, Action.REMOTE_STOP_TRANSACTION);
     // Set the tag ID to handle the Stop Transaction afterwards
     transaction.remotestop = {
       timestamp: new Date(),
