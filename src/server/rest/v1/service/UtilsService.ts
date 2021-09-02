@@ -1484,7 +1484,7 @@ export default class UtilsService {
         actionOnUser: filteredRequest.id
       });
     }
-    if (!filteredRequest.name) {
+    if (req.method === 'POST' && !filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
