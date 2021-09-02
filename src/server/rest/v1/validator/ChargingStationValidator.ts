@@ -85,13 +85,13 @@ export default class ChargingStationValidator extends SchemaValidator {
     return data;
   }
 
-  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandStartTransactionRequest {
+  public validateChargingStationActionStartTransactionReq(data: HttpChargingStationCommandStartTransactionRequest): HttpChargingStationCommandStartTransactionRequest {
     // Validate schema for StartTransaction
     this.validate(this.chargingStationActionStartTransaction, data);
     return data;
   }
 
-  public validateChargingStationActionStopTransactionReq(data: HttpChargingStationCommandRequest): HttpChargingStationCommandStopTransactionRequest {
+  public validateChargingStationActionStopTransactionReq(data: HttpChargingStationCommandStopTransactionRequest): HttpChargingStationCommandStopTransactionRequest {
     // Validate schema for StopTransaction
     this.validate(this.chargingStationActionStopTransaction, data);
     return data;
