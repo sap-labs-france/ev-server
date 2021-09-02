@@ -1199,6 +1199,19 @@ export default class ChargingStationService {
               retryInterval: filteredRequest.args.retryInterval,
               startTime: filteredRequest.args.startTime,
               stopTime: filteredRequest.args.stopTime
+            }).catch(async (error) => {
+              // Log
+              await Logging.logException(error, ServerAction.CHARGING_STATION, filteredRequest.chargingStationID,
+                MODULE_NAME, 'GetDiagnostics', req.tenant ?? Constants.DEFAULT_TENANT);
+              throw new AppError({
+                source: chargingStation.id,
+                action: command as unknown as ServerAction,
+                errorCode: HTTPError.GENERAL_ERROR,
+                message: `OCPP Command '${command}' has failed: ` + error.message,
+                module: MODULE_NAME, method: 'handleAction',
+                user: req.user,
+                detailedMessages: { error: error.stack, filteredRequest }
+              });
             });
             break;
           default:
