@@ -168,16 +168,18 @@ export default class UserService {
     let user = await UtilsService.checkAndGetUserAuthorization(
       req.tenant, req.user, filteredRequest.id, Action.UPDATE, action, filteredRequest);
     // Check email already exists
-    const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
-    if (userWithEmail && user.id !== userWithEmail.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
-        message: `Email '${filteredRequest.email}' already exists`,
-        module: MODULE_NAME, method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
+    if (filteredRequest.email) {
+      const userWithEmail = await UserStorage.getUserByEmail(req.tenant, filteredRequest.email);
+      if (userWithEmail && user.id !== userWithEmail.id) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
+          message: `Email '${filteredRequest.email}' already exists`,
+          module: MODULE_NAME, method: 'handleUpdateUser',
+          user: req.user,
+          action: action
+        });
+      }
     }
     // Check if Status has been changed
     if (filteredRequest.status && filteredRequest.status !== user.status) {
@@ -192,11 +194,15 @@ export default class UserService {
     user = {
       ...user,
       ...filteredRequest,
-      name: filteredRequest.name.toUpperCase(),
-      email: filteredRequest.email.toLowerCase(),
       lastChangedBy: lastChangedBy,
       lastChangedOn: lastChangedOn,
     };
+    if (filteredRequest.name) {
+      user.name = filteredRequest.name.toUpperCase();
+    }
+    if (filteredRequest.email) {
+      user.email = filteredRequest.email.toLowerCase();
+    }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.tenant, user, true);
     // Save User's password

@@ -5587,7 +5587,84 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "type": "object",
+                "properties": {
+                  "costCenter": {
+                    "type": "string",
+                    "example": "######"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Demo"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "User"
+                  },
+                  "iNumber": {
+                    "type": "string",
+                    "example": "1234567"
+                  },
+                  "image": {
+                    "type": "string"
+                  },
+                  "mobile": {
+                    "type": "string",
+                    "example": "0000000000"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "example": "en_EN"
+                  },
+                  "address": {
+                    "$ref": "#/components/schemas/Address"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "DeM*Us$r1"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "0000000000"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "user.demo@sap.com"
+                  },
+                  "issuer": {
+                    "type": "boolean"
+                  },
+                  "notifcationsActive": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "P",
+                      "A",
+                      "I",
+                      "B",
+                      "L"
+                    ]
+                  },
+                  "plateID": {
+                    "type": "string",
+                    "example": "DEMO"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "S",
+                      "A",
+                      "B",
+                      "D"
+                    ],
+                    "example": "B"
+                  },
+                  "notifications": {
+                    "$ref": "#/components/schemas/Notifications"
+                  }
+                }
               }
             }
           }
